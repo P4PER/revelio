@@ -1,6 +1,14 @@
 import {
-  pgTable, text, integer, boolean, jsonb, primaryKey, index,
+  pgTable, text, integer, boolean, jsonb, timestamp, primaryKey, index,
 } from 'drizzle-orm/pg-core'
+
+// Editability metadata shared by every table: pipeline rows are origin='import',
+// future in-app creates will be origin='user'.
+const editable = {
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  origin: text('origin').notNull().default('import'),
+}
 
 export const sets = pgTable('sets', {
   code: text('code').primaryKey(),
@@ -9,6 +17,7 @@ export const sets = pgTable('sets', {
   isOfficial: boolean('is_official').notNull().default(false),
   cardCount: integer('card_count').notNull().default(0),
   symbol: text('symbol'),
+  ...editable,
 })
 
 export const cards = pgTable('cards', {
@@ -32,6 +41,7 @@ export const cards = pgTable('cards', {
   rulings: jsonb('rulings'),
   defaultLanguage: text('default_language').notNull(),
   languages: text('languages').array().notNull().default([]),
+  ...editable,
 }, (t) => ({
   setCodeIdx: index('cards_set_code_idx').on(t.setCode),
 }))
@@ -48,6 +58,7 @@ export const cardLocalizations = pgTable('card_localizations', {
   match: jsonb('match'),
   imageFile: text('image_file'),
   imageUrl: text('image_url'),
+  ...editable,
 }, (t) => ({
   pk: primaryKey({ columns: [t.cardId, t.lang] }),
 }))

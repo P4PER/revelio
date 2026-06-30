@@ -1,0 +1,14 @@
+{
+  "name": "@revelio/ingest",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@revelio/db": "*",
+    "drizzle-orm": "^0.38.0",
+    "postgres": "^3.4.0"
+  }
+}

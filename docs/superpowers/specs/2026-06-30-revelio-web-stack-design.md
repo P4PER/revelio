@@ -107,6 +107,38 @@ S3_SECRET_KEY=...
 NEXT_PUBLIC_IMAGE_BASE_URL=...
 ```
 
+## Visual design direction
+
+Grounded in the Reveal-Glow brand (`logos/BRAND-GUIDE.md`), borrowing from the HP TCG
+card aesthetic, kept modern. **Dark-first**: the Revelio concept is gold light revealing
+the hidden dark, so a midnight/indigo canvas with gold as the revealing accent — which
+also makes the colorful card art pop.
+
+**Palette**
+- Canvas: midnight `#13122A`, badge `#181634`, ink `#1C1838` surfaces
+- Accent (gold): `#E8B23A` primary, `#F6D58B` glow, `#C8881E` pressed
+- Indigo: `#3B3194` / `#6E66C9` for secondary UI, links, structure
+- Parchment `#FBF3DC` for text-heavy panels (rules/flavor boxes)
+- Optional later: a light "parchment" theme toggle
+
+**TCG cues, applied as accents (not skeuomorphism)**
+- Gold hairline borders + subtle corner flourishes on cards/panels (thin, no heavy textures)
+- A faint gold "reveal" glow on hover/focus (the charm motif as a micro-interaction)
+- Lesson colors as filter/type accents — the magic lessons (Creatures, Charms, Potions,
+  Transfiguration, Quidditch) color-code type chips/facets, echoing the cards
+- Parchment-toned panels only for rules/flavor text; everything else stays clean dark
+
+**Modern guardrails**
+- Poppins throughout (geometric sans), SemiBold headings to match the wordmark
+- Clean responsive grid, generous whitespace, Scryfall-style card grid, rounded corners,
+  soft shadows, gold focus rings
+- Ornament is accent only (hairlines, glow, one flourish) — never full filigree/parchment
+  textures everywhere
+- Optional: a refined display serif for flavor-text/quotes only, as a single TCG accent
+
+**Confirmed decisions:** dark-first default (light/parchment theme optional, later);
+lesson colors used for type/facet accents.
+
 ## Scope: first cut (MVP)
 
 **In:**

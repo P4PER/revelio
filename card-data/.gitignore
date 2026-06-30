@@ -1,0 +1,5 @@
+dist/
+hpjson/
+__pycache__/
+.DS_Store
+assets/

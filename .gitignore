@@ -1,0 +1,19 @@
+# === macOS ===
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.env
+
+# === Build / generierte Artefakte ===
+dist/
+hpjson/
+
+# === Große Assets / Bilddaten (nicht versionieren) ===
+card-data/assets/

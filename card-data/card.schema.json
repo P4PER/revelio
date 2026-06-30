@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://revelio.cards/schemas/card.schema.json",
+  "title": "revelio.cards Card",
+  "description": "Normalized, multilingual card schema for revelio.cards, derived from Tressley/hpjson. Gameplay fields are language-independent; printed text and the card image live per language under 'localizations'. Set metadata is referenced via setCode (see sets.schema.json).",
+  "type": "object",
+  "required": ["id", "setCode", "number", "types", "rarity", "finish", "name", "defaultLanguage", "languages", "localizations"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable slug for URLs, e.g. 'base-8-harry-potter' (set-number-name).",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "name": { "type": "string", "description": "Canonical name (English) – fallback and sort key. Derived (= localizations.en.name)." },
+    "setCode": { "type": "string", "description": "Reference into sets.json, e.g. 'BS', 'QC', 'DA'." },
+    "number": { "type": "string", "description": "Collector number within the set." },
+    "types": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Canonical English type keys (for filtering): Character, Creature, Spell, Item, Adventure, Location, Event, Lesson, Match. Display labels are translated in the UI."
+    },
+    "subTypes": { "type": "array", "items": { "type": "string" }, "description": "Canonical English subtype keys (UI translates labels)." },
+    "lesson": {
+      "type": ["string", "null"],
+      "description": "Canonical lesson key: Charms, Transfiguration, Potions, Care of Magical Creatures, Quidditch."
+    },
+    "cost": { "type": ["integer", "null"], "description": "Lesson cost to play the card." },
+    "provides": {
+      "type": ["array", "null"],
+      "description": "Which lesson(s) the card provides (Lesson cards, wands, etc.).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lesson": { "type": "string" },
+          "amount": { "type": "integer" }
+        }
+      }
+    },
+    "rarity": { "type": "string", "enum": ["Common", "Uncommon", "Rare", "Lesson"], "description": "Base rarity (UI translates). Premium printings carry the base rarity here; their foil/holo treatment is in 'finish'. NB: base rarity of premium-only cards isn't in the source data and defaults to 'Rare'." },
+    "finish": { "type": "string", "enum": ["normal", "foil", "holo"], "description": "Print finish: normal, foil (Foil Premium) or holo (Holo Portrait Premium)." },
+    "artist": { "type": "array", "items": { "type": "string" } },
+    "stats": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "description": "Creatures only. Numbers, language-independent.",
+      "properties": {
+        "health": { "type": ["integer", "null"] },
+        "damagePerTurn": { "type": ["integer", "null"] }
+      }
+    },
+    "orientation": { "type": "string", "enum": ["horizontal", "vertical"] },
+    "legality": { "type": "string", "enum": ["legal", "banned", "restricted", "unknown"] },
+    "draftValue": { "type": ["number", "null"] },
+    "rulings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "date": { "type": "string" },
+          "source": { "type": "string" },
+          "ruling": { "type": "string" }
+        }
+      }
+    },
+    "defaultLanguage": { "type": "string", "description": "Fallback language code, e.g. 'en'." },
+    "languages": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Language codes for which a localization exists, e.g. ['en','de']."
+    },
+    "localizations": {
+      "type": "object",
+      "description": "Printed card face per language, keyed by ISO code (en, de, fr, it, pt, es).",
+      "minProperties": 1,
+      "propertyNames": { "pattern": "^[a-z]{2}$" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "status"],
+        "properties": {
+          "name": { "type": "string", "description": "Printed card name in this language." },
+          "status": {
+            "type": "string",
+            "enum": ["official", "machine", "community", "unknown"],
+            "description": "Provenance: official printed text, machine translation, community-contributed, or unknown."
+          },
+          "source": { "type": ["string", "null"], "description": "Origin note, e.g. 'WotC (hpjson)', 'DeepL', 'AMIGO scan'." },
+          "text": { "type": ["string", "null"], "description": "Printed rules text." },
+          "flavorText": { "type": ["string", "null"] },
+          "adventure": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "description": "Adventure cards only.",
+            "properties": {
+              "effect": { "type": ["string", "null"] },
+              "toSolve": { "type": ["string", "null"] },
+              "reward": { "type": ["string", "null"] }
+            }
+          },
+          "match": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "description": "Match cards only.",
+            "properties": {
+              "toWin": { "type": ["string", "null"] },
+              "prize": { "type": ["string", "null"] }
+            }
+          },
+          "image": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Per-language card image reference (filename/path only).",
+            "properties": {
+              "file": { "type": ["string", "null"] },
+              "url": { "type": ["string", "null"] }
+            }
+          }
+        }
+      }
+    }
+  }
+}

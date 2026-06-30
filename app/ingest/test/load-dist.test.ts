@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { loadDist } from '../src/load-dist.js'
 
-const fixtureDir = resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures/dist')
+const fixtureDir = resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures/dataset')
 
 describe('loadDist', () => {
   it('parses sets keyed object into an array', async () => {

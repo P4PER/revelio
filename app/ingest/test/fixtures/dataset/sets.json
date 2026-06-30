@@ -1,0 +1,4 @@
+{
+  "BS": { "code": "BS", "name": "Base", "releaseDate": "08-2001", "isOfficial": true, "cardCount": 2, "symbol": "http://example/bs.png" },
+  "QC": { "code": "QC", "name": "Quidditch Cup", "releaseDate": "11-2001", "isOfficial": true, "cardCount": 1, "symbol": null }
+}

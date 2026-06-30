@@ -158,9 +158,10 @@ updates or deletes** existing rows. Consequences:
 
 - Re-running ingest (e.g. a redeploy) is a safe no-op for existing data; a later pipeline
   run can add *new* official cards without clobbering anything created or edited in-app.
-- Every table carries editability metadata: `created_at`, `updated_at`, and `source`
-  (`import` for pipeline-seeded rows, `user` for in-app creates). Localization provenance
-  also keeps the existing `status` (`official` / `machine` / `community` / `unknown`).
+- Every table carries editability metadata: `created_at`, `updated_at`, and `origin`
+  (`import` for pipeline-seeded rows, `user` for in-app creates). `card_localizations`
+  additionally keeps its own `source` (translation-text provenance) and `status`
+  (`official` / `machine` / `community` / `unknown`).
 - The `pgdata` volume now holds **non-regenerable** content → it must be **backed up**.
 - Meilisearch and MinIO are **derived from Postgres** and kept in sync on writes (in-app
   edits reindex/upload), not rebuilt from `dist/`. The initial seed primes them from the
@@ -238,8 +239,8 @@ stemming/typo behavior.
   Prepared via Postgres as the source of truth; auth later, e.g. Auth.js.
 - **In-app authoring** — create/edit sets, cards, and localizations (incl. community
   translations) through the app. The data model is built for it from day one (Postgres
-  authoritative, additive seed, `source`/`status`/timestamps, write-time Meili/MinIO
-  sync), but the write API/UI and the auth that gates it are a later plan.
+  authoritative, additive seed, `origin`/`source`/`status`/timestamps, write-time
+  Meili/MinIO sync), but the write API/UI and the auth that gates it are a later plan.
 
 ## Open details for the planning phase
 

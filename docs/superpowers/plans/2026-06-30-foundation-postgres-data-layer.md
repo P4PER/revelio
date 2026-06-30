@@ -13,7 +13,7 @@
 - Node **20+**, TypeScript, ESM (`"type": "module"`) everywhere.
 - Config is **env-driven only — no hardcoded hosts**. This plan uses `DATABASE_URL` and `DATA_DIR` (default `/data`).
 - **Postgres is the source of truth.** The pipeline is a **one-time additive seed**: every load uses `INSERT ... ON CONFLICT DO NOTHING` — it inserts only missing rows and **never updates or deletes** existing ones (so in-app edits and a later additive import never clobber each other). Re-running is a safe no-op.
-- Every table carries editability metadata: `created_at` + `updated_at` (`timestamp`, default now, not null) and `source` (`text`, not null, default `'import'`; seed rows = `'import'`, future in-app creates = `'user'`).
+- Every table carries editability metadata: `created_at` + `updated_at` (`timestamp`, default now, not null) and `origin` (`text`, not null, default `'import'`; seed rows = `'import'`, future in-app creates = `'user'`). The pre-existing nullable `card_localizations.source` (translation provenance, e.g. "WotC (hpjson)") is a different column and is kept.
 - All prose, comments, identifiers, and commit messages in **English**.
 - Commit messages follow **Conventional Commits** (`feat:`, `chore:`, `test:`, `docs:`).
 - Postgres is the source of truth. **No `tsvector` column** — full-text search is Meilisearch's job (later plan).
@@ -524,7 +524,7 @@ import {
 const editable = {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
-  source: text('source').notNull().default('import'),
+  origin: text('origin').notNull().default('import'),
 }
 
 export const sets = pgTable('sets', {
@@ -581,16 +581,16 @@ export const cardLocalizations = pgTable('card_localizations', {
 }))
 ```
 
-Note: `card_localizations` already has a `status` column (translation provenance: official/machine/community). The `source` from `editable` (import/user) is a different axis — keep both. The `editable.source` overrides nothing; there is only one `source` column per table.
+Note: `card_localizations` already has a nullable `source` column (translation-text provenance like "WotC (hpjson)") and a `status` column (official/machine/community). The `origin` column from `editable` (import/user) is a separate axis — `card_localizations` keeps its own `source` line AND gains `origin`; the two names must not collide.
 
 - [ ] **Step 2: Generate the migration**
 
 Run: `cd app && npm run db:generate`
-Expected: drizzle-kit writes `app/db/drizzle/0001_*.sql` containing `ALTER TABLE ... ADD COLUMN "created_at"`, `"updated_at"`, and `"source"` for all three tables.
+Expected: drizzle-kit writes `app/db/drizzle/0001_*.sql` containing `ALTER TABLE ... ADD COLUMN "created_at"`, `"updated_at"`, and `"origin"` for all three tables.
 
 - [ ] **Step 3: Verify the migration adds the columns**
 
-Run: `grep -c 'ADD COLUMN "source"' app/db/drizzle/0001_*.sql`
+Run: `grep -c 'ADD COLUMN "origin"' app/db/drizzle/0001_*.sql`
 Expected: `3` (one per table).
 
 - [ ] **Step 4: Commit**
@@ -612,7 +612,7 @@ git commit -m "feat: add created_at, updated_at and source columns"
 **Interfaces:**
 - Consumes: `DistSet`, `@revelio/db` (`createClient`, `runMigrations`, `sets`).
 - Produces:
-  - `loadSets(db: DB, sets: DistSet[]): Promise<void>` — inserts with `source: 'import'`, **`ON CONFLICT DO NOTHING`** (never overwrites).
+  - `loadSets(db: DB, sets: DistSet[]): Promise<void>` — inserts with `origin: 'import'`, **`ON CONFLICT DO NOTHING`** (never overwrites).
   - test helper `withMigratedDb(): Promise<{ db, sql, container, stop() }>`
 
 - [ ] **Step 1: Write the test helper**
@@ -656,13 +656,13 @@ const sample = [
 ]
 
 describe('loadSets', () => {
-  it('inserts all sets tagged source=import', async () => {
+  it('inserts all sets tagged origin=import', async () => {
     await loadSets(ctx.db, sample)
     const rows = await ctx.db.select().from(sets)
     expect(rows).toHaveLength(2)
     const bs = rows.find((r) => r.code === 'BS')!
     expect(bs.name).toBe('Base')
-    expect(bs.source).toBe('import')
+    expect(bs.origin).toBe('import')
     expect(bs.createdAt).toBeInstanceOf(Date)
   })
 
@@ -699,7 +699,7 @@ export async function loadSets(db: DB, input: DistSet[]): Promise<void> {
       isOfficial: s.isOfficial,
       cardCount: s.cardCount,
       symbol: s.symbol,
-      source: 'import',
+      origin: 'import',
     })))
     .onConflictDoNothing({ target: sets.code })
 }
@@ -727,7 +727,7 @@ git commit -m "feat: additively import sets into Postgres"
 
 **Interfaces:**
 - Consumes: `DistCard`, `@revelio/db` (`cards`, `cardLocalizations`), `loadSets` (FK parent must exist first), `loadDist`.
-- Produces: `loadCards(db: DB, cards: DistCard[]): Promise<void>` — inserts cards and one localization row per language with `source: 'import'`, **`ON CONFLICT DO NOTHING`**.
+- Produces: `loadCards(db: DB, cards: DistCard[]): Promise<void>` — inserts cards and one localization row per language (keeping the dist `source`, tagged `origin: 'import'`), **`ON CONFLICT DO NOTHING`**.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -755,7 +755,7 @@ beforeAll(async () => {
 afterAll(async () => { await ctx.stop() })
 
 describe('loadCards', () => {
-  it('inserts all cards with split stats, string number, and source=import', async () => {
+  it('inserts all cards with split stats, string number, and origin=import', async () => {
     const rows = await ctx.db.select().from(cards)
     expect(rows).toHaveLength(3)
     const flobber = rows.find((r) => r.id === 'bs-2-flobberworm')!
@@ -763,7 +763,7 @@ describe('loadCards', () => {
     expect(flobber.damagePerTurn).toBeNull()
     expect(flobber.cost).toBe(2)
     expect(flobber.provides).toEqual([{ lesson: 'Charms', amount: 1 }])
-    expect(flobber.source).toBe('import')
+    expect(flobber.origin).toBe('import')
     const split = rows.find((r) => r.id === 'bs-1-dean-thomas')!
     expect(split.types).toEqual(['Character'])
     expect(split.health).toBeNull()
@@ -845,7 +845,7 @@ export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
     rulings: c.rulings ?? [],
     defaultLanguage: c.defaultLanguage,
     languages: c.languages,
-    source: 'import',
+    origin: 'import',
   }))
 
   await db.insert(cards).values(cardRows).onConflictDoNothing({ target: cards.id })
@@ -856,7 +856,8 @@ export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
       lang,
       name: l.name,
       status: l.status,
-      source: 'import',
+      source: l.source,
+      origin: 'import',
       text: l.text,
       flavorText: l.flavorText,
       adventure: l.adventure ?? null,
@@ -1103,9 +1104,9 @@ Expected: the `ingest` container logs `seed complete: <N> sets, 1035 cards impor
 Run:
 ```bash
 cd app && docker compose up -d postgres && \
-docker compose exec -T postgres psql -U revelio -d revelio -c "select count(*) from cards; select count(*) from card_localizations; select count(*) from sets; select distinct source from cards;"
+docker compose exec -T postgres psql -U revelio -d revelio -c "select count(*) from cards; select count(*) from card_localizations; select count(*) from sets; select distinct origin from cards;"
 ```
-Expected: `cards` = 1035; `card_localizations` ≥ 1035; `sets` = the number of entries in `dist/sets.json`; `source` = `import`.
+Expected: `cards` = 1035; `card_localizations` ≥ 1035; `sets` = the number of entries in `dist/sets.json`; `origin` = `import`.
 
 - [ ] **Step 6: Verify a second run is a safe no-op**
 
@@ -1135,7 +1136,7 @@ git commit -m "feat: add dev compose and ingest Dockerfile seeding real dataset"
 **Spec coverage (this plan's slice — "Foundation + Postgres data layer"):**
 - `app/` workspace + folder layout → Task 1, Task 2 ✓
 - Postgres schema from `DATABASE-CHOICE.md` (minus `tsvector`, per Meili decision) → Task 1 ✓
-- Editability metadata (`created_at`/`updated_at`/`source`) → Task 3 ✓
+- Editability metadata (`created_at`/`updated_at`/`origin`) → Task 3 ✓
 - Drizzle ORM + migrations → Task 1, Task 3 ✓
 - Postgres as source of truth; one-time **additive** seed (`ON CONFLICT DO NOTHING`, never overwrites) → Tasks 4–6 ✓
 - env-driven config (`DATABASE_URL`, `DATA_DIR`), no hardcoded hosts → Task 6, Task 7 ✓

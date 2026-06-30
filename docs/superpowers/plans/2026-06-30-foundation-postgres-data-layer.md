@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Stand up the `app/` workspace and load the built card dataset (`card-data/dist/`) into PostgreSQL via an idempotent ingest job, runnable locally with `docker compose up`.
+**Goal:** Stand up the `app/` workspace and load the built card dataset (`card-data/dist/`) into PostgreSQL via a one-time additive seed job (Postgres is the source of truth; the import never overwrites existing rows), runnable locally with `docker compose up`.
 
-**Architecture:** An npm-workspaces root (`app/`) with two packages: `@revelio/db` (Drizzle schema + migrations + client) and `@revelio/ingest` (a one-shot Node/TypeScript loader). The loader reads `dist/sets.json` + `dist/cards.json` from `DATA_DIR`, runs migrations, then upserts `sets`, `cards`, and `card_localizations`. Integration tests run against a throwaway Postgres via Testcontainers.
+**Architecture:** An npm-workspaces root (`app/`) with two packages: `@revelio/db` (Drizzle schema + migrations + client) and `@revelio/ingest` (a one-shot Node/TypeScript loader). The loader reads `dist/sets.json` + `dist/cards.json` from `DATA_DIR`, runs migrations, then **additively imports** (`ON CONFLICT DO NOTHING`) `sets`, `cards`, and `card_localizations` — Postgres is the source of truth and existing rows are never overwritten. Integration tests run against a throwaway Postgres via Testcontainers.
 
 **Tech Stack:** Node 20, TypeScript (ESM), npm workspaces, Drizzle ORM + drizzle-kit, `postgres` (postgres.js) driver, Vitest, `@testcontainers/postgresql`, Docker Compose.
 
@@ -12,10 +12,11 @@
 
 - Node **20+**, TypeScript, ESM (`"type": "module"`) everywhere.
 - Config is **env-driven only — no hardcoded hosts**. This plan uses `DATABASE_URL` and `DATA_DIR` (default `/data`).
-- Ingest is **idempotent**: every load uses upsert (`INSERT ... ON CONFLICT DO UPDATE`); re-running changes nothing.
+- **Postgres is the source of truth.** The pipeline is a **one-time additive seed**: every load uses `INSERT ... ON CONFLICT DO NOTHING` — it inserts only missing rows and **never updates or deletes** existing ones (so in-app edits and a later additive import never clobber each other). Re-running is a safe no-op.
+- Every table carries editability metadata: `created_at` + `updated_at` (`timestamp`, default now, not null) and `source` (`text`, not null, default `'import'`; seed rows = `'import'`, future in-app creates = `'user'`).
 - All prose, comments, identifiers, and commit messages in **English**.
 - Commit messages follow **Conventional Commits** (`feat:`, `chore:`, `test:`, `docs:`).
-- Postgres is the serving source-of-truth. **No `tsvector` column** — full-text search is Meilisearch's job (later plan).
+- Postgres is the source of truth. **No `tsvector` column** — full-text search is Meilisearch's job (later plan).
 - `number` is a **string** (`"3a"`), not an integer. `cost`, `health`, `damagePerTurn`, `draftValue` are nullable integers.
 - New code lives under `app/`. `card-data/` and `logos/` are untouched.
 
@@ -48,12 +49,12 @@ app/
     src/
       types.ts                     # TS types for dist JSON
       load-dist.ts                 # read+parse dist files from DATA_DIR
-      load-sets.ts                 # upsert sets
-      load-cards.ts                # upsert cards + localizations
-      main.ts                      # entrypoint: migrate + load
+      load-sets.ts                 # additive import of sets (ON CONFLICT DO NOTHING)
+      load-cards.ts                # additive import of cards + localizations
+      main.ts                      # entrypoint: migrate + seed
     test/
-      fixtures/dist/sets.json
-      fixtures/dist/cards.json
+      fixtures/dataset/sets.json   # (not "dist/" — .gitignore would swallow it)
+      fixtures/dataset/cards.json
       helpers.ts                   # Testcontainers Postgres + migrated client
       load-dist.test.ts
       load-sets.test.ts
@@ -500,7 +501,108 @@ git commit -m "feat: add dist dataset types and loader"
 
 ---
 
-### Task 3: Test helper + upsert `sets`
+### Task 3: Add editability columns (timestamps + source)
+
+**Files:**
+- Modify: `app/db/src/schema.ts`
+- Generated: `app/db/drizzle/0001_*.sql` (via drizzle-kit)
+
+**Interfaces:**
+- Consumes: the Task 1 schema.
+- Produces: each of `sets`, `cards`, `cardLocalizations` gains `createdAt` (`created_at`), `updatedAt` (`updated_at`), and `source` (`source`) columns. No signature changes to `createClient` / `runMigrations`.
+
+- [ ] **Step 1: Replace the schema with the editability columns added**
+
+Rewrite `app/db/src/schema.ts` so all three tables share a DRY `editable` column set:
+```ts
+import {
+  pgTable, text, integer, boolean, jsonb, timestamp, primaryKey, index,
+} from 'drizzle-orm/pg-core'
+
+// Editability metadata shared by every table: pipeline rows are source='import',
+// future in-app creates will be source='user'.
+const editable = {
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  source: text('source').notNull().default('import'),
+}
+
+export const sets = pgTable('sets', {
+  code: text('code').primaryKey(),
+  name: text('name').notNull(),
+  releaseDate: text('release_date'),
+  isOfficial: boolean('is_official').notNull().default(false),
+  cardCount: integer('card_count').notNull().default(0),
+  symbol: text('symbol'),
+  ...editable,
+})
+
+export const cards = pgTable('cards', {
+  id: text('id').primaryKey(),
+  setCode: text('set_code').notNull().references(() => sets.code),
+  number: text('number').notNull(),
+  name: text('name').notNull(),
+  types: text('types').array().notNull().default([]),
+  subTypes: text('sub_types').array().notNull().default([]),
+  lesson: text('lesson'),
+  cost: integer('cost'),
+  provides: jsonb('provides'),
+  rarity: text('rarity'),
+  finish: text('finish'),
+  artist: text('artist').array().notNull().default([]),
+  health: integer('health'),
+  damagePerTurn: integer('damage_per_turn'),
+  orientation: text('orientation'),
+  legality: text('legality'),
+  draftValue: integer('draft_value'),
+  rulings: jsonb('rulings'),
+  defaultLanguage: text('default_language').notNull(),
+  languages: text('languages').array().notNull().default([]),
+  ...editable,
+}, (t) => ({
+  setCodeIdx: index('cards_set_code_idx').on(t.setCode),
+}))
+
+export const cardLocalizations = pgTable('card_localizations', {
+  cardId: text('card_id').notNull().references(() => cards.id),
+  lang: text('lang').notNull(),
+  name: text('name').notNull(),
+  status: text('status'),
+  source: text('source'),
+  text: text('text'),
+  flavorText: text('flavor_text'),
+  adventure: jsonb('adventure'),
+  match: jsonb('match'),
+  imageFile: text('image_file'),
+  imageUrl: text('image_url'),
+  ...editable,
+}, (t) => ({
+  pk: primaryKey({ columns: [t.cardId, t.lang] }),
+}))
+```
+
+Note: `card_localizations` already has a `status` column (translation provenance: official/machine/community). The `source` from `editable` (import/user) is a different axis — keep both. The `editable.source` overrides nothing; there is only one `source` column per table.
+
+- [ ] **Step 2: Generate the migration**
+
+Run: `cd app && npm run db:generate`
+Expected: drizzle-kit writes `app/db/drizzle/0001_*.sql` containing `ALTER TABLE ... ADD COLUMN "created_at"`, `"updated_at"`, and `"source"` for all three tables.
+
+- [ ] **Step 3: Verify the migration adds the columns**
+
+Run: `grep -c 'ADD COLUMN "source"' app/db/drizzle/0001_*.sql`
+Expected: `3` (one per table).
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add app/db/src/schema.ts app/db/drizzle
+git commit -m "feat: add created_at, updated_at and source columns"
+```
+
+---
+
+### Task 4: Test helper + additive `loadSets`
 
 **Files:**
 - Create: `app/ingest/test/helpers.ts`
@@ -508,9 +610,9 @@ git commit -m "feat: add dist dataset types and loader"
 - Test: `app/ingest/test/load-sets.test.ts`
 
 **Interfaces:**
-- Consumes: `loadDist`, `DistSet`, `@revelio/db` (`createClient`, `runMigrations`, `sets`).
+- Consumes: `DistSet`, `@revelio/db` (`createClient`, `runMigrations`, `sets`).
 - Produces:
-  - `loadSets(db: DB, sets: DistSet[]): Promise<void>`
+  - `loadSets(db: DB, sets: DistSet[]): Promise<void>` — inserts with `source: 'import'`, **`ON CONFLICT DO NOTHING`** (never overwrites).
   - test helper `withMigratedDb(): Promise<{ db, sql, container, stop() }>`
 
 - [ ] **Step 1: Write the test helper**
@@ -554,25 +656,28 @@ const sample = [
 ]
 
 describe('loadSets', () => {
-  it('inserts all sets', async () => {
+  it('inserts all sets tagged source=import', async () => {
     await loadSets(ctx.db, sample)
     const rows = await ctx.db.select().from(sets)
     expect(rows).toHaveLength(2)
-    expect(rows.find((r) => r.code === 'BS')?.name).toBe('Base')
+    const bs = rows.find((r) => r.code === 'BS')!
+    expect(bs.name).toBe('Base')
+    expect(bs.source).toBe('import')
+    expect(bs.createdAt).toBeInstanceOf(Date)
   })
 
-  it('is idempotent and updates on re-run', async () => {
-    await loadSets(ctx.db, [{ ...sample[0], name: 'Base Set' }, sample[1]])
+  it('re-run never overwrites existing rows (additive)', async () => {
+    await loadSets(ctx.db, [{ ...sample[0], name: 'CHANGED' }, sample[1]])
     const rows = await ctx.db.select().from(sets)
     expect(rows).toHaveLength(2)
-    expect(rows.find((r) => r.code === 'BS')?.name).toBe('Base Set')
+    expect(rows.find((r) => r.code === 'BS')?.name).toBe('Base') // preserved, not overwritten
   })
 })
 ```
 
 - [ ] **Step 3: Run test to verify it fails**
 
-Run: `cd app && npx vitest run -w @revelio/ingest load-sets`
+Run: `cd app && npm install && cd ingest && npx vitest run load-sets`
 Expected: FAIL — `Cannot find module '../src/load-sets.js'`.
 
 - [ ] **Step 4: Write the implementation**
@@ -594,44 +699,35 @@ export async function loadSets(db: DB, input: DistSet[]): Promise<void> {
       isOfficial: s.isOfficial,
       cardCount: s.cardCount,
       symbol: s.symbol,
+      source: 'import',
     })))
-    .onConflictDoUpdate({
-      target: sets.code,
-      set: {
-        name: sql`excluded.name`,
-        releaseDate: sql`excluded.release_date`,
-        isOfficial: sql`excluded.is_official`,
-        cardCount: sql`excluded.card_count`,
-        symbol: sql`excluded.symbol`,
-      },
-    })
+    .onConflictDoNothing({ target: sets.code })
 }
 ```
-Add this import at the top of the file: `import { sql } from 'drizzle-orm'`.
 
 - [ ] **Step 5: Run test to verify it passes**
 
-Run: `cd app && npx vitest run -w @revelio/ingest load-sets`
+Run: `cd app/ingest && npx vitest run load-sets`
 Expected: PASS (2 tests).
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add app/ingest/test/helpers.ts app/ingest/src/load-sets.ts app/ingest/test/load-sets.test.ts
-git commit -m "feat: upsert sets into Postgres with idempotency test"
+git commit -m "feat: additively import sets into Postgres"
 ```
 
 ---
 
-### Task 4: Upsert `cards` + `card_localizations`
+### Task 5: Additive `loadCards` + `card_localizations`
 
 **Files:**
 - Create: `app/ingest/src/load-cards.ts`
 - Test: `app/ingest/test/load-cards.test.ts`
 
 **Interfaces:**
-- Consumes: `DistCard`, `@revelio/db` (`cards`, `cardLocalizations`), `loadSets` (FK parent must exist first).
-- Produces: `loadCards(db: DB, cards: DistCard[]): Promise<void>`
+- Consumes: `DistCard`, `@revelio/db` (`cards`, `cardLocalizations`), `loadSets` (FK parent must exist first), `loadDist`.
+- Produces: `loadCards(db: DB, cards: DistCard[]): Promise<void>` — inserts cards and one localization row per language with `source: 'import'`, **`ON CONFLICT DO NOTHING`**.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -647,7 +743,7 @@ import { withMigratedDb } from './helpers.js'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
-const fixtureDir = resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures/dist')
+const fixtureDir = resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures/dataset')
 
 let ctx: Awaited<ReturnType<typeof withMigratedDb>>
 beforeAll(async () => {
@@ -659,7 +755,7 @@ beforeAll(async () => {
 afterAll(async () => { await ctx.stop() })
 
 describe('loadCards', () => {
-  it('inserts all cards with split stats and string number', async () => {
+  it('inserts all cards with split stats, string number, and source=import', async () => {
     const rows = await ctx.db.select().from(cards)
     expect(rows).toHaveLength(3)
     const flobber = rows.find((r) => r.id === 'bs-2-flobberworm')!
@@ -667,6 +763,7 @@ describe('loadCards', () => {
     expect(flobber.damagePerTurn).toBeNull()
     expect(flobber.cost).toBe(2)
     expect(flobber.provides).toEqual([{ lesson: 'Charms', amount: 1 }])
+    expect(flobber.source).toBe('import')
     const split = rows.find((r) => r.id === 'bs-1-dean-thomas')!
     expect(split.types).toEqual(['Character'])
     expect(split.health).toBeNull()
@@ -690,27 +787,36 @@ describe('loadCards', () => {
     expect((locs[0].match as { toWin: string }).toWin).toBe('Do 10 damage.')
   })
 
-  it('is idempotent on re-run', async () => {
+  it('re-run is additive and never overwrites (counts stable, edits preserved)', async () => {
+    // mutate an existing localization, then re-import — the edit must survive
+    await ctx.db
+      .update(cardLocalizations)
+      .set({ text: 'EDITED IN APP' })
+      .where(eq(cardLocalizations.cardId, 'bs-1-dean-thomas'))
     const { cards: distCards } = await loadDist(fixtureDir)
     await loadCards(ctx.db, distCards)
-    const rows = await ctx.db.select().from(cards)
+    const cardRows = await ctx.db.select().from(cards)
     const locs = await ctx.db.select().from(cardLocalizations)
-    expect(rows).toHaveLength(3)
+    expect(cardRows).toHaveLength(3)
     expect(locs).toHaveLength(4)
+    const dean = await ctx.db
+      .select()
+      .from(cardLocalizations)
+      .where(eq(cardLocalizations.cardId, 'bs-1-dean-thomas'))
+    expect(dean.find((l) => l.lang === 'en')?.text).toBe('EDITED IN APP') // not clobbered
   })
 })
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd app && npx vitest run -w @revelio/ingest load-cards`
+Run: `cd app/ingest && npx vitest run load-cards`
 Expected: FAIL — `Cannot find module '../src/load-cards.js'`.
 
 - [ ] **Step 3: Write the implementation**
 
 `app/ingest/src/load-cards.ts`:
 ```ts
-import { sql } from 'drizzle-orm'
 import type { DB } from '@revelio/db'
 import { cards, cardLocalizations } from '@revelio/db'
 import type { DistCard } from './types.js'
@@ -739,32 +845,10 @@ export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
     rulings: c.rulings ?? [],
     defaultLanguage: c.defaultLanguage,
     languages: c.languages,
+    source: 'import',
   }))
 
-  await db.insert(cards).values(cardRows).onConflictDoUpdate({
-    target: cards.id,
-    set: {
-      setCode: sql`excluded.set_code`,
-      number: sql`excluded.number`,
-      name: sql`excluded.name`,
-      types: sql`excluded.types`,
-      subTypes: sql`excluded.sub_types`,
-      lesson: sql`excluded.lesson`,
-      cost: sql`excluded.cost`,
-      provides: sql`excluded.provides`,
-      rarity: sql`excluded.rarity`,
-      finish: sql`excluded.finish`,
-      artist: sql`excluded.artist`,
-      health: sql`excluded.health`,
-      damagePerTurn: sql`excluded.damage_per_turn`,
-      orientation: sql`excluded.orientation`,
-      legality: sql`excluded.legality`,
-      draftValue: sql`excluded.draft_value`,
-      rulings: sql`excluded.rulings`,
-      defaultLanguage: sql`excluded.default_language`,
-      languages: sql`excluded.languages`,
-    },
-  })
+  await db.insert(cards).values(cardRows).onConflictDoNothing({ target: cards.id })
 
   const locRows = input.flatMap((c) =>
     Object.entries(c.localizations).map(([lang, l]) => ({
@@ -772,7 +856,7 @@ export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
       lang,
       name: l.name,
       status: l.status,
-      source: l.source,
+      source: 'import',
       text: l.text,
       flavorText: l.flavorText,
       adventure: l.adventure ?? null,
@@ -782,38 +866,28 @@ export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
     })),
   )
 
-  await db.insert(cardLocalizations).values(locRows).onConflictDoUpdate({
-    target: [cardLocalizations.cardId, cardLocalizations.lang],
-    set: {
-      name: sql`excluded.name`,
-      status: sql`excluded.status`,
-      source: sql`excluded.source`,
-      text: sql`excluded.text`,
-      flavorText: sql`excluded.flavor_text`,
-      adventure: sql`excluded.adventure`,
-      match: sql`excluded.match`,
-      imageFile: sql`excluded.image_file`,
-      imageUrl: sql`excluded.image_url`,
-    },
-  })
+  await db
+    .insert(cardLocalizations)
+    .values(locRows)
+    .onConflictDoNothing({ target: [cardLocalizations.cardId, cardLocalizations.lang] })
 }
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd app && npx vitest run -w @revelio/ingest load-cards`
+Run: `cd app/ingest && npx vitest run load-cards`
 Expected: PASS (4 tests).
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add app/ingest/src/load-cards.ts app/ingest/test/load-cards.test.ts
-git commit -m "feat: upsert cards and localizations into Postgres"
+git commit -m "feat: additively import cards and localizations into Postgres"
 ```
 
 ---
 
-### Task 5: Ingest entrypoint (`main`)
+### Task 6: Seed entrypoint (`main`)
 
 **Files:**
 - Create: `app/ingest/src/main.ts`
@@ -821,7 +895,7 @@ git commit -m "feat: upsert cards and localizations into Postgres"
 
 **Interfaces:**
 - Consumes: `createClient`, `runMigrations`, `loadDist`, `loadSets`, `loadCards`.
-- Produces: `runIngest(opts: { databaseUrl: string; dataDir: string }): Promise<{ sets: number; cards: number }>` and a CLI entry that reads `DATABASE_URL` / `DATA_DIR`.
+- Produces: `runIngest(opts: { databaseUrl: string; dataDir: string }): Promise<{ sets: number; cards: number }>` (returns the number of rows read from `dist/`, not the number inserted) and a CLI entry that reads `DATABASE_URL` / `DATA_DIR`.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -835,7 +909,7 @@ import { runIngest } from '../src/main.js'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
-const fixtureDir = resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures/dist')
+const fixtureDir = resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures/dataset')
 
 let container: Awaited<ReturnType<PostgreSQLContainer['start']>>
 let uri: string
@@ -846,13 +920,21 @@ beforeAll(async () => {
 afterAll(async () => { await container.stop() })
 
 describe('runIngest', () => {
-  it('migrates and loads the full fixture dataset', async () => {
+  it('migrates and seeds the full fixture dataset', async () => {
     const result = await runIngest({ databaseUrl: uri, dataDir: fixtureDir })
     expect(result).toEqual({ sets: 2, cards: 3 })
 
     const { db, sql } = createClient(uri)
-    const [{ count }] = await db.execute(dsql`select count(*)::int as count from cards`)
-    expect(count).toBe(3)
+    const rows = await db.execute(dsql`select count(*)::int as count from cards`)
+    expect(rows[0].count).toBe(3)
+    await sql.end()
+  })
+
+  it('is a safe no-op on a second run (additive)', async () => {
+    await runIngest({ databaseUrl: uri, dataDir: fixtureDir })
+    const { db, sql } = createClient(uri)
+    const rows = await db.execute(dsql`select count(*)::int as count from cards`)
+    expect(rows[0].count).toBe(3)
     await sql.end()
   })
 })
@@ -860,7 +942,7 @@ describe('runIngest', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd app && npx vitest run -w @revelio/ingest main`
+Run: `cd app/ingest && npx vitest run main`
 Expected: FAIL — `Cannot find module '../src/main.js'`.
 
 - [ ] **Step 3: Write the implementation**
@@ -898,11 +980,11 @@ if (isMain) {
   }
   runIngest({ databaseUrl, dataDir })
     .then((r) => {
-      console.log(`ingest complete: ${r.sets} sets, ${r.cards} cards`)
+      console.log(`seed complete: ${r.sets} sets, ${r.cards} cards imported (additive)`)
       process.exit(0)
     })
     .catch((err) => {
-      console.error('ingest failed:', err)
+      console.error('seed failed:', err)
       process.exit(1)
     })
 }
@@ -910,24 +992,24 @@ if (isMain) {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd app && npx vitest run -w @revelio/ingest main`
-Expected: PASS (1 test).
+Run: `cd app/ingest && npx vitest run main`
+Expected: PASS (2 tests).
 
 - [ ] **Step 5: Run the whole ingest test suite**
 
-Run: `cd app && npx vitest run -w @revelio/ingest`
-Expected: PASS — all test files green.
+Run: `cd app/ingest && npx vitest run`
+Expected: PASS — all four test files green.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add app/ingest/src/main.ts app/ingest/test/main.test.ts
-git commit -m "feat: add ingest entrypoint wiring migrate and loaders"
+git commit -m "feat: add seed entrypoint wiring migrate and additive loaders"
 ```
 
 ---
 
-### Task 6: Dev Docker Compose + ingest Dockerfile (real-data verification)
+### Task 7: Dev Docker Compose + ingest Dockerfile (real-data verification)
 
 **Files:**
 - Create: `app/ingest/Dockerfile`
@@ -936,7 +1018,7 @@ git commit -m "feat: add ingest entrypoint wiring migrate and loaders"
 
 **Interfaces:**
 - Consumes: `runIngest` CLI (reads `DATABASE_URL`, `DATA_DIR`).
-- Produces: a `postgres` service + a one-shot `ingest` service that loads the real `card-data/dist/` via a read-only bind-mount in dev.
+- Produces: a `postgres` service + a one-shot `ingest` service that additively seeds the real `card-data/dist/` via a read-only bind-mount in dev.
 
 - [ ] **Step 1: Write the ingest Dockerfile**
 
@@ -946,7 +1028,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Workspace manifests first for layer caching
-COPY package.json ./
+COPY package.json package-lock.json ./
 COPY db/package.json ./db/package.json
 COPY ingest/package.json ./ingest/package.json
 RUN npm install
@@ -1014,27 +1096,36 @@ Run:
 ```bash
 cd app && docker compose up --build --abort-on-container-exit ingest
 ```
-Expected: the `ingest` container logs `ingest complete: <N> sets, 1035 cards` and exits 0. (If `card-data/dist/` is missing, run `python3 card-data/build_dataset.py` first.)
+Expected: the `ingest` container logs `seed complete: <N> sets, 1035 cards imported (additive)` and exits 0. (If `card-data/dist/` is missing, run `python3 card-data/build_dataset.py` first.)
 
 - [ ] **Step 5: Verify the row counts in Postgres**
 
 Run:
 ```bash
 cd app && docker compose up -d postgres && \
-docker compose exec -T postgres psql -U revelio -d revelio -c "select count(*) from cards; select count(*) from card_localizations; select count(*) from sets;"
+docker compose exec -T postgres psql -U revelio -d revelio -c "select count(*) from cards; select count(*) from card_localizations; select count(*) from sets; select distinct source from cards;"
 ```
-Expected: `cards` = 1035; `card_localizations` ≥ 1035 (en for all + de for Base Set); `sets` = the number of entries in `dist/sets.json`.
+Expected: `cards` = 1035; `card_localizations` ≥ 1035; `sets` = the number of entries in `dist/sets.json`; `source` = `import`.
 
-- [ ] **Step 6: Tear down**
+- [ ] **Step 6: Verify a second run is a safe no-op**
+
+Run:
+```bash
+cd app && docker compose run --rm ingest && \
+docker compose exec -T postgres psql -U revelio -d revelio -c "select count(*) from cards;"
+```
+Expected: still `1035` — the additive re-run inserts nothing new and overwrites nothing.
+
+- [ ] **Step 7: Tear down**
 
 Run: `cd app && docker compose down`
-Expected: containers removed (the `pgdata` volume persists).
+Expected: containers removed (the authoritative `pgdata` volume persists).
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add app/ingest/Dockerfile app/docker-compose.yml app/docker-compose.override.yml
-git commit -m "feat: add dev compose and ingest Dockerfile loading real dataset"
+git commit -m "feat: add dev compose and ingest Dockerfile seeding real dataset"
 ```
 
 ---
@@ -1044,19 +1135,21 @@ git commit -m "feat: add dev compose and ingest Dockerfile loading real dataset"
 **Spec coverage (this plan's slice — "Foundation + Postgres data layer"):**
 - `app/` workspace + folder layout → Task 1, Task 2 ✓
 - Postgres schema from `DATABASE-CHOICE.md` (minus `tsvector`, per Meili decision) → Task 1 ✓
-- Drizzle ORM + migrations → Task 1 ✓
-- ingest job `dist/ → Postgres`, idempotent upserts → Tasks 3–5 ✓
-- env-driven config (`DATABASE_URL`, `DATA_DIR`), no hardcoded hosts → Task 5, Task 6 ✓
-- one-shot ingest service gated on `postgres` health → Task 6 ✓
-- dev bind-mount of `card-data/dist`; production baked-image path deferred → Task 6 ✓ (prod image bake is in Plan 5)
+- Editability metadata (`created_at`/`updated_at`/`source`) → Task 3 ✓
+- Drizzle ORM + migrations → Task 1, Task 3 ✓
+- Postgres as source of truth; one-time **additive** seed (`ON CONFLICT DO NOTHING`, never overwrites) → Tasks 4–6 ✓
+- env-driven config (`DATABASE_URL`, `DATA_DIR`), no hardcoded hosts → Task 6, Task 7 ✓
+- one-shot ingest service gated on `postgres` health; safe no-op on re-run → Task 7 ✓
+- dev bind-mount of `card-data/dist`; production baked-image path deferred → Task 7 ✓ (prod image bake is in Plan 5)
 - Meilisearch, MinIO, Next.js frontend → deferred to Plans 2–5 (out of scope here) ✓
 
-**Placeholder scan:** No TBD/TODO. `ghcr.io/REPLACE_ME/...` in the base compose is an intentional, documented placeholder resolved in Plan 5 (CI/registry); dev override builds locally so it does not block this plan.
+**Placeholder scan:** No TBD/TODO. `ghcr.io/REPLACE_ME/...` in the base compose is an intentional, documented placeholder resolved in Plan 5 (CI/registry); the dev override builds locally so it does not block this plan.
 
-**Type consistency:** `DistCard`/`DistSet`/`DistLocalization` defined in Task 2 are reused verbatim in Tasks 3–5. `loadSets`/`loadCards`/`loadDist`/`runIngest` signatures match across their producer and consumer tasks. Column names in `excluded.*` upsert clauses match the snake_case columns declared in `schema.ts`.
+**Type consistency:** `DistCard`/`DistSet`/`DistLocalization` (Task 2) are reused verbatim in Tasks 4–6. `loadSets`/`loadCards`/`loadDist`/`runIngest` signatures match across producer and consumer tasks. Column names in inserts match the snake_case columns in `schema.ts`. Test fixtures live under `test/fixtures/dataset/` (not `dist/`, which `.gitignore` would swallow).
 
 ## Notes for later plans
 
-- **Plan 2 (Search):** extend ingest with a `load-meili.ts` building per-language indexes from `cards.<lang>.json` + `search-index.<lang>.json`; add the `meilisearch` service.
-- **Plan 3 (Images):** add `load-minio.ts` uploading `assets/cards/<id>.png` (diffed); add the `minio` service.
-- **Plan 5 (CI/Prod):** the `revelio-data` image + `COPY --from` bake, prod `docker-compose.yml` image tags, and `web` gated on `ingest: service_completed_successfully`.
+- **Plan 2 (Search):** extend ingest with a `load-meili.ts` building per-language indexes from `cards.<lang>.json` + `search-index.<lang>.json` for the initial seed; add the `meilisearch` service. Because Postgres is the source of truth, the steady-state index must sync from **Postgres** on in-app writes, not from `dist/`.
+- **Plan 3 (Images):** add `load-minio.ts` uploading `assets/cards/<id>.png` (diffed) for the seed; add the `minio` service; in-app card image uploads write to MinIO directly.
+- **Plan 4 (Authoring):** write API/UI + auth to create/edit sets, cards, and localizations (`source='user'`), updating `updated_at` and re-syncing Meili/MinIO.
+- **Plan 5 (CI/Prod):** the `revelio-data` image + `COPY --from` bake, prod `docker-compose.yml` image tags, `web` gated on `ingest: service_completed_successfully`, and a backup strategy for the authoritative `pgdata` volume.

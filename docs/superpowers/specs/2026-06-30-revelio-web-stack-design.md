@@ -139,6 +139,69 @@ also makes the colorful card art pop.
 **Confirmed decisions:** dark-first default (light/parchment theme optional, later);
 lesson colors used for type/facet accents.
 
+## Data ingestion & distribution
+
+The Python pipeline produces a versioned **data artifact** — `card-data/dist/*.json`
+(~5 MB) and `card-data/assets/` (~1.3 GB images), both git-ignored. The `ingest` job
+loads it into the running stack. **Server constraint:** the production server can only
+*pull images* and *run `docker compose up`* — no manual commands, no building on the
+server, no files copied onto it. The design below honors that.
+
+### The ingest job (TypeScript, `app/ingest/`)
+
+A **one-shot compose service**: on `up` it starts after the stores are healthy, seeds
+them, and exits. Idempotent (safe to re-run on every `up`). Reads its data from
+`DATA_DIR` (default `/data`).
+
+```
+1. migrate    → drizzle-kit applies schema to Postgres (tables + indexes)
+2. → Postgres → read sets.json + cards.json
+                 upsert sets, cards, card_localizations
+                 (INSERT ... ON CONFLICT DO UPDATE, one transaction)
+3. → Meili    → per language: build docs from cards.<lang>.json
+                 + fold fields from search-index.<lang>.json
+                 set index settings (searchable/filterable/sortable, typo, synonyms)
+                 addDocuments (upsert by primary key `id`)
+4. → MinIO    → upload assets/cards/<id>.png (+ thumbnails), diffed; named by card id
+```
+
+File → target mapping:
+
+| Source | Target |
+|---|---|
+| `dist/sets.json` | Postgres `sets` |
+| `dist/cards.json` | Postgres `cards` + `card_localizations` |
+| `dist/cards.<lang>.json` | Meilisearch documents per language |
+| `dist/search-index.<lang>.json` | fold fields merged into Meili docs |
+| `assets/cards/<id>.png` (+ `thumb/`) | MinIO (keyed by card **id**, not `image.file`) |
+
+Design choices: Meili reads from `dist/` (a derived index rebuilt from the canonical
+artifact each run), not via a Postgres round-trip; Postgres stays the serving
+source-of-truth. One Meili index per language (`cards-en`, `cards-de`) for correct
+per-language stemming/typo behavior.
+
+### Distribution: dev vs production
+
+- **Local dev** (`docker-compose.override.yml`): builds `ingest`/`web` from source and
+  bind-mounts `../card-data/dist` (+ `assets/`) read-only; `DATA_DIR` points at the
+  mount. Iterate without baking images.
+- **Production** (CI + container registry, pull-only server): the data is **baked into
+  the `ingest` image** at CI build time, split from loader code so the 1.3 GB layer isn't
+  rebuilt on every code change:
+  - **`revelio-data`** image — contains *only* `dist/` + `assets/`; built **only when the
+    Python pipeline reproduces new data** (rare), versioned independently
+    (e.g. `revelio-data:2026-06-30`).
+  - **`revelio-ingest`** image — small loader; pulls data in at build via
+    `COPY --from=ghcr.io/<org>/revelio-data:<tag> /data /data`. The server only ever
+    pulls this final image; nothing is mounted in production.
+  - CI: data change → build & push `revelio-data` then `revelio-ingest`; code change →
+    build & push `revelio-ingest` + `revelio-web` (fast, small).
+  - Server: `docker compose pull && docker compose up -d`. `ingest` runs as a gated
+    one-shot (`depends_on` stores `service_healthy`, `restart: "no"`); `web` waits via
+    `depends_on: ingest: condition: service_completed_successfully`. Persistent volumes
+    (`pgdata`, `meili`, `minio`) mean the heavy seed runs once; later `up`s re-run the
+    idempotent `ingest` near-instantly. Rollback = pin an older image tag.
+
 ## Scope: first cut (MVP)
 
 **In:**
@@ -159,4 +222,4 @@ lesson colors used for type/facet accents.
 - Meilisearch index config (searchable/filterable/sortable attributes, synonyms,
   ranking rules) per language.
 - MinIO bucket policy (public-read vs. signed URLs) + Next `<Image>` remote pattern.
-- ingest job: idempotency, re-run on data update, image-upload diffing.
+- CI pipeline specifics (registry, image tags/triggers for `revelio-data` vs code images).

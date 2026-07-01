@@ -55,8 +55,12 @@ type Upload = { file: string; key: string; contentType: string }
 async function readdirSafe(dir: string): Promise<string[]> {
   try {
     return await readdir(dir)
-  } catch {
-    return []
+  } catch (err) {
+    // A missing directory is fine (e.g. the optional thumb/ subdir). Any other
+    // error (wrong ASSETS_DIR, permissions) is a real misconfiguration — let it
+    // surface rather than reporting a silent {uploaded:0} "success".
+    if ((err as { code?: string })?.code === 'ENOENT') return []
+    throw err
   }
 }
 
@@ -83,6 +87,9 @@ async function collectUploads(assetsDir: string): Promise<Upload[]> {
   return uploads
 }
 
+// Diffing is by key existence: card images are immutable by id, so an existing
+// object is never re-uploaded. (A content/ETag compare would be needed if assets
+// for a given id could change in place.)
 async function objectExists(s3: S3Client, bucket: string, key: string): Promise<boolean> {
   try {
     await s3.send(new HeadObjectCommand({ Bucket: bucket, Key: key }))

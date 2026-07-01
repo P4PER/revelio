@@ -11,9 +11,9 @@ __pycache__/
 venv/
 .env
 
-# === Build / generierte Artefakte ===
+# === Build / generated artifacts ===
 dist/
 hpjson/
 
-# === Große Assets / Bilddaten (nicht versionieren) ===
+# === Large assets / image data (do not version) ===
 card-data/assets/

@@ -1,0 +1,35 @@
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { sql as dsql } from 'drizzle-orm'
+import { createClient } from '@revelio/db'
+import { runIngest } from '../src/main.js'
+import { withFreshDatabase } from './helpers.js'
+import { fileURLToPath } from 'node:url'
+import { dirname, resolve } from 'node:path'
+
+const fixtureDir = resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures/dataset')
+
+let fresh: Awaited<ReturnType<typeof withFreshDatabase>>
+beforeAll(async () => { fresh = await withFreshDatabase() }, 120_000)
+afterAll(async () => { await fresh.stop() })
+
+describe('runIngest', () => {
+  it('migrates and seeds sets, vocab, cards and junctions', async () => {
+    const result = await runIngest({ databaseUrl: fresh.url, dataDir: fixtureDir })
+    expect(result).toEqual({ sets: 2, cards: 3 })
+
+    const { db, sql } = createClient(fresh.url)
+    const cardCount = await db.execute(dsql`select count(*)::int as count from cards`)
+    const typeLinks = await db.execute(dsql`select count(*)::int as count from card_types`)
+    expect(cardCount[0].count).toBe(3)
+    expect(typeLinks[0].count).toBe(3) // one type per fixture card
+    await sql.end()
+  })
+
+  it('is a safe no-op on a second run', async () => {
+    await runIngest({ databaseUrl: fresh.url, dataDir: fixtureDir })
+    const { db, sql } = createClient(fresh.url)
+    const cardCount = await db.execute(dsql`select count(*)::int as count from cards`)
+    expect(cardCount[0].count).toBe(3)
+    await sql.end()
+  })
+})

@@ -6,6 +6,7 @@ services:
     volumes:
       - ../card-data/dist:/data:ro
       - ../card-data/i18n:/i18n:ro
+      - ../card-data/assets:/assets:ro
   migrate:
     build:
       context: .

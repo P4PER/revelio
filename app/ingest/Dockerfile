@@ -18,4 +18,5 @@ COPY ingest ./ingest
 
 ENV DATA_DIR=/data
 ENV I18N_DIR=/i18n
+ENV ASSETS_DIR=/assets
 CMD ["npx", "tsx", "ingest/src/main.ts"]

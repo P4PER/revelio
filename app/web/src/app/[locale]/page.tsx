@@ -12,12 +12,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params
 
-  const languages = Object.fromEntries(
+  const languages: Record<string, string> = Object.fromEntries(
     routing.locales.map((l) => [
       l,
       `${BASE_URL}${getPathname({ href: '/', locale: l })}`,
     ]),
   )
+  // x-default points at the default-locale page (Google hreflang guidance).
+  languages['x-default'] = `${BASE_URL}${getPathname({ href: '/', locale: routing.defaultLocale })}`
 
   const canonical = `${BASE_URL}${getPathname({ href: '/', locale })}`
 

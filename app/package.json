@@ -2,7 +2,7 @@
   "name": "revelio-app",
   "private": true,
   "type": "module",
-  "workspaces": ["db", "ingest"],
+  "workspaces": ["core", "db", "ingest"],
   "engines": { "node": ">=20" },
   "scripts": {
     "test": "npm run test --workspaces --if-present",

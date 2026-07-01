@@ -24,10 +24,18 @@ export function createS3Client(c: S3Config): S3Client {
   })
 }
 
+// A missing bucket/object surfaces as a 404 (or NotFound/NoSuchKey); any other
+// error (network, auth, 5xx) is real and must propagate, not be treated as absent.
+function isNotFound(err: unknown): boolean {
+  const e = err as { $metadata?: { httpStatusCode?: number }; name?: string }
+  return e?.$metadata?.httpStatusCode === 404 || e?.name === 'NotFound' || e?.name === 'NoSuchKey'
+}
+
 export async function ensureBucket(s3: S3Client, bucket: string): Promise<void> {
   try {
     await s3.send(new HeadBucketCommand({ Bucket: bucket }))
-  } catch {
+  } catch (err) {
+    if (!isNotFound(err)) throw err
     await s3.send(new CreateBucketCommand({ Bucket: bucket }))
   }
   const policy = JSON.stringify({
@@ -79,8 +87,9 @@ async function objectExists(s3: S3Client, bucket: string, key: string): Promise<
   try {
     await s3.send(new HeadObjectCommand({ Bucket: bucket, Key: key }))
     return true
-  } catch {
-    return false
+  } catch (err) {
+    if (isNotFound(err)) return false
+    throw err
   }
 }
 

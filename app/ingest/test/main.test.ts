@@ -65,9 +65,12 @@ describe('runIngest', () => {
     await runIngest({ databaseUrl: fresh.url, dataDir: fixtureDir, i18nDir, assetsDir, s3: s3cfg })
 
     const s3 = createS3Client(s3cfg)
-    await expect(
-      s3.send(new HeadObjectCommand({ Bucket: bucket, Key: 'cards/bs-1-dean-thomas.png' })),
-    ).resolves.toBeTruthy()
-    await nukeBucket(s3, bucket)
+    try {
+      await expect(
+        s3.send(new HeadObjectCommand({ Bucket: bucket, Key: 'cards/bs-1-dean-thomas.png' })),
+      ).resolves.toBeTruthy()
+    } finally {
+      await nukeBucket(s3, bucket)
+    }
   })
 })

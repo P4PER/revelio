@@ -1,7 +1,7 @@
 import { createClient, runMigrations } from '@revelio/db'
 import { loadDist } from './load-dist.js'
 import { loadSets } from './load-sets.js'
-import { loadVocab } from './load-vocab.js'
+import { loadAttributes } from './load-attributes.js'
 import { loadCards } from './load-cards.js'
 
 export async function runIngest(opts: {
@@ -13,7 +13,7 @@ export async function runIngest(opts: {
     await runMigrations(db)
     const { sets, cards } = await loadDist(opts.dataDir)
     await loadSets(db, sets)
-    await loadVocab(db, cards)
+    await loadAttributes(db, cards)
     await loadCards(db, cards)
     return { sets: sets.length, cards: cards.length }
   } finally {

@@ -13,7 +13,7 @@ beforeAll(async () => { fresh = await withFreshDatabase() }, 120_000)
 afterAll(async () => { await fresh.stop() })
 
 describe('runIngest', () => {
-  it('migrates and seeds sets, vocab, cards and junctions', async () => {
+  it('migrates and seeds sets, attribute, cards and junctions', async () => {
     const result = await runIngest({ databaseUrl: fresh.url, dataDir: fixtureDir })
     expect(result).toEqual({ sets: 2, cards: 3 })
 

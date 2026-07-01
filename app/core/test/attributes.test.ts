@@ -1,27 +1,27 @@
 import { describe, it, expect } from 'vitest'
-import { TYPES, LESSONS, RARITIES, FINISHES, LEGALITIES, VOCAB, slugify } from '../src/vocab.js'
-import { vocabMetaSchema, lessonMetaSchema } from '../src/schemas.js'
+import { TYPES, LESSONS, RARITIES, FINISHES, LEGALITIES, ATTRIBUTES, slugify } from '../src/attributes.js'
+import { attributeMetaSchema, lessonMetaSchema } from '../src/schemas.js'
 
-describe('vocab config', () => {
+describe('attribute config', () => {
   it('every lesson has a valid #RRGGBB color and a unique code', () => {
     for (const l of LESSONS) expect(() => lessonMetaSchema.parse(l)).not.toThrow()
     const codes = LESSONS.map((l) => l.code)
     expect(new Set(codes).size).toBe(codes.length)
   })
 
-  it('plain vocab entries validate', () => {
+  it('plain attribute entries validate', () => {
     for (const e of [...TYPES, ...RARITIES, ...FINISHES, ...LEGALITIES]) {
-      expect(() => vocabMetaSchema.parse(e)).not.toThrow()
+      expect(() => attributeMetaSchema.parse(e)).not.toThrow()
     }
   })
 
-  it('VOCAB groups the five curated vocabularies', () => {
-    expect(Object.keys(VOCAB).sort()).toEqual(
+  it('ATTRIBUTES groups the five curated attributes', () => {
+    expect(Object.keys(ATTRIBUTES).sort()).toEqual(
       ['finishes', 'legalities', 'lessons', 'rarities', 'types'],
     )
   })
 
-  it('locks the curated vocabulary counts', () => {
+  it('locks the curated attribute counts', () => {
     expect(TYPES).toHaveLength(9)
     expect(LESSONS).toHaveLength(5)
     expect(RARITIES).toHaveLength(4)

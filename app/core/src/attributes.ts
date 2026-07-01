@@ -2,10 +2,10 @@ export function slugify(value: string): string {
   return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
 }
 
-export type VocabMeta = { code: string; sortOrder: number }
-export type LessonMeta = VocabMeta & { color: string }
+export type AttributeMeta = { code: string; sortOrder: number }
+export type LessonMeta = AttributeMeta & { color: string }
 
-export const TYPES: VocabMeta[] = [
+export const TYPES: AttributeMeta[] = [
   { code: 'character', sortOrder: 1 },
   { code: 'creature', sortOrder: 2 },
   { code: 'spell', sortOrder: 3 },
@@ -26,20 +26,20 @@ export const LESSONS: LessonMeta[] = [
   { code: 'quidditch', color: '#EA7B3C', sortOrder: 5 },
 ]
 
-export const RARITIES: VocabMeta[] = [
+export const RARITIES: AttributeMeta[] = [
   { code: 'common', sortOrder: 1 },
   { code: 'uncommon', sortOrder: 2 },
   { code: 'rare', sortOrder: 3 },
   { code: 'lesson', sortOrder: 4 },
 ]
 
-export const FINISHES: VocabMeta[] = [
+export const FINISHES: AttributeMeta[] = [
   { code: 'normal', sortOrder: 1 },
   { code: 'foil', sortOrder: 2 },
   { code: 'holo', sortOrder: 3 },
 ]
 
-export const LEGALITIES: VocabMeta[] = [
+export const LEGALITIES: AttributeMeta[] = [
   { code: 'legal', sortOrder: 1 },
   { code: 'restricted', sortOrder: 2 },
   { code: 'banned', sortOrder: 3 },
@@ -47,7 +47,7 @@ export const LEGALITIES: VocabMeta[] = [
 ]
 
 // sub_types is intentionally not curated here — it self-extends from card data.
-export const VOCAB = {
+export const ATTRIBUTES = {
   types: TYPES,
   lessons: LESSONS,
   rarities: RARITIES,

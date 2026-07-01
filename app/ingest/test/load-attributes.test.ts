@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { types, subTypes, lessons } from '@revelio/db'
 import { eq } from 'drizzle-orm'
-import { loadVocab } from '../src/load-vocab.js'
+import { loadAttributes } from '../src/load-attributes.js'
 import { loadDist } from '../src/load-dist.js'
 import { withMigratedDb } from './helpers.js'
 import { fileURLToPath } from 'node:url'
@@ -13,11 +13,11 @@ let ctx: Awaited<ReturnType<typeof withMigratedDb>>
 beforeAll(async () => {
   ctx = await withMigratedDb()
   const { cards } = await loadDist(fixtureDir)
-  await loadVocab(ctx.db, cards)
+  await loadAttributes(ctx.db, cards)
 }, 120_000)
 afterAll(async () => { await ctx.stop() })
 
-describe('loadVocab', () => {
+describe('loadAttributes', () => {
   it('derives distinct types from the cards', async () => {
     const rows = await ctx.db.select().from(types)
     const codes = rows.map((r) => r.code).sort()
@@ -39,7 +39,7 @@ describe('loadVocab', () => {
 
   it('is additive on re-run', async () => {
     const { cards } = await loadDist(fixtureDir)
-    await loadVocab(ctx.db, cards)
+    await loadAttributes(ctx.db, cards)
     const rows = await ctx.db.select().from(types)
     expect(rows).toHaveLength(3)
   })

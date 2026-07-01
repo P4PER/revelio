@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { eq } from 'drizzle-orm'
 import { cards, cardLocalizations, cardTypes, cardSubTypes } from '@revelio/db'
 import { loadSets } from '../src/load-sets.js'
-import { loadVocab } from '../src/load-vocab.js'
+import { loadAttributes } from '../src/load-attributes.js'
 import { loadCards } from '../src/load-cards.js'
 import { loadDist } from '../src/load-dist.js'
 import { withMigratedDb } from './helpers.js'
@@ -16,7 +16,7 @@ beforeAll(async () => {
   ctx = await withMigratedDb()
   const { sets, cards: distCards } = await loadDist(fixtureDir)
   await loadSets(ctx.db, sets)
-  await loadVocab(ctx.db, distCards)
+  await loadAttributes(ctx.db, distCards)
   await loadCards(ctx.db, distCards)
 }, 120_000)
 afterAll(async () => { await ctx.stop() })

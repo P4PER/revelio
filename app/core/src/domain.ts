@@ -25,7 +25,7 @@ export type CardDTO = {
   setCode: string
   number: string
   name: string
-  // vocabulary codes (slugs); the FE joins these to the vocab term DTOs below
+  // attribute codes (slugs); the FE joins these to the attribute term DTOs below
   types: string[]
   subTypes: string[]
   lesson: string | null
@@ -36,12 +36,12 @@ export type CardDTO = {
   localizations: Record<string, CardLocalizationDTO>
 }
 
-// A vocabulary term as the API returns it for facets/filters: the DB code plus the
+// An attribute term as the API returns it for facets/filters: the DB code plus the
 // i18n-resolved display label for the request language.
-export type VocabTermDTO = {
+export type AttributeTermDTO = {
   code: string
   label: string
   sortOrder: number
 }
 
-export type LessonDTO = VocabTermDTO & { color: string | null }
+export type LessonDTO = AttributeTermDTO & { color: string | null }

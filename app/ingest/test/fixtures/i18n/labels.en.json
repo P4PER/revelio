@@ -1,0 +1,5 @@
+{ "language": "en",
+  "types": { "Character": "Character", "Creature": "Creature", "Match": "Match" },
+  "lessons": { "Charms": "Charms" },
+  "rarities": { "Common": "Common", "Uncommon": "Uncommon", "Rare": "Rare" },
+  "finishes": { "normal": "Normal", "holo": "Holo Portrait" } }

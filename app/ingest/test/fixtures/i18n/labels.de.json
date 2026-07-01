@@ -1,0 +1,5 @@
+{ "language": "de",
+  "types": { "Character": "Charakter", "Creature": "Kreatur", "Match": "Spiel" },
+  "lessons": { "Charms": "Zauberkunst" },
+  "rarities": { "Common": "Häufig", "Uncommon": "Ungewöhnlich", "Rare": "Selten" },
+  "finishes": { "normal": "Normal", "holo": "Holo-Porträt" } }

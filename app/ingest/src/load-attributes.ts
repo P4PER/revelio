@@ -2,6 +2,7 @@ import type { DB } from '@revelio/db'
 import { types, subTypes, lessons, rarities, finishes, legalities } from '@revelio/db'
 import { ATTRIBUTES, slugify } from '@revelio/core'
 import type { DistCard } from './types.js'
+import type { LabelIndex } from './load-labels.js'
 
 type Provide = { lesson?: string | null }
 
@@ -29,24 +30,29 @@ function distinctAttributes(cards: DistCard[]) {
 }
 
 // Merge a derived code set with curated sort orders (default 999 when uncurated).
-function attributeRows(codes: Set<string>, cfg: readonly { code: string; sortOrder: number }[]) {
+function attributeRows(
+  codes: Set<string>,
+  cfg: readonly { code: string; sortOrder: number }[],
+  labelsForScope: Record<string, Record<string, string>> = {},
+) {
   return [...codes].map((code) => ({
     code,
     sortOrder: cfg.find((e) => e.code === code)?.sortOrder ?? 999,
+    labels: labelsForScope[code] ?? {},
     origin: 'import' as const,
   }))
 }
 
-export async function loadAttributes(db: DB, cards: DistCard[]): Promise<void> {
+export async function loadAttributes(db: DB, cards: DistCard[], labels: LabelIndex = {}): Promise<void> {
   const d = distinctAttributes(cards)
 
-  const typeRows = attributeRows(d.types, ATTRIBUTES.types)
+  const typeRows = attributeRows(d.types, ATTRIBUTES.types, labels['types'])
   if (typeRows.length) await db.insert(types).values(typeRows).onConflictDoNothing()
 
-  const rarityRows = attributeRows(d.rarities, ATTRIBUTES.rarities)
+  const rarityRows = attributeRows(d.rarities, ATTRIBUTES.rarities, labels['rarities'])
   if (rarityRows.length) await db.insert(rarities).values(rarityRows).onConflictDoNothing()
 
-  const finishRows = attributeRows(d.finishes, ATTRIBUTES.finishes)
+  const finishRows = attributeRows(d.finishes, ATTRIBUTES.finishes, labels['finishes'])
   if (finishRows.length) await db.insert(finishes).values(finishRows).onConflictDoNothing()
 
   const legalityRows = attributeRows(d.legalities, ATTRIBUTES.legalities)
@@ -57,9 +63,16 @@ export async function loadAttributes(db: DB, cards: DistCard[]): Promise<void> {
   if (subTypeRows.length) await db.insert(subTypes).values(subTypeRows).onConflictDoNothing()
 
   // lessons carry a curated color in addition to sort order.
+  const lessonLabels = labels['lessons'] ?? {}
   const lessonRows = [...d.lessons].map((code) => {
     const cfg = ATTRIBUTES.lessons.find((l) => l.code === code)
-    return { code, color: cfg?.color ?? null, sortOrder: cfg?.sortOrder ?? 999, origin: 'import' as const }
+    return {
+      code,
+      color: cfg?.color ?? null,
+      sortOrder: cfg?.sortOrder ?? 999,
+      labels: lessonLabels[code] ?? {},
+      origin: 'import' as const,
+    }
   })
   if (lessonRows.length) await db.insert(lessons).values(lessonRows).onConflictDoNothing()
 }

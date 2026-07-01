@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { eq } from 'drizzle-orm'
-import { cards, cardLocalizations, cardTypes, cardSubTypes } from '@revelio/db'
+import { cards, cardLocalizations, cardTypes, cardSubTypes, cardRulings } from '@revelio/db'
 import { loadSets } from '../src/load-sets.js'
 import { loadAttributes } from '../src/load-attributes.js'
 import { loadCards } from '../src/load-cards.js'
@@ -49,6 +49,15 @@ describe('loadCards', () => {
     expect(locs).toHaveLength(2)
     expect(locs.find((l) => l.lang === 'de')?.text).toBe('Ziehe 3 Karten.')
     expect(locs.find((l) => l.lang === 'en')?.source).toBe('WotC')
+  })
+
+  it('inserts card_rulings for flobberworm', async () => {
+    const rulings = await ctx.db.select().from(cardRulings).where(eq(cardRulings.cardId, 'bs-2-flobberworm'))
+    expect(rulings).toHaveLength(1)
+    expect(rulings[0].seq).toBe(0)
+    expect(rulings[0].date).toBe('2001-08-31')
+    expect(rulings[0].source).toBe('POJO')
+    expect(rulings[0].text).toEqual({ en: 'A ruling.' })
   })
 
   it('re-run is additive and never overwrites an in-app edit', async () => {

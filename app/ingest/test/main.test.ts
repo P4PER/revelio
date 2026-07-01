@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
 const fixtureDir = resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures/dataset')
+const i18nDir = resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures/i18n')
 
 let fresh: Awaited<ReturnType<typeof withFreshDatabase>>
 beforeAll(async () => { fresh = await withFreshDatabase() }, 120_000)
@@ -14,7 +15,7 @@ afterAll(async () => { await fresh.stop() })
 
 describe('runIngest', () => {
   it('migrates and seeds sets, attribute, cards and junctions', async () => {
-    const result = await runIngest({ databaseUrl: fresh.url, dataDir: fixtureDir })
+    const result = await runIngest({ databaseUrl: fresh.url, dataDir: fixtureDir, i18nDir })
     expect(result).toEqual({ sets: 2, cards: 3 })
 
     const { db, sql } = createClient(fresh.url)
@@ -26,7 +27,7 @@ describe('runIngest', () => {
   })
 
   it('is a safe no-op on a second run', async () => {
-    await runIngest({ databaseUrl: fresh.url, dataDir: fixtureDir })
+    await runIngest({ databaseUrl: fresh.url, dataDir: fixtureDir, i18nDir })
     const { db, sql } = createClient(fresh.url)
     const cardCount = await db.execute(dsql`select count(*)::int as count from cards`)
     expect(cardCount[0].count).toBe(3)

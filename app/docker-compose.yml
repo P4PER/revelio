@@ -18,10 +18,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      meilisearch:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgres://revelio:revelio@postgres:5432/revelio
       DATA_DIR: /data
       I18N_DIR: /i18n
+      MEILI_HOST: http://meilisearch:7700
+      MEILI_MASTER_KEY: masterKey
     restart: "no"
 
   migrate:
@@ -35,5 +39,19 @@ services:
     command: ["npx", "tsx", "db/src/migrate-cli.ts"]
     restart: "no"
 
+  meilisearch:
+    image: getmeili/meilisearch:v1.10
+    environment:
+      MEILI_MASTER_KEY: masterKey
+      MEILI_NO_ANALYTICS: "true"
+    volumes:
+      - meili:/meili_data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:7700/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
 volumes:
   pgdata: {}
+  meili: {}

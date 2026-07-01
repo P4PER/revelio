@@ -5,6 +5,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY core/package.json ./core/package.json
 COPY db/package.json ./db/package.json
+COPY search/package.json ./search/package.json
 COPY ingest/package.json ./ingest/package.json
 RUN npm install
 
@@ -12,6 +13,7 @@ RUN npm install
 COPY tsconfig.base.json ./
 COPY core ./core
 COPY db ./db
+COPY search ./search
 COPY ingest ./ingest
 
 ENV DATA_DIR=/data

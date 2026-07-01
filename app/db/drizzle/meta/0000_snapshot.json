@@ -1,5 +1,5 @@
 {
-  "id": "84c9c20d-03c0-45af-8e5f-34dae2849364",
+  "id": "a7e12c0d-1ff3-456d-9d53-663e3a868bf6",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -424,7 +424,7 @@
         },
         "draft_value": {
           "name": "draft_value",
-          "type": "integer",
+          "type": "real",
           "primaryKey": false,
           "notNull": false
         },

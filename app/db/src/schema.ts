@@ -1,5 +1,5 @@
 import {
-  pgTable, text, integer, boolean, jsonb, timestamp, primaryKey, index,
+  pgTable, text, integer, real, boolean, jsonb, timestamp, primaryKey, index,
 } from 'drizzle-orm/pg-core'
 
 const editable = {
@@ -78,7 +78,7 @@ export const cards = pgTable('cards', {
   damagePerTurn: integer('damage_per_turn'),
   orientation: text('orientation'),
   legality: text('legality').references(() => legalities.code),
-  draftValue: integer('draft_value'),
+  draftValue: real('draft_value'),
   defaultLanguage: text('default_language').notNull(),
   languages: text('languages').array().notNull().default([]),
   ...editable,

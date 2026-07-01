@@ -55,7 +55,7 @@ CREATE TABLE "cards" (
 	"damage_per_turn" integer,
 	"orientation" text,
 	"legality" text,
-	"draft_value" integer,
+	"draft_value" real,
 	"default_language" text NOT NULL,
 	"languages" text[] DEFAULT '{}' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,

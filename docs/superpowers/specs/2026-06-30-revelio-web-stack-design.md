@@ -134,6 +134,37 @@ for Next `<Image>` — no S3 client or signing in the web.
 `S3_FORCE_PATH_STYLE=true` (MinIO), `NEXT_PUBLIC_IMAGE_BASE_URL` (web). S3-compatible, so
 MinIO now, real S3 / Cloudflare R2 later by changing env.
 
+## Web app (Next.js) — read-only (Plan 4a)
+
+The web is `app/web/` (Next.js App Router, TypeScript, Tailwind + shadcn/ui, Poppins),
+depending on `@revelio/db` (server-side SSR queries), `@revelio/search` (server-side
+search) and `@revelio/core` (image URLs, lesson colors, DTO types).
+
+- **Search is server-side:** a Next route handler / server action calls `searchCards`
+  (Meili) on the server; the search page is a client component that fetches it (debounced)
+  as the user types. `MEILI_HOST`/`MEILI_SEARCH_KEY` stay server-only (no `NEXT_PUBLIC`
+  Meili, no CORS/browser key).
+- **Detail & set pages are SSR** via `@revelio/db` (Drizzle) in server components — full
+  card data (text, flavor, rulings, adventure/match, illustrator, status badge) straight
+  from Postgres (SEO-friendly).
+- **i18n = next-intl, path-based** `/[locale]/…` (en/de) with a translation-status badge
+  and fallback to `defaultLanguage`. Web UI strings live in `app/web/messages/{en,de}.json`;
+  attribute labels (type/lesson/rarity names) come from `card-data/i18n/labels.<lang>.json`
+  (bundled at build).
+- **Images** load directly from the **public MinIO** URL via
+  `imageUrl(NEXT_PUBLIC_IMAGE_BASE_URL, thumbKey(id) | imageKey(id))`; `next.config`
+  `remotePatterns` allows the image host.
+- **Testing:** Vitest + @testing-library/react (components); integration tests for the
+  server data functions (search route, card loader) against real Postgres/Meili;
+  **Playwright** e2e for key flows (search → results → detail). Each slice ends with a
+  dev-server run + verification.
+- **Env (web):** `DATABASE_URL`, `MEILI_HOST`, `MEILI_SEARCH_KEY` (server-only),
+  `NEXT_PUBLIC_IMAGE_BASE_URL` (browser).
+
+**Sliced into:** 4a-1 shell (scaffold + theme + i18n + layout + disclaimer), 4a-2 search
+(box + facet chips + thumbnail grid), 4a-3 detail + sets (SSR). In-app authoring + auth is
+a separate **Plan 4b**.
+
 ## Services
 
 ```

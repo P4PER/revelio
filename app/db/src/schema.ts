@@ -12,12 +12,14 @@ const editable = {
 export const types = pgTable('types', {
   code: text('code').primaryKey(),
   sortOrder: integer('sort_order').notNull().default(0),
+  labels: jsonb('labels').notNull().default({}),
   ...editable,
 })
 
 export const subTypes = pgTable('sub_types', {
   code: text('code').primaryKey(),
   sortOrder: integer('sort_order').notNull().default(0),
+  labels: jsonb('labels').notNull().default({}),
   ...editable,
 })
 
@@ -25,24 +27,28 @@ export const lessons = pgTable('lessons', {
   code: text('code').primaryKey(),
   color: text('color'),
   sortOrder: integer('sort_order').notNull().default(0),
+  labels: jsonb('labels').notNull().default({}),
   ...editable,
 })
 
 export const rarities = pgTable('rarities', {
   code: text('code').primaryKey(),
   sortOrder: integer('sort_order').notNull().default(0),
+  labels: jsonb('labels').notNull().default({}),
   ...editable,
 })
 
 export const finishes = pgTable('finishes', {
   code: text('code').primaryKey(),
   sortOrder: integer('sort_order').notNull().default(0),
+  labels: jsonb('labels').notNull().default({}),
   ...editable,
 })
 
 export const legalities = pgTable('legalities', {
   code: text('code').primaryKey(),
   sortOrder: integer('sort_order').notNull().default(0),
+  labels: jsonb('labels').notNull().default({}),
   ...editable,
 })
 
@@ -73,7 +79,6 @@ export const cards = pgTable('cards', {
   orientation: text('orientation'),
   legality: text('legality').references(() => legalities.code),
   draftValue: integer('draft_value'),
-  rulings: jsonb('rulings'),
   defaultLanguage: text('default_language').notNull(),
   languages: text('languages').array().notNull().default([]),
   ...editable,
@@ -94,6 +99,17 @@ export const cardSubTypes = pgTable('card_sub_types', {
   subTypeCode: text('sub_type_code').notNull().references(() => subTypes.code),
 }, (t) => ({
   pk: primaryKey({ columns: [t.cardId, t.subTypeCode] }),
+}))
+
+export const cardRulings = pgTable('card_rulings', {
+  cardId: text('card_id').notNull().references(() => cards.id),
+  seq: integer('seq').notNull(),
+  date: text('date'),
+  source: text('source'),
+  text: jsonb('text').notNull().default({}),
+  ...editable,
+}, (t) => ({
+  pk: primaryKey({ columns: [t.cardId, t.seq] }),
 }))
 
 export const cardLocalizations = pgTable('card_localizations', {

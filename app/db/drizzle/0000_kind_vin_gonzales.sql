@@ -16,6 +16,18 @@ CREATE TABLE "card_localizations" (
 	CONSTRAINT "card_localizations_card_id_lang_pk" PRIMARY KEY("card_id","lang")
 );
 --> statement-breakpoint
+CREATE TABLE "card_rulings" (
+	"card_id" text NOT NULL,
+	"seq" integer NOT NULL,
+	"date" text,
+	"source" text,
+	"text" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"origin" text DEFAULT 'import' NOT NULL,
+	CONSTRAINT "card_rulings_card_id_seq_pk" PRIMARY KEY("card_id","seq")
+);
+--> statement-breakpoint
 CREATE TABLE "card_sub_types" (
 	"card_id" text NOT NULL,
 	"sub_type_code" text NOT NULL,
@@ -44,7 +56,6 @@ CREATE TABLE "cards" (
 	"orientation" text,
 	"legality" text,
 	"draft_value" integer,
-	"rulings" jsonb,
 	"default_language" text NOT NULL,
 	"languages" text[] DEFAULT '{}' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
@@ -55,6 +66,7 @@ CREATE TABLE "cards" (
 CREATE TABLE "finishes" (
 	"code" text PRIMARY KEY NOT NULL,
 	"sort_order" integer DEFAULT 0 NOT NULL,
+	"labels" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"origin" text DEFAULT 'import' NOT NULL
@@ -63,6 +75,7 @@ CREATE TABLE "finishes" (
 CREATE TABLE "legalities" (
 	"code" text PRIMARY KEY NOT NULL,
 	"sort_order" integer DEFAULT 0 NOT NULL,
+	"labels" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"origin" text DEFAULT 'import' NOT NULL
@@ -72,6 +85,7 @@ CREATE TABLE "lessons" (
 	"code" text PRIMARY KEY NOT NULL,
 	"color" text,
 	"sort_order" integer DEFAULT 0 NOT NULL,
+	"labels" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"origin" text DEFAULT 'import' NOT NULL
@@ -80,6 +94,7 @@ CREATE TABLE "lessons" (
 CREATE TABLE "rarities" (
 	"code" text PRIMARY KEY NOT NULL,
 	"sort_order" integer DEFAULT 0 NOT NULL,
+	"labels" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"origin" text DEFAULT 'import' NOT NULL
@@ -100,6 +115,7 @@ CREATE TABLE "sets" (
 CREATE TABLE "sub_types" (
 	"code" text PRIMARY KEY NOT NULL,
 	"sort_order" integer DEFAULT 0 NOT NULL,
+	"labels" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"origin" text DEFAULT 'import' NOT NULL
@@ -108,12 +124,14 @@ CREATE TABLE "sub_types" (
 CREATE TABLE "types" (
 	"code" text PRIMARY KEY NOT NULL,
 	"sort_order" integer DEFAULT 0 NOT NULL,
+	"labels" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"origin" text DEFAULT 'import' NOT NULL
 );
 --> statement-breakpoint
 ALTER TABLE "card_localizations" ADD CONSTRAINT "card_localizations_card_id_cards_id_fk" FOREIGN KEY ("card_id") REFERENCES "public"."cards"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "card_rulings" ADD CONSTRAINT "card_rulings_card_id_cards_id_fk" FOREIGN KEY ("card_id") REFERENCES "public"."cards"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "card_sub_types" ADD CONSTRAINT "card_sub_types_card_id_cards_id_fk" FOREIGN KEY ("card_id") REFERENCES "public"."cards"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "card_sub_types" ADD CONSTRAINT "card_sub_types_sub_type_code_sub_types_code_fk" FOREIGN KEY ("sub_type_code") REFERENCES "public"."sub_types"("code") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "card_types" ADD CONSTRAINT "card_types_card_id_cards_id_fk" FOREIGN KEY ("card_id") REFERENCES "public"."cards"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

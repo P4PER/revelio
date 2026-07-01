@@ -21,7 +21,7 @@ function distinctVocab(cards: DistCard[]) {
     if (c.rarity) acc.rarities.add(c.rarity)
     if (c.finish) acc.finishes.add(c.finish)
     if (c.legality) acc.legalities.add(c.legality)
-    for (const p of (c.provides as Provide[] | null) ?? []) {
+    for (const p of Array.isArray(c.provides) ? (c.provides as Provide[]) : []) {
       if (p?.lesson) acc.lessons.add(p.lesson)
     }
   }

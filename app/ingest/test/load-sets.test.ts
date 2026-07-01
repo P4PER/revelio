@@ -24,6 +24,7 @@ describe('loadSets', () => {
   })
 
   it('re-run never overwrites existing rows (additive)', async () => {
+    await loadSets(ctx.db, sample) // self-contained: ensure baseline exists regardless of test order
     await loadSets(ctx.db, [{ ...sample[0], name: 'CHANGED' }, sample[1]])
     const rows = await ctx.db.select().from(sets)
     expect(rows).toHaveLength(2)

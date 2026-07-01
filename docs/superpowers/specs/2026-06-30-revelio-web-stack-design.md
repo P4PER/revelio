@@ -109,6 +109,31 @@ synonyms. The initial index build runs inside the `ingest` one-shot (after the P
 load). In prod Meili is a **standalone image or pre-deployed** (dev: a compose service);
 the seed uses the master key, and the web queries with a **search-only key** (Plan 4/5).
 
+## Image hosting (MinIO)
+
+Card images are served from MinIO (S3-compatible), **public-read**. Two pieces:
+
+- **`@revelio/core`** (driver-free) adds key/URL helpers used by both the uploader and the
+  web: `imageKey(id)` → `cards/${id}.png`, `thumbKey(id)` → `cards/thumb/${id}.jpg`,
+  `symbolKey(code)` → `symbols/${code}.png`, `imageUrl(base, key)` → `${base}/${key}`.
+- **`@revelio/ingest`** adds an uploader (`@aws-sdk/client-s3`): ensures the bucket exists
+  and sets a **public-read** policy, then uploads `card-data/assets/` **diffed** (skips
+  objects already present via `headObject`) with correct content-types (`image/png`,
+  `image/jpeg`). Uploaded: full cards (`cards/<id>.png`), thumbnails
+  (`cards/thumb/<id>.jpg`), and set symbols (`symbols/<code>.png`).
+
+**Seed flow:** the `ingest` one-shot, after Postgres + Meili, uploads images when
+`S3_ENDPOINT` is set (skipped otherwise). Reads `ASSETS_DIR` (dev: bind-mount
+`../card-data/assets`; prod: baked into the `revelio-data` image).
+
+**Web (Plan 4):** builds public URLs `imageUrl(NEXT_PUBLIC_IMAGE_BASE_URL, imageKey(id))`
+for Next `<Image>` — no S3 client or signing in the web.
+
+**Env** (no hardcoded hosts): `S3_ENDPOINT`, `S3_BUCKET` (default `card-images`),
+`S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_REGION` (default `us-east-1`),
+`S3_FORCE_PATH_STYLE=true` (MinIO), `NEXT_PUBLIC_IMAGE_BASE_URL` (web). S3-compatible, so
+MinIO now, real S3 / Cloudflare R2 later by changing env.
+
 ## Services
 
 ```

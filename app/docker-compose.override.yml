@@ -6,3 +6,7 @@ services:
     volumes:
       - ../card-data/dist:/data:ro
       - ../card-data/i18n:/i18n:ro
+  migrate:
+    build:
+      context: .
+      dockerfile: ingest/Dockerfile

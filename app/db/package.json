@@ -5,7 +5,8 @@
   "main": "src/index.ts",
   "exports": { ".": "./src/index.ts" },
   "scripts": {
-    "generate": "drizzle-kit generate"
+    "generate": "drizzle-kit generate",
+    "migrate": "tsx src/migrate-cli.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.38.0",

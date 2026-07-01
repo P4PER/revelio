@@ -177,9 +177,11 @@ lesson colors used for type/facet accents.
 
 The Python pipeline produces a versioned **data artifact** — `card-data/dist/*.json`
 (~5 MB) and `card-data/assets/` (~1.3 GB images), both git-ignored. The `ingest` job
-loads it into the running stack. **Server constraint:** the production server can only
-*pull images* and *run `docker compose up`* — no manual commands, no building on the
-server, no files copied onto it. The design below honors that.
+loads it into the running stack. **Deployment reality:** production does **not** run
+docker-compose. Postgres/Meili/MinIO are standalone docker images or pre-deployed
+infra, and each service runs as a **standalone `docker run` image configured entirely
+via env vars** (no hardcoded hosts, no files copied onto the host, no compose).
+docker-compose is a **dev-only** convenience. The design below honors that.
 
 ### Source-of-truth model
 
@@ -237,9 +239,9 @@ stemming/typo behavior.
 - **Local dev** (`docker-compose.override.yml`): builds `ingest`/`web` from source and
   bind-mounts `../card-data/dist` (+ `assets/`) read-only; `DATA_DIR` points at the
   mount. Iterate without baking images.
-- **Production** (CI + container registry, pull-only server): the data is **baked into
-  the `ingest` image** at CI build time, split from loader code so the 1.3 GB layer isn't
-  rebuilt on every code change:
+- **Production** (CI + container registry, standalone images / pre-deployed infra): the
+  data is **baked into the `ingest` image** at CI build time, split from loader code so
+  the 1.3 GB layer isn't rebuilt on every code change:
   - **`revelio-data`** image — contains *only* `dist/` + `assets/`; built **only when the
     Python pipeline reproduces new data** (rare), versioned independently
     (e.g. `revelio-data:2026-06-30`).
@@ -248,13 +250,14 @@ stemming/typo behavior.
     pulls this final image; nothing is mounted in production.
   - CI: data change → build & push `revelio-data` then `revelio-ingest`; code change →
     build & push `revelio-ingest` + `revelio-web` (fast, small).
-  - Server: `docker compose pull && docker compose up -d`. `ingest` runs as a gated
-    one-shot (`depends_on` stores `service_healthy`, `restart: "no"`); `web` waits via
-    `depends_on: ingest: condition: service_completed_successfully`. Persistent volumes
-    (`pgdata`, `meili`, `minio`) mean the heavy seed runs once; later `up`s re-run the
-    additive `ingest` as a near-instant no-op (existing rows untouched). The `pgdata`
-    volume is authoritative and **must be backed up**. Rollback of *code* = pin an older
-    image tag (data lives in the volume, not the image).
+  - Deploy: pull the images and run each as a standalone container against the
+    (standalone or pre-deployed) Postgres/Meili/MinIO, via env vars. Order: ensure the
+    stores are up → run the `ingest` one-shot (`docker run … revelio-ingest`, which
+    migrates + additively seeds, then exits) → run `revelio-web`. Migrations alone can be
+    run the same way with a command override (`… npx tsx db/src/migrate-cli.ts`).
+    Re-running `ingest` is a near-instant additive no-op (existing rows untouched). The
+    Postgres data is authoritative and **must be backed up**. Rollback of *code* = pin an
+    older image tag (data lives in the DB, not the image).
 
 ## Scope: first cut (MVP)
 

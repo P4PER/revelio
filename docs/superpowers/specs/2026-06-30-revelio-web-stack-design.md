@@ -59,8 +59,11 @@ creates), the controlled vocabularies are **reference tables with FKs**, not fre
 
 - **Reference tables** — `types`, `sub_types`, `lessons`, `rarities`, `finishes`,
   `legalities`. Each is `code` PK + `sort_order` (+ `lessons.color` for the facet
-  accents). Adding a value is an `INSERT`, not a migration; `sub_types` self-extends as
-  users add cards.
+  accents). **`code` is a normalized snake_case slug** (e.g. `care_of_magical_creatures`,
+  `character`, `normal`) produced by a shared `slugify()` in `@revelio/core`; the seed
+  slugifies both the reference codes and the card FK values so they match, and the web
+  slugifies the i18n label keys with the same function to look up display labels. Adding
+  a value is an `INSERT`, not a migration; `sub_types` self-extends as users add cards.
 - **`cards`** references `lessons` / `rarities` / `finishes` / `legalities` via nullable
   FKs. The array-valued `types` and `sub_types` become **junction tables**
   (`card_types`, `card_sub_types`).

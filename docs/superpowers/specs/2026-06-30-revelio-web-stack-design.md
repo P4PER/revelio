@@ -81,6 +81,34 @@ creates), the controlled attributes are **reference tables with FKs**, not free 
 - Validation of vocab on in-app writes uses the **Zod schemas in `@revelio/core`** (same
   source as the config), so `db`, `ingest`, and `web` agree on what is valid.
 
+## Search (Meilisearch)
+
+Search is a driver-free package `@revelio/search` plus an indexer in `@revelio/ingest`:
+
+- **`@revelio/search`** (no DB driver, so the web can import it freely): a Meili client
+  factory (env `MEILI_HOST`, `MEILI_MASTER_KEY`), the per-language index **settings**, the
+  search-document type, and a typed **`searchCards(lang, query, { filters, sort, page })`**
+  the web calls.
+- **Indexer** (in `@revelio/ingest`, which has `@revelio/db`): reads cards + localizations
+  + attribute labels from **Postgres** (the source of truth), builds one document set per
+  language (resolving that language's localization, falling back to `defaultLanguage`),
+  applies the index settings, and `addDocuments`. The same function re-indexes after
+  in-app edits (Plan 4).
+
+**One index per language** present in `card_localizations` (`cards-en`, `cards-de`, …).
+Each document:
+- **searchable:** `name`, `text`, `flavorText`
+- **filterable (facets):** `setCode`, `types`, `subTypes`, `lesson`, `rarity`, `finish`,
+  `legality`, `cost`, `isOfficial`
+- **sortable:** `number`, `name`, `cost`
+- **display-only:** `id`, `imageFile`, set name, lesson `color` — enough to render a
+  result card without a second query
+
+Index settings: typo tolerance on, ranking tuned for name-first relevance, optional
+synonyms. The initial index build runs inside the `ingest` one-shot (after the Postgres
+load). In prod Meili is a **standalone image or pre-deployed** (dev: a compose service);
+the seed uses the master key, and the web queries with a **search-only key** (Plan 4/5).
+
 ## Services
 
 ```

@@ -1,5 +1,6 @@
 import type { DB } from '@revelio/db'
 import { cards, cardLocalizations, cardTypes, cardSubTypes } from '@revelio/db'
+import { slugify } from '@revelio/core'
 import type { DistCard } from './types.js'
 
 export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
@@ -10,16 +11,16 @@ export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
     setCode: c.setCode,
     number: c.number,
     name: c.name,
-    lesson: c.lesson,
+    lesson: c.lesson ? slugify(c.lesson) : null,
     cost: c.cost,
     provides: c.provides ?? null,
-    rarity: c.rarity,
-    finish: c.finish,
+    rarity: c.rarity ? slugify(c.rarity) : null,
+    finish: c.finish ? slugify(c.finish) : null,
     artist: c.artist,
     health: c.stats?.health ?? null,
     damagePerTurn: c.stats?.damagePerTurn ?? null,
     orientation: c.orientation,
-    legality: c.legality,
+    legality: c.legality ? slugify(c.legality) : null,
     draftValue: c.draftValue,
     rulings: c.rulings ?? [],
     defaultLanguage: c.defaultLanguage,
@@ -49,9 +50,9 @@ export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
     .values(locRows)
     .onConflictDoNothing({ target: [cardLocalizations.cardId, cardLocalizations.lang] })
 
-  const typeLinks = input.flatMap((c) => c.types.map((code) => ({ cardId: c.id, typeCode: code })))
+  const typeLinks = input.flatMap((c) => c.types.map((code) => ({ cardId: c.id, typeCode: slugify(code) })))
   if (typeLinks.length) await db.insert(cardTypes).values(typeLinks).onConflictDoNothing()
 
-  const subTypeLinks = input.flatMap((c) => c.subTypes.map((code) => ({ cardId: c.id, subTypeCode: code })))
+  const subTypeLinks = input.flatMap((c) => c.subTypes.map((code) => ({ cardId: c.id, subTypeCode: slugify(code) })))
   if (subTypeLinks.length) await db.insert(cardSubTypes).values(subTypeLinks).onConflictDoNothing()
 }

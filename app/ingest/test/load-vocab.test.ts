@@ -21,17 +21,17 @@ describe('loadVocab', () => {
   it('derives distinct types from the cards', async () => {
     const rows = await ctx.db.select().from(types)
     const codes = rows.map((r) => r.code).sort()
-    expect(codes).toEqual(['Character', 'Creature', 'Match'])
+    expect(codes).toEqual(['character', 'creature', 'match'])
   })
 
   it('derives sub_types (incl. from cards) with default order', async () => {
     const rows = await ctx.db.select().from(subTypes)
-    expect(rows.map((r) => r.code).sort()).toEqual(['Gryffindor', 'Wizard'])
+    expect(rows.map((r) => r.code).sort()).toEqual(['gryffindor', 'wizard'])
     expect(rows[0].sortOrder).toBe(999)
   })
 
   it('applies curated color + order to a lesson derived from provides', async () => {
-    const rows = await ctx.db.select().from(lessons).where(eq(lessons.code, 'Charms'))
+    const rows = await ctx.db.select().from(lessons).where(eq(lessons.code, 'charms'))
     expect(rows).toHaveLength(1) // Charms comes from Flobberworm.provides
     expect(rows[0].color).toBe('#5B8DEF')
     expect(rows[0].sortOrder).toBe(2)

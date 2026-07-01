@@ -1,17 +1,17 @@
 import { describe, it, expect } from 'vitest'
-import { TYPES, LESSONS, RARITIES, FINISHES, LEGALITIES, VOCAB } from '../src/vocab.js'
-import { vocabEntrySchema, lessonEntrySchema } from '../src/schemas.js'
+import { TYPES, LESSONS, RARITIES, FINISHES, LEGALITIES, VOCAB, slugify } from '../src/vocab.js'
+import { vocabMetaSchema, lessonMetaSchema } from '../src/schemas.js'
 
 describe('vocab config', () => {
   it('every lesson has a valid #RRGGBB color and a unique code', () => {
-    for (const l of LESSONS) expect(() => lessonEntrySchema.parse(l)).not.toThrow()
+    for (const l of LESSONS) expect(() => lessonMetaSchema.parse(l)).not.toThrow()
     const codes = LESSONS.map((l) => l.code)
     expect(new Set(codes).size).toBe(codes.length)
   })
 
   it('plain vocab entries validate', () => {
     for (const e of [...TYPES, ...RARITIES, ...FINISHES, ...LEGALITIES]) {
-      expect(() => vocabEntrySchema.parse(e)).not.toThrow()
+      expect(() => vocabMetaSchema.parse(e)).not.toThrow()
     }
   })
 
@@ -27,5 +27,11 @@ describe('vocab config', () => {
     expect(RARITIES).toHaveLength(4)
     expect(FINISHES).toHaveLength(3)
     expect(LEGALITIES).toHaveLength(4)
+  })
+
+  it('slugify normalizes source strings to snake_case slugs', () => {
+    expect(slugify('Care of Magical Creatures')).toBe('care_of_magical_creatures')
+    expect(slugify('Character')).toBe('character')
+    expect(slugify('normal')).toBe('normal')
   })
 })

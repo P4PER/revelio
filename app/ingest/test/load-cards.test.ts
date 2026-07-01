@@ -29,19 +29,19 @@ describe('loadCards', () => {
     expect(flobber.health).toBe(6)
     expect(flobber.damagePerTurn).toBeNull()
     expect(flobber.cost).toBe(2)
-    expect(flobber.rarity).toBe('Common')
+    expect(flobber.rarity).toBe('common')
     expect(flobber.finish).toBe('normal')
     expect(flobber.origin).toBe('import')
   })
 
   it('links types via the card_types junction', async () => {
     const links = await ctx.db.select().from(cardTypes).where(eq(cardTypes.cardId, 'bs-2-flobberworm'))
-    expect(links.map((l) => l.typeCode)).toEqual(['Creature'])
+    expect(links.map((l) => l.typeCode)).toEqual(['creature'])
   })
 
   it('links sub_types via the card_sub_types junction', async () => {
     const links = await ctx.db.select().from(cardSubTypes).where(eq(cardSubTypes.cardId, 'bs-1-dean-thomas'))
-    expect(links.map((l) => l.subTypeCode).sort()).toEqual(['Gryffindor', 'Wizard'])
+    expect(links.map((l) => l.subTypeCode).sort()).toEqual(['gryffindor', 'wizard'])
   })
 
   it('inserts one localization row per language keeping the dist source', async () => {

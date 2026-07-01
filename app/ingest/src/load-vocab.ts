@@ -1,6 +1,6 @@
 import type { DB } from '@revelio/db'
 import { types, subTypes, lessons, rarities, finishes, legalities } from '@revelio/db'
-import { VOCAB } from '@revelio/core'
+import { VOCAB, slugify } from '@revelio/core'
 import type { DistCard } from './types.js'
 
 type Provide = { lesson?: string | null }
@@ -15,14 +15,14 @@ function distinctVocab(cards: DistCard[]) {
     legalities: new Set<string>(),
   }
   for (const c of cards) {
-    c.types.forEach((x) => acc.types.add(x))
-    c.subTypes.forEach((x) => acc.subTypes.add(x))
-    if (c.lesson) acc.lessons.add(c.lesson)
-    if (c.rarity) acc.rarities.add(c.rarity)
-    if (c.finish) acc.finishes.add(c.finish)
-    if (c.legality) acc.legalities.add(c.legality)
+    c.types.forEach((x) => acc.types.add(slugify(x)))
+    c.subTypes.forEach((x) => acc.subTypes.add(slugify(x)))
+    if (c.lesson) acc.lessons.add(slugify(c.lesson))
+    if (c.rarity) acc.rarities.add(slugify(c.rarity))
+    if (c.finish) acc.finishes.add(slugify(c.finish))
+    if (c.legality) acc.legalities.add(slugify(c.legality))
     for (const p of Array.isArray(c.provides) ? (c.provides as Provide[]) : []) {
-      if (p?.lesson) acc.lessons.add(p.lesson)
+      if (p?.lesson) acc.lessons.add(slugify(p.lesson))
     }
   }
   return acc

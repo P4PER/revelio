@@ -1,0 +1,8 @@
+services:
+  ingest:
+    build:
+      context: .
+      dockerfile: ingest/Dockerfile
+    volumes:
+      - ../card-data/dist:/data:ro
+      - ../card-data/i18n:/i18n:ro

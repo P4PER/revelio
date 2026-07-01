@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: revelio
+      POSTGRES_PASSWORD: revelio
+      POSTGRES_DB: revelio
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U revelio"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  ingest:
+    image: ghcr.io/replace_me/revelio-ingest:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://revelio:revelio@postgres:5432/revelio
+      DATA_DIR: /data
+      I18N_DIR: /i18n
+    restart: "no"
+
+volumes:
+  pgdata: {}

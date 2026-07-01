@@ -147,7 +147,7 @@ search) and `@revelio/core` (image URLs, lesson colors, DTO types).
 - **Detail & set pages are SSR** via `@revelio/db` (Drizzle) in server components — full
   card data (text, flavor, rulings, adventure/match, illustrator, status badge) straight
   from Postgres (SEO-friendly).
-- **i18n = next-intl, path-based** `/[locale]/…` (en/de) with a translation-status badge
+- **i18n = next-intl, path-based, as-needed** (English default unprefixed at `/`, German at `/de/…`), via the locale-aware `Link` (`createNavigation`), with a translation-status badge
   and fallback to `defaultLanguage`. Web UI strings live in `app/web/messages/{en,de}.json`;
   attribute labels (type/lesson/rarity names) come from `card-data/i18n/labels.<lang>.json`
   (bundled at build).

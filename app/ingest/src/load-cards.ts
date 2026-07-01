@@ -44,10 +44,11 @@ export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
       imageUrl: l.image?.url ?? null,
     })),
   )
-  await db
-    .insert(cardLocalizations)
-    .values(locRows)
-    .onConflictDoNothing({ target: [cardLocalizations.cardId, cardLocalizations.lang] })
+  if (locRows.length)
+    await db
+      .insert(cardLocalizations)
+      .values(locRows)
+      .onConflictDoNothing({ target: [cardLocalizations.cardId, cardLocalizations.lang] })
 
   const typeLinks = input.flatMap((c) => c.types.map((code) => ({ cardId: c.id, typeCode: slugify(code) })))
   if (typeLinks.length) await db.insert(cardTypes).values(typeLinks).onConflictDoNothing()

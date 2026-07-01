@@ -65,7 +65,11 @@ creates), the controlled vocabularies are **reference tables with FKs**, not fre
   FKs. The array-valued `types` and `sub_types` become **junction tables**
   (`card_types`, `card_sub_types`).
 - **Display labels stay in `card-data/i18n/labels.<lang>.json`** (multilingual); the
-  reference tables hold only keys + non-text metadata.
+  reference tables hold only keys + non-text metadata. Vocab labels are treated as
+  **config, not in-app-editable content** (unlike card text): the web renders them via
+  next-intl (`code → label`), and they change by editing the files / a rebuild.
+  `legalities` has no label dict — those UI-status strings live in the web's own
+  next-intl messages.
 - The canonical value list is **derived from the dist data** at seed time (nothing
   missed); **metadata** (lesson colors, sort order) comes from a **curated config in
   `@revelio/core`**, which the web app also reads for facet-accent colors. Values seen in

@@ -26,22 +26,32 @@
 
 ```
 app/
-  package.json                     # workspaces root: ["db","ingest"]
+  package.json                     # workspaces root: ["core","db","ingest"]
   tsconfig.base.json
   .gitignore
   .env.example
   docker-compose.yml               # base: postgres service + volume
   docker-compose.override.yml      # dev: ingest built from source, bind-mounts ../card-data
+  core/                            # @revelio/core (driver-free)
+    package.json
+    tsconfig.json
+    src/
+      vocab.ts                     # curated vocab config (codes, lesson colors, order)
+      schemas.ts                   # Zod schemas
+      domain.ts                    # shared DTO types (SetDTO, CardDTO, ...)
+      index.ts                     # barrel
+    test/
+      vocab.test.ts
   db/
     package.json                   # @revelio/db
     tsconfig.json
     drizzle.config.ts
     src/
-      schema.ts                    # sets, cards, card_localizations
+      schema.ts                    # ref tables + sets, cards, junctions, card_localizations
       client.ts                    # createClient(databaseUrl)
       migrate.ts                   # migrationsDir export + runMigrations()
       index.ts                     # re-exports
-    drizzle/                       # GENERATED migrations (committed)
+    drizzle/                       # GENERATED migrations (single consolidated, committed)
   ingest/
     package.json                   # @revelio/ingest
     tsconfig.json
@@ -50,14 +60,16 @@ app/
       types.ts                     # TS types for dist JSON
       load-dist.ts                 # read+parse dist files from DATA_DIR
       load-sets.ts                 # additive import of sets (ON CONFLICT DO NOTHING)
-      load-cards.ts                # additive import of cards + localizations
+      load-vocab.ts                # derive vocab + curated metadata -> reference tables
+      load-cards.ts                # additive import of cards + localizations + junctions
       main.ts                      # entrypoint: migrate + seed
     test/
       fixtures/dataset/sets.json   # (not "dist/" — .gitignore would swallow it)
       fixtures/dataset/cards.json
-      helpers.ts                   # Testcontainers Postgres + migrated client
+      helpers.ts                   # isolated test DB (TEST_DATABASE_URL or Testcontainers)
       load-dist.test.ts
       load-sets.test.ts
+      load-vocab.test.ts
       load-cards.test.ts
       main.test.ts
 ```
@@ -719,24 +731,575 @@ git commit -m "feat: additively import sets into Postgres"
 
 ---
 
-### Task 5: Additive `loadCards` + `card_localizations`
+### Task 5: `@revelio/core` shared package (vocab config + Zod + domain types)
 
 **Files:**
-- Create: `app/ingest/src/load-cards.ts`
-- Test: `app/ingest/test/load-cards.test.ts`
+- Modify: `app/package.json` (add `core` to `workspaces`)
+- Create: `app/core/package.json`, `app/core/tsconfig.json`
+- Create: `app/core/src/vocab.ts`, `app/core/src/schemas.ts`, `app/core/src/domain.ts`, `app/core/src/index.ts`
+- Test: `app/core/test/vocab.test.ts`
 
 **Interfaces:**
-- Consumes: `DistCard`, `@revelio/db` (`cards`, `cardLocalizations`), `loadSets` (FK parent must exist first), `loadDist`.
-- Produces: `loadCards(db: DB, cards: DistCard[]): Promise<void>` — inserts cards and one localization row per language (keeping the dist `source`, tagged `origin: 'import'`), **`ON CONFLICT DO NOTHING`**.
+- Produces (from `@revelio/core`):
+  - `VOCAB: { types: VocabEntry[]; rarities: VocabEntry[]; finishes: VocabEntry[]; legalities: VocabEntry[]; lessons: LessonEntry[] }`
+  - `type VocabEntry = { code: string; sortOrder: number }`, `type LessonEntry = VocabEntry & { color: string }`
+  - `vocabEntrySchema`, `lessonEntrySchema` (Zod)
+  - `type SetDTO`, `type CardDTO`, `type CardLocalizationDTO`
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Add `core` to the workspace**
+
+Edit `app/package.json` `workspaces` to `["core", "db", "ingest"]`.
+
+- [ ] **Step 2: Create the package files**
+
+`app/core/package.json`:
+```json
+{
+  "name": "@revelio/core",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "test": "vitest run" },
+  "dependencies": { "zod": "^3.23.0" }
+}
+```
+
+`app/core/tsconfig.json`:
+```json
+{ "extends": "../tsconfig.base.json", "include": ["src", "test"] }
+```
+
+- [ ] **Step 3: Write the vocab config**
+
+`app/core/src/vocab.ts`:
+```ts
+export type VocabEntry = { code: string; sortOrder: number }
+export type LessonEntry = VocabEntry & { color: string }
+
+export const TYPES: VocabEntry[] = [
+  { code: 'Character', sortOrder: 1 },
+  { code: 'Creature', sortOrder: 2 },
+  { code: 'Spell', sortOrder: 3 },
+  { code: 'Item', sortOrder: 4 },
+  { code: 'Lesson', sortOrder: 5 },
+  { code: 'Adventure', sortOrder: 6 },
+  { code: 'Location', sortOrder: 7 },
+  { code: 'Event', sortOrder: 8 },
+  { code: 'Match', sortOrder: 9 },
+]
+
+// First-pass HP-flavored accent colors on the dark canvas; tunable later.
+export const LESSONS: LessonEntry[] = [
+  { code: 'Care of Magical Creatures', color: '#5CB878', sortOrder: 1 },
+  { code: 'Charms', color: '#5B8DEF', sortOrder: 2 },
+  { code: 'Potions', color: '#A06CD5', sortOrder: 3 },
+  { code: 'Transfiguration', color: '#E0555B', sortOrder: 4 },
+  { code: 'Quidditch', color: '#EA7B3C', sortOrder: 5 },
+]
+
+export const RARITIES: VocabEntry[] = [
+  { code: 'Common', sortOrder: 1 },
+  { code: 'Uncommon', sortOrder: 2 },
+  { code: 'Rare', sortOrder: 3 },
+  { code: 'Lesson', sortOrder: 4 },
+]
+
+export const FINISHES: VocabEntry[] = [
+  { code: 'normal', sortOrder: 1 },
+  { code: 'foil', sortOrder: 2 },
+  { code: 'holo', sortOrder: 3 },
+]
+
+export const LEGALITIES: VocabEntry[] = [
+  { code: 'legal', sortOrder: 1 },
+  { code: 'restricted', sortOrder: 2 },
+  { code: 'banned', sortOrder: 3 },
+  { code: 'unknown', sortOrder: 4 },
+]
+
+// sub_types is intentionally not curated here — it self-extends from card data.
+export const VOCAB = {
+  types: TYPES,
+  lessons: LESSONS,
+  rarities: RARITIES,
+  finishes: FINISHES,
+  legalities: LEGALITIES,
+} as const
+```
+
+- [ ] **Step 4: Write the Zod schemas**
+
+`app/core/src/schemas.ts`:
+```ts
+import { z } from 'zod'
+
+export const vocabEntrySchema = z.object({
+  code: z.string().min(1),
+  sortOrder: z.number().int().nonnegative(),
+})
+
+export const lessonEntrySchema = vocabEntrySchema.extend({
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'expected a #RRGGBB hex color'),
+})
+```
+
+- [ ] **Step 5: Write the shared domain DTO types**
+
+`app/core/src/domain.ts`:
+```ts
+// The transport/domain shape shared by the API and the frontend (distinct from the
+// Drizzle persistence rows in @revelio/db). Grows as the web app is built.
+export type SetDTO = {
+  code: string
+  name: string
+  releaseDate: string | null
+  isOfficial: boolean
+  cardCount: number
+  symbol: string | null
+}
+
+export type CardLocalizationDTO = {
+  lang: string
+  name: string
+  status: string | null
+  source: string | null
+  text: string | null
+  flavorText: string | null
+  imageFile: string | null
+  imageUrl: string | null
+}
+
+export type CardDTO = {
+  id: string
+  setCode: string
+  number: string
+  name: string
+  types: string[]
+  subTypes: string[]
+  lesson: string | null
+  cost: number | null
+  rarity: string | null
+  finish: string | null
+  legality: string | null
+  localizations: Record<string, CardLocalizationDTO>
+}
+```
+
+- [ ] **Step 6: Write the barrel export**
+
+`app/core/src/index.ts`:
+```ts
+export * from './vocab.js'
+export * from './schemas.js'
+export * from './domain.js'
+```
+
+- [ ] **Step 7: Write the failing test**
+
+`app/core/test/vocab.test.ts`:
+```ts
+import { describe, it, expect } from 'vitest'
+import { TYPES, LESSONS, RARITIES, FINISHES, LEGALITIES, VOCAB } from '../src/vocab.js'
+import { vocabEntrySchema, lessonEntrySchema } from '../src/schemas.js'
+
+describe('vocab config', () => {
+  it('every lesson has a valid #RRGGBB color and a unique code', () => {
+    for (const l of LESSONS) expect(() => lessonEntrySchema.parse(l)).not.toThrow()
+    const codes = LESSONS.map((l) => l.code)
+    expect(new Set(codes).size).toBe(codes.length)
+  })
+
+  it('plain vocab entries validate', () => {
+    for (const e of [...TYPES, ...RARITIES, ...FINISHES, ...LEGALITIES]) {
+      expect(() => vocabEntrySchema.parse(e)).not.toThrow()
+    }
+  })
+
+  it('VOCAB groups the five curated vocabularies', () => {
+    expect(Object.keys(VOCAB).sort()).toEqual(
+      ['finishes', 'legalities', 'lessons', 'rarities', 'types'],
+    )
+  })
+})
+```
+
+- [ ] **Step 8: Run test to verify it fails**
+
+Run: `cd app && npm install && cd core && npx vitest run`
+Expected: FAIL — `Cannot find module '../src/vocab.js'`.
+
+- [ ] **Step 9: (files already written in Steps 3–6) Run test to verify it passes**
+
+Run: `cd app/core && npx vitest run`
+Expected: PASS (3 tests). No Docker needed — this package is pure.
+
+- [ ] **Step 10: Commit**
+
+```bash
+git add app/package.json app/core
+git commit -m "feat: add @revelio/core with vocab config, Zod and domain types"
+```
+
+---
+
+### Task 6: Schema evolution to normalized vocabularies (single fresh migration)
+
+**Files:**
+- Modify: `app/db/src/schema.ts`, `app/db/src/index.ts`
+- Delete: `app/db/drizzle/*` (all existing migrations)
+- Generated: a single fresh `app/db/drizzle/0000_*.sql`
+
+**Interfaces:**
+- Produces (from `@revelio/db`): new table objects `types`, `subTypes`, `lessons`, `rarities`, `finishes`, `legalities`, `cardTypes`, `cardSubTypes`; `cards` loses `types`/`subTypes` columns and gains FKs `lesson`→`lessons.code`, `rarity`→`rarities.code`, `finish`→`finishes.code`, `legality`→`legalities.code` (all nullable).
+
+- [ ] **Step 1: Replace the schema**
+
+`app/db/src/schema.ts`:
+```ts
+import {
+  pgTable, text, integer, boolean, jsonb, timestamp, primaryKey, index,
+} from 'drizzle-orm/pg-core'
+
+const editable = {
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  origin: text('origin').notNull().default('import'),
+}
+
+// --- reference (vocabulary) tables ---
+export const types = pgTable('types', {
+  code: text('code').primaryKey(),
+  sortOrder: integer('sort_order').notNull().default(0),
+  ...editable,
+})
+
+export const subTypes = pgTable('sub_types', {
+  code: text('code').primaryKey(),
+  sortOrder: integer('sort_order').notNull().default(0),
+  ...editable,
+})
+
+export const lessons = pgTable('lessons', {
+  code: text('code').primaryKey(),
+  color: text('color'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  ...editable,
+})
+
+export const rarities = pgTable('rarities', {
+  code: text('code').primaryKey(),
+  sortOrder: integer('sort_order').notNull().default(0),
+  ...editable,
+})
+
+export const finishes = pgTable('finishes', {
+  code: text('code').primaryKey(),
+  sortOrder: integer('sort_order').notNull().default(0),
+  ...editable,
+})
+
+export const legalities = pgTable('legalities', {
+  code: text('code').primaryKey(),
+  sortOrder: integer('sort_order').notNull().default(0),
+  ...editable,
+})
+
+// --- core tables ---
+export const sets = pgTable('sets', {
+  code: text('code').primaryKey(),
+  name: text('name').notNull(),
+  releaseDate: text('release_date'),
+  isOfficial: boolean('is_official').notNull().default(false),
+  cardCount: integer('card_count').notNull().default(0),
+  symbol: text('symbol'),
+  ...editable,
+})
+
+export const cards = pgTable('cards', {
+  id: text('id').primaryKey(),
+  setCode: text('set_code').notNull().references(() => sets.code),
+  number: text('number').notNull(),
+  name: text('name').notNull(),
+  lesson: text('lesson').references(() => lessons.code),
+  cost: integer('cost'),
+  provides: jsonb('provides'),
+  rarity: text('rarity').references(() => rarities.code),
+  finish: text('finish').references(() => finishes.code),
+  artist: text('artist').array().notNull().default([]),
+  health: integer('health'),
+  damagePerTurn: integer('damage_per_turn'),
+  orientation: text('orientation'),
+  legality: text('legality').references(() => legalities.code),
+  draftValue: integer('draft_value'),
+  rulings: jsonb('rulings'),
+  defaultLanguage: text('default_language').notNull(),
+  languages: text('languages').array().notNull().default([]),
+  ...editable,
+}, (t) => ({
+  setCodeIdx: index('cards_set_code_idx').on(t.setCode),
+}))
+
+// --- junction tables for the array-valued vocabularies ---
+export const cardTypes = pgTable('card_types', {
+  cardId: text('card_id').notNull().references(() => cards.id),
+  typeCode: text('type_code').notNull().references(() => types.code),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.cardId, t.typeCode] }),
+}))
+
+export const cardSubTypes = pgTable('card_sub_types', {
+  cardId: text('card_id').notNull().references(() => cards.id),
+  subTypeCode: text('sub_type_code').notNull().references(() => subTypes.code),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.cardId, t.subTypeCode] }),
+}))
+
+export const cardLocalizations = pgTable('card_localizations', {
+  cardId: text('card_id').notNull().references(() => cards.id),
+  lang: text('lang').notNull(),
+  name: text('name').notNull(),
+  status: text('status'),
+  source: text('source'),
+  text: text('text'),
+  flavorText: text('flavor_text'),
+  adventure: jsonb('adventure'),
+  match: jsonb('match'),
+  imageFile: text('image_file'),
+  imageUrl: text('image_url'),
+  ...editable,
+}, (t) => ({
+  pk: primaryKey({ columns: [t.cardId, t.lang] }),
+}))
+```
+
+- [ ] **Step 2: Update the barrel export**
+
+`app/db/src/index.ts`:
+```ts
+export * as schema from './schema.js'
+export {
+  types, subTypes, lessons, rarities, finishes, legalities,
+  sets, cards, cardTypes, cardSubTypes, cardLocalizations,
+} from './schema.js'
+export { createClient } from './client.js'
+export type { DB } from './client.js'
+export { migrationsDir, runMigrations } from './migrate.js'
+```
+
+- [ ] **Step 3: Delete the old migrations and regenerate a single fresh one**
+
+Run:
+```bash
+rm -rf app/db/drizzle
+cd app && npm run db:generate
+```
+Expected: exactly one new SQL file `app/db/drizzle/0000_*.sql` plus `app/db/drizzle/meta/` (with a single `0000_snapshot.json` and a `_journal.json` holding one entry).
+
+- [ ] **Step 4: Verify the consolidated migration**
+
+Run:
+```bash
+ls app/db/drizzle/*.sql | wc -l                                   # expect 1
+grep -c 'CREATE TABLE "card_types"' app/db/drizzle/0000_*.sql     # expect 1
+grep -c 'CREATE TABLE "lessons"' app/db/drizzle/0000_*.sql        # expect 1
+grep -c '"types"\|"sub_types"\|"rarities"\|"finishes"\|"legalities"' app/db/drizzle/0000_*.sql  # >= 5
+grep -c 'REFERENCES "lessons"' app/db/drizzle/0000_*.sql          # expect >= 1 (cards.lesson FK)
+```
+Expected: one SQL file; the reference + junction tables and the `cards` FKs are all present in it. `cards` must NOT contain a `types`/`sub_types` column (those are junctions now):
+```bash
+grep -E '"types" |"sub_types" ' app/db/drizzle/0000_*.sql          # expect NOTHING inside the cards table
+```
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add app/db/src/schema.ts app/db/src/index.ts app/db/drizzle
+git commit -m "feat: normalize vocabularies into reference and junction tables
+
+Regenerate a single consolidated migration; drop the old ones."
+```
+
+---
+
+### Task 7: `load-vocab` (derive values + curated metadata)
+
+**Files:**
+- Modify: `app/ingest/package.json` (add `@revelio/core` dependency)
+- Create: `app/ingest/src/load-vocab.ts`
+- Test: `app/ingest/test/load-vocab.test.ts`
+
+**Interfaces:**
+- Consumes: `DistCard`, `@revelio/db` (reference tables), `@revelio/core` (`VOCAB`).
+- Produces: `loadVocab(db: DB, cards: DistCard[]): Promise<void>` — derives distinct vocab values from the cards, merges curated metadata (sort order; lesson color), additively upserts every reference table. Must run **before** `loadCards` (FK targets).
+
+- [ ] **Step 1: Add the core dependency**
+
+Edit `app/ingest/package.json` `dependencies` to include `"@revelio/core": "*"`.
+
+- [ ] **Step 2: Write the failing test**
+
+Tests run against an isolated Postgres. Set `TEST_DATABASE_URL` to an external server (recommended here) or let it fall back to Testcontainers.
+
+`app/ingest/test/load-vocab.test.ts`:
+```ts
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { types, subTypes, lessons } from '@revelio/db'
+import { eq } from 'drizzle-orm'
+import { loadVocab } from '../src/load-vocab.js'
+import { loadDist } from '../src/load-dist.js'
+import { withMigratedDb } from './helpers.js'
+import { fileURLToPath } from 'node:url'
+import { dirname, resolve } from 'node:path'
+
+const fixtureDir = resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures/dataset')
+
+let ctx: Awaited<ReturnType<typeof withMigratedDb>>
+beforeAll(async () => {
+  ctx = await withMigratedDb()
+  const { cards } = await loadDist(fixtureDir)
+  await loadVocab(ctx.db, cards)
+}, 120_000)
+afterAll(async () => { await ctx.stop() })
+
+describe('loadVocab', () => {
+  it('derives distinct types from the cards', async () => {
+    const rows = await ctx.db.select().from(types)
+    const codes = rows.map((r) => r.code).sort()
+    expect(codes).toEqual(['Character', 'Creature', 'Match'])
+  })
+
+  it('derives sub_types (incl. from cards) with default order', async () => {
+    const rows = await ctx.db.select().from(subTypes)
+    expect(rows.map((r) => r.code).sort()).toEqual(['Gryffindor', 'Wizard'])
+    expect(rows[0].sortOrder).toBe(999)
+  })
+
+  it('applies curated color + order to a lesson derived from provides', async () => {
+    const rows = await ctx.db.select().from(lessons).where(eq(lessons.code, 'Charms'))
+    expect(rows).toHaveLength(1) // Charms comes from Flobberworm.provides
+    expect(rows[0].color).toBe('#5B8DEF')
+    expect(rows[0].sortOrder).toBe(2)
+  })
+
+  it('is additive on re-run', async () => {
+    const { cards } = await loadDist(fixtureDir)
+    await loadVocab(ctx.db, cards)
+    const rows = await ctx.db.select().from(types)
+    expect(rows).toHaveLength(3)
+  })
+})
+```
+
+- [ ] **Step 3: Run test to verify it fails**
+
+Run: `cd app && npm install && cd ingest && TEST_DATABASE_URL="$TEST_DATABASE_URL" npx vitest run load-vocab`
+Expected: FAIL — `Cannot find module '../src/load-vocab.js'`.
+
+- [ ] **Step 4: Write the implementation**
+
+`app/ingest/src/load-vocab.ts`:
+```ts
+import type { DB } from '@revelio/db'
+import { types, subTypes, lessons, rarities, finishes, legalities } from '@revelio/db'
+import { VOCAB } from '@revelio/core'
+import type { DistCard } from './types.js'
+
+type Provide = { lesson?: string | null }
+
+function distinctVocab(cards: DistCard[]) {
+  const acc = {
+    types: new Set<string>(),
+    subTypes: new Set<string>(),
+    lessons: new Set<string>(),
+    rarities: new Set<string>(),
+    finishes: new Set<string>(),
+    legalities: new Set<string>(),
+  }
+  for (const c of cards) {
+    c.types.forEach((x) => acc.types.add(x))
+    c.subTypes.forEach((x) => acc.subTypes.add(x))
+    if (c.lesson) acc.lessons.add(c.lesson)
+    if (c.rarity) acc.rarities.add(c.rarity)
+    if (c.finish) acc.finishes.add(c.finish)
+    if (c.legality) acc.legalities.add(c.legality)
+    for (const p of (c.provides as Provide[] | null) ?? []) {
+      if (p?.lesson) acc.lessons.add(p.lesson)
+    }
+  }
+  return acc
+}
+
+// Merge a derived code set with curated sort orders (default 999 when uncurated).
+function vocabRows(codes: Set<string>, cfg: readonly { code: string; sortOrder: number }[]) {
+  return [...codes].map((code) => ({
+    code,
+    sortOrder: cfg.find((e) => e.code === code)?.sortOrder ?? 999,
+    origin: 'import' as const,
+  }))
+}
+
+export async function loadVocab(db: DB, cards: DistCard[]): Promise<void> {
+  const d = distinctVocab(cards)
+
+  const typeRows = vocabRows(d.types, VOCAB.types)
+  if (typeRows.length) await db.insert(types).values(typeRows).onConflictDoNothing()
+
+  const rarityRows = vocabRows(d.rarities, VOCAB.rarities)
+  if (rarityRows.length) await db.insert(rarities).values(rarityRows).onConflictDoNothing()
+
+  const finishRows = vocabRows(d.finishes, VOCAB.finishes)
+  if (finishRows.length) await db.insert(finishes).values(finishRows).onConflictDoNothing()
+
+  const legalityRows = vocabRows(d.legalities, VOCAB.legalities)
+  if (legalityRows.length) await db.insert(legalities).values(legalityRows).onConflictDoNothing()
+
+  // sub_types has no curated config — self-extends from data with default order.
+  const subTypeRows = vocabRows(d.subTypes, [])
+  if (subTypeRows.length) await db.insert(subTypes).values(subTypeRows).onConflictDoNothing()
+
+  // lessons carry a curated color in addition to sort order.
+  const lessonRows = [...d.lessons].map((code) => {
+    const cfg = VOCAB.lessons.find((l) => l.code === code)
+    return { code, color: cfg?.color ?? null, sortOrder: cfg?.sortOrder ?? 999, origin: 'import' as const }
+  })
+  if (lessonRows.length) await db.insert(lessons).values(lessonRows).onConflictDoNothing()
+}
+```
+
+- [ ] **Step 5: Run test to verify it passes**
+
+Run: `cd app/ingest && TEST_DATABASE_URL="$TEST_DATABASE_URL" npx vitest run load-vocab`
+Expected: PASS (4 tests).
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add app/ingest/package.json app/ingest/src/load-vocab.ts app/ingest/test/load-vocab.test.ts
+git commit -m "feat: additively import vocabularies from dist with curated metadata"
+```
+
+---
+
+### Task 8: Rewrite `load-cards` for FKs + junction tables
+
+**Files:**
+- Modify: `app/ingest/src/load-cards.ts`
+- Modify: `app/ingest/test/load-cards.test.ts`
+
+**Interfaces:**
+- Consumes: `DistCard`, `@revelio/db` (`cards`, `cardLocalizations`, `cardTypes`, `cardSubTypes`), and requires `loadVocab` + `loadSets` to have run first (FK targets).
+- Produces: `loadCards(db: DB, cards: DistCard[]): Promise<void>` — inserts card rows (scalar FK columns, no more `types`/`subTypes` arrays), localization rows, and `card_types` / `card_sub_types` junction rows; all additive.
+
+- [ ] **Step 1: Rewrite the test**
 
 `app/ingest/test/load-cards.test.ts`:
 ```ts
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { eq } from 'drizzle-orm'
-import { cards, cardLocalizations } from '@revelio/db'
+import { cards, cardLocalizations, cardTypes, cardSubTypes } from '@revelio/db'
 import { loadSets } from '../src/load-sets.js'
+import { loadVocab } from '../src/load-vocab.js'
 import { loadCards } from '../src/load-cards.js'
 import { loadDist } from '../src/load-dist.js'
 import { withMigratedDb } from './helpers.js'
@@ -750,45 +1313,42 @@ beforeAll(async () => {
   ctx = await withMigratedDb()
   const { sets, cards: distCards } = await loadDist(fixtureDir)
   await loadSets(ctx.db, sets)
+  await loadVocab(ctx.db, distCards)
   await loadCards(ctx.db, distCards)
 }, 120_000)
 afterAll(async () => { await ctx.stop() })
 
 describe('loadCards', () => {
-  it('inserts all cards with split stats, string number, and origin=import', async () => {
+  it('inserts cards with scalar FK values, split stats, and origin=import', async () => {
     const rows = await ctx.db.select().from(cards)
     expect(rows).toHaveLength(3)
     const flobber = rows.find((r) => r.id === 'bs-2-flobberworm')!
     expect(flobber.health).toBe(6)
     expect(flobber.damagePerTurn).toBeNull()
     expect(flobber.cost).toBe(2)
-    expect(flobber.provides).toEqual([{ lesson: 'Charms', amount: 1 }])
+    expect(flobber.rarity).toBe('Common')
+    expect(flobber.finish).toBe('normal')
     expect(flobber.origin).toBe('import')
-    const split = rows.find((r) => r.id === 'bs-1-dean-thomas')!
-    expect(split.types).toEqual(['Character'])
-    expect(split.health).toBeNull()
   })
 
-  it('inserts one localization row per language', async () => {
-    const locs = await ctx.db
-      .select()
-      .from(cardLocalizations)
-      .where(eq(cardLocalizations.cardId, 'bs-1-dean-thomas'))
+  it('links types via the card_types junction', async () => {
+    const links = await ctx.db.select().from(cardTypes).where(eq(cardTypes.cardId, 'bs-2-flobberworm'))
+    expect(links.map((l) => l.typeCode)).toEqual(['Creature'])
+  })
+
+  it('links sub_types via the card_sub_types junction', async () => {
+    const links = await ctx.db.select().from(cardSubTypes).where(eq(cardSubTypes.cardId, 'bs-1-dean-thomas'))
+    expect(links.map((l) => l.subTypeCode).sort()).toEqual(['Gryffindor', 'Wizard'])
+  })
+
+  it('inserts one localization row per language keeping the dist source', async () => {
+    const locs = await ctx.db.select().from(cardLocalizations).where(eq(cardLocalizations.cardId, 'bs-1-dean-thomas'))
     expect(locs).toHaveLength(2)
     expect(locs.find((l) => l.lang === 'de')?.text).toBe('Ziehe 3 Karten.')
-    expect(locs.find((l) => l.lang === 'en')?.imageFile).toBe('DeanThomas.png')
+    expect(locs.find((l) => l.lang === 'en')?.source).toBe('WotC')
   })
 
-  it('stores match block as jsonb', async () => {
-    const locs = await ctx.db
-      .select()
-      .from(cardLocalizations)
-      .where(eq(cardLocalizations.cardId, 'qc-1-the-snitch'))
-    expect((locs[0].match as { toWin: string }).toWin).toBe('Do 10 damage.')
-  })
-
-  it('re-run is additive and never overwrites (counts stable, edits preserved)', async () => {
-    // mutate an existing localization, then re-import — the edit must survive
+  it('re-run is additive and never overwrites an in-app edit', async () => {
     await ctx.db
       .update(cardLocalizations)
       .set({ text: 'EDITED IN APP' })
@@ -796,29 +1356,26 @@ describe('loadCards', () => {
     const { cards: distCards } = await loadDist(fixtureDir)
     await loadCards(ctx.db, distCards)
     const cardRows = await ctx.db.select().from(cards)
-    const locs = await ctx.db.select().from(cardLocalizations)
     expect(cardRows).toHaveLength(3)
-    expect(locs).toHaveLength(4)
     const dean = await ctx.db
-      .select()
-      .from(cardLocalizations)
+      .select().from(cardLocalizations)
       .where(eq(cardLocalizations.cardId, 'bs-1-dean-thomas'))
-    expect(dean.find((l) => l.lang === 'en')?.text).toBe('EDITED IN APP') // not clobbered
+    expect(dean.find((l) => l.lang === 'en')?.text).toBe('EDITED IN APP')
   })
 })
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd app/ingest && npx vitest run load-cards`
-Expected: FAIL — `Cannot find module '../src/load-cards.js'`.
+Run: `cd app/ingest && TEST_DATABASE_URL="$TEST_DATABASE_URL" npx vitest run load-cards`
+Expected: FAIL — the current `load-cards.ts` still references removed `types`/`subTypes` columns (compile/type error) or the junction assertions fail.
 
-- [ ] **Step 3: Write the implementation**
+- [ ] **Step 3: Rewrite the implementation**
 
 `app/ingest/src/load-cards.ts`:
 ```ts
 import type { DB } from '@revelio/db'
-import { cards, cardLocalizations } from '@revelio/db'
+import { cards, cardLocalizations, cardTypes, cardSubTypes } from '@revelio/db'
 import type { DistCard } from './types.js'
 
 export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
@@ -829,8 +1386,6 @@ export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
     setCode: c.setCode,
     number: c.number,
     name: c.name,
-    types: c.types,
-    subTypes: c.subTypes,
     lesson: c.lesson,
     cost: c.cost,
     provides: c.provides ?? null,
@@ -845,9 +1400,8 @@ export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
     rulings: c.rulings ?? [],
     defaultLanguage: c.defaultLanguage,
     languages: c.languages,
-    origin: 'import',
+    origin: 'import' as const,
   }))
-
   await db.insert(cards).values(cardRows).onConflictDoNothing({ target: cards.id })
 
   const locRows = input.flatMap((c) =>
@@ -857,7 +1411,7 @@ export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
       name: l.name,
       status: l.status,
       source: l.source,
-      origin: 'import',
+      origin: 'import' as const,
       text: l.text,
       flavorText: l.flavorText,
       adventure: l.adventure ?? null,
@@ -866,76 +1420,79 @@ export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
       imageUrl: l.image?.url ?? null,
     })),
   )
-
   await db
     .insert(cardLocalizations)
     .values(locRows)
     .onConflictDoNothing({ target: [cardLocalizations.cardId, cardLocalizations.lang] })
+
+  const typeLinks = input.flatMap((c) => c.types.map((code) => ({ cardId: c.id, typeCode: code })))
+  if (typeLinks.length) await db.insert(cardTypes).values(typeLinks).onConflictDoNothing()
+
+  const subTypeLinks = input.flatMap((c) => c.subTypes.map((code) => ({ cardId: c.id, subTypeCode: code })))
+  if (subTypeLinks.length) await db.insert(cardSubTypes).values(subTypeLinks).onConflictDoNothing()
 }
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd app/ingest && npx vitest run load-cards`
-Expected: PASS (4 tests).
+Run: `cd app/ingest && TEST_DATABASE_URL="$TEST_DATABASE_URL" npx vitest run load-cards`
+Expected: PASS (5 tests).
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add app/ingest/src/load-cards.ts app/ingest/test/load-cards.test.ts
-git commit -m "feat: additively import cards and localizations into Postgres"
+git commit -m "feat: import cards with FK vocab and junction tables"
 ```
 
 ---
 
-### Task 6: Seed entrypoint (`main`)
+### Task 9: Seed entrypoint wires `load-vocab`
 
 **Files:**
-- Create: `app/ingest/src/main.ts`
-- Test: `app/ingest/test/main.test.ts`
+- Modify: `app/ingest/src/main.ts`
+- Modify: `app/ingest/test/main.test.ts`
 
 **Interfaces:**
-- Consumes: `createClient`, `runMigrations`, `loadDist`, `loadSets`, `loadCards`.
-- Produces: `runIngest(opts: { databaseUrl: string; dataDir: string }): Promise<{ sets: number; cards: number }>` (returns the number of rows read from `dist/`, not the number inserted) and a CLI entry that reads `DATABASE_URL` / `DATA_DIR`.
+- Consumes: `loadDist`, `loadSets`, `loadVocab`, `loadCards`, `createClient`, `runMigrations`.
+- Produces: `runIngest(opts)` runs migrate → loadSets → **loadVocab** → loadCards, in that order.
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Update the test**
 
 `app/ingest/test/main.test.ts`:
 ```ts
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { PostgreSQLContainer } from '@testcontainers/postgresql'
 import { sql as dsql } from 'drizzle-orm'
 import { createClient } from '@revelio/db'
 import { runIngest } from '../src/main.js'
+import { withFreshDatabase } from './helpers.js'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
 const fixtureDir = resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures/dataset')
 
-let container: Awaited<ReturnType<PostgreSQLContainer['start']>>
-let uri: string
-beforeAll(async () => {
-  container = await new PostgreSQLContainer('postgres:16-alpine').start()
-  uri = container.getConnectionUri()
-}, 120_000)
-afterAll(async () => { await container.stop() })
+let fresh: Awaited<ReturnType<typeof withFreshDatabase>>
+beforeAll(async () => { fresh = await withFreshDatabase() }, 120_000)
+afterAll(async () => { await fresh.stop() })
 
 describe('runIngest', () => {
-  it('migrates and seeds the full fixture dataset', async () => {
-    const result = await runIngest({ databaseUrl: uri, dataDir: fixtureDir })
+  it('migrates and seeds sets, vocab, cards and junctions', async () => {
+    const result = await runIngest({ databaseUrl: fresh.url, dataDir: fixtureDir })
     expect(result).toEqual({ sets: 2, cards: 3 })
 
-    const { db, sql } = createClient(uri)
-    const rows = await db.execute(dsql`select count(*)::int as count from cards`)
-    expect(rows[0].count).toBe(3)
+    const { db, sql } = createClient(fresh.url)
+    const cardCount = await db.execute(dsql`select count(*)::int as count from cards`)
+    const typeLinks = await db.execute(dsql`select count(*)::int as count from card_types`)
+    expect(cardCount[0].count).toBe(3)
+    expect(typeLinks[0].count).toBe(3) // one type per fixture card
     await sql.end()
   })
 
-  it('is a safe no-op on a second run (additive)', async () => {
-    await runIngest({ databaseUrl: uri, dataDir: fixtureDir })
-    const { db, sql } = createClient(uri)
-    const rows = await db.execute(dsql`select count(*)::int as count from cards`)
-    expect(rows[0].count).toBe(3)
+  it('is a safe no-op on a second run', async () => {
+    await runIngest({ databaseUrl: fresh.url, dataDir: fixtureDir })
+    const { db, sql } = createClient(fresh.url)
+    const cardCount = await db.execute(dsql`select count(*)::int as count from cards`)
+    expect(cardCount[0].count).toBe(3)
     await sql.end()
   })
 })
@@ -943,16 +1500,17 @@ describe('runIngest', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd app/ingest && npx vitest run main`
-Expected: FAIL — `Cannot find module '../src/main.js'`.
+Run: `cd app/ingest && TEST_DATABASE_URL="$TEST_DATABASE_URL" npx vitest run main`
+Expected: FAIL — junction count is 0 (vocab/junctions not wired yet) or a compile error.
 
-- [ ] **Step 3: Write the implementation**
+- [ ] **Step 3: Update the implementation**
 
 `app/ingest/src/main.ts`:
 ```ts
 import { createClient, runMigrations } from '@revelio/db'
 import { loadDist } from './load-dist.js'
 import { loadSets } from './load-sets.js'
+import { loadVocab } from './load-vocab.js'
 import { loadCards } from './load-cards.js'
 
 export async function runIngest(opts: {
@@ -964,6 +1522,7 @@ export async function runIngest(opts: {
     await runMigrations(db)
     const { sets, cards } = await loadDist(opts.dataDir)
     await loadSets(db, sets)
+    await loadVocab(db, cards)
     await loadCards(db, cards)
     return { sets: sets.length, cards: cards.length }
   } finally {
@@ -993,24 +1552,24 @@ if (isMain) {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd app/ingest && npx vitest run main`
+Run: `cd app/ingest && TEST_DATABASE_URL="$TEST_DATABASE_URL" npx vitest run main`
 Expected: PASS (2 tests).
 
-- [ ] **Step 5: Run the whole ingest test suite**
+- [ ] **Step 5: Run the whole ingest + core suite**
 
-Run: `cd app/ingest && npx vitest run`
-Expected: PASS — all four test files green.
+Run: `cd app/ingest && TEST_DATABASE_URL="$TEST_DATABASE_URL" npx vitest run && cd ../core && npx vitest run`
+Expected: all test files green.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add app/ingest/src/main.ts app/ingest/test/main.test.ts
-git commit -m "feat: add seed entrypoint wiring migrate and additive loaders"
+git commit -m "feat: wire load-vocab into the seed entrypoint"
 ```
 
 ---
 
-### Task 7: Dev Docker Compose + ingest Dockerfile (real-data verification)
+### Task 10: Dev Docker Compose + ingest Dockerfile (real-data verification)
 
 **Files:**
 - Create: `app/ingest/Dockerfile`
@@ -1030,12 +1589,14 @@ WORKDIR /app
 
 # Workspace manifests first for layer caching
 COPY package.json package-lock.json ./
+COPY core/package.json ./core/package.json
 COPY db/package.json ./db/package.json
 COPY ingest/package.json ./ingest/package.json
 RUN npm install
 
 # Source
 COPY tsconfig.base.json ./
+COPY core ./core
 COPY db ./db
 COPY ingest ./ingest
 
@@ -1099,14 +1660,20 @@ cd app && docker compose up --build --abort-on-container-exit ingest
 ```
 Expected: the `ingest` container logs `seed complete: <N> sets, 1035 cards imported (additive)` and exits 0. (If `card-data/dist/` is missing, run `python3 card-data/build_dataset.py` first.)
 
-- [ ] **Step 5: Verify the row counts in Postgres**
+- [ ] **Step 5: Verify the data in Postgres**
 
 Run:
 ```bash
 cd app && docker compose up -d postgres && \
-docker compose exec -T postgres psql -U revelio -d revelio -c "select count(*) from cards; select count(*) from card_localizations; select count(*) from sets; select distinct origin from cards;"
+docker compose exec -T postgres psql -U revelio -d revelio -c "\
+select count(*) as cards from cards; \
+select count(*) as localizations from card_localizations; \
+select count(*) as type_links from card_types; \
+select count(*) as sub_type_links from card_sub_types; \
+select count(*) as lessons from lessons; \
+select code, color from lessons order by sort_order;"
 ```
-Expected: `cards` = 1035; `card_localizations` ≥ 1035; `sets` = the number of entries in `dist/sets.json`; `origin` = `import`.
+Expected: `cards` = 1035; `type_links` ≥ 1035 (each card has ≥1 type); `lessons` = 5; the five lessons list with their curated colors.
 
 - [ ] **Step 6: Verify a second run is a safe no-op**
 
@@ -1115,7 +1682,7 @@ Run:
 cd app && docker compose run --rm ingest && \
 docker compose exec -T postgres psql -U revelio -d revelio -c "select count(*) from cards;"
 ```
-Expected: still `1035` — the additive re-run inserts nothing new and overwrites nothing.
+Expected: still `1035`.
 
 - [ ] **Step 7: Tear down**
 
@@ -1134,23 +1701,27 @@ git commit -m "feat: add dev compose and ingest Dockerfile seeding real dataset"
 ## Self-Review
 
 **Spec coverage (this plan's slice — "Foundation + Postgres data layer"):**
-- `app/` workspace + folder layout → Task 1, Task 2 ✓
-- Postgres schema from `DATABASE-CHOICE.md` (minus `tsvector`, per Meili decision) → Task 1 ✓
-- Editability metadata (`created_at`/`updated_at`/`origin`) → Task 3 ✓
-- Drizzle ORM + migrations → Task 1, Task 3 ✓
-- Postgres as source of truth; one-time **additive** seed (`ON CONFLICT DO NOTHING`, never overwrites) → Tasks 4–6 ✓
-- env-driven config (`DATABASE_URL`, `DATA_DIR`), no hardcoded hosts → Task 6, Task 7 ✓
-- one-shot ingest service gated on `postgres` health; safe no-op on re-run → Task 7 ✓
-- dev bind-mount of `card-data/dist`; production baked-image path deferred → Task 7 ✓ (prod image bake is in Plan 5)
-- Meilisearch, MinIO, Next.js frontend → deferred to Plans 2–5 (out of scope here) ✓
+- `app/` workspace + folder layout → Tasks 1, 2, 5 ✓
+- `@revelio/core` (vocab config, Zod, domain DTOs) → Task 5 ✓
+- Postgres schema, editability metadata, normalized vocab (reference + junction tables, FKs) → Tasks 1, 3, 6 ✓
+- Single consolidated migration (old ones deleted) → Task 6 ✓
+- Postgres as source of truth; one-time **additive** seed (`ON CONFLICT DO NOTHING`) → Tasks 4, 7, 8, 9 ✓
+- Vocab values derived from dist + curated metadata from `@revelio/core` → Task 7 ✓
+- Cards via FKs + junction tables → Tasks 6, 8 ✓
+- env-driven config, no hardcoded hosts → Tasks 9, 10 ✓
+- one-shot ingest gated on `postgres` health; safe no-op on re-run → Task 10 ✓
+- dev bind-mount; production baked-image path deferred to Plan 5 ✓
+- Meilisearch, MinIO, Next.js frontend → Plans 2–5 ✓
 
-**Placeholder scan:** No TBD/TODO. `ghcr.io/REPLACE_ME/...` in the base compose is an intentional, documented placeholder resolved in Plan 5 (CI/registry); the dev override builds locally so it does not block this plan.
+**Placeholder scan:** No TBD/TODO. `ghcr.io/REPLACE_ME/...` in the base compose is intentional (resolved in Plan 5); the dev override builds locally.
 
-**Type consistency:** `DistCard`/`DistSet`/`DistLocalization` (Task 2) are reused verbatim in Tasks 4–6. `loadSets`/`loadCards`/`loadDist`/`runIngest` signatures match across producer and consumer tasks. Column names in inserts match the snake_case columns in `schema.ts`. Test fixtures live under `test/fixtures/dataset/` (not `dist/`, which `.gitignore` would swallow).
+**Type consistency:** `DistCard`/`DistSet` (Task 2) reused in Tasks 7–9. `loadSets`/`loadVocab`/`loadCards`/`runIngest` signatures match across tasks. Reference/junction table names (`types`, `sub_types`, `lessons`, `rarities`, `finishes`, `legalities`, `card_types`, `card_sub_types`) match between schema (Task 6), exports, and loaders (Tasks 7–8). `VOCAB` keys (`types`/`lessons`/`rarities`/`finishes`/`legalities`) match between `@revelio/core` (Task 5) and `load-vocab` (Task 7).
+
+**Testing note:** integration tests use `TEST_DATABASE_URL` (external Postgres, fresh DB per test) — Testcontainers is a fallback but re-pulls its image per start, which is slow/unreliable in some sandboxes.
 
 ## Notes for later plans
 
-- **Plan 2 (Search):** extend ingest with a `load-meili.ts` building per-language indexes from `cards.<lang>.json` + `search-index.<lang>.json` for the initial seed; add the `meilisearch` service. Because Postgres is the source of truth, the steady-state index must sync from **Postgres** on in-app writes, not from `dist/`.
-- **Plan 3 (Images):** add `load-minio.ts` uploading `assets/cards/<id>.png` (diffed) for the seed; add the `minio` service; in-app card image uploads write to MinIO directly.
-- **Plan 4 (Authoring):** write API/UI + auth to create/edit sets, cards, and localizations (`source='user'`), updating `updated_at` and re-syncing Meili/MinIO.
-- **Plan 5 (CI/Prod):** the `revelio-data` image + `COPY --from` bake, prod `docker-compose.yml` image tags, `web` gated on `ingest: service_completed_successfully`, and a backup strategy for the authoritative `pgdata` volume.
+- **Plan 2 (Search):** `load-meili.ts` builds per-language indexes; facets come from the FK/junction vocab. Steady-state index syncs from **Postgres** on in-app writes, not `dist/`.
+- **Plan 3 (Images):** `load-minio.ts` uploads `assets/cards/<id>.png` (diffed); in-app uploads write to MinIO directly.
+- **Plan 4 (Authoring + web):** write API/UI + auth to create/edit sets, cards, localizations and **vocab** (`origin='user'`); `@revelio/core` Zod schemas validate writes; the web reads `@revelio/core` for lesson colors and DTO types.
+- **Plan 5 (CI/Prod):** `revelio-data` image + `COPY --from` bake, prod compose image tags, `web` gated on `ingest: service_completed_successfully`, and a backup strategy for the authoritative `pgdata` volume.

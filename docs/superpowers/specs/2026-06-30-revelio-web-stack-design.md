@@ -32,6 +32,7 @@ deployable, env-configured containers.
 | Search engine | **Meilisearch** | Instant search, typo tolerance, facets — Scryfall UX out of the box |
 | Image store | **MinIO** (S3-compatible) | Self-hosted object storage, signed URLs, open to later uploads |
 | ORM | **Drizzle** | TypeScript-first, lightweight, fits Postgres |
+| Shared code | **`@revelio/core`** (TS + Zod) | Driver-free package: vocab config (codes, lesson colors, sort order), Zod validation schemas, shared domain DTO types — consumed by `db`, `ingest`, `web` |
 | i18n | **next-intl** | Fed from `card-data/i18n/labels.<lang>.json` |
 | Orchestration | **Docker Compose** + per-service Dockerfiles | Both: one stack OR individually env-configured and deployable |
 
@@ -41,13 +42,36 @@ New top-level folder **`app/`** next to `card-data/` and `logos/`:
 
 ```
 app/
-  web/                  # Next.js (FE+BE)
+  core/                 # @revelio/core — shared types, vocab config, Zod (no DB driver)
+  db/                   # @revelio/db — Drizzle schema + migrations + client
+  ingest/               # @revelio/ingest — one-time seed job
     Dockerfile
-  ingest/               # one-shot data load job
+  web/                  # Next.js (FE+BE)
     Dockerfile
   docker-compose.yml
   .env.example
 ```
+
+## Data model: normalized vocabularies
+
+Because Postgres is now the editable source of truth (no upstream validation on in-app
+creates), the controlled vocabularies are **reference tables with FKs**, not free text:
+
+- **Reference tables** — `types`, `sub_types`, `lessons`, `rarities`, `finishes`,
+  `legalities`. Each is `code` PK + `sort_order` (+ `lessons.color` for the facet
+  accents). Adding a value is an `INSERT`, not a migration; `sub_types` self-extends as
+  users add cards.
+- **`cards`** references `lessons` / `rarities` / `finishes` / `legalities` via nullable
+  FKs. The array-valued `types` and `sub_types` become **junction tables**
+  (`card_types`, `card_sub_types`).
+- **Display labels stay in `card-data/i18n/labels.<lang>.json`** (multilingual); the
+  reference tables hold only keys + non-text metadata.
+- The canonical value list is **derived from the dist data** at seed time (nothing
+  missed); **metadata** (lesson colors, sort order) comes from a **curated config in
+  `@revelio/core`**, which the web app also reads for facet-accent colors. Values seen in
+  the data but absent from the config are still inserted (null color / default order).
+- Validation of vocab on in-app writes uses the **Zod schemas in `@revelio/core`** (same
+  source as the config), so `db`, `ingest`, and `web` agree on what is valid.
 
 ## Services
 

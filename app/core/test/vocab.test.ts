@@ -20,4 +20,12 @@ describe('vocab config', () => {
       ['finishes', 'legalities', 'lessons', 'rarities', 'types'],
     )
   })
+
+  it('locks the curated vocabulary counts', () => {
+    expect(TYPES).toHaveLength(9)
+    expect(LESSONS).toHaveLength(5)
+    expect(RARITIES).toHaveLength(4)
+    expect(FINISHES).toHaveLength(3)
+    expect(LEGALITIES).toHaveLength(4)
+  })
 })

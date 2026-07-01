@@ -1,7 +1,7 @@
 import { Poppins } from 'next/font/google'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
 import { notFound } from 'next/navigation'
-import { getMessages } from 'next-intl/server'
+import { getMessages, setRequestLocale } from 'next-intl/server'
 import { routing } from '@/../i18n/routing'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
@@ -26,6 +26,7 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params
   if (!hasLocale(routing.locales, locale)) notFound()
+  setRequestLocale(locale)
   const messages = await getMessages()
   return (
     <html lang={locale} className={`${poppins.variable} dark`}>

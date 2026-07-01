@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect } from 'vitest'
-import Home from '../page'
+import { Home } from '../page'
 import de from '@/../messages/de.json'
 
 describe('home page', () => {

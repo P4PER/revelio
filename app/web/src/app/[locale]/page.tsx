@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { useTranslations } from 'next-intl'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { routing } from '@/../i18n/routing'
 import { getPathname } from '@/../i18n/navigation'
 
@@ -11,27 +12,28 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('home')
 
   const languages: Record<string, string> = Object.fromEntries(
-    routing.locales.map((l) => [
-      l,
-      `${BASE_URL}${getPathname({ href: '/', locale: l })}`,
-    ]),
+    routing.locales.map((l) => [l, `${BASE_URL}${getPathname({ href: '/', locale: l })}`]),
   )
   // x-default points at the default-locale page (Google hreflang guidance).
   languages['x-default'] = `${BASE_URL}${getPathname({ href: '/', locale: routing.defaultLocale })}`
 
-  const canonical = `${BASE_URL}${getPathname({ href: '/', locale })}`
-
   return {
+    title: t('title'),
+    description: t('tagline'),
     alternates: {
-      canonical,
+      canonical: `${BASE_URL}${getPathname({ href: '/', locale })}`,
       languages,
     },
   }
 }
 
-export default function Home() {
+// Presentational (sync, testable) Server Component; its translations are request-scoped
+// via setRequestLocale() in HomePage below (enables static rendering).
+export function Home() {
   const t = useTranslations('home')
   return (
     <main className="mx-auto max-w-3xl px-6 py-24 text-center">
@@ -39,4 +41,14 @@ export default function Home() {
       <p className="mt-4 text-lg text-muted-foreground">{t('tagline')}</p>
     </main>
   )
+}
+
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  return <Home />
 }

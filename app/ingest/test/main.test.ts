@@ -6,6 +6,12 @@ import { runIngest } from '../src/main.js'
 import { withFreshDatabase } from './helpers.js'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
+import { HeadObjectCommand } from '@aws-sdk/client-s3'
+import { createS3Client } from '../src/upload-images.js'
+import { testS3Config, uniqueBucket, nukeBucket } from './s3-helpers.js'
+import { mkdtemp, mkdir, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 const fixtureDir = resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures/dataset')
 const i18nDir = resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures/i18n')
@@ -47,5 +53,21 @@ describe('runIngest', () => {
     await runIngest({ databaseUrl: fresh.url, dataDir: fixtureDir, i18nDir, meiliHost, meiliKey })
     const r = await searchCards(meili, 'en', 'dean')
     expect(r.hits.map((h) => h.id)).toContain('bs-1-dean-thomas')
+  })
+
+  it('uploads card images when s3 is configured', async () => {
+    const bucket = uniqueBucket()
+    const s3cfg = testS3Config(bucket)
+    const assetsDir = await mkdtemp(join(tmpdir(), 'revelio-main-assets-'))
+    await mkdir(join(assetsDir, 'cards'), { recursive: true })
+    await writeFile(join(assetsDir, 'cards', 'bs-1-dean-thomas.png'), Buffer.from('IMG'))
+
+    await runIngest({ databaseUrl: fresh.url, dataDir: fixtureDir, i18nDir, assetsDir, s3: s3cfg })
+
+    const s3 = createS3Client(s3cfg)
+    await expect(
+      s3.send(new HeadObjectCommand({ Bucket: bucket, Key: 'cards/bs-1-dean-thomas.png' })),
+    ).resolves.toBeTruthy()
+    await nukeBucket(s3, bucket)
   })
 })

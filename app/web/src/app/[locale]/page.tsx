@@ -1,4 +1,33 @@
+import type { Metadata } from 'next'
 import { useTranslations } from 'next-intl'
+import { routing } from '@/../i18n/routing'
+import { getPathname } from '@/../i18n/navigation'
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://revelio.cards'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+
+  const languages = Object.fromEntries(
+    routing.locales.map((l) => [
+      l,
+      `${BASE_URL}${getPathname({ href: '/', locale: l })}`,
+    ]),
+  )
+
+  const canonical = `${BASE_URL}${getPathname({ href: '/', locale })}`
+
+  return {
+    alternates: {
+      canonical,
+      languages,
+    },
+  }
+}
 
 export default function Home() {
   const t = useTranslations('home')

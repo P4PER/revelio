@@ -3,6 +3,8 @@ import { NextIntlClientProvider, hasLocale } from 'next-intl'
 import { notFound } from 'next/navigation'
 import { getMessages } from 'next-intl/server'
 import { routing } from '@/../i18n/routing'
+import { SiteHeader } from '@/components/site-header'
+import { SiteFooter } from '@/components/site-footer'
 import '../globals.css'
 
 const poppins = Poppins({
@@ -29,7 +31,11 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${poppins.variable} dark`}>
       <body className="min-h-screen bg-background text-foreground font-sans antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
-          {children}
+          <div className="flex min-h-screen flex-col">
+            <SiteHeader />
+            <div className="flex-1">{children}</div>
+            <SiteFooter />
+          </div>
         </NextIntlClientProvider>
       </body>
     </html>

@@ -50,5 +50,8 @@ describe('searchCards', () => {
     ])
     expect(buildFilter({ isOfficial: true })).toEqual(['isOfficial = true'])
     expect(buildFilter({})).toEqual([])
+    expect(buildFilter({ types: ['character', 'creature'] })).toEqual([
+      '(types = "character" OR types = "creature")',
+    ])
   })
 })

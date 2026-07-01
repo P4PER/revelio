@@ -59,7 +59,7 @@ export async function searchCards(
   })
   return {
     hits: res.hits as SearchDocument[],
-    total: res.estimatedTotalHits ?? res.hits.length,
+    total: res.estimatedTotalHits ?? 0,
     page,
     hitsPerPage,
   }

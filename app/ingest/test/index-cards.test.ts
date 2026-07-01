@@ -30,7 +30,7 @@ beforeAll(async () => {
   langs = await indexCards(ctx.db, client)
 }, 120_000)
 afterAll(async () => {
-  for (const lang of langs) await client.deleteIndex(cardsIndex(lang)).catch(() => {})
+  for (const lang of langs ?? []) await client.deleteIndex(cardsIndex(lang)).catch(() => {})
   await ctx.stop()
 })
 

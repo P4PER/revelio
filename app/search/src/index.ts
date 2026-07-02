@@ -1,3 +1,3 @@
-export * from './client.js'
-export * from './documents.js'
-export * from './search.js'
+export * from './client'
+export * from './documents'
+export * from './search'

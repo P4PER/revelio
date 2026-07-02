@@ -1,5 +1,5 @@
 import type { MeiliSearch } from 'meilisearch'
-import { cardsIndex, type SearchDocument } from './documents.js'
+import { cardsIndex, type SearchDocument } from './documents'
 
 export type CardFilters = {
   setCode?: string[]

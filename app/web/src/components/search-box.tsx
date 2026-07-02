@@ -1,8 +1,9 @@
 'use client'
 import { useSearchParams } from 'next/navigation'
-import { useRouter, usePathname } from '@/../i18n/navigation'
 import { useRef } from 'react'
+import { useRouter, usePathname } from '@/../i18n/navigation'
 import { withParams } from '@/lib/search-params'
+import { Input } from '@/components/ui/input'
 
 export function SearchBox({ placeholder }: { placeholder: string }) {
   const router = useRouter()
@@ -19,13 +20,11 @@ export function SearchBox({ placeholder }: { placeholder: string }) {
   }
 
   return (
-    <input
+    <Input
       type="search"
-      role="searchbox"
       defaultValue={params.get('q') ?? ''}
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-md border border-input bg-background px-4 py-2 text-base outline-none focus:ring-2 focus:ring-ring"
     />
   )
 }

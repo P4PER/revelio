@@ -1,9 +1,9 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server'
-
-export const dynamic = 'force-dynamic'
 import { getDb } from '@/lib/db'
 import { listSets } from '@revelio/db'
 import { SetCard } from '@/components/set-card'
+
+export const dynamic = 'force-dynamic'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 

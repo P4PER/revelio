@@ -14,6 +14,7 @@ export function CardDetail({
 }) {
   const t = useTranslations('card')
   const { loc, isFallback } = pickLocalization(card, locale)
+  if (!loc) return null
   const lessonColor = LESSONS.find((l) => l.code === card.lesson)?.color ?? undefined
   const rulingText = (r: { text: Record<string, string> }) =>
     r.text[locale] ?? r.text[card.defaultLanguage] ?? Object.values(r.text)[0] ?? ''
@@ -82,7 +83,7 @@ export function CardDetail({
           {card.legality && (
             <>
               <dt className="text-muted-foreground">{t('legality')}</dt>
-              <dd>{attrLabel('finishes', card.legality, locale) || card.legality}</dd>
+              <dd>{card.legality}</dd>
             </>
           )}
           {card.artist.length > 0 && (

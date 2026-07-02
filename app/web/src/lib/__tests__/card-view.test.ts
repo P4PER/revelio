@@ -19,4 +19,9 @@ describe('pickLocalization', () => {
     expect(loc.text).toBe('EN')
     expect(isFallback).toBe(true)
   })
+  it('falls back to the first available localization when neither locale nor default exist', () => {
+    const { loc, isFallback } = pickLocalization(card({ fr: { ...base.en, lang: 'fr', text: 'FR' } }, 'en'), 'de')
+    expect(loc?.text).toBe('FR')
+    expect(isFallback).toBe(true)
+  })
 })

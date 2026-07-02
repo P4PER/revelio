@@ -5,6 +5,10 @@ import { imageKey, imageUrl, LESSONS } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
 import { pickLocalization } from '@/lib/card-view'
 
+// Sub-types have no i18n label group; humanize the slug (death_eater -> Death Eater).
+const humanize = (code: string) =>
+  code.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+
 export function CardDetail({
   card, locale, imageBase,
 }: {
@@ -39,24 +43,29 @@ export function CardDetail({
         </p>
 
         {loc.status === 'machine' && (
-          <p data-testid="machine-badge" className="mt-3 inline-block rounded-full border border-accent/50 bg-accent/10 px-3 py-1 text-xs text-accent">
+          <p data-testid="machine-badge" className="mt-3 inline-flex items-center justify-center rounded-full border border-accent/50 bg-accent/10 px-3 py-1 text-xs text-accent">
             {t('machineTranslation')}
           </p>
         )}
 
         <div className="mt-4 flex flex-wrap gap-2 text-sm">
           {card.lesson && (
-            <span className="rounded-full border px-3 py-1" style={{ borderColor: lessonColor, color: lessonColor }}>
+            <span className="inline-flex items-center justify-center rounded-full border px-3 py-1" style={{ borderColor: lessonColor, color: lessonColor }}>
               {attrLabel('lessons', card.lesson, locale)}
             </span>
           )}
           {card.types.map((ty) => (
-            <span key={ty} className="rounded-full border border-border px-3 py-1 text-muted-foreground">
+            <span key={ty} className="inline-flex items-center justify-center rounded-full border border-border px-3 py-1 text-muted-foreground">
               {attrLabel('types', ty, locale)}
             </span>
           ))}
+          {card.subTypes.map((st) => (
+            <span key={st} className="inline-flex items-center justify-center rounded-full border border-border/50 px-3 py-1 text-xs text-muted-foreground">
+              {humanize(st)}
+            </span>
+          ))}
           {card.cost != null && (
-            <span className="rounded-full border border-border px-3 py-1 text-muted-foreground">
+            <span className="inline-flex items-center justify-center rounded-full border border-border px-3 py-1 text-muted-foreground">
               {t('cost', { cost: card.cost })}
             </span>
           )}

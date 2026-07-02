@@ -37,6 +37,7 @@ describe('CardDetail', () => {
     expect(screen.getByText('Guards it.')).toBeInTheDocument()
     expect(screen.getByText(/Sleeps to music\./)).toBeInTheDocument()
     expect(screen.getByText(/An Artist/)).toBeInTheDocument()
+    expect(screen.getByText('Beast')).toBeInTheDocument() // sub-type humanized
     expect(screen.queryByTestId('machine-badge')).toBeNull()
   })
   it('shows the machine-translation badge for a machine localization', () => {

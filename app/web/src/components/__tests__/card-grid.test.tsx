@@ -4,6 +4,7 @@ import { CardGrid } from '../card-grid'
 import type { SearchDocument } from '@revelio/search'
 
 vi.mock('next/image', () => ({ default: (props: Record<string, unknown>) => <img alt={props.alt as string} /> }))
+vi.mock('@/../i18n/navigation', () => ({ Link: (p: { href: string; children: React.ReactNode; className?: string }) => <a href={p.href}>{p.children}</a> }))
 
 const hit = (id: string, name: string): SearchDocument => ({
   id, setCode: 'BS', setName: 'Base', number: '1', name, text: null, flavorText: null,

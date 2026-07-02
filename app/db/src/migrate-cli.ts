@@ -1,5 +1,5 @@
-import { createClient } from './client.js'
-import { runMigrations } from './migrate.js'
+import { createClient } from './client'
+import { runMigrations } from './migrate'
 
 // Standalone migration runner: apply all pending migrations to the database at
 // DATABASE_URL, then exit. Uses the same runMigrations() the ingest job uses, so

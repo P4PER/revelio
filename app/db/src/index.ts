@@ -1,8 +1,9 @@
-export * as schema from './schema.js'
+export * as schema from './schema'
 export {
   types, subTypes, lessons, rarities, finishes, legalities,
   sets, cards, cardTypes, cardSubTypes, cardRulings, cardLocalizations,
-} from './schema.js'
-export { createClient } from './client.js'
-export type { DB } from './client.js'
-export { migrationsDir, runMigrations } from './migrate.js'
+} from './schema'
+export { createClient } from './client'
+export type { DB } from './client'
+export { migrationsDir, runMigrations } from './migrate'
+export { getCardById, listSets, getSetByCode } from './queries'

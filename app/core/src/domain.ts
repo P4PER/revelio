@@ -45,3 +45,21 @@ export type AttributeTermDTO = {
 }
 
 export type LessonDTO = AttributeTermDTO & { color: string | null }
+
+export type RulingDTO = {
+  seq: number
+  date: string | null
+  source: string | null
+  text: Record<string, string>
+}
+
+// The full card as the detail page needs it (superset of CardDTO).
+export type CardDetailDTO = CardDTO & {
+  artist: string[]
+  health: number | null
+  damagePerTurn: number | null
+  orientation: string | null
+  defaultLanguage: string
+  rulings: RulingDTO[]
+  set: SetDTO
+}

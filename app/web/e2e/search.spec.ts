@@ -21,7 +21,7 @@ test('search from home shows results and a type filter narrows them', async ({ p
   await expect(firstFigure).toBeVisible()
 
   const before = await page.getByRole('figure').count()
-  await page.getByRole('button', { name: /creature/i }).click()
+  await page.getByRole('button', { name: 'Creature', exact: true }).click()
   await expect(page).toHaveURL(/type=creature/)
   await expect(page.getByRole('figure').first()).toBeVisible()
   expect(await page.getByRole('figure').count()).toBeLessThanOrEqual(before)

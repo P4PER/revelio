@@ -13,6 +13,8 @@ export default defineConfig({
       // next-intl's ESM build imports 'next/navigation' without .js; resolve it via
       // Node's resolution so it survives hoisting/dedupe changes.
       'next/navigation': require.resolve('next/navigation'),
+      // server-only throws in non-Next.js environments (vitest/jsdom); stub it out.
+      'server-only': fileURLToPath(new URL('./test/empty.ts', import.meta.url)),
     },
   },
   test: {

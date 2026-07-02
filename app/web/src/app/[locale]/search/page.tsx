@@ -1,0 +1,36 @@
+import { setRequestLocale } from 'next-intl/server'
+import { getSearchClient, runSearch } from '@/lib/search-client'
+import { parseSearchParams, toURLSearchParams } from '@/lib/search-params'
+import { CardGrid } from '@/components/card-grid'
+import { Pagination } from '@/components/pagination'
+
+const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
+
+export default async function SearchPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const current = toURLSearchParams(await searchParams)
+  const state = parseSearchParams(current)
+  const results = await runSearch(getSearchClient(), locale, state)
+
+  return (
+    <main className="mx-auto max-w-6xl px-6 py-8">
+      <p className="mb-4 text-sm text-muted-foreground" role="status">
+        {results.total} cards
+      </p>
+      <CardGrid hits={results.hits} imageBase={IMAGE_BASE} />
+      <Pagination
+        page={results.page}
+        total={results.total}
+        hitsPerPage={results.hitsPerPage}
+        current={current}
+      />
+    </main>
+  )
+}

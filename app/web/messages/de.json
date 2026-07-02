@@ -1,5 +1,5 @@
 {
-  "home": { "title": "revelio.cards", "tagline": "Enthülle jede Harry-Potter-TCG-Karte." },
+  "home": { "title": "revelio.cards", "tagline": "Enthülle jede Harry-Potter-TCG-Karte.", "searchPlaceholder": "Karten suchen…" },
   "footer": {
     "disclaimer": "revelio.cards ist ein inoffizielles Fan-Projekt. Harry Potter und die Kartenillustrationen/Marken gehören Warner Bros.; das TCG gehört Wizards of the Coast. Keine Verbindung zu bzw. Billigung durch diese."
   },

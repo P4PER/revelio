@@ -1,4 +1,6 @@
 # Dev-only overrides (auto-merged by `docker compose`). NOT used in prod.
+# Ports bind to 127.0.0.1 only (loopback) — these services use weak dev
+# credentials (masterKey / minioadmin) and must not be exposed to the LAN.
 # Publishes the backing services on the host so a web run on the host
 # (`npm run dev`/`start` in app/web) can reach the seeded compose stack:
 #   MEILI_HOST=http://localhost:7700  MEILI_SEARCH_KEY=masterKey
@@ -8,14 +10,14 @@
 services:
   postgres:
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
   meilisearch:
     ports:
-      - "7700:7700"
+      - "127.0.0.1:7700:7700"
   minio:
     ports:
-      - "9000:9000" # S3 API
-      - "9001:9001" # web console
+      - "127.0.0.1:9000:9000" # S3 API
+      - "127.0.0.1:9001:9001" # web console
   ingest:
     build:
       context: .

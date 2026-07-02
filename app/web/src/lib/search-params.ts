@@ -8,6 +8,7 @@ export type SearchState = {
   official: boolean | null
   sort: SortKey
   page: number
+  set?: string
 }
 
 const SORT_KEYS: SortKey[] = ['relevance', 'name', 'number', 'cost']
@@ -30,6 +31,7 @@ export function parseSearchParams(sp: URLSearchParams): SearchState {
     official: official === 'official' ? true : official === 'fan' ? false : null,
     sort: sort && SORT_KEYS.includes(sort) ? sort : 'relevance',
     page: Number.isFinite(page) && page >= 1 ? page : 1,
+    set: sp.get('set') ?? undefined,
   }
 }
 
@@ -49,6 +51,7 @@ export function toSearchOptions(state: SearchState): { query: string; options: S
   if (state.types.length) filters.types = state.types
   if (state.lessons.length) filters.lesson = state.lessons
   if (state.official !== null) filters.isOfficial = state.official
+  if (state.set) filters.setCode = [state.set]
   return {
     query: state.q,
     options: {

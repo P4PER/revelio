@@ -5,5 +5,6 @@
   },
   "nav": { "language": "Sprache" },
   "search": { "placeholder": "Karten suchen…", "results": "{count} Karten" },
-  "card": { "number": "Nr. {number}", "cost": "Kosten {cost}", "machineTranslation": "Maschinelle Übersetzung", "health": "Gesundheit", "damage": "Schaden/Zug", "legality": "Legalität", "artist": "Illustriert von", "rulings": "Regelungen" }
+  "card": { "number": "Nr. {number}", "cost": "Kosten {cost}", "machineTranslation": "Maschinelle Übersetzung", "health": "Gesundheit", "damage": "Schaden/Zug", "legality": "Legalität", "artist": "Illustriert von", "rulings": "Regelungen" },
+  "sets": { "title": "Editionen", "meta": "{count} Karten · erschienen {date}" }
 }

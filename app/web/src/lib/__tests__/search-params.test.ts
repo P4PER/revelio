@@ -56,4 +56,15 @@ describe('search-params', () => {
     expect(p.getAll('type')).toEqual(['a', 'b'])
     expect(p.has('page')).toBe(false)
   })
+
+  it('parses set param', () => {
+    expect(parseSearchParams(new URLSearchParams('set=BS')).set).toBe('BS')
+  })
+
+  it('maps set to setCode filter', () => {
+    expect(
+      toSearchOptions({ q: '', types: [], lessons: [], official: null, sort: 'relevance', page: 1, set: 'BS' })
+        .options.filters?.setCode,
+    ).toEqual(['BS'])
+  })
 })

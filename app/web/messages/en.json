@@ -5,5 +5,6 @@
   },
   "nav": { "language": "Language" },
   "search": { "placeholder": "Search cards…", "results": "{count} cards" },
-  "card": { "number": "No. {number}", "cost": "Cost {cost}", "machineTranslation": "Machine translation", "health": "Health", "damage": "Damage/turn", "legality": "Legality", "artist": "Illustrated by", "rulings": "Rulings" }
+  "card": { "number": "No. {number}", "cost": "Cost {cost}", "machineTranslation": "Machine translation", "health": "Health", "damage": "Damage/turn", "legality": "Legality", "artist": "Illustrated by", "rulings": "Rulings" },
+  "sets": { "title": "Sets", "meta": "{count} cards · released {date}" }
 }

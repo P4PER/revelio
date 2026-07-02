@@ -165,6 +165,31 @@ search) and `@revelio/core` (image URLs, lesson colors, DTO types).
 (box + facet chips + thumbnail grid), 4a-3 detail + sets (SSR). In-app authoring + auth is
 a separate **Plan 4b**.
 
+## Search page (Plan 4a-2)
+
+The `/search` page (localized `/search`, `/de/search`) is **URL-driven SSR**, hybrid model
+(a few quick chips + sort on the results page; full filtering is Advanced Search, deferred):
+
+- A **Server Component** reads `searchParams` (`q`, `type`, `lesson`, `official`, `sort`,
+  `page`), calls `searchCards` server-side (Meili key stays server-only), and renders the
+  results grid + pagination.
+- **Client components** (only where interactive) update the URL via next-intl's `useRouter`
+  (no manual hrefs): the **search box** (debounced → `q`, `router.replace`), **quick chips**
+  (Type, Lesson [with accent colors], Official/Fan toggle → URL params), and a **sort**
+  dropdown (Relevance / Name / Number / Cost — the index's sortable attributes).
+- Chip options come from `@revelio/core` (`TYPES`, `LESSONS`) with labels from the i18n
+  attribute labels (`card-data/i18n/labels.<lang>.json`, bundled into the web); no
+  facet-count work needed. Lesson chip colors from `@revelio/core` `LESSONS` (inline
+  style, not dynamic Tailwind classes).
+- **Grid** of thumbnails via `next/image` (`imageUrl(NEXT_PUBLIC_IMAGE_BASE_URL,
+  thumbKey(id))`; `next.config` `remotePatterns` for the image host) + card name.
+- **Page-based** pagination (`?page=N`, prev/next) from `searchCards`'s `page`/`total`.
+- The **home hero** gets a search box → `/search?q=…`.
+- **No backend change** — the existing `searchCards` already supports these filters
+  (`buildFilter`) and sort. 4a-2 is web-only.
+- **Deferred → Advanced Search** (own slice): rarity, set, cost range, legality, sub-types,
+  finish, and set/rarity sort (the last needs added Meili sortable attributes).
+
 ## Services
 
 ```

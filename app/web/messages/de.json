@@ -3,7 +3,7 @@
   "footer": {
     "disclaimer": "revelio.cards ist ein inoffizielles Fan-Projekt. Harry Potter und die Kartenillustrationen/Marken gehören Warner Bros.; das TCG gehört Wizards of the Coast. Keine Verbindung zu bzw. Billigung durch diese."
   },
-  "nav": { "language": "Sprache" },
+  "nav": { "language": "Sprache", "sets": "Editionen" },
   "search": { "placeholder": "Karten suchen…", "results": "{count} Karten" },
   "card": { "number": "Nr. {number}", "cost": "Kosten {cost}", "machineTranslation": "Maschinelle Übersetzung", "health": "Gesundheit", "damage": "Schaden/Zug", "legality": "Legalität", "artist": "Illustriert von", "rulings": "Regelungen" },
   "sets": { "title": "Editionen", "meta": "{count} Karten · erschienen {date}" }

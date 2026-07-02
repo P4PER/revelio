@@ -50,6 +50,7 @@ export default async function SetPage({
         total={results.total}
         hitsPerPage={results.hitsPerPage}
         current={current}
+        basePath={`/sets/${code}`}
       />
     </main>
   )

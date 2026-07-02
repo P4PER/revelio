@@ -190,6 +190,36 @@ The `/search` page (localized `/search`, `/de/search`) is **URL-driven SSR**, hy
 - **Deferred → Advanced Search** (own slice): rarity, set, cost range, legality, sub-types,
   finish, and set/rarity sort (the last needs added Meili sortable attributes).
 
+## Card detail + set overview (Plan 4a-3)
+
+Three SSR read pages, powered by **Postgres via `@revelio/db`** (the search index
+lacks rulings, artist, health/damage, translation status and both-language text):
+
+- **Data layer:** add a read-query layer to `@revelio/db` (`src/queries.ts`):
+  `getCardById(db, id)` (card + both localizations + types + subTypes + rulings +
+  set), `listSets(db)`, `getSetByCode(db, code)`. Convert `@revelio/db` to
+  extensionless relative imports (Turbopack, as with core/search). The web gets a
+  **server-only** db client (`src/lib/db.ts`, `getDb()` from `DATABASE_URL`,
+  `import 'server-only'`).
+- **`/card/[id]`** (server component): full card image (`imageKey`), name, set +
+  collector number, rarity/finish, lesson (accent color), types/subTypes, cost,
+  health/damage/orientation (when present), rules text, flavor, artist, legality,
+  rulings list. Localized to the current locale (name/text/flavor from
+  `cardLocalizations[locale]`, falling back to `defaultLanguage`) with a
+  **translation-status badge** when the localization is machine/missing (`status`).
+  `generateMetadata`: title = card name, canonical/hreflang, `og:image` = card
+  image. Unknown id → `notFound()`.
+- **`/sets`** (server component): grid of all sets (symbol, name, card count,
+  release date, Official/Fan badge) → each links to `/sets/[code]`.
+- **`/sets/[code]`** (server component): set header from Postgres (`getSetByCode`)
+  + a grid of that set's cards via `searchCards({ setCode }, sort: number, page)`
+  (reuses `CardGrid` + `Pagination`). Unknown code → `notFound()`.
+- **Wiring:** `CardTile` wrapped in a `Link` → `/card/[id]` (search results + set
+  pages link to detail).
+- **Env:** adds `DATABASE_URL` (web's first Postgres use) alongside `MEILI_*`
+  (set-page grid) and `NEXT_PUBLIC_IMAGE_BASE_URL`.
+- **Deferred:** `adventure`/`match` jsonb, `provides`, `draftValue` (niche fields).
+
 ## Services
 
 ```

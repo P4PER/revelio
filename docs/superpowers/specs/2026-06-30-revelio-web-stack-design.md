@@ -220,6 +220,37 @@ lacks rulings, artist, health/damage, translation status and both-language text)
   (set-page grid) and `NEXT_PUBLIC_IMAGE_BASE_URL`.
 - **Deferred:** `adventure`/`match` jsonb, `provides`, `draftValue` (niche fields).
 
+## shadcn UI adoption / retrofit (Plan 4a-4)
+
+We initialized shadcn in 4a-1 but then hand-rolled all UI; only `badge.tsx` +
+`button.tsx` exist and neither is used. This slice adopts shadcn properly across
+the app (consistency + accessibility) BEFORE Advanced Search builds on it.
+
+- **Foundation — switch to the standard Radix `new-york` style** (from the CLI
+  default `base-nova`/@base-ui). Do NOT run a full `init` (it would clobber the
+  Reveal-Glow `globals.css`): set `components.json` `style: "new-york"`, swap
+  `@base-ui/react` → `@radix-ui/*`, and re-pull primitives
+  (`shadcn add button input select badge checkbox label`). new-york components
+  reference the same CSS variables (`--background`/`--primary`/…) we already set,
+  so the Reveal-Glow palette + lesson `@theme` tokens are preserved.
+- **Retrofit map (behavior unchanged, primitives swapped):** `SearchBox`/
+  `HomeSearch` `<input>` → **Input**; `SortSelect` `<select>` → **Select**;
+  submit / pagination prev-next / header links → **Button** (`asChild` + next-intl
+  `Link`); chips (type, sub-type, lesson [inline color], rarity, cost,
+  translation badge, quick filters) → **Badge**. Layout containers (grids,
+  tile `figure`, detail `dl`) stay Tailwind — no meaningful primitive.
+- **Test impact:** Radix `Select`/`Checkbox` change the DOM (not native
+  `<select>`/`<input type=checkbox>`); affected component tests (esp.
+  `SortSelect`) are rewritten to the Radix interaction (`getByRole('combobox')`
+  + open/select). Behavior (URL updates) is unchanged; Input/Button/Badge keep
+  roles/labels so those tests stay green.
+- **No behavior/URL/feature change** — purely presentational + a11y (focus, ARIA,
+  keyboard). Scope is bounded to controls + badges, not every layout div. The
+  Reveal-Glow theme-token test still passes.
+
+Then **Advanced Search (Plan 4a-5)** builds the filter drawer (`Sheet`) + active-
+filter chips (`Badge`) + cost-range (`Input`/`Slider`) on this shadcn foundation.
+
 ## Services
 
 ```

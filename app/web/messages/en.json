@@ -3,5 +3,6 @@
   "footer": {
     "disclaimer": "revelio.cards is an unofficial fan project. Harry Potter and the card artwork/trademarks belong to Warner Bros.; the TCG to Wizards of the Coast. Not affiliated with or endorsed by them."
   },
-  "nav": { "language": "Language" }
+  "nav": { "language": "Language" },
+  "search": { "placeholder": "Search cards…", "results": "{count} cards" }
 }

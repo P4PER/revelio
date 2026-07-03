@@ -1,5 +1,5 @@
 'use client'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { usePathname, useRouter } from '@/../i18n/navigation'
 import { useSearchParams } from 'next/navigation'
@@ -11,15 +11,27 @@ export function HeaderSearch({ placeholder }: { placeholder: string }) {
   const router = useRouter()
   const params = useSearchParams()
   const onSearchPage = pathname === '/search'
-  const [q, setQ] = useState(onSearchPage ? (params.get('q') ?? '') : '')
+  const urlQ = params.get('q') ?? ''
+  const [q, setQ] = useState(onSearchPage ? urlQ : '')
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const internal = useRef(false)
+
+  // Keep the field in sync with the URL query on the search page (e.g. when
+  // arriving via a soft navigation). Skip syncs caused by our own typing.
+  useEffect(() => {
+    if (!onSearchPage) return
+    if (internal.current) {
+      internal.current = false
+      return
+    }
+    setQ(urlQ)
+  }, [urlQ, onSearchPage])
 
   // Home has its own hero search.
   if (pathname === '/') return null
 
   function submit(value: string) {
     if (onSearchPage) {
-      // live: update ?q on the search page, preserving filters/sort
       const next = withParams(new URLSearchParams(params.toString()), { q: value })
       router.replace(`/search?${next.toString()}`)
     } else {
@@ -28,8 +40,9 @@ export function HeaderSearch({ placeholder }: { placeholder: string }) {
   }
 
   function onChange(value: string) {
+    internal.current = true
     setQ(value)
-    if (!onSearchPage) return // off the search page, only navigate on submit
+    if (!onSearchPage) return
     if (timer.current) clearTimeout(timer.current)
     timer.current = setTimeout(() => submit(value), 300)
   }

@@ -58,5 +58,17 @@
     "anySet": "Any set",
     "original": "Original",
     "fanMade": "Fan-made"
+  },
+  "auth": {
+    "title": "Sign in",
+    "email": "Email",
+    "username": "Username (for new accounts)",
+    "sendCode": "Send code",
+    "codeSent": "We emailed a 6-digit code to {email}.",
+    "verify": "Verify",
+    "sendFailed": "Could not send the code. Try again.",
+    "badCode": "Invalid or expired code.",
+    "signIn": "Sign in",
+    "signOut": "Sign out"
   }
 }

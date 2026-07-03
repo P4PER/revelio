@@ -61,26 +61,6 @@ export function QuickFilters({ locale }: { locale: string }) {
           </Button>
         )
       })}
-      <Button
-        type="button"
-        size="sm"
-        variant={state.official === true ? 'default' : 'outline'}
-        aria-pressed={state.official === true}
-        onClick={() => apply({ official: state.official === true ? null : 'official' })}
-        className="rounded-full"
-      >
-        Official
-      </Button>
-      <Button
-        type="button"
-        size="sm"
-        variant={state.official === false ? 'default' : 'outline'}
-        aria-pressed={state.official === false}
-        onClick={() => apply({ official: state.official === false ? null : 'fan' })}
-        className="rounded-full"
-      >
-        Fan / Revival
-      </Button>
     </div>
   )
 }

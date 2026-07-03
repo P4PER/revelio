@@ -40,7 +40,6 @@ export function FilterDrawer({ sets, locale }: { sets: SetDTO[]; locale: string 
   const [set, setSet] = useState(params.get('set') ?? '')
   const [costMin, setCostMin] = useState(params.get('costMin') ?? '')
   const [costMax, setCostMax] = useState(params.get('costMax') ?? '')
-  const [official, setOfficial] = useState(params.get('official') ?? '')
   const [open, setOpen] = useState(false)
 
   // Soft navigations (router.push to /search) don't remount this component, so
@@ -51,7 +50,6 @@ export function FilterDrawer({ sets, locale }: { sets: SetDTO[]; locale: string 
       setSet(params.get('set') ?? '')
       setCostMin(params.get('costMin') ?? '')
       setCostMax(params.get('costMax') ?? '')
-      setOfficial(params.get('official') ?? '')
     }
     setOpen(next)
   }
@@ -68,14 +66,13 @@ export function FilterDrawer({ sets, locale }: { sets: SetDTO[]; locale: string 
     if (set) next.set('set', set)
     if (costMin) next.set('costMin', costMin)
     if (costMax) next.set('costMax', costMax)
-    if (official) next.set('official', official)
     router.push(`/search?${next.toString()}`)
     setOpen(false)
   }
 
   function clearAll() {
     setMulti(Object.fromEntries(groups.map((g) => [g.param, []])))
-    setSet(''); setCostMin(''); setCostMax(''); setOfficial('')
+    setSet(''); setCostMin(''); setCostMax('')
     const q = params.get('q')
     router.push(q ? `/search?q=${encodeURIComponent(q)}` : '/search')
     setOpen(false)
@@ -128,16 +125,6 @@ export function FilterDrawer({ sets, locale }: { sets: SetDTO[]; locale: string 
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <Checkbox id="f-official" checked={official === 'official'} onCheckedChange={(v) => setOfficial(v === true ? 'official' : '')} />
-              <Label htmlFor="f-official" className="text-sm font-normal">{t('official')}</Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox id="f-fan" checked={official === 'fan'} onCheckedChange={(v) => setOfficial(v === true ? 'fan' : '')} />
-              <Label htmlFor="f-fan" className="text-sm font-normal">{t('fan')}</Label>
-            </div>
-          </div>
         </div>
 
         <SheetFooter className="flex-row gap-2">

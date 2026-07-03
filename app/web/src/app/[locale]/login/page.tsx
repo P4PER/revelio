@@ -43,7 +43,7 @@ export default function LoginPage() {
       ) : (
         <form onSubmit={verify} className="space-y-3">
           <p className="text-sm text-muted-foreground">{t('codeSent', { email })}</p>
-          <Input inputMode="numeric" required placeholder="000000" value={code} onChange={(e) => setCode(e.target.value)} />
+          <Input inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required placeholder="000000" value={code} onChange={(e) => setCode(e.target.value)} />
           <Button type="submit" disabled={busy} className="w-full">{t('verify')}</Button>
         </form>
       )}

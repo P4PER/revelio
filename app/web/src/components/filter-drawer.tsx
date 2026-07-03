@@ -43,6 +43,19 @@ export function FilterDrawer({ sets, locale }: { sets: SetDTO[]; locale: string 
   const [official, setOfficial] = useState(params.get('official') ?? '')
   const [open, setOpen] = useState(false)
 
+  // Soft navigations (router.push to /search) don't remount this component, so
+  // re-seed the pending selection from the current URL each time the drawer opens.
+  function onOpenChange(next: boolean) {
+    if (next) {
+      setMulti(Object.fromEntries(groups.map((g) => [g.param, params.getAll(g.param)])))
+      setSet(params.get('set') ?? '')
+      setCostMin(params.get('costMin') ?? '')
+      setCostMax(params.get('costMax') ?? '')
+      setOfficial(params.get('official') ?? '')
+    }
+    setOpen(next)
+  }
+
   function toggle(param: string, code: string, on: boolean) {
     setMulti((m) => ({ ...m, [param]: on ? [...m[param], code] : m[param].filter((c) => c !== code) }))
   }
@@ -69,11 +82,11 @@ export function FilterDrawer({ sets, locale }: { sets: SetDTO[]; locale: string 
   }
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
         <Button variant="outline" size="sm">{t('button')}</Button>
       </SheetTrigger>
-      <SheetContent className="w-[340px] overflow-y-auto sm:max-w-none">
+      <SheetContent aria-describedby={undefined} className="w-[340px] overflow-y-auto sm:max-w-none">
         <SheetHeader><SheetTitle>{t('title')}</SheetTitle></SheetHeader>
 
         <div className="space-y-5 px-4 pb-4">

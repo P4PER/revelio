@@ -58,5 +58,25 @@
     "anySet": "Alle Editionen",
     "original": "Original",
     "fanMade": "Fan-Made"
+  },
+  "auth": {
+    "title": "Anmelden",
+    "email": "E-Mail",
+    "username": "Benutzername",
+    "sendCode": "Code senden",
+    "codeSent": "Wir haben einen 6-stelligen Code an {email} gesendet.",
+    "verify": "Bestätigen",
+    "sendFailed": "Code konnte nicht gesendet werden. Bitte erneut versuchen.",
+    "badCode": "Ungültiger oder abgelaufener Code.",
+    "signIn": "Anmelden",
+    "signOut": "Abmelden",
+    "registerTitle": "Konto erstellen",
+    "noAccount": "Noch kein Konto?",
+    "register": "Registrieren",
+    "haveAccount": "Schon ein Konto?",
+    "subtitle": "Gib deine E-Mail-Adresse ein, um dich bei revelio.cards anzumelden.",
+    "registerSubtitle": "Gib deine E-Mail und einen Benutzernamen ein, um dein revelio.cards-Konto zu erstellen.",
+    "noAccountError": "Kein Konto für diese E-Mail gefunden. Bitte zuerst registrieren.",
+    "usernameTaken": "Dieser Benutzername ist vergeben. Bitte einen anderen wählen."
   }
 }

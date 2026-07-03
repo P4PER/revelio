@@ -11,6 +11,7 @@
     "@revelio/core": "*",
     "@revelio/db": "*",
     "@revelio/search": "*",
+    "better-auth": "^1.6.23",
     "drizzle-orm": "^0.38.0",
     "postgres": "^3.4.0"
   }

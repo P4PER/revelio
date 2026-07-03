@@ -58,5 +58,25 @@
     "anySet": "Any set",
     "original": "Original",
     "fanMade": "Fan-made"
+  },
+  "auth": {
+    "title": "Sign in",
+    "email": "Email",
+    "username": "Username",
+    "sendCode": "Send code",
+    "codeSent": "We emailed a 6-digit code to {email}.",
+    "verify": "Verify",
+    "sendFailed": "Could not send the code. Try again.",
+    "badCode": "Invalid or expired code.",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "registerTitle": "Create account",
+    "noAccount": "Need an account?",
+    "register": "Register",
+    "haveAccount": "Already have an account?",
+    "subtitle": "Enter your email address to sign in to revelio.cards.",
+    "registerSubtitle": "Enter your email and a username to create your revelio.cards account.",
+    "noAccountError": "No account found for that email. Please register first.",
+    "usernameTaken": "That username is taken. Please choose another."
   }
 }

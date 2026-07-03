@@ -251,6 +251,31 @@ the app (consistency + accessibility) BEFORE Advanced Search builds on it.
 Then **Advanced Search (Plan 4a-5)** builds the filter drawer (`Sheet`) + active-
 filter chips (`Badge`) + cost-range (`Input`/`Slider`) on this shadcn foundation.
 
+## Advanced Search — filter drawer (Plan 4a-5)
+
+On the shadcn foundation (4a-4), `/search` gains a full filter drawer + removable
+active-filter chips (Airbnb pattern; cleanest results page). Replaces the quick
+chips.
+
+- **Filters button → `Sheet` drawer** (client component): the full filter set as
+  `Checkbox` + `Label` groups — **Set** (from `listSets`), **Type**, **Lesson**,
+  **Rarity**, **Finish**, **Legality** (options from `@revelio/core` `TYPES`/
+  `LESSONS`/`RARITIES`/`FINISHES`/`LEGALITIES`), a **Cost range** (min/max `Input`s),
+  and **Official/Fan**. Holds a pending selection; footer **Apply** (`router.push`
+  to `/search?…`) + **Clear all**. Labels via `attrLabel` (types/lessons/rarities/
+  finishes); legality humanized (no label group).
+- **Active-filter chips** on the results page: each applied filter a removable
+  `Badge` (`Rarity: Rare ✕`, `Set: Base Set ✕`, `Cost 1–3 ✕`); ✕ removes just that
+  URL param. This replaces the quick chips as the on-page filter view.
+- **Backend (one change):** add `costMin`/`costMax` to `CardFilters` + `buildFilter`
+  (`cost >= min AND cost <= max`); `cost` is already filterable → NO reindex.
+  Everything else (setCode/types/lesson/rarity/finish/legality) already supported.
+- **URL as source of truth:** `parseSearchParams` extends with `rarity`, `finish`,
+  `legality`, `costMin`, `costMax` (q/type/lesson/official/set/sort/page exist).
+  Shareable/SSR unchanged.
+- **Deferred:** sub-types filter (many values, no i18n labels); set/rarity **sort**
+  (needs Meili `sortableAttributes` + reindex + a rarity rank).
+
 ## Services
 
 ```

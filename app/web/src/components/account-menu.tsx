@@ -1,5 +1,5 @@
 'use client'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, CircleUser, LogOut } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import { useSession, signOut } from '@/lib/auth-client'
 import { Button } from '@/components/ui/button'
@@ -25,7 +25,8 @@ export function AccountMenu({ signInLabel, signOutLabel }: { signInLabel: string
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-1">
+        <Button variant="ghost" size="sm" className="gap-1.5">
+          <CircleUser className="size-4 opacity-70" />
           {name}
           <ChevronDown className="size-4 opacity-60" />
         </Button>
@@ -39,6 +40,7 @@ export function AccountMenu({ signInLabel, signOutLabel }: { signInLabel: string
           onSelect={() => signOut()}
           className="text-destructive focus:bg-destructive/10 focus:text-destructive"
         >
+          <LogOut />
           {signOutLabel}
         </DropdownMenuItem>
       </DropdownMenuContent>

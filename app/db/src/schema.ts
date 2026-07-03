@@ -129,3 +129,6 @@ export const cardLocalizations = pgTable('card_localizations', {
 }, (t) => ({
   pk: primaryKey({ columns: [t.cardId, t.lang] }),
 }))
+
+// Better Auth tables (generated via @better-auth/cli).
+export * from './auth-schema'

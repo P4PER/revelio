@@ -8,7 +8,7 @@ vi.mock('next/image', () => ({ default: (p: Record<string, unknown>) => <img alt
 
 const messages = {
   card: {
-    number: 'No. {number}', cost: 'Cost {cost}', machineTranslation: 'Machine translation',
+    number: 'No. {number}', cost: 'Cost', machineTranslation: 'Machine translation',
     health: 'Health', damage: 'Damage/turn', legality: 'Legality',
     artist: 'Illustrated by', rulings: 'Rulings',
   },
@@ -37,7 +37,7 @@ describe('CardDetail', () => {
     expect(screen.getByText('Guards it.')).toBeInTheDocument()
     expect(screen.getByText(/Sleeps to music\./)).toBeInTheDocument()
     expect(screen.getByText(/An Artist/)).toBeInTheDocument()
-    expect(screen.getByText('Beast')).toBeInTheDocument() // sub-type humanized
+    expect(screen.getByText(/Beast/)).toBeInTheDocument() // sub-type in the text type-line
     expect(screen.queryByTestId('machine-badge')).toBeNull()
   })
   it('shows the machine-translation badge for a machine localization', () => {

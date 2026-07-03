@@ -49,28 +49,27 @@ export function CardDetail({
           </Badge>
         )}
 
-        <div className="mt-4 flex flex-wrap gap-2 text-sm">
-          {card.lesson && (
+        {card.lesson && (
+          <div className="mt-4">
             <Badge variant="outline" className="text-base px-3 py-1" style={{ borderColor: lessonColor, color: lessonColor }}>
               {attrLabel('lessons', card.lesson, locale)}
             </Badge>
-          )}
-          {card.types.map((ty) => (
-            <Badge key={ty} variant="outline" className="text-base px-3 py-1 text-muted-foreground">
-              {attrLabel('types', ty, locale)}
-            </Badge>
-          ))}
-          {card.subTypes.map((st) => (
-            <Badge key={st} variant="outline" className="text-sm px-2.5 py-0.5 text-muted-foreground">
-              {humanize(st)}
-            </Badge>
-          ))}
-          {card.cost != null && (
-            <Badge variant="outline" className="text-muted-foreground">
-              {t('cost', { cost: card.cost })}
-            </Badge>
-          )}
-        </div>
+          </div>
+        )}
+
+        {card.types.length > 0 && (
+          <p className="mt-3 text-base">
+            <span className="font-medium">
+              {card.types.map((ty) => attrLabel('types', ty, locale)).join(', ')}
+            </span>
+            {card.subTypes.length > 0 && (
+              <span className="text-sm text-muted-foreground">
+                {' — '}
+                {card.subTypes.map((st) => humanize(st)).join(', ')}
+              </span>
+            )}
+          </p>
+        )}
 
         {loc.text && <p className="mt-6 whitespace-pre-line leading-relaxed">{loc.text}</p>}
         {loc.flavorText && (
@@ -88,6 +87,12 @@ export function CardDetail({
             <>
               <dt className="text-muted-foreground">{t('damage')}</dt>
               <dd>{card.damagePerTurn}</dd>
+            </>
+          )}
+          {card.cost != null && (
+            <>
+              <dt className="text-muted-foreground">{t('cost')}</dt>
+              <dd>{card.cost}</dd>
             </>
           )}
           {card.legality && (

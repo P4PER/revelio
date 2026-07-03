@@ -59,6 +59,7 @@
     "original": "Original",
     "fanMade": "Fan-Made"
   },
+  "edit": { "button": "Bearbeiten", "title": "Karte bearbeiten", "language": "Sprache", "addLanguage": "Sprache hinzufügen", "name": "Name", "text": "Text", "flavor": "Flavor-Text", "status": "Status", "statusMachine": "Maschinell", "statusOfficial": "Offiziell", "save": "Speichern", "saved": "Gespeichert.", "invalid": "Bitte den Namen ausfüllen.", "reindexWarning": "Gespeichert, aber die Suchindizierung ist fehlgeschlagen; sie wird später nachgezogen." },
   "auth": {
     "title": "Anmelden",
     "email": "E-Mail",

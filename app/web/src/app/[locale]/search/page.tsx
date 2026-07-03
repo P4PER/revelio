@@ -4,6 +4,8 @@ import { parseSearchParams, toURLSearchParams } from '@/lib/search-params'
 import { CardGrid } from '@/components/card-grid'
 import { Pagination } from '@/components/pagination'
 import { SearchControls } from '@/components/search-controls'
+import { getDb } from '@/lib/db'
+import { listSets } from '@revelio/db'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
@@ -19,11 +21,12 @@ export default async function SearchPage({
   const current = toURLSearchParams(await searchParams)
   const state = parseSearchParams(current)
   const results = await runSearch(getSearchClient(), locale, state)
+  const sets = await listSets(getDb())
   const t = await getTranslations('search')
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-8">
-      <SearchControls locale={locale} />
+      <SearchControls locale={locale} sets={sets} />
       <p className="mb-4 text-sm text-muted-foreground" role="status">
         {t('results', { count: results.total })}
       </p>

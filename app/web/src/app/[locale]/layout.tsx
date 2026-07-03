@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Poppins } from 'next/font/google'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
 import { notFound } from 'next/navigation'
@@ -6,6 +7,11 @@ import { routing } from '@/../i18n/routing'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import '../globals.css'
+
+export const metadata: Metadata = {
+  title: 'revelio.cards',
+  description: 'A searchable Harry Potter TCG card database.',
+}
 
 const poppins = Poppins({
   subsets: ['latin'],

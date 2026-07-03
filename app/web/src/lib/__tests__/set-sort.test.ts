@@ -11,6 +11,13 @@ describe('byReleaseDate', () => {
     const sets = [set('AAH', '2002-06-01'), set('BS', '2001-08-01'), set('COS', '2002-10-01'), set('QC', '2001-11-01')]
     expect([...sets].sort(byReleaseDate).map((s) => s.code)).toEqual(['BS', 'QC', 'AAH', 'COS'])
   })
+  it('also sorts legacy MM-YYYY text correctly (2026 newest)', () => {
+    const sets = [set('OLD', '08-2023'), set('NEW', '03-2026'), set('MID', '11-2024')]
+    expect([...sets].sort(byReleaseDate).map((s) => s.code)).toEqual(['OLD', 'MID', 'NEW'])
+  })
+  it('formats MM-YYYY as MM/YYYY too', () => {
+    expect(formatReleaseMonth('03-2026')).toBe('03/2026')
+  })
   it('puts null dates last', () => {
     expect([set('X', null), set('BS', '2001-08-01')].sort(byReleaseDate).map((s) => s.code)).toEqual(['BS', 'X'])
   })

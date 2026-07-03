@@ -11,6 +11,6 @@ export async function getSession() {
 export async function requireRole(role: 'editor' | 'admin') {
   const session = await getSession()
   const userRole = session?.user?.role ?? 'user'
-  if (RANK[userRole] < RANK[role]) throw new Error('Forbidden')
+  if ((RANK[userRole] ?? -1) < RANK[role]) throw new Error('Forbidden')
   return session!
 }

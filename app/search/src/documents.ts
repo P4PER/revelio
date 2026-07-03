@@ -87,8 +87,12 @@ export function buildCardDocument(d: CardIndexData, lang: string): SearchDocumen
 
 // Re-index one card's document into each language index it has a localization for.
 // Waits for each task so callers observe a consistent index.
-export async function reindexCard(client: MeiliSearch, data: CardIndexData): Promise<void> {
-  for (const lang of Object.keys(data.localizations)) {
+export async function reindexCard(
+  client: MeiliSearch,
+  data: CardIndexData,
+  langs: string[] = Object.keys(data.localizations),
+): Promise<void> {
+  for (const lang of langs) {
     const index = client.index(cardsIndex(lang))
     const s = await index.updateSettings(CARD_INDEX_SETTINGS)
     await client.waitForTask(s.taskUid)

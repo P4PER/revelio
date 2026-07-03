@@ -14,14 +14,23 @@ const data: CardIndexData = {
 }
 
 afterAll(async () => {
-  const del = await client.index(cardsIndex('zz')).delete()
-  await client.waitForTask(del.taskUid)
+  for (const lang of ['zz', 'zx']) {
+    const del = await client.index(cardsIndex(lang)).delete()
+    await client.waitForTask(del.taskUid)
+  }
 })
 
 describe('reindexCard', () => {
   it('indexes the card so it is searchable in its language index', async () => {
     await reindexCard(client, data)
     const res = await client.index(cardsIndex('zz')).search('Zonko')
+    expect(res.hits.map((h) => (h as { id: string }).id)).toContain('zz-reindex-1')
+  })
+
+  it('writes a fallback document into a language index the card lacks', async () => {
+    // card only has 'zz'; ask to index both 'zz' and 'zx' -> 'zx' gets the fallback doc
+    await reindexCard(client, data, ['zz', 'zx'])
+    const res = await client.index(cardsIndex('zx')).search('Zonko')
     expect(res.hits.map((h) => (h as { id: string }).id)).toContain('zz-reindex-1')
   })
 })

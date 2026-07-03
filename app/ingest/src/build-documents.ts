@@ -1,6 +1,7 @@
 import type { DB } from '@revelio/db'
 import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, lessons } from '@revelio/db'
-import type { SearchDocument } from '@revelio/search'
+import type { SearchDocument, CardIndexData } from '@revelio/search'
+import { buildCardDocument } from '@revelio/search'
 
 function groupValues<T>(rows: T[], key: (r: T) => string, val: (r: T) => string): Map<string, string[]> {
   const m = new Map<string, string[]>()
@@ -38,32 +39,39 @@ export async function buildDocuments(db: DB): Promise<Record<string, SearchDocum
     locByCard.set(loc.cardId, perCard)
   }
 
-  const out: Record<string, SearchDocument[]> = {}
-  for (const lang of languages) {
-    out[lang] = allCards.map((c) => {
-      const perCard = locByCard.get(c.id)
-      const loc = perCard?.get(lang) ?? perCard?.get(c.defaultLanguage)
-      const set = setByCode.get(c.setCode)
-      return {
-        id: c.id,
-        setCode: c.setCode,
-        setName: set?.name ?? c.setCode,
-        number: c.number,
-        name: loc?.name ?? c.name,
-        text: loc?.text ?? null,
-        flavorText: loc?.flavorText ?? null,
-        types: typesByCard.get(c.id) ?? [],
-        subTypes: subTypesByCard.get(c.id) ?? [],
-        lesson: c.lesson,
-        lessonColor: c.lesson ? (lessonColor.get(c.lesson) ?? null) : null,
-        rarity: c.rarity,
-        finish: c.finish,
-        legality: c.legality,
-        cost: c.cost,
-        isOfficial: set?.isOfficial ?? false,
-        imageFile: loc?.imageFile ?? null,
+  const langs = [...languages]
+  const dataByCard: CardIndexData[] = allCards.map((c) => {
+    const perCard = locByCard.get(c.id)
+    const set = setByCode.get(c.setCode)
+    const localizations: Record<string, { name: string; text: string | null; flavorText: string | null; imageFile: string | null }> = {}
+    if (perCard) {
+      for (const [lang, loc] of perCard) {
+        localizations[lang] = { name: loc.name, text: loc.text, flavorText: loc.flavorText, imageFile: loc.imageFile }
       }
-    })
+    }
+    return {
+      id: c.id,
+      setCode: c.setCode,
+      setName: set?.name ?? c.setCode,
+      number: c.number,
+      name: c.name,
+      lesson: c.lesson,
+      lessonColor: c.lesson ? (lessonColor.get(c.lesson) ?? null) : null,
+      rarity: c.rarity,
+      finish: c.finish,
+      legality: c.legality,
+      cost: c.cost,
+      isOfficial: set?.isOfficial ?? false,
+      types: typesByCard.get(c.id) ?? [],
+      subTypes: subTypesByCard.get(c.id) ?? [],
+      defaultLanguage: c.defaultLanguage,
+      localizations,
+    }
+  })
+
+  const out: Record<string, SearchDocument[]> = {}
+  for (const lang of langs) {
+    out[lang] = dataByCard.map((d) => buildCardDocument(d, lang))
   }
   return out
 }

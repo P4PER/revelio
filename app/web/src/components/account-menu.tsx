@@ -37,7 +37,7 @@ export function AccountMenu({ signInLabel, signOutLabel }: { signInLabel: string
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={() => signOut()}
-          className="text-destructive focus:text-destructive"
+          className="text-destructive focus:bg-destructive/10 focus:text-destructive"
         >
           {signOutLabel}
         </DropdownMenuItem>

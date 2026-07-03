@@ -1,4 +1,4 @@
-# revelio.cards – Project Summary
+# Revelio – Project Summary
 
 ## Vision
 
@@ -9,7 +9,7 @@ nostalgic fans can quickly find any card with all its details.
 
 ## What it's about
 
-The name **revelio.cards** plays on the revealing charm *Revelio* – fitting for a site
+The name **Revelio** plays on the revealing charm *Revelio* – fitting for a site
 that "reveals" cards and makes them searchable.
 
 ## Core features (planned)
@@ -44,7 +44,7 @@ wand-and-spark mark.
 ## Legal note
 
 Harry Potter and the card artwork/trademark belong to **Warner Bros.** (TCG: Wizards
-of the Coast). revelio.cards is intended as an **unofficial fan/database project**.
+of the Coast). Revelio is intended as an **unofficial fan/database project**.
 The main risk is copyright/trademark (mainly the card images), not the domain name.
 Recommendation: a clear "unofficial fan project" disclaimer, no official WB branding,
 and, for any commercial plans, legal advice beforehand.

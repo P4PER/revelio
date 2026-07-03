@@ -1,4 +1,4 @@
-# revelio.cards – Data Structure Review
+# Revelio – Data Structure Review
 
 After adding a second language (German Base Set), here's a review of the JSON
 structure with concrete recommendations.

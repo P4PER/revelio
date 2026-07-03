@@ -1,4 +1,7 @@
-# revelio.cards – Logo & Brand Guide
+# Revelio – Logo & Brand Guide
+
+**Name:** the product/brand is **Revelio**; **revelio.cards** is its domain. The logo
+wordmark reads **revelio** (the `.cards` suffix is no longer part of the mark).
 
 Concept: **Reveal-Glow.** The charm *Revelio* reveals what's hidden – so gold (the
 revealing light) is the primary color and indigo/midnight is the hidden. The mark is a
@@ -14,7 +17,7 @@ wand with a spark.
 | Weight | SemiBold (600) |
 | Font size (master SVG) | 54 px (at 180 px logo height) |
 | Letter-spacing | −1 px |
-| Casing | all lowercase: `revelio.cards` |
+| Casing | all lowercase: `revelio` |
 
 Note: in the delivered SVG files the wordmark is already converted to **paths** – so
 the logos render identically everywhere, even without Poppins installed. For other
@@ -28,7 +31,7 @@ text (website, headings) Poppins is the recommended house font (e.g. via Google 
 
 | Color | Hex | Usage |
 |---|---|---|
-| Gold | `#E8B23A` | star, `.cards`, sparks, grip band (dark) |
+| Gold | `#E8B23A` | star, sparks, grip band (dark) |
 | Gold dark | `#C8881E` | grip band (light logo) |
 | Gold light | `#F6D58B` | inner star glow (light logo) |
 

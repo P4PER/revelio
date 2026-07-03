@@ -212,7 +212,7 @@ export async function SiteHeader() {
   return (
     <header className="border-b border-border/60">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-        <Link href="/" aria-label="revelio.cards home"><BrandMark /></Link>
+        <Link href="/" aria-label="Revelio home"><BrandMark /></Link>
         <nav className="flex items-center gap-2">
           <Button variant="ghost" size="sm" asChild><Link href="/sets">{t('sets')}</Link></Button>
           <LanguageSwitcher />

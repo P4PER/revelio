@@ -1,4 +1,4 @@
-# revelio.cards – Data Model
+# Revelio – Data Model
 
 Derived from [Tressley/hpjson](https://github.com/Tressley/hpjson) (the data behind
 accio.cards) and transformed into a clean, consistent, multilingual schema.

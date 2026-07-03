@@ -1,4 +1,4 @@
-# revelio.cards – Card Images & Set Symbols
+# Revelio – Card Images & Set Symbols
 
 ## Source: accio.cards (self-hosted)
 

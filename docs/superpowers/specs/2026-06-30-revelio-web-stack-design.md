@@ -1,4 +1,4 @@
-# revelio.cards – Web Stack Design
+# Revelio – Web Stack Design
 
 **Date:** 2026-06-30
 **Status:** Architecture approved, ready for implementation planning

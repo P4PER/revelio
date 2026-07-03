@@ -1,4 +1,4 @@
-# revelio.cards – Card Data & Images: Research
+# Revelio – Card Data & Images: Research
 
 ## TL;DR
 
@@ -49,7 +49,7 @@ Bros.** (trademark "Harry Potter") and the illustrators/WotC. Even community "HD
 recreations" are derivative works and don't change this. accio.cards itself runs as an
 **unofficial fan project** with a disclaimer – a tolerated gray area, not "licensed."
 
-Consequence for revelio.cards: using images means taking on the same fan risk as
+Consequence for Revelio: using images means taking on the same fan risk as
 accio. In practice that means:
 - a clear "unofficial fan project / not affiliated with Warner Bros." disclaimer,
 - staying non-commercial (no sales, no ads on the images),

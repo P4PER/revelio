@@ -5,9 +5,10 @@ export function BrandMark() {
     <Image
       src="/revelio-logo-dark.svg"
       alt="revelio.cards"
-      width={180}
-      height={40}
+      width={426}
+      height={78}
       priority
+      className="h-9 w-auto"
     />
   )
 }

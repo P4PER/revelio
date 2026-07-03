@@ -73,6 +73,10 @@
     "registerTitle": "Create account",
     "noAccount": "Need an account?",
     "register": "Register",
-    "haveAccount": "Already have an account?"
+    "haveAccount": "Already have an account?",
+    "subtitle": "Enter your email address to sign in to revelio.cards.",
+    "registerSubtitle": "Enter your email and a username to create your revelio.cards account.",
+    "noAccountError": "No account found for that email. Please register first.",
+    "usernameTaken": "That username is taken. Please choose another."
   }
 }

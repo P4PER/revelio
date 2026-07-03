@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter, Link } from '@/../i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { authClient } from '@/lib/auth-client'
+import { emailHasAccount, usernameAvailable } from '@/lib/auth-actions'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
@@ -23,6 +24,16 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
     e.preventDefault()
     setBusy(true)
     setError('')
+    // /login is for existing users only — account creation happens via /register.
+    if (!register && !(await emailHasAccount(email))) {
+      setBusy(false)
+      return setError(t('noAccountError'))
+    }
+    // /register: reject a taken username up front (DB unique is the final guard).
+    if (register && !(await usernameAvailable(name))) {
+      setBusy(false)
+      return setError(t('usernameTaken'))
+    }
     const { error } = await authClient.emailOtp.sendVerificationOtp({ email, type: 'sign-in' })
     setBusy(false)
     if (error) return setError(t('sendFailed'))
@@ -38,15 +49,26 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       setBusy(false)
       return setError(t('badCode'))
     }
-    if (register && name) await authClient.updateUser({ username: name }).catch(() => {})
+    if (register && name) {
+      const { error: updateError } = await authClient.updateUser({ username: name })
+      if (updateError) {
+        setBusy(false)
+        return setError(t('usernameTaken'))
+      }
+    }
     router.push('/')
   }
 
   return (
     <main className="mx-auto flex min-h-[60vh] max-w-sm flex-col justify-center px-6">
-      <h1 className="mb-6 text-2xl font-semibold text-primary">
+      <h1 className="mb-2 text-2xl font-semibold text-primary">
         {register ? t('registerTitle') : t('title')}
       </h1>
+      {step === 'email' && (
+        <p className="mb-6 text-sm text-muted-foreground">
+          {register ? t('registerSubtitle') : t('subtitle')}
+        </p>
+      )}
       {step === 'email' ? (
         <form onSubmit={requestCode} className="space-y-3">
           <Input

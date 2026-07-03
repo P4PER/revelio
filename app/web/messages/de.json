@@ -73,6 +73,10 @@
     "registerTitle": "Konto erstellen",
     "noAccount": "Noch kein Konto?",
     "register": "Registrieren",
-    "haveAccount": "Schon ein Konto?"
+    "haveAccount": "Schon ein Konto?",
+    "subtitle": "Gib deine E-Mail-Adresse ein, um dich bei revelio.cards anzumelden.",
+    "registerSubtitle": "Gib deine E-Mail und einen Benutzernamen ein, um dein revelio.cards-Konto zu erstellen.",
+    "noAccountError": "Kein Konto für diese E-Mail gefunden. Bitte zuerst registrieren.",
+    "usernameTaken": "Dieser Benutzername ist vergeben. Bitte einen anderen wählen."
   }
 }

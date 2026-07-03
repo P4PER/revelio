@@ -33,6 +33,11 @@ export default async function SetPage({
     official: null,
     sort: 'number' as const,
     page: parseSearchParams(current).page,
+    rarities: [],
+    finishes: [],
+    legalities: [],
+    costMin: null,
+    costMax: null,
   }
   const results = await runSearch(getSearchClient(), locale, state)
 

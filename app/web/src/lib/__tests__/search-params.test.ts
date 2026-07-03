@@ -7,6 +7,7 @@ describe('search-params', () => {
   it('parses defaults', () => {
     expect(parseSearchParams(new URLSearchParams())).toEqual({
       q: '', types: [], lessons: [], official: null, sort: 'relevance', page: 1,
+      rarities: [], finishes: [], legalities: [], costMin: null, costMax: null,
     })
   })
 
@@ -15,6 +16,7 @@ describe('search-params', () => {
     expect(parseSearchParams(sp)).toEqual({
       q: 'harry', types: ['character', 'creature'], lessons: ['charms'],
       official: false, sort: 'name', page: 3,
+      rarities: [], finishes: [], legalities: [], costMin: null, costMax: null,
     })
   })
 
@@ -28,13 +30,14 @@ describe('search-params', () => {
   it('maps state to searchCards options', () => {
     const { query, options } = toSearchOptions({
       q: 'harry', types: ['creature'], lessons: [], official: true, sort: 'cost', page: 2,
+      rarities: [], finishes: [], legalities: [], costMin: null, costMax: null,
     })
     expect(query).toBe('harry')
     expect(options.filters).toEqual({ types: ['creature'], isOfficial: true })
     expect(options.sort).toEqual(['cost:asc'])
     expect(options.page).toBe(2)
     // relevance -> no sort
-    expect(toSearchOptions({ q: '', types: [], lessons: [], official: null, sort: 'relevance', page: 1 }).options.sort).toBeUndefined()
+    expect(toSearchOptions({ q: '', types: [], lessons: [], official: null, sort: 'relevance', page: 1, rarities: [], finishes: [], legalities: [], costMin: null, costMax: null }).options.sort).toBeUndefined()
   })
 
   it('withParams sets a value and resets page', () => {
@@ -63,8 +66,31 @@ describe('search-params', () => {
 
   it('maps set to setCode filter', () => {
     expect(
-      toSearchOptions({ q: '', types: [], lessons: [], official: null, sort: 'relevance', page: 1, set: 'BS' })
+      toSearchOptions({ q: '', types: [], lessons: [], official: null, sort: 'relevance', page: 1, set: 'BS', rarities: [], finishes: [], legalities: [], costMin: null, costMax: null })
         .options.filters?.setCode,
     ).toEqual(['BS'])
+  })
+
+  it('parses rarity/finish/legality and cost range', () => {
+    const sp = new URLSearchParams('rarity=rare&finish=foil&legality=legal&costMin=2&costMax=5')
+    const s = parseSearchParams(sp)
+    expect(s.rarities).toEqual(['rare'])
+    expect(s.finishes).toEqual(['foil'])
+    expect(s.legalities).toEqual(['legal'])
+    expect(s.costMin).toBe(2)
+    expect(s.costMax).toBe(5)
+  })
+
+  it('maps the new fields to CardFilters', () => {
+    const { options } = toSearchOptions({
+      q: '', types: [], lessons: [], official: null, sort: 'relevance', page: 1,
+      rarities: ['rare'], finishes: [], legalities: ['legal'], costMin: 2, costMax: null,
+    })
+    expect(options.filters).toEqual({ rarity: ['rare'], legality: ['legal'], costMin: 2 })
+  })
+
+  it('leaves cost null when absent or non-numeric', () => {
+    expect(parseSearchParams(new URLSearchParams('costMin=abc')).costMin).toBeNull()
+    expect(parseSearchParams(new URLSearchParams()).costMax).toBeNull()
   })
 })

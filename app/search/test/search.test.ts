@@ -54,4 +54,10 @@ describe('searchCards', () => {
       '(types = "character" OR types = "creature")',
     ])
   })
+
+  it('filters by a cost range', () => {
+    expect(buildFilter({ costMin: 2 })).toContain('cost >= 2')
+    expect(buildFilter({ costMax: 4 })).toContain('cost <= 4')
+    expect(buildFilter({ costMin: 2, costMax: 4 })).toEqual(['cost >= 2', 'cost <= 4'])
+  })
 })

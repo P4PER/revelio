@@ -10,6 +10,8 @@ export type CardFilters = {
   finish?: string[]
   legality?: string[]
   isOfficial?: boolean
+  costMin?: number
+  costMax?: number
 }
 
 export type SearchOptions = {
@@ -40,6 +42,8 @@ export function buildFilter(f: CardFilters): string[] {
     }
   }
   if (f.isOfficial !== undefined) clauses.push(`isOfficial = ${f.isOfficial}`)
+  if (f.costMin != null) clauses.push(`cost >= ${f.costMin}`)
+  if (f.costMax != null) clauses.push(`cost <= ${f.costMax}`)
   return clauses
 }
 

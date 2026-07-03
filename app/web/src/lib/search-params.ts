@@ -9,6 +9,11 @@ export type SearchState = {
   sort: SortKey
   page: number
   set?: string
+  rarities: string[]
+  finishes: string[]
+  legalities: string[]
+  costMin: number | null
+  costMax: number | null
 }
 
 const SORT_KEYS: SortKey[] = ['relevance', 'name', 'number', 'cost']
@@ -21,6 +26,12 @@ const HITS_PER_PAGE = 24
 
 export function parseSearchParams(sp: URLSearchParams): SearchState {
   const list = (k: string) => sp.getAll(k).flatMap((v) => v.split(',')).map((v) => v.trim()).filter(Boolean)
+  const num = (k: string): number | null => {
+    const v = sp.get(k)
+    if (v == null || v === '') return null
+    const n = Number(v)
+    return Number.isFinite(n) ? n : null
+  }
   const official = sp.get('official')
   const sort = sp.get('sort') as SortKey | null
   const page = Math.floor(Number(sp.get('page') ?? '1'))
@@ -32,6 +43,11 @@ export function parseSearchParams(sp: URLSearchParams): SearchState {
     sort: sort && SORT_KEYS.includes(sort) ? sort : 'relevance',
     page: Number.isFinite(page) && page >= 1 ? page : 1,
     set: sp.get('set') ?? undefined,
+    rarities: list('rarity'),
+    finishes: list('finish'),
+    legalities: list('legality'),
+    costMin: num('costMin'),
+    costMax: num('costMax'),
   }
 }
 
@@ -52,6 +68,11 @@ export function toSearchOptions(state: SearchState): { query: string; options: S
   if (state.lessons.length) filters.lesson = state.lessons
   if (state.official !== null) filters.isOfficial = state.official
   if (state.set) filters.setCode = [state.set]
+  if (state.rarities.length) filters.rarity = state.rarities
+  if (state.finishes.length) filters.finish = state.finishes
+  if (state.legalities.length) filters.legality = state.legalities
+  if (state.costMin != null) filters.costMin = state.costMin
+  if (state.costMax != null) filters.costMax = state.costMax
   return {
     query: state.q,
     options: {

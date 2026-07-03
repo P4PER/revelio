@@ -9,6 +9,7 @@
     "migrate": "tsx src/migrate-cli.ts"
   },
   "dependencies": {
+    "@revelio/search": "*",
     "drizzle-orm": "^0.38.0",
     "postgres": "^3.4.0"
   }

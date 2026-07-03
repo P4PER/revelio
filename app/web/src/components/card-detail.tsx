@@ -51,17 +51,17 @@ export function CardDetail({
 
         <div className="mt-4 flex flex-wrap gap-2 text-sm">
           {card.lesson && (
-            <Badge variant="outline" style={{ borderColor: lessonColor, color: lessonColor }}>
+            <Badge variant="outline" className="text-base px-3 py-1" style={{ borderColor: lessonColor, color: lessonColor }}>
               {attrLabel('lessons', card.lesson, locale)}
             </Badge>
           )}
           {card.types.map((ty) => (
-            <Badge key={ty} variant="outline" className="text-muted-foreground">
+            <Badge key={ty} variant="outline" className="text-base px-3 py-1 text-muted-foreground">
               {attrLabel('types', ty, locale)}
             </Badge>
           ))}
           {card.subTypes.map((st) => (
-            <Badge key={st} variant="outline" className="text-xs text-muted-foreground">
+            <Badge key={st} variant="outline" className="text-sm px-2.5 py-0.5 text-muted-foreground">
               {humanize(st)}
             </Badge>
           ))}

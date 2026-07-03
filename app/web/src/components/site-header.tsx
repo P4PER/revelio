@@ -22,6 +22,7 @@ export async function SiteHeader() {
           <Button variant="ghost" size="sm" asChild><Link href="/sets">{t('sets')}</Link></Button>
           <span className="h-5 w-px bg-border/70" aria-hidden />
           <LanguageSwitcher />
+          <span className="h-5 w-px bg-border/70" aria-hidden />
           <AccountMenu signInLabel={ta('signIn')} signOutLabel={ta('signOut')} />
         </nav>
       </div>

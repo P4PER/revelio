@@ -15,9 +15,9 @@ import { AccountMenu } from '../account-menu'
 
 describe('AccountMenu', () => {
   it('shows the username and a sign-out button when signed in', () => {
-    mockState.data = { user: { username: 'hermione' } }
+    mockState.data = { user: { displayUsername: 'Hermione', username: 'hermione' } }
     render(<AccountMenu signInLabel="Sign in" signOutLabel="Sign out" />)
-    expect(screen.getByText('hermione')).toBeInTheDocument()
+    expect(screen.getByText('Hermione')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
   })
 

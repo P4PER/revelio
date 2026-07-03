@@ -10,7 +10,9 @@ export function AccountMenu({ signInLabel, signOutLabel }: { signInLabel: string
   }
   return (
     <span className="flex items-center gap-2 text-sm">
-      <span className="font-medium">{data.user.username ?? data.user.email}</span>
+      <span className="font-medium">
+        {data.user.displayUsername ?? data.user.username ?? data.user.email}
+      </span>
       <Button variant="ghost" size="sm" onClick={() => signOut()}>{signOutLabel}</Button>
     </span>
   )

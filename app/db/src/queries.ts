@@ -1,4 +1,4 @@
-import { eq, asc } from 'drizzle-orm'
+import { eq, asc, sql } from 'drizzle-orm'
 import type { DB } from './client'
 import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings } from './schema'
 import type { SetDTO, CardLocalizationDTO, CardDetailDTO } from '@revelio/core'
@@ -66,4 +66,9 @@ export async function getCardById(db: DB, id: string): Promise<CardDetailDTO | n
     })),
     set: toSetDTO(setRow),
   }
+}
+
+export async function getRandomCardId(db: DB): Promise<string | null> {
+  const [row] = await db.select({ id: cards.id }).from(cards).orderBy(sql`random()`).limit(1)
+  return row?.id ?? null
 }

@@ -2,7 +2,15 @@
   "home": {
     "title": "revelio.cards",
     "tagline": "Reveal every Harry Potter TCG card.",
-    "searchPlaceholder": "Search cards…"
+    "searchPlaceholder": "Search cards…",
+    "allCards": "Browse all cards",
+    "browseSets": "Browse sets",
+    "examples": "Try:",
+    "heading": "<b>Harry Potter TCG</b> card search",
+    "advancedSearch": "Advanced Search",
+    "allSets": "All Sets",
+    "randomCard": "Random Card",
+    "new": "New"
   },
   "footer": {
     "disclaimer": "revelio.cards is an unofficial fan project. Harry Potter and the card artwork/trademarks belong to Warner Bros.; the TCG to Wizards of the Coast. Not affiliated with or endorsed by them."

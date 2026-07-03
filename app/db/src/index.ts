@@ -6,4 +6,4 @@ export {
 export { createClient } from './client'
 export type { DB } from './client'
 export { migrationsDir, runMigrations } from './migrate'
-export { getCardById, listSets, getSetByCode } from './queries'
+export { getCardById, listSets, getSetByCode, getRandomCardId } from './queries'

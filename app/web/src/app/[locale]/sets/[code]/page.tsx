@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { getDb } from '@/lib/db'
 import { getSetByCode } from '@revelio/db'
+import { formatReleaseMonth } from '@/lib/set-sort'
 import { getSearchClient, runSearch } from '@/lib/search-client'
 import { parseSearchParams, toURLSearchParams } from '@/lib/search-params'
 import { CardGrid } from '@/components/card-grid'
@@ -46,7 +47,7 @@ export default async function SetPage({
       <header className="mb-6">
         <h1 className="text-2xl font-semibold text-primary">{set.name}</h1>
         <p className="text-sm text-muted-foreground">
-          {t('meta', { count: set.cardCount, date: set.releaseDate ?? '—' })}
+          {t('meta', { count: set.cardCount, date: formatReleaseMonth(set.releaseDate) })}
         </p>
       </header>
       <CardGrid hits={results.hits} imageBase={IMAGE_BASE} />

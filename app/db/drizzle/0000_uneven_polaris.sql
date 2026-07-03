@@ -103,7 +103,7 @@ CREATE TABLE "rarities" (
 CREATE TABLE "sets" (
 	"code" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
-	"release_date" text,
+	"release_date" date,
 	"is_official" boolean DEFAULT false NOT NULL,
 	"card_count" integer DEFAULT 0 NOT NULL,
 	"symbol" text,

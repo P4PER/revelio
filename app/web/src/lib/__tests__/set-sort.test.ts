@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { byReleaseDate, releaseKey } from '../set-sort'
+import { byReleaseDate, formatReleaseMonth } from '../set-sort'
 import type { SetDTO } from '@revelio/core'
 
 const set = (code: string, releaseDate: string | null): SetDTO => ({
@@ -7,14 +7,20 @@ const set = (code: string, releaseDate: string | null): SetDTO => ({
 })
 
 describe('byReleaseDate', () => {
-  it('sorts MM-YYYY chronologically (2001 before 2002)', () => {
-    const sets = [set('AAH', '06-2002'), set('BS', '08-2001'), set('COS', '10-2002'), set('QC', '11-2001')]
+  it('sorts chronologically (2001 before 2002)', () => {
+    const sets = [set('AAH', '2002-06-01'), set('BS', '2001-08-01'), set('COS', '2002-10-01'), set('QC', '2001-11-01')]
     expect([...sets].sort(byReleaseDate).map((s) => s.code)).toEqual(['BS', 'QC', 'AAH', 'COS'])
   })
   it('puts null dates last', () => {
-    expect([...[set('X', null), set('BS', '08-2001')]].sort(byReleaseDate).map((s) => s.code)).toEqual(['BS', 'X'])
+    expect([set('X', null), set('BS', '2001-08-01')].sort(byReleaseDate).map((s) => s.code)).toEqual(['BS', 'X'])
   })
-  it('releaseKey converts MM-YYYY to YYYY-MM', () => {
-    expect(releaseKey('08-2001')).toBe('2001-08')
+})
+
+describe('formatReleaseMonth', () => {
+  it('formats YYYY-MM-DD as MM/YYYY', () => {
+    expect(formatReleaseMonth('2001-08-01')).toBe('08/2001')
+  })
+  it('handles null', () => {
+    expect(formatReleaseMonth(null)).toBe('—')
   })
 })

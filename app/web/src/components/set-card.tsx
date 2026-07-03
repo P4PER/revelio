@@ -1,6 +1,7 @@
 import { Link } from '@/../i18n/navigation'
 import type { SetDTO } from '@revelio/core'
 import { SetSymbol } from './set-symbol'
+import { formatReleaseMonth } from '@/lib/set-sort'
 
 export function SetCard({ set, imageBase }: { set: SetDTO; imageBase: string }) {
   return (
@@ -18,7 +19,7 @@ export function SetCard({ set, imageBase }: { set: SetDTO; imageBase: string }) 
       <span className="flex-1">
         <span className="block font-medium">{set.name}</span>
         <span className="block text-sm text-muted-foreground">
-          {set.cardCount} · {set.releaseDate ?? '—'}
+          {set.cardCount} · {formatReleaseMonth(set.releaseDate)}
           {set.isOfficial ? '' : ' · Fan'}
         </span>
       </span>

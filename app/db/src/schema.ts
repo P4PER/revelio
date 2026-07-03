@@ -1,5 +1,6 @@
 import {
   pgTable, text, integer, real, boolean, jsonb, timestamp, primaryKey, index,
+  date,
 } from 'drizzle-orm/pg-core'
 
 const editable = {
@@ -56,7 +57,7 @@ export const legalities = pgTable('legalities', {
 export const sets = pgTable('sets', {
   code: text('code').primaryKey(),
   name: text('name').notNull(),
-  releaseDate: text('release_date'),
+  releaseDate: date('release_date'),
   isOfficial: boolean('is_official').notNull().default(false),
   cardCount: integer('card_count').notNull().default(0),
   symbol: text('symbol'),

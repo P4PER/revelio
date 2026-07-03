@@ -7,6 +7,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 
+// Autonyms: each language written in its own language (i18n best practice).
+const LOCALE_NAMES: Record<string, string> = { en: 'English', de: 'Deutsch' }
+
 export function LanguageSwitcher() {
   const locale = useLocale()
   const pathname = usePathname()
@@ -22,7 +25,7 @@ export function LanguageSwitcher() {
       </SelectTrigger>
       <SelectContent align="end">
         {routing.locales.map((l) => (
-          <SelectItem key={l} value={l}>{l.toUpperCase()}</SelectItem>
+          <SelectItem key={l} value={l}>{LOCALE_NAMES[l] ?? l.toUpperCase()}</SelectItem>
         ))}
       </SelectContent>
     </Select>

@@ -11,7 +11,7 @@ export function SetCard({ set, imageBase }: { set: SetDTO; imageBase: string }) 
       {set.symbol && imageBase ? (
 <SetSymbol code={set.code} base={imageBase} className="h-10 w-10 text-foreground/80" />
       ) : (
-        <span className="flex h-10 w-10 items-center justify-center rounded bg-muted text-xs text-muted-foreground">
+        <span className="flex h-10 w-10 items-center justify-center text-xs text-muted-foreground">
           {set.code}
         </span>
       )}

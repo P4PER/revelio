@@ -1,10 +1,11 @@
 'use client'
+import Image from 'next/image'
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from '@/../i18n/navigation'
 import { useTranslations } from 'next-intl'
 import {
-  TYPES, LESSONS, RARITIES, FINISHES, LEGALITIES, type SetDTO,
+  TYPES, LESSONS, RARITIES, FINISHES, LEGALITIES, symbolKey, imageUrl, type SetDTO,
 } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet'
@@ -15,6 +16,8 @@ import { Input } from '@/components/ui/input'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
+
+const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
 const humanize = (c: string) => c.replace(/[-_]/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase())
 
@@ -96,7 +99,22 @@ export function FilterDrawer({ sets, locale }: { sets: SetDTO[]; locale: string 
               <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="any">{t('anySet')}</SelectItem>
-                {sets.map((s) => <SelectItem key={s.code} value={s.code}>{s.name}</SelectItem>)}
+                {sets.map((s) => (
+                  <SelectItem key={s.code} value={s.code}>
+                    <span className="flex items-center gap-2">
+                      {s.symbol && IMAGE_BASE ? (
+                        <Image
+                          src={imageUrl(IMAGE_BASE, symbolKey(s.code))}
+                          alt=""
+                          width={16}
+                          height={16}
+                          className="h-4 w-4 shrink-0 object-contain"
+                        />
+                      ) : null}
+                      {s.name}
+                    </span>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

@@ -4,6 +4,7 @@ import type { CardDetailDTO } from '@revelio/core'
 import { imageKey, imageUrl, LESSONS } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
 import { pickLocalization } from '@/lib/card-view'
+import { Badge } from '@/components/ui/badge'
 
 // Sub-types have no i18n label group; humanize the slug (death_eater -> Death Eater).
 const humanize = (code: string) =>
@@ -43,31 +44,31 @@ export function CardDetail({
         </p>
 
         {loc.status === 'machine' && (
-          <p data-testid="machine-badge" className="mt-3 inline-flex items-center justify-center rounded-full border border-accent/50 bg-accent/10 px-3 py-1 text-xs text-accent">
+          <Badge data-testid="machine-badge" variant="secondary" className="mt-3">
             {t('machineTranslation')}
-          </p>
+          </Badge>
         )}
 
         <div className="mt-4 flex flex-wrap gap-2 text-sm">
           {card.lesson && (
-            <span className="inline-flex items-center justify-center rounded-full border px-3 py-1" style={{ borderColor: lessonColor, color: lessonColor }}>
+            <Badge variant="outline" style={{ borderColor: lessonColor, color: lessonColor }}>
               {attrLabel('lessons', card.lesson, locale)}
-            </span>
+            </Badge>
           )}
           {card.types.map((ty) => (
-            <span key={ty} className="inline-flex items-center justify-center rounded-full border border-border px-3 py-1 text-muted-foreground">
+            <Badge key={ty} variant="outline" className="text-muted-foreground">
               {attrLabel('types', ty, locale)}
-            </span>
+            </Badge>
           ))}
           {card.subTypes.map((st) => (
-            <span key={st} className="inline-flex items-center justify-center rounded-full border border-border/50 px-3 py-1 text-xs text-muted-foreground">
+            <Badge key={st} variant="outline" className="text-xs text-muted-foreground">
               {humanize(st)}
-            </span>
+            </Badge>
           ))}
           {card.cost != null && (
-            <span className="inline-flex items-center justify-center rounded-full border border-border px-3 py-1 text-muted-foreground">
+            <Badge variant="outline" className="text-muted-foreground">
               {t('cost', { cost: card.cost })}
-            </span>
+            </Badge>
           )}
         </div>
 

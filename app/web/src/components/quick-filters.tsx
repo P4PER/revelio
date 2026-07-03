@@ -4,6 +4,7 @@ import { useRouter, usePathname } from '@/../i18n/navigation'
 import { TYPES, LESSONS } from '@revelio/core'
 import { withParams, parseSearchParams } from '@/lib/search-params'
 import { attrLabel } from '@/lib/attribute-labels'
+import { Button } from '@/components/ui/button'
 
 export function QuickFilters({ locale }: { locale: string }) {
   const router = useRouter()
@@ -26,23 +27,27 @@ export function QuickFilters({ locale }: { locale: string }) {
       {TYPES.map((t) => {
         const active = state.types.includes(t.code)
         return (
-          <button
+          <Button
             key={t.code}
             type="button"
+            size="sm"
+            variant={active ? 'default' : 'outline'}
             aria-pressed={active}
             onClick={() => toggle('type', state.types, t.code)}
-            className={`rounded-full border px-3 py-1 text-sm ${active ? 'border-primary bg-primary/20 text-primary' : 'border-border text-muted-foreground'}`}
+            className="rounded-full"
           >
             {attrLabel('types', t.code, locale)}
-          </button>
+          </Button>
         )
       })}
       {LESSONS.map((l) => {
         const active = state.lessons.includes(l.code)
         return (
-          <button
+          <Button
             key={l.code}
             type="button"
+            size="sm"
+            variant="outline"
             aria-pressed={active}
             onClick={() => toggle('lesson', state.lessons, l.code)}
             style={{
@@ -50,28 +55,32 @@ export function QuickFilters({ locale }: { locale: string }) {
               color: active ? '#fff' : l.color,
               backgroundColor: active ? l.color : 'transparent',
             }}
-            className="rounded-full border px-3 py-1 text-sm"
+            className="rounded-full"
           >
             {attrLabel('lessons', l.code, locale)}
-          </button>
+          </Button>
         )
       })}
-      <button
+      <Button
         type="button"
+        size="sm"
+        variant={state.official === true ? 'default' : 'outline'}
         aria-pressed={state.official === true}
         onClick={() => apply({ official: state.official === true ? null : 'official' })}
-        className={`rounded-full border px-3 py-1 text-sm ${state.official === true ? 'border-primary bg-primary/20 text-primary' : 'border-border text-muted-foreground'}`}
+        className="rounded-full"
       >
         Official
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
+        size="sm"
+        variant={state.official === false ? 'default' : 'outline'}
         aria-pressed={state.official === false}
         onClick={() => apply({ official: state.official === false ? null : 'fan' })}
-        className={`rounded-full border px-3 py-1 text-sm ${state.official === false ? 'border-primary bg-primary/20 text-primary' : 'border-border text-muted-foreground'}`}
+        className="rounded-full"
       >
         Fan / Revival
-      </button>
+      </Button>
     </div>
   )
 }

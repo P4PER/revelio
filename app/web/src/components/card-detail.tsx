@@ -51,8 +51,10 @@ export function CardDetail({
 
         {card.lesson && (
           <div className="mt-4">
-            <Badge variant="outline" className="text-base px-3 py-1" style={{ borderColor: lessonColor, color: lessonColor }}>
-              {attrLabel('lessons', card.lesson, locale)}
+            <Badge variant="outline" className="text-sm px-2.5 py-1" style={{ borderColor: lessonColor, color: lessonColor }}>
+              {card.cost != null
+                ? `${card.cost} ${attrLabel('lessons', card.lesson, locale)}`
+                : attrLabel('lessons', card.lesson, locale)}
             </Badge>
           </div>
         )}
@@ -89,7 +91,7 @@ export function CardDetail({
               <dd>{card.damagePerTurn}</dd>
             </>
           )}
-          {card.cost != null && (
+          {card.cost != null && !card.lesson && (
             <>
               <dt className="text-muted-foreground">{t('cost')}</dt>
               <dd>{card.cost}</dd>

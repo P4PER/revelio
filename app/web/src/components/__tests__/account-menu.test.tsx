@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi } from 'vitest'
 
 const { mockState } = vi.hoisted(() => ({ mockState: { data: null as unknown } }))
@@ -14,11 +15,15 @@ vi.mock('@/../i18n/navigation', () => ({
 import { AccountMenu } from '../account-menu'
 
 describe('AccountMenu', () => {
-  it('shows the username and a sign-out button when signed in', () => {
-    mockState.data = { user: { displayUsername: 'Hermione', username: 'hermione' } }
+  it('shows the displayUsername on the trigger and a sign-out item when opened', async () => {
+    mockState.data = { user: { displayUsername: 'Hermione', username: 'hermione', email: 'h@x.io' } }
     render(<AccountMenu signInLabel="Sign in" signOutLabel="Sign out" />)
-    expect(screen.getByText('Hermione')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
+    // trigger shows the original-casing name
+    const trigger = screen.getByRole('button', { name: /Hermione/ })
+    expect(trigger).toBeInTheDocument()
+    // sign-out lives in the menu, revealed on open
+    await userEvent.click(trigger)
+    expect(await screen.findByRole('menuitem', { name: 'Sign out' })).toBeInTheDocument()
   })
 
   it('shows a sign-in link when signed out', () => {

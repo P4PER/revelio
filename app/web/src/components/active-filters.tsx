@@ -52,7 +52,7 @@ export function ActiveFilters({ sets, locale }: { sets: SetDTO[]; locale: string
             type="button"
             aria-label={`remove ${c.label}`}
             onClick={() => remove(c.remove)}
-            className="ml-1 rounded-full px-1 text-muted-foreground hover:text-foreground"
+            className="ml-1 cursor-pointer rounded-full px-1 text-muted-foreground hover:text-foreground"
           >
             ×
           </button>

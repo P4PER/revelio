@@ -1,19 +1,13 @@
-import { getTranslations } from 'next-intl/server'
 import type { SetDTO } from '@revelio/core'
-import { SearchBox } from './search-box'
 import { SortSelect } from './sort-select'
-import { QuickFilters } from './quick-filters'
 import { FilterDrawer } from './filter-drawer'
+import { QuickFilters } from './quick-filters'
 import { ActiveFilters } from './active-filters'
 
-export async function SearchControls({ locale, sets }: { locale: string; sets: SetDTO[] }) {
-  const t = await getTranslations('search')
+export function SearchControls({ locale, sets }: { locale: string; sets: SetDTO[] }) {
   return (
     <div className="mb-6 space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="flex-1">
-          <SearchBox placeholder={t('placeholder')} />
-        </div>
+      <div className="flex flex-wrap items-center gap-3">
         <FilterDrawer sets={sets} locale={locale} />
         <SortSelect />
       </div>

@@ -1,23 +1,45 @@
 'use client'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { usePathname, useRouter } from '@/../i18n/navigation'
+import { useSearchParams } from 'next/navigation'
+import { withParams } from '@/lib/search-params'
 import { Input } from '@/components/ui/input'
 
 export function HeaderSearch({ placeholder }: { placeholder: string }) {
   const pathname = usePathname()
   const router = useRouter()
-  const [q, setQ] = useState('')
+  const params = useSearchParams()
+  const onSearchPage = pathname === '/search'
+  const [q, setQ] = useState(onSearchPage ? (params.get('q') ?? '') : '')
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Home and the search page already have their own search box.
-  if (pathname === '/' || pathname === '/search') return null
+  // Home has its own hero search.
+  if (pathname === '/') return null
+
+  function submit(value: string) {
+    if (onSearchPage) {
+      // live: update ?q on the search page, preserving filters/sort
+      const next = withParams(new URLSearchParams(params.toString()), { q: value })
+      router.replace(`/search?${next.toString()}`)
+    } else {
+      router.push(`/search?q=${encodeURIComponent(value)}`)
+    }
+  }
+
+  function onChange(value: string) {
+    setQ(value)
+    if (!onSearchPage) return // off the search page, only navigate on submit
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = setTimeout(() => submit(value), 300)
+  }
 
   return (
     <form
       role="search"
       onSubmit={(e) => {
         e.preventDefault()
-        router.push(`/search?q=${encodeURIComponent(q)}`)
+        submit(q)
       }}
       className="relative mx-auto w-full max-w-md"
     >
@@ -27,7 +49,7 @@ export function HeaderSearch({ placeholder }: { placeholder: string }) {
         aria-label={placeholder}
         placeholder={placeholder}
         value={q}
-        onChange={(e) => setQ(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         className="h-8 pl-8"
       />
     </form>

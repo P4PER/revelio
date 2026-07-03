@@ -4,14 +4,16 @@ import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const sendVerificationOtp = vi.fn(async () => ({ error: null }))
+const signInEmailOtp = vi.fn(async () => ({ error: null }))
+const updateUser = vi.fn(async () => ({ error: null }))
 const emailHasAccount = vi.fn(async () => true)
 const usernameAvailable = vi.fn(async () => true)
 
 vi.mock('@/lib/auth-client', () => ({
   authClient: {
     emailOtp: { sendVerificationOtp: (...a: unknown[]) => sendVerificationOtp(...a) },
-    signIn: { emailOtp: vi.fn(async () => ({ error: null })) },
-    updateUser: vi.fn(async () => ({ error: null })),
+    signIn: { emailOtp: (...a: unknown[]) => signInEmailOtp(...a) },
+    updateUser: (...a: unknown[]) => updateUser(...a),
   },
 }))
 vi.mock('@/lib/auth-actions', () => ({
@@ -36,6 +38,8 @@ function renderForm(mode: 'login' | 'register') {
 
 beforeEach(() => {
   sendVerificationOtp.mockClear()
+  signInEmailOtp.mockClear()
+  updateUser.mockClear()
   emailHasAccount.mockClear()
   usernameAvailable.mockClear()
 })
@@ -70,5 +74,15 @@ describe('AuthForm', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Send code' }))
     expect(await screen.findByText(en.auth.usernameTaken)).toBeInTheDocument()
     expect(sendVerificationOtp).not.toHaveBeenCalled()
+  })
+
+  it('register sets the username AND displayUsername (original casing) after verifying', async () => {
+    renderForm('register')
+    await userEvent.type(screen.getByPlaceholderText('Email'), 'new@example.com')
+    await userEvent.type(screen.getByPlaceholderText('Username'), 'Hermione')
+    await userEvent.click(screen.getByRole('button', { name: 'Send code' }))
+    await userEvent.type(await screen.findByPlaceholderText('000000'), '123456')
+    await userEvent.click(screen.getByRole('button', { name: 'Verify' }))
+    expect(updateUser).toHaveBeenCalledWith({ username: 'Hermione', displayUsername: 'Hermione' })
   })
 })

@@ -50,7 +50,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       return setError(t('badCode'))
     }
     if (register && name) {
-      const { error: updateError } = await authClient.updateUser({ username: name })
+      const { error: updateError } = await authClient.updateUser({ username: name, displayUsername: name })
       if (updateError) {
         setBusy(false)
         return setError(t('usernameTaken'))

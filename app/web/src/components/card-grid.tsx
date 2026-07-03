@@ -6,7 +6,7 @@ export function CardGrid({ hits, imageBase }: { hits: SearchDocument[]; imageBas
     return <p className="py-16 text-center text-muted-foreground" role="status">No cards found.</p>
   }
   return (
-    <ul className="grid grid-cols-4 gap-4">
+    <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
       {hits.map((hit) => (
         <li key={hit.id}>
           <CardTile hit={hit} imageBase={imageBase} />

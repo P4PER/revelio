@@ -1,19 +1,30 @@
 'use client'
 import { useLocale } from 'next-intl'
-import { Link, usePathname } from '@/../i18n/navigation'
+import { Globe } from 'lucide-react'
+import { usePathname, useRouter } from '@/../i18n/navigation'
 import { routing } from '@/../i18n/routing'
-import { Button } from '@/components/ui/button'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
 
 export function LanguageSwitcher() {
   const locale = useLocale()
   const pathname = usePathname()
+  const router = useRouter()
   return (
-    <nav aria-label="Language" className="flex gap-1">
-      {routing.locales.map((l) => (
-        <Button key={l} variant={l === locale ? 'secondary' : 'ghost'} size="sm" asChild>
-          <Link href={pathname} locale={l}>{l.toUpperCase()}</Link>
-        </Button>
-      ))}
-    </nav>
+    <Select value={locale} onValueChange={(next) => router.replace(pathname, { locale: next })}>
+      <SelectTrigger
+        aria-label="Language"
+        className="h-8 w-auto gap-1.5 border-0 bg-transparent px-2 text-sm shadow-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-1"
+      >
+        <Globe className="size-4 opacity-70" />
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent align="end">
+        {routing.locales.map((l) => (
+          <SelectItem key={l} value={l}>{l.toUpperCase()}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }

@@ -10,8 +10,9 @@ export async function SiteHeader() {
     <header className="border-b border-border/60">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-2">
         <Link href="/" aria-label="revelio.cards home"><BrandMark /></Link>
-        <nav className="flex items-center gap-2">
+        <nav className="flex items-center gap-3">
           <Button variant="ghost" size="sm" asChild><Link href="/sets">{t('sets')}</Link></Button>
+          <span className="h-5 w-px bg-border/70" aria-hidden />
           <LanguageSwitcher />
         </nav>
       </div>

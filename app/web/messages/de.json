@@ -27,7 +27,9 @@
   },
   "sets": {
     "title": "Editionen",
-    "meta": "{count} Karten · erschienen {date}"
+    "meta": "{count} Karten · erschienen {date}",
+    "original": "Original",
+    "fanMade": "Fan-Made"
   },
   "filters": {
     "button": "Erweitert",
@@ -45,6 +47,8 @@
     "costMax": "Max",
     "official": "Nur offiziell",
     "fan": "Nur Fan/Revival",
-    "anySet": "Alle Editionen"
+    "anySet": "Alle Editionen",
+    "original": "Original",
+    "fanMade": "Fan-Made"
   }
 }

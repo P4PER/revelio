@@ -27,7 +27,9 @@
   },
   "sets": {
     "title": "Sets",
-    "meta": "{count} cards · released {date}"
+    "meta": "{count} cards · released {date}",
+    "original": "Original",
+    "fanMade": "Fan-made"
   },
   "filters": {
     "button": "Advanced",
@@ -45,6 +47,8 @@
     "costMax": "Max",
     "official": "Official only",
     "fan": "Fan / Revival only",
-    "anySet": "Any set"
+    "anySet": "Any set",
+    "original": "Original",
+    "fanMade": "Fan-made"
   }
 }

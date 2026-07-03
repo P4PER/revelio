@@ -14,7 +14,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select, SelectContent, SelectGroup, SelectItem, SelectLabel,
+  SelectSeparator, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
@@ -84,6 +85,21 @@ export function FilterDrawer({ sets, locale }: { sets: SetDTO[]; locale: string 
     setOpen(false)
   }
 
+  const byReleaseDate = (a: SetDTO, b: SetDTO) =>
+    (a.releaseDate ?? '9999').localeCompare(b.releaseDate ?? '9999')
+  const officialSets = sets.filter((s) => s.isOfficial).sort(byReleaseDate)
+  const fanSets = sets.filter((s) => !s.isOfficial).sort(byReleaseDate)
+  const setItem = (s: SetDTO) => (
+    <SelectItem key={s.code} value={s.code}>
+      <span className="flex items-center gap-2">
+        {s.symbol && IMAGE_BASE ? (
+          <SetSymbol code={s.code} base={IMAGE_BASE} className="h-4 w-4 shrink-0 text-foreground/80" />
+        ) : null}
+        {s.name}
+      </span>
+    </SelectItem>
+  )
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
@@ -99,16 +115,24 @@ export function FilterDrawer({ sets, locale }: { sets: SetDTO[]; locale: string 
               <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="any">{t('anySet')}</SelectItem>
-                {sets.map((s) => (
-                  <SelectItem key={s.code} value={s.code}>
-                    <span className="flex items-center gap-2">
-                      {s.symbol && IMAGE_BASE ? (
-                        <SetSymbol code={s.code} base={IMAGE_BASE} className="h-4 w-4 shrink-0 text-foreground/80" />
-                      ) : null}
-                      {s.name}
-                    </span>
-                  </SelectItem>
-                ))}
+                {officialSets.length > 0 && (
+                  <>
+                    <SelectSeparator />
+                    <SelectGroup>
+                      <SelectLabel>{t('original')}</SelectLabel>
+                      {officialSets.map(setItem)}
+                    </SelectGroup>
+                  </>
+                )}
+                {fanSets.length > 0 && (
+                  <>
+                    <SelectSeparator />
+                    <SelectGroup>
+                      <SelectLabel>{t('fanMade')}</SelectLabel>
+                      {fanSets.map(setItem)}
+                    </SelectGroup>
+                  </>
+                )}
               </SelectContent>
             </Select>
           </div>

@@ -8,6 +8,7 @@ import {
 } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
 import { SetSymbol } from './set-symbol'
+import { byReleaseDate } from '@/lib/set-sort'
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -85,8 +86,6 @@ export function FilterDrawer({ sets, locale }: { sets: SetDTO[]; locale: string 
     setOpen(false)
   }
 
-  const byReleaseDate = (a: SetDTO, b: SetDTO) =>
-    (a.releaseDate ?? '9999').localeCompare(b.releaseDate ?? '9999')
   const officialSets = sets.filter((s) => s.isOfficial).sort(byReleaseDate)
   const fanSets = sets.filter((s) => !s.isOfficial).sort(byReleaseDate)
   const setItem = (s: SetDTO) => (

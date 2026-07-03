@@ -3,13 +3,11 @@ import type { SetDTO } from '@revelio/core'
 import { getDb } from '@/lib/db'
 import { listSets } from '@revelio/db'
 import { SetCard } from '@/components/set-card'
+import { byReleaseDate } from '@/lib/set-sort'
 
 export const dynamic = 'force-dynamic'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
-
-const byReleaseDate = (a: SetDTO, b: SetDTO) =>
-  (a.releaseDate ?? '9999').localeCompare(b.releaseDate ?? '9999')
 
 function SetSection({ title, sets }: { title: string; sets: SetDTO[] }) {
   if (sets.length === 0) return null

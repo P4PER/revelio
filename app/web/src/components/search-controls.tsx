@@ -11,6 +11,7 @@ export function SearchControls({ locale, sets }: { locale: string; sets: SetDTO[
         <FilterDrawer sets={sets} locale={locale} />
         <SortSelect />
       </div>
+      <div className="h-px bg-border/60" aria-hidden />
       <QuickFilters locale={locale} />
       <ActiveFilters sets={sets} locale={locale} />
     </div>

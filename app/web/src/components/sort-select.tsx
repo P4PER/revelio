@@ -24,7 +24,7 @@ export function SortSelect() {
 
   return (
     <Select value={current} onValueChange={onValueChange}>
-      <SelectTrigger aria-label="Sort by" className="w-[160px]">
+      <SelectTrigger aria-label="Sort by" size="sm" className="w-[160px]">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

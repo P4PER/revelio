@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server'
 import type { SetDTO } from '@revelio/core'
 import { SearchBox } from './search-box'
 import { SortSelect } from './sort-select'
+import { QuickFilters } from './quick-filters'
 import { FilterDrawer } from './filter-drawer'
 import { ActiveFilters } from './active-filters'
 
@@ -16,6 +17,7 @@ export async function SearchControls({ locale, sets }: { locale: string; sets: S
         <FilterDrawer sets={sets} locale={locale} />
         <SortSelect />
       </div>
+      <QuickFilters locale={locale} />
       <ActiveFilters sets={sets} locale={locale} />
     </div>
   )

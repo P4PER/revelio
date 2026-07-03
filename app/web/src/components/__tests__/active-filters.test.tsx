@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from 'vitest'
 
 const push = vi.fn()
 vi.mock('@/../i18n/navigation', () => ({ useRouter: () => ({ push }) }))
-const params = new URLSearchParams('rarity=rare&type=creature&costMin=2&costMax=5')
+const params = new URLSearchParams('rarity=rare&legality=legal&costMin=2&costMax=5')
 vi.mock('next/navigation', () => ({ useSearchParams: () => params, usePathname: () => '/search' }))
 
 import { ActiveFilters } from '../active-filters'
@@ -16,11 +16,11 @@ describe('ActiveFilters', () => {
     const user = userEvent.setup()
     render(<ActiveFilters sets={sets} locale="en" />)
     expect(screen.getByText(/Rare/)).toBeInTheDocument()
-    expect(screen.getByText(/Creature/)).toBeInTheDocument()
+    expect(screen.getByText(/Legal/)).toBeInTheDocument()
     expect(screen.getByText(/2.*5/)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /remove Rare/i }))
     const url = push.mock.calls.at(-1)?.[0] as string
     expect(url).not.toMatch(/rarity=rare/)
-    expect(url).toMatch(/type=creature/)
+    expect(url).toMatch(/legality=legal/)
   })
 })

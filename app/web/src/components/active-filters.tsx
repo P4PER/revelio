@@ -14,9 +14,8 @@ export function ActiveFilters({ sets, locale }: { sets: SetDTO[]; locale: string
   const router = useRouter()
   const params = useSearchParams()
 
-  const multi: { param: string; scope?: 'types' | 'lessons' | 'rarities' | 'finishes' }[] = [
-    { param: 'type', scope: 'types' },
-    { param: 'lesson', scope: 'lessons' },
+  // Advanced-only chips; Type/Lesson/Official are shown by their quick-filter badges.
+  const multi: { param: string; scope?: 'rarities' | 'finishes' }[] = [
     { param: 'rarity', scope: 'rarities' },
     { param: 'finish', scope: 'finishes' },
     { param: 'legality' },
@@ -37,8 +36,6 @@ export function ActiveFilters({ sets, locale }: { sets: SetDTO[]; locale: string
   const min = params.get('costMin')
   const max = params.get('costMax')
   if (min || max) chips.push({ key: 'cost', label: `${min ?? '0'}–${max ?? '∞'}`, remove: { costMin: null, costMax: null } })
-  const official = params.get('official')
-  if (official) chips.push({ key: 'official', label: official === 'fan' ? 'Fan' : 'Official', remove: { official: null } })
 
   if (chips.length === 0) return null
 

@@ -30,8 +30,8 @@
     "meta": "{count} Karten · erschienen {date}"
   },
   "filters": {
-    "button": "Filter",
-    "title": "Filter",
+    "button": "Erweitert",
+    "title": "Erweiterte Filter",
     "apply": "Anwenden",
     "clear": "Alle zurücksetzen",
     "set": "Edition",

@@ -30,8 +30,8 @@
     "meta": "{count} cards · released {date}"
   },
   "filters": {
-    "button": "Filters",
-    "title": "Filters",
+    "button": "Advanced",
+    "title": "Advanced filters",
     "apply": "Apply",
     "clear": "Clear all",
     "set": "Set",

@@ -62,13 +62,17 @@
   "auth": {
     "title": "Sign in",
     "email": "Email",
-    "username": "Username (for new accounts)",
+    "username": "Username",
     "sendCode": "Send code",
     "codeSent": "We emailed a 6-digit code to {email}.",
     "verify": "Verify",
     "sendFailed": "Could not send the code. Try again.",
     "badCode": "Invalid or expired code.",
     "signIn": "Sign in",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "registerTitle": "Create account",
+    "noAccount": "Need an account?",
+    "register": "Register",
+    "haveAccount": "Already have an account?"
   }
 }

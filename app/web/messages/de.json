@@ -62,13 +62,17 @@
   "auth": {
     "title": "Anmelden",
     "email": "E-Mail",
-    "username": "Benutzername (für neue Konten)",
+    "username": "Benutzername",
     "sendCode": "Code senden",
     "codeSent": "Wir haben einen 6-stelligen Code an {email} gesendet.",
     "verify": "Bestätigen",
     "sendFailed": "Code konnte nicht gesendet werden. Bitte erneut versuchen.",
     "badCode": "Ungültiger oder abgelaufener Code.",
     "signIn": "Anmelden",
-    "signOut": "Abmelden"
+    "signOut": "Abmelden",
+    "registerTitle": "Konto erstellen",
+    "noAccount": "Noch kein Konto?",
+    "register": "Registrieren",
+    "haveAccount": "Schon ein Konto?"
   }
 }

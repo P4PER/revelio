@@ -1,7 +1,6 @@
-import Image from 'next/image'
 import { Link } from '@/../i18n/navigation'
 import type { SetDTO } from '@revelio/core'
-import { symbolKey, imageUrl } from '@revelio/core'
+import { SetSymbol } from './set-symbol'
 
 export function SetCard({ set, imageBase }: { set: SetDTO; imageBase: string }) {
   return (
@@ -10,13 +9,7 @@ export function SetCard({ set, imageBase }: { set: SetDTO; imageBase: string }) 
       className="flex items-center gap-4 rounded-lg border border-border/60 bg-card p-4 transition hover:border-primary/60"
     >
       {set.symbol && imageBase ? (
-        <Image
-          src={imageUrl(imageBase, symbolKey(set.code))}
-          alt=""
-          width={40}
-          height={40}
-          className="h-10 w-10 object-contain"
-        />
+<SetSymbol code={set.code} base={imageBase} className="h-10 w-10 text-foreground/80" />
       ) : (
         <span className="flex h-10 w-10 items-center justify-center rounded bg-muted text-xs text-muted-foreground">
           {set.code}

@@ -1,13 +1,13 @@
 'use client'
-import Image from 'next/image'
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from '@/../i18n/navigation'
 import { useTranslations } from 'next-intl'
 import {
-  TYPES, LESSONS, RARITIES, FINISHES, LEGALITIES, symbolKey, imageUrl, type SetDTO,
+  TYPES, LESSONS, RARITIES, FINISHES, LEGALITIES, type SetDTO,
 } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
+import { SetSymbol } from './set-symbol'
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -103,13 +103,7 @@ export function FilterDrawer({ sets, locale }: { sets: SetDTO[]; locale: string 
                   <SelectItem key={s.code} value={s.code}>
                     <span className="flex items-center gap-2">
                       {s.symbol && IMAGE_BASE ? (
-                        <Image
-                          src={imageUrl(IMAGE_BASE, symbolKey(s.code))}
-                          alt=""
-                          width={16}
-                          height={16}
-                          className="h-4 w-4 shrink-0 object-contain"
-                        />
+                        <SetSymbol code={s.code} base={IMAGE_BASE} className="h-4 w-4 shrink-0 text-foreground/80" />
                       ) : null}
                       {s.name}
                     </span>

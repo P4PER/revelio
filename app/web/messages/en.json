@@ -28,5 +28,23 @@
   "sets": {
     "title": "Sets",
     "meta": "{count} cards · released {date}"
+  },
+  "filters": {
+    "button": "Filters",
+    "title": "Filters",
+    "apply": "Apply",
+    "clear": "Clear all",
+    "set": "Set",
+    "type": "Type",
+    "lesson": "Lesson",
+    "rarity": "Rarity",
+    "finish": "Finish",
+    "legality": "Legality",
+    "cost": "Cost",
+    "costMin": "Min",
+    "costMax": "Max",
+    "official": "Official only",
+    "fan": "Fan / Revival only",
+    "anySet": "Any set"
   }
 }

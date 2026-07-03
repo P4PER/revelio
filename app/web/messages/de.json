@@ -28,5 +28,23 @@
   "sets": {
     "title": "Editionen",
     "meta": "{count} Karten · erschienen {date}"
+  },
+  "filters": {
+    "button": "Filter",
+    "title": "Filter",
+    "apply": "Anwenden",
+    "clear": "Alle zurücksetzen",
+    "set": "Edition",
+    "type": "Typ",
+    "lesson": "Lektion",
+    "rarity": "Seltenheit",
+    "finish": "Ausführung",
+    "legality": "Legalität",
+    "cost": "Kosten",
+    "costMin": "Min",
+    "costMax": "Max",
+    "official": "Nur offiziell",
+    "fan": "Nur Fan/Revival",
+    "anySet": "Alle Editionen"
   }
 }

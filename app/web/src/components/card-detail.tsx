@@ -1,5 +1,8 @@
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
+import { Pencil } from 'lucide-react'
+import { Link } from '@/../i18n/navigation'
+import { Button } from '@/components/ui/button'
 import type { CardDetailDTO } from '@revelio/core'
 import { imageKey, imageUrl, LESSONS } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
@@ -11,13 +14,15 @@ const humanize = (code: string) =>
   code.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 
 export function CardDetail({
-  card, locale, imageBase,
+  card, locale, imageBase, canEdit = false,
 }: {
   card: CardDetailDTO
   locale: string
   imageBase: string
+  canEdit?: boolean
 }) {
   const t = useTranslations('card')
+  const tEdit = useTranslations('edit')
   const { loc, isFallback } = pickLocalization(card, locale)
   if (!loc) return null
   const lessonColor = LESSONS.find((l) => l.code === card.lesson)?.color ?? undefined
@@ -37,7 +42,17 @@ export function CardDetail({
         />
       </div>
       <div>
-        <h1 className="text-3xl font-semibold text-primary">{loc.name}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-3xl font-semibold text-primary">{loc.name}</h1>
+          {canEdit && (
+            <Button asChild variant="outline" size="sm" className="shrink-0 gap-1.5">
+              <Link href={`/card/${card.id}/edit`}>
+                <Pencil className="size-3.5" />
+                {tEdit('button')}
+              </Link>
+            </Button>
+          )}
+        </div>
         <p className="mt-1 text-sm text-muted-foreground">
           {card.set.name} · {t('number', { number: card.number })}
           {card.rarity ? ` · ${attrLabel('rarities', card.rarity, locale)}` : ''}

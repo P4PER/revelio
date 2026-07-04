@@ -1,7 +1,8 @@
 import { eq, asc, sql } from 'drizzle-orm'
 import type { DB } from './client'
-import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings } from './schema'
+import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, lessons } from './schema'
 import type { SetDTO, CardLocalizationDTO, CardDetailDTO } from '@revelio/core'
+import type { CardIndexData } from '@revelio/search'
 
 type SetRow = typeof sets.$inferSelect
 
@@ -71,4 +72,72 @@ export async function getCardById(db: DB, id: string): Promise<CardDetailDTO | n
 export async function getRandomCardId(db: DB): Promise<string | null> {
   const [row] = await db.select({ id: cards.id }).from(cards).orderBy(sql`random()`).limit(1)
   return row?.id ?? null
+}
+
+export async function upsertLocalization(
+  db: DB,
+  input: { cardId: string; lang: string; name: string; text: string | null; flavorText: string | null; status: string | null },
+): Promise<void> {
+  const now = new Date()
+  await db
+    .insert(cardLocalizations)
+    .values({
+      cardId: input.cardId,
+      lang: input.lang,
+      name: input.name,
+      text: input.text,
+      flavorText: input.flavorText,
+      status: input.status,
+      origin: 'user',
+      updatedAt: now,
+    })
+    .onConflictDoUpdate({
+      target: [cardLocalizations.cardId, cardLocalizations.lang],
+      set: {
+        name: input.name,
+        text: input.text,
+        flavorText: input.flavorText,
+        status: input.status,
+        origin: 'user',
+        updatedAt: now,
+      },
+    })
+}
+
+export async function getCardIndexData(db: DB, cardId: string): Promise<CardIndexData | null> {
+  const [card] = await db.select().from(cards).where(eq(cards.id, cardId)).limit(1)
+  if (!card) return null
+  const [setRow] = await db.select().from(sets).where(eq(sets.code, card.setCode)).limit(1)
+  const [locRows, typeRows, subTypeRows] = await Promise.all([
+    db.select().from(cardLocalizations).where(eq(cardLocalizations.cardId, cardId)),
+    db.select().from(cardTypes).where(eq(cardTypes.cardId, cardId)),
+    db.select().from(cardSubTypes).where(eq(cardSubTypes.cardId, cardId)),
+  ])
+  let lessonColor: string | null = null
+  if (card.lesson) {
+    const [l] = await db.select().from(lessons).where(eq(lessons.code, card.lesson)).limit(1)
+    lessonColor = l?.color ?? null
+  }
+  const localizations: CardIndexData['localizations'] = {}
+  for (const l of locRows) {
+    localizations[l.lang] = { name: l.name, text: l.text, flavorText: l.flavorText, imageFile: l.imageFile }
+  }
+  return {
+    id: card.id,
+    setCode: card.setCode,
+    setName: setRow?.name ?? card.setCode,
+    number: card.number,
+    name: card.name,
+    lesson: card.lesson,
+    lessonColor,
+    rarity: card.rarity,
+    finish: card.finish,
+    legality: card.legality,
+    cost: card.cost,
+    isOfficial: setRow?.isOfficial ?? false,
+    types: typeRows.map((t) => t.typeCode),
+    subTypes: subTypeRows.map((t) => t.subTypeCode),
+    defaultLanguage: card.defaultLanguage,
+    localizations,
+  }
 }

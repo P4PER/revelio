@@ -9,6 +9,8 @@ import { getDb } from '@/lib/db'
 import { getCardById } from '@revelio/db'
 import { pickLocalization } from '@/lib/card-view'
 import { CardDetail } from '@/components/card-detail'
+import { getSession } from '@/lib/session'
+import { hasRequiredRole } from '@/lib/roles'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://revelio.cards'
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
@@ -48,5 +50,7 @@ export default async function CardPage({
   if (!card) notFound()
   const { loc } = pickLocalization(card, locale)
   if (!loc) notFound()
-  return <CardDetail card={card} locale={locale} imageBase={IMAGE_BASE} />
+  const session = await getSession()
+  const canEdit = hasRequiredRole(session?.user?.role, 'editor')
+  return <CardDetail card={card} locale={locale} imageBase={IMAGE_BASE} canEdit={canEdit} />
 }

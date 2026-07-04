@@ -6,6 +6,7 @@ import { getMessages, setRequestLocale } from 'next-intl/server'
 import { routing } from '@/../i18n/routing'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
+import { Toaster } from '@/components/ui/sonner'
 import '../globals.css'
 
 export const metadata: Metadata = {
@@ -43,6 +44,7 @@ export default async function LocaleLayout({
             <div className="flex-1">{children}</div>
             <SiteFooter />
           </div>
+          <Toaster />
         </NextIntlClientProvider>
       </body>
     </html>

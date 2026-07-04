@@ -9,7 +9,9 @@ vi.mock('@/../i18n/navigation', () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
   Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,
 }))
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), warning: vi.fn(), error: vi.fn() } }))
 
+import { toast } from 'sonner'
 import { LocalizationForm } from '../localization-form'
 import en from '@/../messages/en.json'
 
@@ -32,7 +34,7 @@ describe('LocalizationForm', () => {
     renderForm()
     await userEvent.clear(screen.getByLabelText(en.edit.name))
     await userEvent.click(screen.getByRole('button', { name: en.edit.save }))
-    expect(await screen.findByText(en.edit.invalid)).toBeInTheDocument()
+    expect(toast.error).toHaveBeenCalledWith(en.edit.invalid)
     expect(updateLocalization).not.toHaveBeenCalled()
   })
 

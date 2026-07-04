@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { eq } from 'drizzle-orm'
-import { cards, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingTexts } from '@revelio/db'
-import { getCardById } from '@revelio/db'
+import { cards, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingTexts, getCardById } from '@revelio/db'
 import { loadSets } from '../src/load-sets.js'
 import { loadAttributes } from '../src/load-attributes.js'
 import { loadCards } from '../src/load-cards.js'

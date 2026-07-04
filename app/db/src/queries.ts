@@ -1,4 +1,4 @@
-import { eq, asc, sql, inArray, and } from 'drizzle-orm'
+import { eq, asc, sql, inArray, and, isNotNull } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import type { DB } from './client'
 import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingTexts, lessons } from './schema'
@@ -211,4 +211,13 @@ export async function saveRulings(
     const toDelete = [...existingIds].filter((id) => !keptIds.has(id))
     if (toDelete.length) await tx.delete(cardRulings).where(inArray(cardRulings.id, toDelete))
   })
+}
+
+export async function listRulingSources(db: DB): Promise<string[]> {
+  const rows = await db
+    .selectDistinct({ source: cardRulings.source })
+    .from(cardRulings)
+    .where(isNotNull(cardRulings.source))
+    .orderBy(asc(cardRulings.source))
+  return rows.map((r) => r.source).filter((s): s is string => !!s)
 }

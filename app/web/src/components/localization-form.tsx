@@ -98,21 +98,21 @@ export function LocalizationForm({
             />
           </label>
           <label className="block space-y-1">
-            <span className="text-sm font-medium">{t('reward')}</span>
-            <textarea
-              aria-label={t('reward')}
-              className="min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
-              value={adventure.reward}
-              onChange={(e) => setAdventure({ ...adventure, reward: e.target.value })}
-            />
-          </label>
-          <label className="block space-y-1">
             <span className="text-sm font-medium">{t('toSolve')}</span>
             <textarea
               aria-label={t('toSolve')}
               className="min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
               value={adventure.toSolve}
               onChange={(e) => setAdventure({ ...adventure, toSolve: e.target.value })}
+            />
+          </label>
+          <label className="block space-y-1">
+            <span className="text-sm font-medium">{t('reward')}</span>
+            <textarea
+              aria-label={t('reward')}
+              className="min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+              value={adventure.reward}
+              onChange={(e) => setAdventure({ ...adventure, reward: e.target.value })}
             />
           </label>
         </fieldset>

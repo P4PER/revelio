@@ -91,7 +91,7 @@ export function CardDetail({
         {loc.text && <p className="mt-6 whitespace-pre-line leading-relaxed">{loc.text}</p>}
         {loc.adventure && (
           <dl className="mt-6 space-y-3">
-            {(['effect', 'reward', 'toSolve'] as const).map((k) =>
+            {(['effect', 'toSolve', 'reward'] as const).map((k) =>
               loc.adventure![k] ? (
                 <div key={k}>
                   <dt className="text-sm font-semibold text-muted-foreground">{tEdit(k)}</dt>

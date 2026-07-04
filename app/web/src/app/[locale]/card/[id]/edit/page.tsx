@@ -40,16 +40,14 @@ export default async function EditCardPage({
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-10">
-      <Link
-        href={`/card/${id}`}
-        className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ChevronLeft className="size-4" />
-        {t('back')}
-      </Link>
-      <h1 className="mb-2 text-2xl font-semibold text-primary">{t('title')}</h1>
-      <p className="mb-6 text-sm text-muted-foreground">{card.name} · {id}</p>
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <Link
+          href={`/card/${id}`}
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ChevronLeft className="size-4" />
+          {t('back')}
+        </Link>
         <div
           role="group"
           aria-label={t('language')}
@@ -74,6 +72,8 @@ export default async function EditCardPage({
           ))}
         </div>
       </div>
+      <h1 className="text-2xl font-semibold text-primary">{t('title')}</h1>
+      <p className="mb-8 text-sm text-muted-foreground">{card.name} · {id}</p>
       <LocalizationForm key={lang} cardId={id} lang={lang} initial={initial} />
     </main>
   )

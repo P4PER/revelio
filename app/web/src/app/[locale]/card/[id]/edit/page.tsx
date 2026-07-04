@@ -7,7 +7,9 @@ import { getSession } from '@/lib/session'
 import { hasRequiredRole } from '@/lib/roles'
 import { getDb } from '@/lib/db'
 import { getCardById, listRulingSources } from '@revelio/db'
+import { imageKey, imageUrl, effectiveImageLang } from '@revelio/core'
 import { CardEditForm } from '@/components/card-edit-form'
+import { ImageUploader } from '@/components/image-uploader'
 import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
@@ -60,6 +62,11 @@ export default async function EditCardPage({
   }))
   const sources = await listRulingSources(db)
 
+  const imgLang = effectiveImageLang((l) => !!card.localizations[l]?.imageFile, lang, card.defaultLanguage)
+  const imageBase = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
+  const imageSrc = imgLang && imageBase ? imageUrl(imageBase, imageKey(id, imgLang, card.defaultLanguage)) : null
+  const fallbackLang = imgLang && imgLang !== lang ? imgLang : null
+
   return (
     <main className="mx-auto max-w-2xl px-6 py-10">
       <div className="mb-6 flex items-center justify-between gap-4">
@@ -96,6 +103,7 @@ export default async function EditCardPage({
       </div>
       <h1 className="text-2xl font-semibold text-primary">{t('title')}</h1>
       <p className="mb-8 text-sm text-muted-foreground">{card.name} · {id}</p>
+      <ImageUploader key={`img-${lang}`} cardId={id} lang={lang} imageSrc={imageSrc} fallbackLang={fallbackLang} />
       <CardEditForm
         key={lang}
         cardId={id}

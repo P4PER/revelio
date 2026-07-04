@@ -93,7 +93,15 @@
     "removeRuling": "Remove",
     "saveRulings": "Save rulings",
     "rulingsSaved": "Rulings saved.",
-    "rulingsFailed": "Could not save the rulings."
+    "rulingsFailed": "Could not save the rulings.",
+    "image": "Image",
+    "chooseFile": "Choose file…",
+    "upload": "Upload",
+    "removeImage": "Remove",
+    "imageUploaded": "Image uploaded.",
+    "imageRemoved": "Image removed.",
+    "imageFailed": "Could not save the image.",
+    "usingFallback": "Currently using the {lang} image."
   },
   "auth": {
     "title": "Sign in",

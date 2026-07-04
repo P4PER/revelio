@@ -93,7 +93,15 @@
     "removeRuling": "Entfernen",
     "saveRulings": "Rulings speichern",
     "rulingsSaved": "Rulings gespeichert.",
-    "rulingsFailed": "Rulings konnten nicht gespeichert werden."
+    "rulingsFailed": "Rulings konnten nicht gespeichert werden.",
+    "image": "Bild",
+    "chooseFile": "Datei wählen…",
+    "upload": "Hochladen",
+    "removeImage": "Entfernen",
+    "imageUploaded": "Bild hochgeladen.",
+    "imageRemoved": "Bild entfernt.",
+    "imageFailed": "Bild konnte nicht gespeichert werden.",
+    "usingFallback": "Nutzt aktuell das {lang}-Bild."
   },
   "auth": {
     "title": "Anmelden",

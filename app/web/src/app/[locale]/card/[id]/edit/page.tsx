@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
+import { Plus } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import { routing } from '@/../i18n/routing'
 import { getSession } from '@/lib/session'
@@ -7,6 +8,7 @@ import { hasRequiredRole } from '@/lib/roles'
 import { getDb } from '@/lib/db'
 import { getCardById } from '@revelio/db'
 import { LocalizationForm } from '@/components/localization-form'
+import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,19 +42,28 @@ export default async function EditCardPage({
     <main className="mx-auto max-w-2xl px-6 py-10">
       <h1 className="mb-2 text-2xl font-semibold text-primary">{t('title')}</h1>
       <p className="mb-6 text-sm text-muted-foreground">{card.name} · {id}</p>
-      <nav className="mb-6 flex gap-2 text-sm">
-        <span className="text-muted-foreground">{t('language')}:</span>
-        {routing.locales.map((l) => (
-          <Link
-            key={l}
-            href={`/card/${id}/edit?lang=${l}`}
-            className={l === lang ? 'font-semibold underline' : 'text-muted-foreground underline'}
-          >
-            {l.toUpperCase()}
-            {!card.localizations[l] ? ` (${t('addLanguage')})` : ''}
-          </Link>
-        ))}
-      </nav>
+      <div className="mb-6 flex items-center gap-3">
+        <span className="text-sm text-muted-foreground">{t('language')}</span>
+        <div className="inline-flex gap-1 rounded-md border p-1">
+          {routing.locales.map((l) => (
+            <Button
+              key={l}
+              asChild
+              size="sm"
+              variant={l === lang ? 'secondary' : 'ghost'}
+              className="h-7 gap-1.5"
+            >
+              <Link
+                href={`/card/${id}/edit?lang=${l}`}
+                title={!card.localizations[l] ? t('addLanguage') : undefined}
+              >
+                {l.toUpperCase()}
+                {!card.localizations[l] && <Plus className="size-3 opacity-60" />}
+              </Link>
+            </Button>
+          ))}
+        </div>
+      </div>
       <LocalizationForm key={lang} cardId={id} lang={lang} initial={initial} />
     </main>
   )

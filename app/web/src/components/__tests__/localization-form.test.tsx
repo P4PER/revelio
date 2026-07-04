@@ -15,13 +15,18 @@ import { toast } from 'sonner'
 import { LocalizationForm } from '../localization-form'
 import en from '@/../messages/en.json'
 
-function renderForm() {
+function renderForm(kind: 'adventure' | 'match' | null = null) {
   return render(
     <NextIntlClientProvider locale="en" messages={en}>
       <LocalizationForm
         cardId="x-1"
         lang="de"
-        initial={{ name: 'Alt', text: 'Rumpf', flavorText: '', status: 'machine' }}
+        kind={kind}
+        initial={{
+          name: 'Alt', text: 'Rumpf', flavorText: '', status: 'machine',
+          adventure: { effect: '', reward: '', toSolve: '' },
+          match: { prize: '', toWin: '' },
+        }}
       />
     </NextIntlClientProvider>,
   )
@@ -57,4 +62,21 @@ describe('LocalizationForm', () => {
     expect(save).toBeEnabled()
   })
 
+  it('shows the Adventure section only for adventure cards', () => {
+    const { unmount } = renderForm(null)
+    expect(screen.queryByLabelText(en.edit.effect)).not.toBeInTheDocument()
+    unmount()
+    renderForm('adventure')
+    expect(screen.getByLabelText(en.edit.effect)).toBeInTheDocument()
+    expect(screen.queryByLabelText(en.edit.prize)).not.toBeInTheDocument()
+  })
+
+  it('submits the adventure group', async () => {
+    renderForm('adventure')
+    await userEvent.type(screen.getByLabelText(en.edit.effect), 'boom')
+    await userEvent.click(screen.getByRole('button', { name: en.edit.save }))
+    expect(updateLocalization).toHaveBeenCalledWith(
+      expect.objectContaining({ adventure: { effect: 'boom', reward: '', toSolve: '' } }),
+    )
+  })
 })

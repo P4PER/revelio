@@ -79,4 +79,19 @@ describe('LocalizationForm', () => {
       expect.objectContaining({ adventure: { effect: 'boom', reward: '', toSolve: '' } }),
     )
   })
+
+  it('shows the Match section only for match cards', () => {
+    renderForm('match')
+    expect(screen.getByLabelText(en.edit.prize)).toBeInTheDocument()
+    expect(screen.queryByLabelText(en.edit.effect)).not.toBeInTheDocument()
+  })
+
+  it('submits the match group', async () => {
+    renderForm('match')
+    await userEvent.type(screen.getByLabelText(en.edit.prize), 'win it')
+    await userEvent.click(screen.getByRole('button', { name: en.edit.save }))
+    expect(updateLocalization).toHaveBeenCalledWith(
+      expect.objectContaining({ match: { prize: 'win it', toWin: '' } }),
+    )
+  })
 })

@@ -57,7 +57,7 @@ describe('saveRulings', () => {
       { id: null, date: '', source: '', text: '' }, // fully-empty new row -> dropped
     ])
     const parents = await ctx.db.select().from(cardRulings).where(eq(cardRulings.cardId, 'x-1'))
-    expect(parents.length).toBe(1) // the empty new row was dropped; the kept row stays (has a date)
+    expect(parents.length).toBe(1) // the empty new row was dropped; the existing ruling stays (id preserved regardless of empty fields)
     const texts = await ctx.db.select().from(cardRulingTexts).where(eq(cardRulingTexts.rulingId, only.id))
     expect(texts.find((t) => t.lang === 'en')).toBeUndefined() // en text removed
   })

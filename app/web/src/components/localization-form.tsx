@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { useRouter } from '@/../i18n/navigation'
+import { useRouter, Link } from '@/../i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { updateLocalization } from '@/lib/localization-actions'
 import { Input } from '@/components/ui/input'
@@ -65,7 +65,12 @@ export function LocalizationForm({ cardId, lang, initial }: { cardId: string; la
           </SelectContent>
         </Select>
       </div>
-      <Button type="submit" disabled={busy}>{t('save')}</Button>
+      <div className="flex items-center gap-2">
+        <Button type="submit" disabled={busy}>{t('save')}</Button>
+        <Button type="button" variant="ghost" asChild>
+          <Link href={`/card/${cardId}`}>{t('cancel')}</Link>
+        </Button>
+      </div>
       {message && <p className="text-sm text-muted-foreground">{message}</p>}
     </form>
   )

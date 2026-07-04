@@ -59,7 +59,23 @@
     "original": "Original",
     "fanMade": "Fan-made"
   },
-  "edit": { "button": "Edit", "title": "Edit card", "language": "Language", "addLanguage": "Add a language", "name": "Name", "text": "Text", "flavor": "Flavor text", "status": "Status", "statusMachine": "Machine", "statusOfficial": "Official", "save": "Save", "saved": "Saved.", "invalid": "Please fill in the name.", "reindexWarning": "Saved, but search re-indexing failed; it will catch up later." },
+  "edit": {
+    "button": "Edit",
+    "title": "Edit card",
+    "language": "Language",
+    "addLanguage": "Add a language",
+    "name": "Name",
+    "text": "Text",
+    "flavor": "Flavor text",
+    "status": "Status",
+    "statusMachine": "Machine",
+    "statusOfficial": "Official",
+    "save": "Save",
+    "saved": "Saved.",
+    "invalid": "Please fill in the name.",
+    "reindexWarning": "Saved, but search re-indexing failed; it will catch up later.",
+    "cancel": "Cancel"
+  },
   "auth": {
     "title": "Sign in",
     "email": "Email",

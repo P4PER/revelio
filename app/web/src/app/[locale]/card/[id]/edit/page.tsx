@@ -103,16 +103,18 @@ export default async function EditCardPage({
       </div>
       <h1 className="text-2xl font-semibold text-primary">{t('title')}</h1>
       <p className="mb-8 text-sm text-muted-foreground">{card.name} · {id}</p>
-      <ImageUploader key={`img-${lang}`} cardId={id} lang={lang} imageSrc={imageSrc} fallbackLang={fallbackLang} />
-      <CardEditForm
-        key={lang}
-        cardId={id}
-        lang={lang}
-        locInitial={initial}
-        kind={kind}
-        rulingsInitial={rulingRows}
-        sources={sources}
-      />
+      <div className="space-y-8">
+        <ImageUploader key={`img-${lang}`} cardId={id} lang={lang} imageSrc={imageSrc} fallbackLang={fallbackLang} />
+        <CardEditForm
+          key={lang}
+          cardId={id}
+          lang={lang}
+          locInitial={initial}
+          kind={kind}
+          rulingsInitial={rulingRows}
+          sources={sources}
+        />
+      </div>
     </main>
   )
 }

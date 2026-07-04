@@ -1,7 +1,7 @@
 'use client'
 import { useRef, useState } from 'react'
 import { useRouter } from '@/../i18n/navigation'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { uploadCardImage, removeCardImage } from '@/lib/image-actions'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,11 @@ export function ImageUploader({
   fallbackLang: string | null
 }) {
   const t = useTranslations('edit')
+  const locale = useLocale()
+  // Spell out the fallback language ("English"/"Deutsch"), localized, from its code.
+  const fallbackLabel = fallbackLang
+    ? (new Intl.DisplayNames([locale], { type: 'language' }).of(fallbackLang) ?? fallbackLang)
+    : null
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
@@ -79,8 +84,8 @@ export function ImageUploader({
               </Button>
             ) : null}
           </div>
-          {fallbackLang ? (
-            <p className="text-xs text-muted-foreground">{t('usingFallback', { lang: fallbackLang })}</p>
+          {fallbackLabel ? (
+            <p className="text-xs text-muted-foreground">{t('usingFallback', { lang: fallbackLabel })}</p>
           ) : null}
         </div>
       </div>

@@ -82,7 +82,18 @@
     "reward": "Belohnung",
     "toSolve": "Aufgabe",
     "prize": "Preis",
-    "toWin": "Siegbedingung"
+    "toWin": "Siegbedingung",
+    "rulings": "Rulings",
+    "addRuling": "Ruling hinzufügen",
+    "rulingDate": "Datum",
+    "rulingSource": "Quelle",
+    "rulingText": "Text",
+    "moveUp": "Nach oben",
+    "moveDown": "Nach unten",
+    "removeRuling": "Entfernen",
+    "saveRulings": "Rulings speichern",
+    "rulingsSaved": "Rulings gespeichert.",
+    "rulingsFailed": "Rulings konnten nicht gespeichert werden."
   },
   "auth": {
     "title": "Anmelden",

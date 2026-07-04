@@ -26,7 +26,10 @@ beforeAll(async () => {
     { cardId: 'bs-1-fluffy', lang: 'de', name: 'Fluffy', status: 'machine', text: 'Bewacht die Falltür.', flavorText: null },
   ])
   await db.insert(schema.cardRulings).values({
-    cardId: 'bs-1-fluffy', seq: 1, date: '2001-06-01', source: 'FAQ', text: { en: 'It sleeps to music.' },
+    id: 'bs-1-fluffy-r1', cardId: 'bs-1-fluffy', seq: 1, date: '2001-06-01', source: 'FAQ',
+  })
+  await db.insert(schema.cardRulingTexts).values({
+    rulingId: 'bs-1-fluffy-r1', lang: 'en', text: 'It sleeps to music.',
   })
 }, 60_000)
 

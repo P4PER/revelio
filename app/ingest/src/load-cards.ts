@@ -1,5 +1,5 @@
 import type { DB } from '@revelio/db'
-import { cards, cardLocalizations, cardTypes, cardSubTypes, cardRulings } from '@revelio/db'
+import { cards, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingTexts } from '@revelio/db'
 import { slugify } from '@revelio/core'
 import type { DistCard } from './types.js'
 
@@ -57,14 +57,21 @@ export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
   if (subTypeLinks.length) await db.insert(cardSubTypes).values(subTypeLinks).onConflictDoNothing()
 
   type Ruling = { date?: string | null; source?: string | null; ruling?: string | null }
-  const rulingRows = input.flatMap((c) =>
+  const rulingParents = input.flatMap((c) =>
     (Array.isArray(c.rulings) ? (c.rulings as Ruling[]) : []).map((r, i) => ({
+      id: `${c.id}-r${i}`,
       cardId: c.id,
       seq: i,
       date: r.date ?? null,
       source: r.source ?? null,
-      text: r.ruling ? { [c.defaultLanguage]: r.ruling } : {},
     })),
   )
-  if (rulingRows.length) await db.insert(cardRulings).values(rulingRows).onConflictDoNothing()
+  const rulingTexts = input.flatMap((c) =>
+    (Array.isArray(c.rulings) ? (c.rulings as Ruling[]) : [])
+      .map((r, i) => ({ r, i }))
+      .filter(({ r }) => !!r.ruling)
+      .map(({ r, i }) => ({ rulingId: `${c.id}-r${i}`, lang: c.defaultLanguage, text: r.ruling as string })),
+  )
+  if (rulingParents.length) await db.insert(cardRulings).values(rulingParents).onConflictDoNothing()
+  if (rulingTexts.length) await db.insert(cardRulingTexts).values(rulingTexts).onConflictDoNothing()
 }

@@ -15,9 +15,9 @@ beforeAll(async () => {
   assetsDir = await mkdtemp(join(tmpdir(), 'revelio-assets-'))
   await mkdir(join(assetsDir, 'cards', 'thumb'), { recursive: true })
   await mkdir(join(assetsDir, 'symbols'), { recursive: true })
-  await writeFile(join(assetsDir, 'cards', 'bs-1-x.png'), Buffer.from('PNGDATA'))
-  await writeFile(join(assetsDir, 'cards', 'thumb', 'bs-1-x.jpg'), Buffer.from('JPGDATA'))
-  await writeFile(join(assetsDir, 'symbols', 'BS.png'), Buffer.from('SYMDATA'))
+  await writeFile(join(assetsDir, 'cards', 'bs-1-x.webp'), Buffer.from('WEBPDATA'))
+  await writeFile(join(assetsDir, 'cards', 'thumb', 'bs-1-x.webp'), Buffer.from('THUMBDATA'))
+  await writeFile(join(assetsDir, 'symbols', 'BS.webp'), Buffer.from('SYMDATA'))
   await ensureBucket(s3, bucket)
 }, 60_000)
 afterAll(async () => { await nukeBucket(s3, bucket) })
@@ -26,15 +26,15 @@ describe('uploadAssets', () => {
   it('uploads full cards, thumbnails and symbols', async () => {
     const res = await uploadAssets(s3, bucket, assetsDir)
     expect(res).toEqual({ uploaded: 3, skipped: 0 })
-    await expect(s3.send(new HeadObjectCommand({ Bucket: bucket, Key: 'cards/bs-1-x.png' }))).resolves.toBeTruthy()
-    await expect(s3.send(new HeadObjectCommand({ Bucket: bucket, Key: 'cards/thumb/bs-1-x.jpg' }))).resolves.toBeTruthy()
-    await expect(s3.send(new HeadObjectCommand({ Bucket: bucket, Key: 'symbols/BS.png' }))).resolves.toBeTruthy()
+    await expect(s3.send(new HeadObjectCommand({ Bucket: bucket, Key: 'cards/bs-1-x.webp' }))).resolves.toBeTruthy()
+    await expect(s3.send(new HeadObjectCommand({ Bucket: bucket, Key: 'cards/thumb/bs-1-x.webp' }))).resolves.toBeTruthy()
+    await expect(s3.send(new HeadObjectCommand({ Bucket: bucket, Key: 'symbols/BS.webp' }))).resolves.toBeTruthy()
   })
 
   it('serves objects with public (unauthenticated) read', async () => {
-    const res = await fetch(`${cfg.endpoint}/${bucket}/cards/bs-1-x.png`)
+    const res = await fetch(`${cfg.endpoint}/${bucket}/cards/bs-1-x.webp`)
     expect(res.status).toBe(200)
-    expect(await res.text()).toBe('PNGDATA')
+    expect(await res.text()).toBe('WEBPDATA')
   })
 
   it('skips objects that already exist on re-run (diffed)', async () => {

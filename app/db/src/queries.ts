@@ -1,6 +1,7 @@
-import { eq, asc, sql } from 'drizzle-orm'
+import { eq, asc, sql, inArray, and, isNotNull } from 'drizzle-orm'
+import { randomUUID } from 'node:crypto'
 import type { DB } from './client'
-import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, lessons } from './schema'
+import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingTexts, lessons } from './schema'
 import type { SetDTO, CardLocalizationDTO, CardDetailDTO, AdventureData, MatchData } from '@revelio/core'
 import type { CardIndexData } from '@revelio/search'
 
@@ -37,6 +38,17 @@ export async function getCardById(db: DB, id: string): Promise<CardDetailDTO | n
     db.select().from(cardSubTypes).where(eq(cardSubTypes.cardId, id)),
     db.select().from(cardRulings).where(eq(cardRulings.cardId, id)).orderBy(asc(cardRulings.seq)),
   ])
+  const rulingTextRows = rulingRows.length
+    ? await db.select().from(cardRulingTexts).where(
+        inArray(cardRulingTexts.rulingId, rulingRows.map((r) => r.id)),
+      )
+    : []
+  const textsByRuling = new Map<string, Record<string, string>>()
+  for (const t of rulingTextRows) {
+    const m = textsByRuling.get(t.rulingId) ?? {}
+    m[t.lang] = t.text
+    textsByRuling.set(t.rulingId, m)
+  }
   const localizations: Record<string, CardLocalizationDTO> = {}
   for (const l of locRows) {
     localizations[l.lang] = {
@@ -65,7 +77,11 @@ export async function getCardById(db: DB, id: string): Promise<CardDetailDTO | n
     defaultLanguage: card.defaultLanguage,
     localizations,
     rulings: rulingRows.map((r) => ({
-      seq: r.seq, date: r.date, source: r.source, text: (r.text ?? {}) as Record<string, string>,
+      id: r.id,
+      seq: r.seq,
+      date: r.date,
+      source: r.source,
+      text: textsByRuling.get(r.id) ?? {},
     })),
     set: toSetDTO(setRow),
   }
@@ -147,4 +163,61 @@ export async function getCardIndexData(db: DB, cardId: string): Promise<CardInde
     defaultLanguage: card.defaultLanguage,
     localizations,
   }
+}
+
+export async function saveRulings(
+  db: DB,
+  cardId: string,
+  lang: string,
+  rows: { id: string | null; date: string | null; source: string | null; text: string }[],
+): Promise<void> {
+  const clean = rows.filter(
+    (r) =>
+      r.id !== null ||
+      (r.date?.trim() || '') !== '' ||
+      (r.source?.trim() || '') !== '' ||
+      (r.text?.trim() || '') !== '',
+  )
+  const now = new Date()
+  await db.transaction(async (tx) => {
+    const existing = await tx.select({ id: cardRulings.id }).from(cardRulings).where(eq(cardRulings.cardId, cardId))
+    const existingIds = new Set(existing.map((e) => e.id))
+    const keptIds = new Set<string>()
+
+    for (let i = 0; i < clean.length; i++) {
+      const row = clean[i]
+      const date = row.date?.trim() || null
+      const source = row.source?.trim() || null
+      const text = row.text?.trim() || ''
+      let id = row.id
+      if (id && existingIds.has(id)) {
+        keptIds.add(id)
+        await tx.update(cardRulings)
+          .set({ date, source, seq: i, origin: 'user', updatedAt: now })
+          .where(eq(cardRulings.id, id))
+      } else {
+        id = `${cardId}-r${randomUUID()}`
+        await tx.insert(cardRulings).values({ id, cardId, seq: i, date, source, origin: 'user', updatedAt: now })
+      }
+      if (text) {
+        await tx.insert(cardRulingTexts)
+          .values({ rulingId: id, lang, text })
+          .onConflictDoUpdate({ target: [cardRulingTexts.rulingId, cardRulingTexts.lang], set: { text } })
+      } else {
+        await tx.delete(cardRulingTexts).where(and(eq(cardRulingTexts.rulingId, id), eq(cardRulingTexts.lang, lang)))
+      }
+    }
+
+    const toDelete = [...existingIds].filter((id) => !keptIds.has(id))
+    if (toDelete.length) await tx.delete(cardRulings).where(inArray(cardRulings.id, toDelete))
+  })
+}
+
+export async function listRulingSources(db: DB): Promise<string[]> {
+  const rows = await db
+    .selectDistinct({ source: cardRulings.source })
+    .from(cardRulings)
+    .where(isNotNull(cardRulings.source))
+    .orderBy(asc(cardRulings.source))
+  return rows.map((r) => r.source).filter((s): s is string => !!s)
 }

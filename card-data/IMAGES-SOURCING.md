@@ -17,15 +17,16 @@ covers **every** set (incl. Chamber of Secrets).
 ## Download (run locally)
 
 ```bash
-python3 -m pip install pillow        # optional, only for thumbnails
+python3 -m pip install pillow        # required for WebP conversion + thumbnails
 python3 build_dataset.py hpjson              # build dist/
 python3 accio_images.py --download   # cards + set symbols -> assets/, rewrite dist URLs
 ```
 
 `accio_images.py`:
 - `--link` (no download): sets `image.url` to the remote accio URL (hotlink, instant).
-- `--download`: saves each card as `assets/cards/<id>.png` (+ `thumb/<id>.jpg` if Pillow),
-  downloads set symbols to `assets/symbols/<code>.png`, and rewrites `image.url` /
+- `--download`: converts each card to `assets/cards/<id>.webp` (q100) + `thumb/<id>.webp`
+  (300px, q85) via Pillow — in parallel (`--workers N`, default 8) — downloads set symbols to
+  `assets/symbols/<code>.webp` (lossless), and rewrites `image.url` /
   `sets.symbol` to local paths. Re-runnable (skips existing); reports
   `downloaded / skipped / failed`.
 

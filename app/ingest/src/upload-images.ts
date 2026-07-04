@@ -1,5 +1,5 @@
 import { readdir, readFile } from 'node:fs/promises'
-import { resolve, join } from 'node:path'
+import { resolve, join, extname, basename } from 'node:path'
 import {
   S3Client, HeadBucketCommand, CreateBucketCommand, PutBucketPolicyCommand,
   HeadObjectCommand, PutObjectCommand,
@@ -64,25 +64,40 @@ async function readdirSafe(dir: string): Promise<string[]> {
   }
 }
 
+// Assets are produced as WebP by the image pipeline; .png/.jpg are accepted as a
+// fallback (e.g. if the download ran without Pillow and saved source files as-is).
+const CONTENT_TYPE: Record<string, string> = {
+  '.webp': 'image/webp',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+}
+
+// Split a filename into its id (without extension) and MIME type, or null if the
+// extension isn't a supported image type (e.g. the nested `thumb/` directory entry).
+function classify(file: string): { id: string; contentType: string } | null {
+  const ext = extname(file).toLowerCase()
+  const contentType = CONTENT_TYPE[ext]
+  if (!contentType) return null
+  return { id: basename(file, ext), contentType }
+}
+
 async function collectUploads(assetsDir: string): Promise<Upload[]> {
   const uploads: Upload[] = []
   const cardsDir = resolve(assetsDir, 'cards')
   for (const f of await readdirSafe(cardsDir)) {
-    if (f.endsWith('.png')) {
-      uploads.push({ file: join(cardsDir, f), key: imageKey(f.slice(0, -4)), contentType: 'image/png' })
-    }
+    const c = classify(f)
+    if (c) uploads.push({ file: join(cardsDir, f), key: imageKey(c.id), contentType: c.contentType })
   }
   const thumbDir = resolve(cardsDir, 'thumb')
   for (const f of await readdirSafe(thumbDir)) {
-    if (f.endsWith('.jpg')) {
-      uploads.push({ file: join(thumbDir, f), key: thumbKey(f.slice(0, -4)), contentType: 'image/jpeg' })
-    }
+    const c = classify(f)
+    if (c) uploads.push({ file: join(thumbDir, f), key: thumbKey(c.id), contentType: c.contentType })
   }
   const symbolsDir = resolve(assetsDir, 'symbols')
   for (const f of await readdirSafe(symbolsDir)) {
-    if (f.endsWith('.png')) {
-      uploads.push({ file: join(symbolsDir, f), key: symbolKey(f.slice(0, -4)), contentType: 'image/png' })
-    }
+    const c = classify(f)
+    if (c) uploads.push({ file: join(symbolsDir, f), key: symbolKey(c.id), contentType: c.contentType })
   }
   return uploads
 }

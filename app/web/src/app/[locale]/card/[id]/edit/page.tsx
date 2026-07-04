@@ -6,8 +6,8 @@ import { routing } from '@/../i18n/routing'
 import { getSession } from '@/lib/session'
 import { hasRequiredRole } from '@/lib/roles'
 import { getDb } from '@/lib/db'
-import { getCardById } from '@revelio/db'
-import { LocalizationForm } from '@/components/localization-form'
+import { getCardById, listRulingSources } from '@revelio/db'
+import { CardEditForm } from '@/components/card-edit-form'
 import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
@@ -24,7 +24,8 @@ export default async function EditCardPage({
   const session = await getSession()
   if (!hasRequiredRole(session?.user?.role, 'editor')) notFound()
 
-  const card = await getCardById(getDb(), id)
+  const db = getDb()
+  const card = await getCardById(db, id)
   if (!card) notFound()
   const t = await getTranslations('edit')
 
@@ -51,6 +52,13 @@ export default async function EditCardPage({
       toWin: loc?.match?.toWin ?? '',
     },
   }
+  const rulingRows = card.rulings.map((r) => ({
+    id: r.id,
+    date: r.date ?? '',
+    source: r.source ?? '',
+    text: r.text[lang] ?? '',
+  }))
+  const sources = await listRulingSources(db)
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-10">
@@ -88,7 +96,15 @@ export default async function EditCardPage({
       </div>
       <h1 className="text-2xl font-semibold text-primary">{t('title')}</h1>
       <p className="mb-8 text-sm text-muted-foreground">{card.name} · {id}</p>
-      <LocalizationForm key={lang} cardId={id} lang={lang} initial={initial} kind={kind} />
+      <CardEditForm
+        key={lang}
+        cardId={id}
+        lang={lang}
+        locInitial={initial}
+        kind={kind}
+        rulingsInitial={rulingRows}
+        sources={sources}
+      />
     </main>
   )
 }

@@ -1,9 +1,9 @@
 'use client'
-import { useState } from 'react'
+import { useImperativeHandle, useState } from 'react'
 import { useRouter, Link } from '@/../i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { updateLocalization } from '@/lib/localization-actions'
+import { updateLocalization, type SaveResult } from '@/lib/localization-actions'
 import { Input } from '@/components/ui/input'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { Button } from '@/components/ui/button'
@@ -20,13 +20,17 @@ type Initial = {
   match: { prize: string; toWin: string }
 }
 
+export type LocalizationFormHandle = { save: () => Promise<SaveResult> }
+
 export function LocalizationForm({
-  cardId, lang, initial, kind,
+  cardId, lang, initial, kind, embedded = false, ref,
 }: {
   cardId: string
   lang: string
   initial: Initial
   kind: 'adventure' | 'match' | null
+  embedded?: boolean
+  ref?: React.Ref<LocalizationFormHandle>
 }) {
   const t = useTranslations('edit')
   const router = useRouter()
@@ -46,15 +50,24 @@ export function LocalizationForm({
     JSON.stringify(adventure) !== JSON.stringify(initial.adventure) ||
     JSON.stringify(match) !== JSON.stringify(initial.match)
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!name.trim()) return toast.error(t('invalid'))
-    setBusy(true)
-    const res = await updateLocalization({
+  // Persist just this localization; returns the result without side effects so
+  // an embedding parent (CardEditForm) can orchestrate one shared Save.
+  async function save(): Promise<SaveResult> {
+    if (!name.trim()) return { ok: false, error: 'invalid' }
+    return updateLocalization({
       cardId, lang, name, text, flavorText, status,
       ...(kind === 'adventure' ? { adventure } : {}),
       ...(kind === 'match' ? { match } : {}),
     })
+  }
+
+  useImperativeHandle(ref, () => ({ save }))
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (embedded) return
+    setBusy(true)
+    const res = await save()
     setBusy(false)
     if (!res.ok) return toast.error(t('invalid'))
     if (res.warning) toast.warning(t('reindexWarning'))
@@ -144,12 +157,14 @@ export function LocalizationForm({
           </SelectContent>
         </Select>
       </div>
-      <div className="flex items-center gap-2">
-        <Button type="submit" disabled={busy || !dirty}>{t('save')}</Button>
-        <Button type="button" variant="ghost" asChild>
-          <Link href={`/card/${cardId}`}>{t('cancel')}</Link>
-        </Button>
-      </div>
+      {!embedded && (
+        <div className="flex items-center gap-2">
+          <Button type="submit" disabled={busy || !dirty}>{t('save')}</Button>
+          <Button type="button" variant="ghost" asChild>
+            <Link href={`/card/${cardId}`}>{t('cancel')}</Link>
+          </Button>
+        </div>
+      )}
     </form>
   )
 }

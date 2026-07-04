@@ -60,14 +60,14 @@ describe('runIngest', () => {
     const s3cfg = testS3Config(bucket)
     const assetsDir = await mkdtemp(join(tmpdir(), 'revelio-main-assets-'))
     await mkdir(join(assetsDir, 'cards'), { recursive: true })
-    await writeFile(join(assetsDir, 'cards', 'bs-1-dean-thomas.png'), Buffer.from('IMG'))
+    await writeFile(join(assetsDir, 'cards', 'bs-1-dean-thomas.webp'), Buffer.from('IMG'))
 
     await runIngest({ databaseUrl: fresh.url, dataDir: fixtureDir, i18nDir, assetsDir, s3: s3cfg })
 
     const s3 = createS3Client(s3cfg)
     try {
       await expect(
-        s3.send(new HeadObjectCommand({ Bucket: bucket, Key: 'cards/bs-1-dean-thomas.png' })),
+        s3.send(new HeadObjectCommand({ Bucket: bucket, Key: 'cards/bs-1-dean-thomas.webp' })),
       ).resolves.toBeTruthy()
     } finally {
       await nukeBucket(s3, bucket)

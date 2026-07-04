@@ -47,15 +47,18 @@ export function RulingsEditor({
 
   async function onSave() {
     setBusy(true)
-    const res = await saveRulingsAction({
-      cardId,
-      lang,
-      rulings: rows.map((r) => ({ id: r.id, date: r.date, source: r.source, text: r.text })),
-    })
-    setBusy(false)
-    if (!res.ok) return toast.error(t('rulingsFailed'))
-    toast.success(t('rulingsSaved'))
-    router.refresh()
+    try {
+      const res = await saveRulingsAction({
+        cardId,
+        lang,
+        rulings: rows.map((r) => ({ id: r.id, date: r.date, source: r.source, text: r.text })),
+      })
+      if (!res.ok) return toast.error(t('rulingsFailed'))
+      toast.success(t('rulingsSaved'))
+      router.refresh()
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (

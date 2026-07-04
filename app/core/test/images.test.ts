@@ -3,9 +3,9 @@ import { imageKey, thumbKey, symbolKey, imageUrl } from '../src/images.js'
 
 describe('image keys and urls', () => {
   it('builds object keys', () => {
-    expect(imageKey('bs-1-dean-thomas')).toBe('cards/bs-1-dean-thomas.png')
-    expect(thumbKey('bs-1-dean-thomas')).toBe('cards/thumb/bs-1-dean-thomas.jpg')
-    expect(symbolKey('BS')).toBe('symbols/BS.png')
+    expect(imageKey('bs-1-dean-thomas')).toBe('cards/bs-1-dean-thomas.webp')
+    expect(thumbKey('bs-1-dean-thomas')).toBe('cards/thumb/bs-1-dean-thomas.webp')
+    expect(symbolKey('BS')).toBe('symbols/BS.webp')
   })
 
   it('joins base and key with a single slash', () => {

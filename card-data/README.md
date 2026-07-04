@@ -24,8 +24,8 @@ card-data/
     cards.<lang>.json       #   slim, denormalized per language (with fallback)
     search-index.<lang>.json#   folded name/text/flavor for fast search
   assets/                   # GENERATED (git-ignored) – downloaded images
-    cards/<id>.png          #   card image (+ thumb/<id>.jpg)
-    symbols/<code>.png      #   set symbols (all PNG)
+    cards/<id>.webp         #   card image, q100 (+ thumb/<id>.webp, 300px q85)
+    symbols/<code>.webp     #   set symbols (WebP lossless, alpha kept)
 ```
 
 Editable sources are small and git-friendly; **`dist/` is a build artifact** (do not
@@ -111,12 +111,17 @@ Card images and set symbols are downloaded from accio / the Revival site via
 flow and the rights note. Quick version:
 
 ```bash
-python3 -m pip install pillow      # optional, for thumbnails
-python3 accio_images.py --download # cards -> assets/cards/<id>.png, symbols -> assets/symbols/<code>.png
+python3 -m pip install pillow      # required for WebP conversion + thumbnails
+python3 accio_images.py --download # cards -> assets/cards/<id>.webp (q100) + thumb/<id>.webp (300px q85)
 ```
+
+Full card images are converted to **WebP q100** (~4× smaller than the source PNG, visually
+identical); thumbnails are 300px-wide WebP q85. Transparency (the rounded/transparent card
+corners) is preserved. Downloads run in parallel (`--workers N`, default 8). Without Pillow
+the source files are saved as-is.
 
 - Every file is named by the card **id** (or set **code** for symbols).
 - `image_overrides.json` maps ids to the correct accio filename where the source data
   has typos/name mismatches.
 - `--link` mode instead sets `image.url` to the remote accio URL (no download).
-- Coverage: 1,035/1,035 card images, 13/13 set symbols (all PNG).
+- Coverage: 1,035/1,035 card images, 13/13 set symbols (WebP lossless).

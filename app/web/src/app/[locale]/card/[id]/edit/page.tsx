@@ -42,9 +42,12 @@ export default async function EditCardPage({
     <main className="mx-auto max-w-2xl px-6 py-10">
       <h1 className="mb-2 text-2xl font-semibold text-primary">{t('title')}</h1>
       <p className="mb-6 text-sm text-muted-foreground">{card.name} · {id}</p>
-      <div className="mb-6 flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">{t('language')}</span>
-        <div className="inline-flex gap-1 rounded-md border p-1">
+      <div className="mb-6">
+        <div
+          role="group"
+          aria-label={t('language')}
+          className="inline-flex gap-1 rounded-md border p-1"
+        >
           {routing.locales.map((l) => (
             <Button
               key={l}

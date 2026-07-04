@@ -1,51 +1,67 @@
 # Edit Rulings (Plan 4b-4) — Design
 
-> Fourth editing slice of **Plan 4b (Authoring + Auth)**. Builds on the editor-gated `/card/[id]/edit` page (4b-2/4b-3): its language switcher, `getCardById`, `requireRole('editor')`, `AutoTextarea`, and toast feedback.
+> Fourth editing slice of **Plan 4b (Authoring + Auth)**. Builds on the editor-gated `/card/[id]/edit` page (4b-2/4b-3): its language switcher, `getCardById`, `requireRole('editor')`, `AutoTextarea`, and toast feedback. This slice also **normalizes the rulings schema** first (a data-layer refactor).
 
 ## Goal
 
-Let editors manage a card's list of rulings — add, remove, reorder entries, and edit each entry's `date`, `source`, and localized `text` — as a section on the existing edit page.
+Let editors manage a card's list of rulings — add, remove, reorder entries, and edit each entry's `date`, `source`, and the localized `text` for the active language — as a section on the existing edit page. Editing one language never affects another.
 
-## Data facts (verified)
+## Schema change (normalize rulings) — decided
 
-- `card_rulings`: PK `(cardId, seq)`; columns `date` (text, ISO `YYYY-MM-DD`), `source` (text, free e.g. "POJO"/"Revival"), `text` (jsonb = `Record<lang, string>`), plus the shared `...editable` (`origin` default `import`, `createdAt`, `updatedAt`). 325 rulings across 201 cards.
-- **`text` is multilingual within one row; `date`/`source` are shared across languages** (plain columns). In the current data only `en` text exists.
-- `RulingDTO` already exists: `{ seq, date, source, text: Record<string,string> }`, exposed by `getCardById`.
+Today `card_rulings` PK `(cardId, seq)` stores `text` as jsonb `Record<lang,string>`, with `date`/`source` as shared columns. That forces a "carry the full text object per row" workaround when editing one language. We normalize into a parent + per-language child, with a **stable surrogate id** so reordering (which changes `seq`) never disturbs the language texts:
 
-## Decisions
+- **`card_rulings`** (parent — the language-independent ruling entity):
+  - `id` text **PK** (surrogate; ingest assigns deterministically as `` `${cardId}-r${i}` ``)
+  - `cardId` text, FK → `cards.id` (ON DELETE CASCADE), indexed
+  - `seq` integer (ordering only — no longer identity)
+  - `date` text (ISO `YYYY-MM-DD`), `source` text
+  - `...editable` (`origin`, `createdAt`, `updatedAt`)
+  - (the old composite PK and the `text` jsonb column are removed)
+- **`card_ruling_texts`** (child — one row per language):
+  - `rulingId` text, FK → `card_rulings.id` (ON DELETE CASCADE)
+  - `lang` text
+  - `text` text (not null)
+  - **PK `(rulingId, lang)`**
 
-- **Where:** a **Rulings section on the existing `/card/[id]/edit` page**, below the localization form, sharing that page's `?lang` language switcher.
-- **Language:** one language at a time (the shared switcher). Each ruling's text input binds to `text[lang]`; `date`/`source` are shared (edited in any language view).
-- **Save model:** **replace-the-set** — one action deletes the card's rulings and re-inserts the submitted list.
+`RulingDTO` gains `id`: `{ id: string; seq: number; date: string | null; source: string | null; text: Record<string,string> }`. `getCardById` assembles `text` by joining the child rows. The public detail page is unaffected (it reads `RulingDTO.text[locale]` as before).
 
-## The key mechanism: preserve other languages without DB merge
+This requires: schema edit → **regenerate the consolidated migration** → **fresh DB / re-seed** (the project's existing pattern; data re-seeds from source) → rewrite the rulings ingest.
 
-Because the editor shows only one language but the save replaces the whole set, other languages' text must not be lost. Solution: **each form row carries the full `text` object** (`Record<lang,string>`, seeded from the DTO). The input binds to `text[lang]`; typing updates only that key. On submit each row sends its full `text` object, so `replaceRulings` can store it verbatim — no load-and-merge in the action, and reordering/removing rows can't drop another language's text.
+## Why this eliminates the workaround
+
+The editor edits one language. On save, only that language's child row `(rulingId, lang)` is upserted; other languages' child rows are never touched → preserved by construction. No full-text-per-row carry.
 
 ## Architecture
 
-- **`@revelio/db` → `replaceRulings(db, cardId, rulings)`**: in a transaction, `delete from card_rulings where card_id = cardId`, then insert each row with `seq = index`, `origin: 'user'`, `updatedAt = now`. Input rows: `{ date: string | null; source: string | null; text: Record<string,string> }[]`. Fully-empty rows (no date, no source, no text in any language) are dropped before insert.
-- **`app/web` server action `replaceRulingsAction(input)`**: `'use server'`, `await requireRole('editor')`, Zod-validate, call `replaceRulings`, `revalidatePath('/card/{id}')` + the edit path. Returns the existing `SaveResult` shape (`{ ok: true } | { ok: false; error }`). No reindex (rulings aren't in the search document).
-- **`RulingsEditor` client component** (rendered as a section on the edit page): a list of bordered ruling cards; add / remove / move-up / move-down; its own "Save rulings" button + toast. Seeded from `card.rulings` and the active `lang`.
+- **Ingest** (`app/ingest/src/load-cards.ts`): build parent rows `{ id: `${cardId}-r${i}`, cardId, seq: i, date, source }` and child text rows `{ rulingId: `${cardId}-r${i}`, lang: c.defaultLanguage, text: r.ruling }` (child only when `r.ruling` is non-empty). Insert both (parents first).
+- **`@revelio/db` → `getCardById`**: load `card_rulings` (ordered by `seq`) + their `card_ruling_texts`; map to `RulingDTO[]` with `id` and `text` as a `Record<lang,string>`.
+- **`@revelio/db` → `saveRulings(db, cardId, lang, rows)`** (transaction). `rows: { id: string | null; date: string | null; source: string | null; text: string }[]` (text = the active language). Logic:
+  - Drop fully-empty rows first (no `date`, no `source`, empty `text`).
+  - Load existing ruling ids for `cardId`.
+  - For each row in order (index → `seq`):
+    - **id present** → update the parent (`date`, `source`, `seq`, `origin:'user'`, `updatedAt`); if `text` non-empty upsert `(id, lang)` child, else delete that `(id, lang)` child. Other-language children untouched.
+    - **id null** (new) → insert a parent with a fresh id (`` `${cardId}-r${crypto.randomUUID()}` `` or a monotonic suffix), insert the `(newId, lang)` child if `text` non-empty.
+  - Delete existing rulings whose id is absent from the submitted set (cascade removes their child texts).
+- **`app/web` server action `saveRulingsAction(input)`**: `'use server'`, `await requireRole('editor')`, Zod-validate, call `saveRulings`, `revalidatePath('/card/{id}')` + the edit path. Returns the existing `SaveResult` shape. **No reindex** (rulings aren't in the search document).
+- **`RulingsEditor` client component** — a section on the edit page below the localization form: a list of bordered ruling cards seeded from `card.rulings` + the active `lang`; add / remove / move-up / move-down; its own "Save rulings" button + toast.
 
 ## UI (bordered cards — chosen)
 
-Heading "Rulings" with an "Add" button. Each ruling is a bordered card: `date` and `source` inputs inline on the top row, the localized `text` (`AutoTextarea`) below, and move-up / move-down / delete controls in the card's top-right. Order in the list is the saved `seq`. A "Save rulings" button below the list; success/failure shown via a sonner toast. Matches the bordered adventure/match section's visual style.
+Heading "Rulings" with an "Add" button. Each ruling is a bordered card: `date` and `source` inputs inline on the top row; the active-language `text` (`AutoTextarea`) below; move-up / move-down / delete controls in the card's top-right. List order is the saved `seq`. A "Save rulings" button below the list; success/failure via a sonner toast. Matches the bordered adventure/match section's style. Reorder via move buttons (no drag-and-drop dependency).
 
 ## Error handling / validation
 
-- Zod: `rulings` is an array of `{ date: string, source: string, text: record<string,string> }`; empty strings for date/source normalize to `null`. No required fields — empty rows are dropped on save.
-- Authorization: `requireRole('editor')` in the action; the edit page is already editor-gated (non-editors get `notFound()`).
-- Reorder via move-up/down buttons (no drag-and-drop dependency).
-- Switching language (a `Link` navigation) reloads the page and re-seeds — unsaved ruling edits are lost, consistent with the localization form's existing behavior.
+- Zod: `cardId` non-empty; `lang` ∈ routing.locales; `rulings` an array of `{ id: string | null, date: string, source: string, text: string }`; empty date/source → `null`.
+- Authorization: `requireRole('editor')` in the action; the edit page is already editor-gated.
+- Switching language (a `Link` navigation) reloads the page and re-seeds — unsaved ruling edits are lost, consistent with the localization form.
 
 ## Testing
 
-- `replaceRulings` (integration, real Postgres): replaces the set; assigns `seq` by order; sets `origin:'user'` + `updatedAt`; drops fully-empty rows; a row carrying a full multilingual `text` round-trips (other languages preserved).
-- Action: gated (non-editor rejected); empty rows dropped; returns ok.
-- `RulingsEditor`: add appends a row; remove drops it; move-up/down reorders; typing in the text field updates only `text[lang]` (other languages in the row's object untouched); submit sends the full rows.
+- **DB (integration, real Postgres):** `saveRulings` — inserts new rows (ids assigned, `seq` by order, `origin:'user'`); updates existing by id; **deletes removed** rulings (cascade drops child texts); **preserves other languages** (editing `en` text leaves a seeded `de` child intact); drops fully-empty rows; empty `text` deletes only that language's child. `getCardById` assembles `RulingDTO` (with `id`) from parent+child.
+- **Action:** gated (non-editor rejected); returns ok; empty rows dropped.
+- **`RulingsEditor`:** add appends a row; remove drops it; move-up/down reorders; typing edits only the active language's field; submit sends rows with their ids.
 
 ## Scope
 
-- **IN:** rulings list editor (date/source/text-per-language), add/remove/reorder, replace-the-set save with provenance, on the edit page.
-- **OUT (later):** images (4b-5); making rulings searchable; drag-and-drop reordering; per-ruling multi-language side-by-side editing.
+- **IN:** normalize the rulings schema (parent + per-language child, surrogate id) incl. ingest + `getCardById`; the rulings list editor (date/source/text-per-language, add/remove/reorder) on the edit page; diff-based `saveRulings` with provenance.
+- **OUT (later):** images (4b-5); making rulings searchable; drag-and-drop reordering; side-by-side multi-language ruling editing.

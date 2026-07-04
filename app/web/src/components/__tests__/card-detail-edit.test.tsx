@@ -36,4 +36,27 @@ describe('CardDetail edit link', () => {
     renderDetail(false)
     expect(screen.queryByRole('link', { name: en.edit.button })).not.toBeInTheDocument()
   })
+
+  it('renders adventure effect/reward/toSolve text', () => {
+    const advCard = {
+      ...card,
+      localizations: {
+        en: {
+          ...card.localizations.en,
+          adventure: { effect: 'takes 1 damage', reward: 'draw 3', toSolve: 'discard 3' },
+          match: null,
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any
+    render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        <CardDetail card={advCard} locale="en" imageBase="" canEdit={false} />
+      </NextIntlClientProvider>,
+    )
+    expect(screen.getByText('takes 1 damage')).toBeInTheDocument()
+    expect(screen.getByText('draw 3')).toBeInTheDocument()
+    expect(screen.getByText('discard 3')).toBeInTheDocument()
+  })
+
 })

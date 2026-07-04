@@ -8,9 +8,9 @@ export function CardTile({ hit, imageBase }: { hit: SearchDocument; imageBase: s
     <Link href={`/card/${hit.id}`} className="block">
       <figure className="group overflow-hidden rounded-lg border border-border/60 bg-card">
         <div className="relative aspect-[5/7] bg-muted">
-          {hit.imageFile ? (
+          {hit.imageLang ? (
             <Image
-              src={imageUrl(imageBase, thumbKey(hit.id))}
+              src={imageUrl(imageBase, thumbKey(hit.id, hit.imageLang, hit.defaultLanguage))}
               alt={hit.name}
               fill
               sizes="(max-width: 640px) 45vw, 200px"

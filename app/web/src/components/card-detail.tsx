@@ -4,7 +4,7 @@ import { Pencil } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import { Button } from '@/components/ui/button'
 import type { CardDetailDTO } from '@revelio/core'
-import { imageKey, imageUrl, LESSONS } from '@revelio/core'
+import { effectiveImageLang, imageKey, imageUrl, LESSONS } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
 import { pickLocalization } from '@/lib/card-view'
 import { Badge } from '@/components/ui/badge'
@@ -28,18 +28,29 @@ export function CardDetail({
   const lessonColor = LESSONS.find((l) => l.code === card.lesson)?.color ?? undefined
   const rulingText = (r: { text: Record<string, string> }) =>
     r.text[locale] ?? r.text[card.defaultLanguage] ?? Object.values(r.text)[0] ?? ''
+  const imgLang = effectiveImageLang(
+    (l) => !!card.localizations[l]?.imageFile,
+    locale,
+    card.defaultLanguage,
+  )
 
   return (
     <article className="mx-auto grid max-w-5xl gap-8 px-6 py-8 md:grid-cols-[minmax(0,340px)_1fr]">
       <div className="relative aspect-[5/7] overflow-hidden rounded-xl border border-border/60 bg-card">
-        <Image
-          src={imageUrl(imageBase, imageKey(card.id))}
-          alt={loc.name}
-          fill
-          sizes="340px"
-          className="object-cover"
-          priority
-        />
+        {imgLang ? (
+          <Image
+            src={imageUrl(imageBase, imageKey(card.id, imgLang, card.defaultLanguage))}
+            alt={loc.name}
+            fill
+            sizes="340px"
+            className="object-cover"
+            priority
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted-foreground">
+            {loc.name}
+          </div>
+        )}
       </div>
       <div>
         <div className="flex items-start justify-between gap-4">

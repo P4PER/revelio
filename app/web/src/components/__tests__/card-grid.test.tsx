@@ -9,7 +9,7 @@ vi.mock('@/../i18n/navigation', () => ({ Link: (p: { href: string; children: Rea
 const hit = (id: string, name: string): SearchDocument => ({
   id, setCode: 'BS', setName: 'Base', number: '1', name, text: null, flavorText: null,
   types: [], subTypes: [], lesson: null, lessonColor: null, rarity: null, finish: null,
-  legality: null, cost: null, isOfficial: true, imageFile: 'x.png',
+  legality: null, cost: null, isOfficial: true, imageLang: 'en', defaultLanguage: 'en',
 })
 
 describe('CardGrid', () => {

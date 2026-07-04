@@ -74,7 +74,8 @@
     "saved": "Saved.",
     "invalid": "Please fill in the name.",
     "reindexWarning": "Saved, but search re-indexing failed; it will catch up later.",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "back": "Back to card"
   },
   "auth": {
     "title": "Sign in",

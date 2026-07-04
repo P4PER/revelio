@@ -74,7 +74,8 @@
     "saved": "Gespeichert.",
     "invalid": "Bitte den Namen ausfüllen.",
     "reindexWarning": "Gespeichert, aber die Suchindizierung ist fehlgeschlagen; sie wird später nachgezogen.",
-    "cancel": "Abbrechen"
+    "cancel": "Abbrechen",
+    "back": "Zurück zur Karte"
   },
   "auth": {
     "title": "Anmelden",

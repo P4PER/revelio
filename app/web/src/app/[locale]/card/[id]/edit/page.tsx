@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
-import { Plus } from 'lucide-react'
+import { Plus, ChevronLeft } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import { routing } from '@/../i18n/routing'
 import { getSession } from '@/lib/session'
@@ -40,6 +40,12 @@ export default async function EditCardPage({
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-10">
+      <Button variant="ghost" size="sm" asChild className="mb-4 -ml-2 gap-1 text-muted-foreground">
+        <Link href={`/card/${id}`}>
+          <ChevronLeft className="size-4" />
+          {t('back')}
+        </Link>
+      </Button>
       <h1 className="mb-2 text-2xl font-semibold text-primary">{t('title')}</h1>
       <p className="mb-6 text-sm text-muted-foreground">{card.name} · {id}</p>
       <div className="mb-6">

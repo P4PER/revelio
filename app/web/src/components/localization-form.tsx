@@ -21,6 +21,12 @@ export function LocalizationForm({ cardId, lang, initial }: { cardId: string; la
   const [status, setStatus] = useState<'machine' | 'official'>(initial.status)
   const [busy, setBusy] = useState(false)
 
+  const dirty =
+    name !== initial.name ||
+    text !== initial.text ||
+    flavorText !== initial.flavorText ||
+    status !== initial.status
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim()) return toast.error(t('invalid'))
@@ -66,7 +72,7 @@ export function LocalizationForm({ cardId, lang, initial }: { cardId: string; la
         </Select>
       </div>
       <div className="flex items-center gap-2">
-        <Button type="submit" disabled={busy}>{t('save')}</Button>
+        <Button type="submit" disabled={busy || !dirty}>{t('save')}</Button>
         <Button type="button" variant="ghost" asChild>
           <Link href={`/card/${cardId}`}>{t('cancel')}</Link>
         </Button>

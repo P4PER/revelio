@@ -48,4 +48,13 @@ describe('LocalizationForm', () => {
       expect.objectContaining({ cardId: 'x-1', lang: 'de', name: 'Neuer Name', status: 'machine' }),
     )
   })
+
+  it('keeps Save disabled until a field changes', async () => {
+    renderForm()
+    const save = screen.getByRole('button', { name: en.edit.save })
+    expect(save).toBeDisabled()
+    await userEvent.type(screen.getByLabelText(en.edit.name), 'x')
+    expect(save).toBeEnabled()
+  })
+
 })

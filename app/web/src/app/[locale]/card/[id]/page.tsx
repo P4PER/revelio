@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import { setRequestLocale } from 'next-intl/server'
-import { imageKey, imageUrl } from '@revelio/core'
+import { effectiveImageLang, imageKey, imageUrl } from '@revelio/core'
 import { routing } from '@/../i18n/routing'
 import { getPathname } from '@/../i18n/navigation'
 import { getDb } from '@/lib/db'
@@ -27,6 +27,7 @@ export async function generateMetadata({
   const card = await loadCard(id)
   if (!card) return {}
   const { loc } = pickLocalization(card, locale)
+  const ogLang = effectiveImageLang((l) => !!card.localizations[l]?.imageFile, locale, card.defaultLanguage)
   if (!loc) return {}
   const languages = Object.fromEntries(
     routing.locales.map((l) => [l, `${BASE_URL}${getPathname({ href: `/card/${id}`, locale: l })}`]),
@@ -35,7 +36,10 @@ export async function generateMetadata({
     title: `${loc.name} · revelio.cards`,
     description: loc.text ?? undefined,
     alternates: { canonical: `${BASE_URL}${getPathname({ href: `/card/${id}`, locale })}`, languages },
-    openGraph: { images: IMAGE_BASE ? [imageUrl(IMAGE_BASE, imageKey(id))] : [] },
+    openGraph: {
+      images:
+        IMAGE_BASE && ogLang ? [imageUrl(IMAGE_BASE, imageKey(id, ogLang, card.defaultLanguage))] : [],
+    },
   }
 }
 

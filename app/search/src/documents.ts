@@ -71,7 +71,7 @@ export function buildCardDocument(d: CardIndexData, lang: string): SearchDocumen
     setCode: d.setCode,
     setName: d.setName,
     number: d.number,
-    name: loc?.name ?? d.name,
+    name: loc?.name || d.name,
     text: loc?.text ?? null,
     flavorText: loc?.flavorText ?? null,
     types: d.types,

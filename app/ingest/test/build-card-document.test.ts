@@ -12,6 +12,14 @@ const base: CardIndexData = {
 }
 
 describe('buildCardDocument', () => {
+  it('falls back to the card name when a localization has an empty (image-only) name', () => {
+    const data = { ...base, localizations: { ...base.localizations,
+      de: { name: '', text: null, flavorText: null, imageFile: 'art.png' } } }
+    const doc = buildCardDocument(data as typeof base, 'de')
+    expect(doc.name).toBe('Fallback')
+    expect(doc.imageLang).toBe('de')
+  })
+
   it('uses the localization for the requested language', () => {
     const doc = buildCardDocument(base, 'en')
     expect(doc.name).toBe('Wizard Crackers')

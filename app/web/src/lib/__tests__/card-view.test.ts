@@ -19,6 +19,12 @@ describe('pickLocalization', () => {
     expect(loc.text).toBe('EN')
     expect(isFallback).toBe(true)
   })
+  it('treats an empty-name (image-only) localization as fallback', () => {
+    const imageOnly = { ...base.en, lang: 'de', name: '', text: null, imageFile: 'art.png' }
+    const { loc, isFallback } = pickLocalization(card({ en: base.en, de: imageOnly }), 'de')
+    expect(loc.text).toBe('EN')
+    expect(isFallback).toBe(true)
+  })
   it('falls back to the first available localization when neither locale nor default exist', () => {
     const { loc, isFallback } = pickLocalization(card({ fr: { ...base.en, lang: 'fr', text: 'FR' } }, 'en'), 'de')
     expect(loc?.text).toBe('FR')

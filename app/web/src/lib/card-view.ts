@@ -8,7 +8,10 @@ export function pickLocalization(
   locale: string,
 ): { loc: CardLocalizationDTO | undefined; isFallback: boolean } {
   const requested = card.localizations[locale]
-  if (requested) return { loc: requested, isFallback: false }
+  // A row that exists only to hold an image (e.g. an image was uploaded before
+  // the text was translated) has an empty name — treat it as no localization so
+  // the name/text fall back to the default language (the image resolves separately).
+  if (requested && requested.name.trim()) return { loc: requested, isFallback: false }
   const fallback =
     card.localizations[card.defaultLanguage] ?? Object.values(card.localizations)[0]
   return { loc: fallback, isFallback: true }

@@ -67,14 +67,16 @@ export function LocalizationForm({
         <span className="text-sm font-medium">{t('name')}</span>
         <Input value={name} onChange={(e) => setName(e.target.value)} />
       </label>
-      <label className="block space-y-1">
-        <span className="text-sm font-medium">{t('text')}</span>
-        <textarea
-          className="min-h-24 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-      </label>
+      {kind === null && (
+        <label className="block space-y-1">
+          <span className="text-sm font-medium">{t('text')}</span>
+          <textarea
+            className="min-h-24 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+        </label>
+      )}
       <label className="block space-y-1">
         <span className="text-sm font-medium">{t('flavor')}</span>
         <textarea

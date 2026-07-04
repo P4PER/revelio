@@ -80,6 +80,14 @@ describe('LocalizationForm', () => {
     )
   })
 
+  it('hides the generic Text field for adventure/match cards', () => {
+    const { unmount } = renderForm(null)
+    expect(screen.getByLabelText(en.edit.text)).toBeInTheDocument()
+    unmount()
+    renderForm('adventure')
+    expect(screen.queryByLabelText(en.edit.text)).not.toBeInTheDocument()
+  })
+
   it('shows the Match section only for match cards', () => {
     renderForm('match')
     expect(screen.getByLabelText(en.edit.prize)).toBeInTheDocument()

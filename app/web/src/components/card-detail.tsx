@@ -1,6 +1,8 @@
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
+import { Pencil } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
+import { Button } from '@/components/ui/button'
 import type { CardDetailDTO } from '@revelio/core'
 import { imageKey, imageUrl, LESSONS } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
@@ -40,15 +42,17 @@ export function CardDetail({
         />
       </div>
       <div>
-        <h1 className="text-3xl font-semibold text-primary">{loc.name}</h1>
-        {canEdit && (
-          <Link
-            href={`/card/${card.id}/edit`}
-            className="text-sm text-muted-foreground underline hover:text-foreground"
-          >
-            {tEdit('button')}
-          </Link>
-        )}
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-3xl font-semibold text-primary">{loc.name}</h1>
+          {canEdit && (
+            <Button asChild variant="outline" size="sm" className="shrink-0 gap-1.5">
+              <Link href={`/card/${card.id}/edit`}>
+                <Pencil className="size-3.5" />
+                {tEdit('button')}
+              </Link>
+            </Button>
+          )}
+        </div>
         <p className="mt-1 text-sm text-muted-foreground">
           {card.set.name} · {t('number', { number: card.number })}
           {card.rarity ? ` · ${attrLabel('rarities', card.rarity, locale)}` : ''}

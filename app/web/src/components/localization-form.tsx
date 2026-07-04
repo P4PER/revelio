@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { updateLocalization } from '@/lib/localization-actions'
 import { Input } from '@/components/ui/input'
+import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { Button } from '@/components/ui/button'
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -70,8 +71,7 @@ export function LocalizationForm({
       {kind === null && (
         <label className="block space-y-1">
           <span className="text-sm font-medium">{t('text')}</span>
-          <textarea
-            className="min-h-24 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+          <AutoTextarea
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
@@ -79,8 +79,7 @@ export function LocalizationForm({
       )}
       <label className="block space-y-1">
         <span className="text-sm font-medium">{t('flavor')}</span>
-        <textarea
-          className="min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+        <AutoTextarea
           value={flavorText}
           onChange={(e) => setFlavor(e.target.value)}
         />
@@ -90,27 +89,24 @@ export function LocalizationForm({
           <legend className="px-1 text-sm font-medium">{t('adventure')}</legend>
           <label className="block space-y-1">
             <span className="text-sm font-medium">{t('effect')}</span>
-            <textarea
+            <AutoTextarea
               aria-label={t('effect')}
-              className="min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
               value={adventure.effect}
               onChange={(e) => setAdventure({ ...adventure, effect: e.target.value })}
             />
           </label>
           <label className="block space-y-1">
             <span className="text-sm font-medium">{t('toSolve')}</span>
-            <textarea
+            <AutoTextarea
               aria-label={t('toSolve')}
-              className="min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
               value={adventure.toSolve}
               onChange={(e) => setAdventure({ ...adventure, toSolve: e.target.value })}
             />
           </label>
           <label className="block space-y-1">
             <span className="text-sm font-medium">{t('reward')}</span>
-            <textarea
+            <AutoTextarea
               aria-label={t('reward')}
-              className="min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
               value={adventure.reward}
               onChange={(e) => setAdventure({ ...adventure, reward: e.target.value })}
             />
@@ -122,18 +118,16 @@ export function LocalizationForm({
           <legend className="px-1 text-sm font-medium">{t('match')}</legend>
           <label className="block space-y-1">
             <span className="text-sm font-medium">{t('prize')}</span>
-            <textarea
+            <AutoTextarea
               aria-label={t('prize')}
-              className="min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
               value={match.prize}
               onChange={(e) => setMatch({ ...match, prize: e.target.value })}
             />
           </label>
           <label className="block space-y-1">
             <span className="text-sm font-medium">{t('toWin')}</span>
-            <textarea
+            <AutoTextarea
               aria-label={t('toWin')}
-              className="min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
               value={match.toWin}
               onChange={(e) => setMatch({ ...match, toWin: e.target.value })}
             />

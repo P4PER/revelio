@@ -8,6 +8,9 @@ import { saveRulingsAction, type RulingsSaveResult } from '@/lib/rulings-actions
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from '@/components/ui/select'
 
 type Row = { key: string; id: string | null; date: string; source: string; text: string }
 type Initial = { id: string; date: string; source: string; text: string }
@@ -109,12 +112,6 @@ export function RulingsEditor({
         </Button>
       </div>
 
-      <datalist id="ruling-sources">
-        {sources.map((s) => (
-          <option key={s} value={s} />
-        ))}
-      </datalist>
-
       {rows.map((r, i) => (
         <div
           key={r.key}
@@ -162,14 +159,19 @@ export function RulingsEditor({
                 onChange={(e) => update(r.key, { date: e.target.value })}
               />
             </label>
-            <label className="flex-1 space-y-1">
+            <div className="flex-1 space-y-1">
               <span className="text-sm font-medium">{t('rulingSource')}</span>
-              <Input
-                list="ruling-sources"
-                value={r.source}
-                onChange={(e) => update(r.key, { source: e.target.value })}
-              />
-            </label>
+              <Select value={r.source} onValueChange={(v) => update(r.key, { source: v })}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t('rulingSource')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {sources.map((s) => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <label className="block space-y-1">
             <span className="text-sm font-medium">{t('rulingText')}</span>

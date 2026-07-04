@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { sets, cards, cardLocalizations, upsertLocalization, getCardIndexData, getCardById } from '@revelio/db'
+import { sets, cards, cardLocalizations, upsertLocalization, getCardIndexData, getCardById, setLocalizationImage } from '@revelio/db'
 import { withMigratedDb } from './helpers'
 
 let ctx: Awaited<ReturnType<typeof withMigratedDb>>
@@ -80,5 +80,25 @@ describe('upsertLocalization adventure/match', () => {
     const card = await getCardById(ctx.db, 'x-1')
     expect(card?.localizations.en?.adventure).toEqual({ effect: 'e', reward: null, toSolve: null })
     expect(card?.localizations.en?.match).toBeNull()
+  })
+})
+
+describe('setLocalizationImage', () => {
+  it('sets image_file for a language without touching other fields', async () => {
+    await upsertLocalization(ctx.db, {
+      cardId: 'x-1', lang: 'en', name: 'Keep', text: 'body', flavorText: null, status: 'official',
+    })
+    await setLocalizationImage(ctx.db, 'x-1', 'en', 'art.png')
+    const rows = await ctx.db.select().from(cardLocalizations)
+    const en = rows.find((r) => r.cardId === 'x-1' && r.lang === 'en')!
+    expect(en.imageFile).toBe('art.png')
+    expect(en.name).toBe('Keep')
+    expect(en.text).toBe('body')
+    expect(en.origin).toBe('user')
+
+    await setLocalizationImage(ctx.db, 'x-1', 'en', null)
+    const after = (await ctx.db.select().from(cardLocalizations)).find((r) => r.cardId === 'x-1' && r.lang === 'en')!
+    expect(after.imageFile).toBeNull()
+    expect(after.name).toBe('Keep')
   })
 })

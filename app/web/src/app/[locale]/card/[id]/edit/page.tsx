@@ -8,6 +8,7 @@ import { hasRequiredRole } from '@/lib/roles'
 import { getDb } from '@/lib/db'
 import { getCardById } from '@revelio/db'
 import { LocalizationForm } from '@/components/localization-form'
+import { RulingsEditor } from '@/components/rulings-editor'
 import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
@@ -51,6 +52,12 @@ export default async function EditCardPage({
       toWin: loc?.match?.toWin ?? '',
     },
   }
+  const rulingRows = card.rulings.map((r) => ({
+    id: r.id,
+    date: r.date ?? '',
+    source: r.source ?? '',
+    text: r.text[lang] ?? '',
+  }))
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-10">
@@ -89,6 +96,7 @@ export default async function EditCardPage({
       <h1 className="text-2xl font-semibold text-primary">{t('title')}</h1>
       <p className="mb-8 text-sm text-muted-foreground">{card.name} · {id}</p>
       <LocalizationForm key={lang} cardId={id} lang={lang} initial={initial} kind={kind} />
+      <RulingsEditor key={`rulings-${lang}`} cardId={id} lang={lang} initial={rulingRows} />
     </main>
   )
 }

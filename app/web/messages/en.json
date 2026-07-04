@@ -82,7 +82,18 @@
     "reward": "Reward",
     "toSolve": "To solve",
     "prize": "Prize",
-    "toWin": "To win"
+    "toWin": "To win",
+    "rulings": "Rulings",
+    "addRuling": "Add ruling",
+    "rulingDate": "Date",
+    "rulingSource": "Source",
+    "rulingText": "Text",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "removeRuling": "Remove",
+    "saveRulings": "Save rulings",
+    "rulingsSaved": "Rulings saved.",
+    "rulingsFailed": "Could not save the rulings."
   },
   "auth": {
     "title": "Sign in",

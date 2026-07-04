@@ -9,6 +9,9 @@ export type SetDTO = {
   symbol: string | null
 }
 
+export type AdventureData = { effect: string | null; reward: string | null; toSolve: string | null }
+export type MatchData = { prize: string | null; toWin: string | null }
+
 export type CardLocalizationDTO = {
   lang: string
   name: string
@@ -18,6 +21,8 @@ export type CardLocalizationDTO = {
   flavorText: string | null
   imageFile: string | null
   imageUrl: string | null
+  adventure: AdventureData | null
+  match: MatchData | null
 }
 
 export type CardDTO = {

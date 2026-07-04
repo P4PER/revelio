@@ -1,7 +1,7 @@
 import { eq, asc, sql } from 'drizzle-orm'
 import type { DB } from './client'
 import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, lessons } from './schema'
-import type { SetDTO, CardLocalizationDTO, CardDetailDTO } from '@revelio/core'
+import type { SetDTO, CardLocalizationDTO, CardDetailDTO, AdventureData, MatchData } from '@revelio/core'
 import type { CardIndexData } from '@revelio/search'
 
 type SetRow = typeof sets.$inferSelect
@@ -42,6 +42,8 @@ export async function getCardById(db: DB, id: string): Promise<CardDetailDTO | n
     localizations[l.lang] = {
       lang: l.lang, name: l.name, status: l.status, source: l.source,
       text: l.text, flavorText: l.flavorText, imageFile: l.imageFile, imageUrl: l.imageUrl,
+      adventure: (l.adventure as AdventureData | null) ?? null,
+      match: (l.match as MatchData | null) ?? null,
     }
   }
   return {
@@ -76,31 +78,36 @@ export async function getRandomCardId(db: DB): Promise<string | null> {
 
 export async function upsertLocalization(
   db: DB,
-  input: { cardId: string; lang: string; name: string; text: string | null; flavorText: string | null; status: string | null },
+  input: {
+    cardId: string
+    lang: string
+    name: string
+    text: string | null
+    flavorText: string | null
+    status: string | null
+    adventure?: AdventureData | null
+    match?: MatchData | null
+  },
 ): Promise<void> {
   const now = new Date()
+  const base = {
+    name: input.name,
+    text: input.text,
+    flavorText: input.flavorText,
+    status: input.status,
+    origin: 'user' as const,
+    updatedAt: now,
+  }
+  const extra: { adventure?: AdventureData | null; match?: MatchData | null } = {}
+  if ('adventure' in input) extra.adventure = input.adventure ?? null
+  if ('match' in input) extra.match = input.match ?? null
+
   await db
     .insert(cardLocalizations)
-    .values({
-      cardId: input.cardId,
-      lang: input.lang,
-      name: input.name,
-      text: input.text,
-      flavorText: input.flavorText,
-      status: input.status,
-      origin: 'user',
-      updatedAt: now,
-    })
+    .values({ cardId: input.cardId, lang: input.lang, ...base, ...extra })
     .onConflictDoUpdate({
       target: [cardLocalizations.cardId, cardLocalizations.lang],
-      set: {
-        name: input.name,
-        text: input.text,
-        flavorText: input.flavorText,
-        status: input.status,
-        origin: 'user',
-        updatedAt: now,
-      },
+      set: { ...base, ...extra },
     })
 }
 

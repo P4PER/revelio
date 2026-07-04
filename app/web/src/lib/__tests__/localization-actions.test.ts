@@ -53,4 +53,25 @@ describe('updateLocalization', () => {
     expect(m.upsertLocalization).toHaveBeenCalled()
     expect(res).toEqual({ ok: true, warning: 'reindex-failed' })
   })
+
+  it('passes a normalized adventure group and omits match', async () => {
+    await updateLocalization({
+      ...valid,
+      adventure: { effect: '  spark  ', reward: '', toSolve: '' },
+    })
+    expect(m.upsertLocalization).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ adventure: { effect: 'spark', reward: null, toSolve: null } }),
+    )
+    const arg = m.upsertLocalization.mock.calls[0][1]
+    expect('match' in arg).toBe(false)
+  })
+
+  it('nulls an all-empty adventure group', async () => {
+    await updateLocalization({ ...valid, adventure: { effect: '', reward: '  ', toSolve: '' } })
+    expect(m.upsertLocalization).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ adventure: null }),
+    )
+  })
 })

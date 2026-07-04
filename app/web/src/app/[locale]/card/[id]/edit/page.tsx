@@ -31,11 +31,25 @@ export default async function EditCardPage({
   const sp = await searchParams
   const lang = sp.lang && routing.locales.includes(sp.lang as (typeof routing.locales)[number]) ? sp.lang : locale
   const loc = card.localizations[lang]
+  const kind: 'adventure' | 'match' | null = card.types.includes('adventure')
+    ? 'adventure'
+    : card.types.includes('match')
+      ? 'match'
+      : null
   const initial = {
     name: loc?.name ?? '',
     text: loc?.text ?? '',
     flavorText: loc?.flavorText ?? '',
     status: (loc?.status === 'official' ? 'official' : 'machine') as 'machine' | 'official',
+    adventure: {
+      effect: loc?.adventure?.effect ?? '',
+      reward: loc?.adventure?.reward ?? '',
+      toSolve: loc?.adventure?.toSolve ?? '',
+    },
+    match: {
+      prize: loc?.match?.prize ?? '',
+      toWin: loc?.match?.toWin ?? '',
+    },
   }
 
   return (
@@ -74,7 +88,7 @@ export default async function EditCardPage({
       </div>
       <h1 className="text-2xl font-semibold text-primary">{t('title')}</h1>
       <p className="mb-8 text-sm text-muted-foreground">{card.name} · {id}</p>
-      <LocalizationForm key={lang} cardId={id} lang={lang} initial={initial} />
+      <LocalizationForm key={lang} cardId={id} lang={lang} initial={initial} kind={kind} />
     </main>
   )
 }

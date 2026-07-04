@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { sets, cards, cardLocalizations, upsertLocalization, getCardIndexData } from '@revelio/db'
+import { sets, cards, cardLocalizations, upsertLocalization, getCardIndexData, getCardById } from '@revelio/db'
 import { withMigratedDb } from './helpers'
 
 let ctx: Awaited<ReturnType<typeof withMigratedDb>>
@@ -43,5 +43,42 @@ describe('getCardIndexData', () => {
   })
   it('returns null for an unknown card', async () => {
     expect(await getCardIndexData(ctx.db, 'nope')).toBeNull()
+  })
+})
+
+describe('upsertLocalization adventure/match', () => {
+  it('writes adventure and leaves an existing match untouched when only adventure is given', async () => {
+    // seed a non-null match first, so "untouched" is genuinely observable
+    await upsertLocalization(ctx.db, {
+      cardId: 'x-1', lang: 'en', name: 'N', text: null, flavorText: null, status: 'official',
+      match: { prize: 'p', toWin: 'w' },
+    })
+    await upsertLocalization(ctx.db, {
+      cardId: 'x-1', lang: 'en', name: 'N', text: null, flavorText: null, status: 'official',
+      adventure: { effect: 'e', reward: 'r', toSolve: 't' },
+    })
+    const rows = await ctx.db.select().from(cardLocalizations)
+    const en = rows.find((r) => r.cardId === 'x-1' && r.lang === 'en')!
+    expect(en.adventure).toEqual({ effect: 'e', reward: 'r', toSolve: 't' })
+    expect(en.match).toEqual({ prize: 'p', toWin: 'w' })
+  })
+
+  it('nulls adventure when passed null', async () => {
+    await upsertLocalization(ctx.db, {
+      cardId: 'x-1', lang: 'en', name: 'N', text: null, flavorText: null, status: 'official',
+      adventure: null,
+    })
+    const rows = await ctx.db.select().from(cardLocalizations)
+    expect(rows.find((r) => r.cardId === 'x-1' && r.lang === 'en')!.adventure).toBeNull()
+  })
+
+  it('exposes adventure/match on the getCardById DTO', async () => {
+    await upsertLocalization(ctx.db, {
+      cardId: 'x-1', lang: 'en', name: 'N', text: null, flavorText: null, status: 'official',
+      adventure: { effect: 'e', reward: null, toSolve: null }, match: null,
+    })
+    const card = await getCardById(ctx.db, 'x-1')
+    expect(card?.localizations.en?.adventure).toEqual({ effect: 'e', reward: null, toSolve: null })
+    expect(card?.localizations.en?.match).toBeNull()
   })
 })

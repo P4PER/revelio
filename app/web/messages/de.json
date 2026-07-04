@@ -75,7 +75,14 @@
     "invalid": "Bitte den Namen ausfüllen.",
     "reindexWarning": "Gespeichert, aber die Suchindizierung ist fehlgeschlagen; sie wird später nachgezogen.",
     "cancel": "Abbrechen",
-    "back": "Zurück zur Karte"
+    "back": "Zurück zur Karte",
+    "adventure": "Adventure",
+    "match": "Match",
+    "effect": "Effekt",
+    "reward": "Belohnung",
+    "toSolve": "Aufgabe",
+    "prize": "Preis",
+    "toWin": "Siegbedingung"
   },
   "auth": {
     "title": "Anmelden",

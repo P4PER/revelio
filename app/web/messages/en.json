@@ -75,7 +75,14 @@
     "invalid": "Please fill in the name.",
     "reindexWarning": "Saved, but search re-indexing failed; it will catch up later.",
     "cancel": "Cancel",
-    "back": "Back to card"
+    "back": "Back to card",
+    "adventure": "Adventure",
+    "match": "Match",
+    "effect": "Effect",
+    "reward": "Reward",
+    "toSolve": "To solve",
+    "prize": "Prize",
+    "toWin": "To win"
   },
   "auth": {
     "title": "Sign in",

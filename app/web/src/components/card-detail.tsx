@@ -89,6 +89,30 @@ export function CardDetail({
         )}
 
         {loc.text && <p className="mt-6 whitespace-pre-line leading-relaxed">{loc.text}</p>}
+        {loc.adventure && (
+          <dl className="mt-6 space-y-3">
+            {(['effect', 'toSolve', 'reward'] as const).map((k) =>
+              loc.adventure![k] ? (
+                <div key={k}>
+                  <dt className="text-sm font-semibold text-muted-foreground">{tEdit(k)}</dt>
+                  <dd className="whitespace-pre-line leading-relaxed">{loc.adventure![k]}</dd>
+                </div>
+              ) : null,
+            )}
+          </dl>
+        )}
+        {loc.match && (
+          <dl className="mt-6 space-y-3">
+            {(['prize', 'toWin'] as const).map((k) =>
+              loc.match![k] ? (
+                <div key={k}>
+                  <dt className="text-sm font-semibold text-muted-foreground">{tEdit(k)}</dt>
+                  <dd className="whitespace-pre-line leading-relaxed">{loc.match![k]}</dd>
+                </div>
+              ) : null,
+            )}
+          </dl>
+        )}
         {loc.flavorText && (
           <p className="mt-4 border-l-2 border-border pl-4 italic text-muted-foreground">{loc.flavorText}</p>
         )}

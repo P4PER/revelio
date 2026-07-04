@@ -53,7 +53,7 @@ export default async function EditCardPage({
           </Link>
         ))}
       </nav>
-      <LocalizationForm cardId={id} lang={lang} initial={initial} />
+      <LocalizationForm key={lang} cardId={id} lang={lang} initial={initial} />
     </main>
   )
 }

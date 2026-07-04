@@ -1,5 +1,5 @@
 'use client'
-import { useImperativeHandle, useState } from 'react'
+import { useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { useRouter } from '@/../i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
@@ -38,6 +38,24 @@ export function RulingsEditor({
     initial.map((r) => ({ key: r.id, id: r.id, date: r.date, source: r.source, text: r.text })),
   )
   const [busy, setBusy] = useState(false)
+  const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+  const [pendingScrollKey, setPendingScrollKey] = useState<string | null>(null)
+
+  // After a newly added ruling has rendered, scroll it into view and focus its
+  // first field so the editor lands on the new entry.
+  useEffect(() => {
+    if (!pendingScrollKey) return
+    const el = rowRefs.current.get(pendingScrollKey)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    el?.querySelector('input')?.focus()
+    setPendingScrollKey(null)
+  }, [pendingScrollKey])
+
+  function addRuling() {
+    const key = nextKey()
+    setRows((rs) => [...rs, { key, id: null, date: '', source: '', text: '' }])
+    setPendingScrollKey(key)
+  }
 
   function update(key: string, patch: Partial<Row>) {
     setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)))
@@ -85,12 +103,7 @@ export function RulingsEditor({
           type="button"
           variant="outline"
           size="sm"
-          onClick={() =>
-            setRows((rs) => [
-              ...rs,
-              { key: nextKey(), id: null, date: '', source: '', text: '' },
-            ])
-          }
+          onClick={addRuling}
         >
           {t('addRuling')}
         </Button>
@@ -103,7 +116,14 @@ export function RulingsEditor({
       </datalist>
 
       {rows.map((r, i) => (
-        <div key={r.key} className="space-y-3 rounded-md border p-4">
+        <div
+          key={r.key}
+          ref={(el) => {
+            if (el) rowRefs.current.set(r.key, el)
+            else rowRefs.current.delete(r.key)
+          }}
+          className="space-y-3 rounded-md border p-4"
+        >
           <div className="flex items-start justify-end gap-1">
             <Button
               type="button"

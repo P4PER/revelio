@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { eq } from 'drizzle-orm'
-import { cards, cardLocalizations, cardTypes, cardSubTypes, cardRulings } from '@revelio/db'
+import { cards, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingTexts } from '@revelio/db'
+import { getCardById } from '@revelio/db'
 import { loadSets } from '../src/load-sets.js'
 import { loadAttributes } from '../src/load-attributes.js'
 import { loadCards } from '../src/load-cards.js'
@@ -54,10 +55,10 @@ describe('loadCards', () => {
   it('inserts card_rulings for flobberworm', async () => {
     const rulings = await ctx.db.select().from(cardRulings).where(eq(cardRulings.cardId, 'bs-2-flobberworm'))
     expect(rulings).toHaveLength(1)
+    expect(rulings[0].id).toBe('bs-2-flobberworm-r0')
     expect(rulings[0].seq).toBe(0)
     expect(rulings[0].date).toBe('2001-08-31')
     expect(rulings[0].source).toBe('POJO')
-    expect(rulings[0].text).toEqual({ en: 'A ruling.' })
   })
 
   it('re-run is additive and never overwrites an in-app edit', async () => {
@@ -73,5 +74,27 @@ describe('loadCards', () => {
       .select().from(cardLocalizations)
       .where(eq(cardLocalizations.cardId, 'bs-1-dean-thomas'))
     expect(dean.find((l) => l.lang === 'en')?.text).toBe('EDITED IN APP')
+  })
+})
+
+describe('rulings (normalized parent + child)', () => {
+  it('loads a ruling into card_rulings + card_ruling_texts', async () => {
+    const parents = await ctx.db.select().from(cardRulings)
+    const flob = parents.find((r) => r.cardId === 'bs-2-flobberworm')!
+    expect(flob.id).toBe('bs-2-flobberworm-r0')
+    expect(flob.seq).toBe(0)
+    expect(flob.date).toBe('2001-08-31')
+    expect(flob.source).toBe('POJO')
+    const texts = await ctx.db.select().from(cardRulingTexts)
+    const t = texts.find((x) => x.rulingId === 'bs-2-flobberworm-r0')!
+    expect(t.lang).toBe('en')
+    expect(t.text).toBe('A ruling.')
+  })
+
+  it('getCardById assembles RulingDTO with id + text map', async () => {
+    const card = await getCardById(ctx.db, 'bs-2-flobberworm')
+    expect(card?.rulings).toEqual([
+      { id: 'bs-2-flobberworm-r0', seq: 0, date: '2001-08-31', source: 'POJO', text: { en: 'A ruling.' } },
+    ])
   })
 })

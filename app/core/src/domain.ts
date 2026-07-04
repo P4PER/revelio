@@ -52,6 +52,7 @@ export type AttributeTermDTO = {
 export type LessonDTO = AttributeTermDTO & { color: string | null }
 
 export type RulingDTO = {
+  id: string
   seq: number
   date: string | null
   source: string | null

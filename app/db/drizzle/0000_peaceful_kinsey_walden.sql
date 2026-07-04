@@ -16,16 +16,22 @@ CREATE TABLE "card_localizations" (
 	CONSTRAINT "card_localizations_card_id_lang_pk" PRIMARY KEY("card_id","lang")
 );
 --> statement-breakpoint
+CREATE TABLE "card_ruling_texts" (
+	"ruling_id" text NOT NULL,
+	"lang" text NOT NULL,
+	"text" text NOT NULL,
+	CONSTRAINT "card_ruling_texts_ruling_id_lang_pk" PRIMARY KEY("ruling_id","lang")
+);
+--> statement-breakpoint
 CREATE TABLE "card_rulings" (
+	"id" text PRIMARY KEY NOT NULL,
 	"card_id" text NOT NULL,
 	"seq" integer NOT NULL,
 	"date" text,
 	"source" text,
-	"text" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
-	"origin" text DEFAULT 'import' NOT NULL,
-	CONSTRAINT "card_rulings_card_id_seq_pk" PRIMARY KEY("card_id","seq")
+	"origin" text DEFAULT 'import' NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "card_sub_types" (
@@ -187,7 +193,8 @@ CREATE TABLE "verification" (
 );
 --> statement-breakpoint
 ALTER TABLE "card_localizations" ADD CONSTRAINT "card_localizations_card_id_cards_id_fk" FOREIGN KEY ("card_id") REFERENCES "public"."cards"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "card_rulings" ADD CONSTRAINT "card_rulings_card_id_cards_id_fk" FOREIGN KEY ("card_id") REFERENCES "public"."cards"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "card_ruling_texts" ADD CONSTRAINT "card_ruling_texts_ruling_id_card_rulings_id_fk" FOREIGN KEY ("ruling_id") REFERENCES "public"."card_rulings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "card_rulings" ADD CONSTRAINT "card_rulings_card_id_cards_id_fk" FOREIGN KEY ("card_id") REFERENCES "public"."cards"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "card_sub_types" ADD CONSTRAINT "card_sub_types_card_id_cards_id_fk" FOREIGN KEY ("card_id") REFERENCES "public"."cards"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "card_sub_types" ADD CONSTRAINT "card_sub_types_sub_type_code_sub_types_code_fk" FOREIGN KEY ("sub_type_code") REFERENCES "public"."sub_types"("code") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "card_types" ADD CONSTRAINT "card_types_card_id_cards_id_fk" FOREIGN KEY ("card_id") REFERENCES "public"."cards"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -199,6 +206,7 @@ ALTER TABLE "cards" ADD CONSTRAINT "cards_finish_finishes_code_fk" FOREIGN KEY (
 ALTER TABLE "cards" ADD CONSTRAINT "cards_legality_legalities_code_fk" FOREIGN KEY ("legality") REFERENCES "public"."legalities"("code") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "account" ADD CONSTRAINT "account_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "session" ADD CONSTRAINT "session_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "card_rulings_card_id_idx" ON "card_rulings" USING btree ("card_id");--> statement-breakpoint
 CREATE INDEX "cards_set_code_idx" ON "cards" USING btree ("set_code");--> statement-breakpoint
 CREATE INDEX "account_userId_idx" ON "account" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "session_userId_idx" ON "session" USING btree ("user_id");--> statement-breakpoint

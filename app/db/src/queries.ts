@@ -1,6 +1,6 @@
-import { eq, asc, sql } from 'drizzle-orm'
+import { eq, asc, sql, inArray } from 'drizzle-orm'
 import type { DB } from './client'
-import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, lessons } from './schema'
+import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingTexts, lessons } from './schema'
 import type { SetDTO, CardLocalizationDTO, CardDetailDTO, AdventureData, MatchData } from '@revelio/core'
 import type { CardIndexData } from '@revelio/search'
 
@@ -37,6 +37,17 @@ export async function getCardById(db: DB, id: string): Promise<CardDetailDTO | n
     db.select().from(cardSubTypes).where(eq(cardSubTypes.cardId, id)),
     db.select().from(cardRulings).where(eq(cardRulings.cardId, id)).orderBy(asc(cardRulings.seq)),
   ])
+  const rulingTextRows = rulingRows.length
+    ? await db.select().from(cardRulingTexts).where(
+        inArray(cardRulingTexts.rulingId, rulingRows.map((r) => r.id)),
+      )
+    : []
+  const textsByRuling = new Map<string, Record<string, string>>()
+  for (const t of rulingTextRows) {
+    const m = textsByRuling.get(t.rulingId) ?? {}
+    m[t.lang] = t.text
+    textsByRuling.set(t.rulingId, m)
+  }
   const localizations: Record<string, CardLocalizationDTO> = {}
   for (const l of locRows) {
     localizations[l.lang] = {
@@ -65,7 +76,11 @@ export async function getCardById(db: DB, id: string): Promise<CardDetailDTO | n
     defaultLanguage: card.defaultLanguage,
     localizations,
     rulings: rulingRows.map((r) => ({
-      seq: r.seq, date: r.date, source: r.source, text: (r.text ?? {}) as Record<string, string>,
+      id: r.id,
+      seq: r.seq,
+      date: r.date,
+      source: r.source,
+      text: textsByRuling.get(r.id) ?? {},
     })),
     set: toSetDTO(setRow),
   }

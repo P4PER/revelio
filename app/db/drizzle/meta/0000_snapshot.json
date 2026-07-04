@@ -1,5 +1,5 @@
 {
-  "id": "fd55f6f8-a31a-472f-894d-e89df39f0b76",
+  "id": "0dfc1dc1-9aba-4066-9127-73b2c86a924b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -126,10 +126,69 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.card_ruling_texts": {
+      "name": "card_ruling_texts",
+      "schema": "",
+      "columns": {
+        "ruling_id": {
+          "name": "ruling_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lang": {
+          "name": "lang",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "text": {
+          "name": "text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "card_ruling_texts_ruling_id_card_rulings_id_fk": {
+          "name": "card_ruling_texts_ruling_id_card_rulings_id_fk",
+          "tableFrom": "card_ruling_texts",
+          "tableTo": "card_rulings",
+          "columnsFrom": [
+            "ruling_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "card_ruling_texts_ruling_id_lang_pk": {
+          "name": "card_ruling_texts_ruling_id_lang_pk",
+          "columns": [
+            "ruling_id",
+            "lang"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.card_rulings": {
       "name": "card_rulings",
       "schema": "",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
         "card_id": {
           "name": "card_id",
           "type": "text",
@@ -154,13 +213,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "text": {
-          "name": "text",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'::jsonb"
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -183,7 +235,23 @@
           "default": "'import'"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "card_rulings_card_id_idx": {
+          "name": "card_rulings_card_id_idx",
+          "columns": [
+            {
+              "expression": "card_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "card_rulings_card_id_cards_id_fk": {
           "name": "card_rulings_card_id_cards_id_fk",
@@ -195,19 +263,11 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {
-        "card_rulings_card_id_seq_pk": {
-          "name": "card_rulings_card_id_seq_pk",
-          "columns": [
-            "card_id",
-            "seq"
-          ]
-        }
-      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},

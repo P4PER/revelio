@@ -103,14 +103,22 @@ export const cardSubTypes = pgTable('card_sub_types', {
 }))
 
 export const cardRulings = pgTable('card_rulings', {
-  cardId: text('card_id').notNull().references(() => cards.id),
+  id: text('id').primaryKey(),
+  cardId: text('card_id').notNull().references(() => cards.id, { onDelete: 'cascade' }),
   seq: integer('seq').notNull(),
   date: text('date'),
   source: text('source'),
-  text: jsonb('text').notNull().default({}),
   ...editable,
 }, (t) => ({
-  pk: primaryKey({ columns: [t.cardId, t.seq] }),
+  byCard: index('card_rulings_card_id_idx').on(t.cardId),
+}))
+
+export const cardRulingTexts = pgTable('card_ruling_texts', {
+  rulingId: text('ruling_id').notNull().references(() => cardRulings.id, { onDelete: 'cascade' }),
+  lang: text('lang').notNull(),
+  text: text('text').notNull(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.rulingId, t.lang] }),
 }))
 
 export const cardLocalizations = pgTable('card_localizations', {

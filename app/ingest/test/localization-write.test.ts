@@ -47,7 +47,12 @@ describe('getCardIndexData', () => {
 })
 
 describe('upsertLocalization adventure/match', () => {
-  it('writes adventure and leaves match untouched when only adventure is given', async () => {
+  it('writes adventure and leaves an existing match untouched when only adventure is given', async () => {
+    // seed a non-null match first, so "untouched" is genuinely observable
+    await upsertLocalization(ctx.db, {
+      cardId: 'x-1', lang: 'en', name: 'N', text: null, flavorText: null, status: 'official',
+      match: { prize: 'p', toWin: 'w' },
+    })
     await upsertLocalization(ctx.db, {
       cardId: 'x-1', lang: 'en', name: 'N', text: null, flavorText: null, status: 'official',
       adventure: { effect: 'e', reward: 'r', toSolve: 't' },
@@ -55,7 +60,7 @@ describe('upsertLocalization adventure/match', () => {
     const rows = await ctx.db.select().from(cardLocalizations)
     const en = rows.find((r) => r.cardId === 'x-1' && r.lang === 'en')!
     expect(en.adventure).toEqual({ effect: 'e', reward: 'r', toSolve: 't' })
-    expect(en.match).toBeNull()
+    expect(en.match).toEqual({ prize: 'p', toWin: 'w' })
   })
 
   it('nulls adventure when passed null', async () => {
@@ -70,7 +75,7 @@ describe('upsertLocalization adventure/match', () => {
   it('exposes adventure/match on the getCardById DTO', async () => {
     await upsertLocalization(ctx.db, {
       cardId: 'x-1', lang: 'en', name: 'N', text: null, flavorText: null, status: 'official',
-      adventure: { effect: 'e', reward: null, toSolve: null },
+      adventure: { effect: 'e', reward: null, toSolve: null }, match: null,
     })
     const card = await getCardById(ctx.db, 'x-1')
     expect(card?.localizations.en?.adventure).toEqual({ effect: 'e', reward: null, toSolve: null })

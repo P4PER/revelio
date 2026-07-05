@@ -19,6 +19,7 @@
     "sets": "Editionen"
   },
   "search": {
+    "title": "Suche",
     "placeholder": "Karten suchen…",
     "results": "{count} Karten"
   },

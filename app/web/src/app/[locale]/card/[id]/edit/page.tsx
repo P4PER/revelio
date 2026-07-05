@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { Plus, ChevronLeft } from 'lucide-react'
@@ -13,6 +14,17 @@ import { ImageUploader } from '@/components/image-uploader'
 import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('edit')
+  return { title: t('title') }
+}
 
 export default async function EditCardPage({
   params,

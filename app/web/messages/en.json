@@ -19,6 +19,7 @@
     "sets": "Sets"
   },
   "search": {
+    "title": "Search",
     "placeholder": "Search cards…",
     "results": "{count} cards"
   },

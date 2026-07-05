@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import type { SetDTO } from '@revelio/core'
 import { getDb } from '@/lib/db'
@@ -8,6 +9,17 @@ import { byReleaseDate } from '@/lib/set-sort'
 export const dynamic = 'force-dynamic'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('sets')
+  return { title: t('title') }
+}
 
 function SetSection({ title, sets }: { title: string; sets: SetDTO[] }) {
   if (sets.length === 0) return null

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { getDb } from '@/lib/db'
@@ -11,6 +12,17 @@ import { Pagination } from '@/components/pagination'
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
 export const dynamic = 'force-dynamic'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; code: string }>
+}): Promise<Metadata> {
+  const { locale, code } = await params
+  setRequestLocale(locale)
+  const set = await getSetByCode(getDb(), code)
+  return set ? { title: `${set.name} (${set.code})` } : {}
+}
 
 export default async function SetPage({
   params,

@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+defaults:
+  run:
+    working-directory: app
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npm run check -w @revelio/db
+      - run: npm run verify -w @revelio/db
+      - run: npm run lint -w web
+      - run: npm run typecheck
+
+  test:
+    needs: check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    env:
+      TEST_MEILI_HOST: http://localhost:7700
+      TEST_MEILI_KEY: masterKey
+      MEILI_HOST: http://localhost:7700
+      TEST_S3_ENDPOINT: http://localhost:9000
+      TEST_S3_ACCESS_KEY: minioadmin
+      TEST_S3_SECRET_KEY: minioadmin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Start Meilisearch
+        run: docker run -d --name meili -p 7700:7700 -e MEILI_MASTER_KEY=masterKey -e MEILI_NO_ANALYTICS=true getmeili/meilisearch:v1.10
+      - name: Start MinIO
+        run: docker run -d --name minio -p 9000:9000 -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin minio/minio server /data
+      - name: Wait for services
+        run: |
+          for i in $(seq 1 30); do curl -fsS http://localhost:7700/health && break || sleep 2; done
+          for i in $(seq 1 30); do curl -fsS http://localhost:9000/minio/health/live && break || sleep 2; done
+      - run: npm ci
+      - run: npm test
+
+  build:
+    needs: check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    env:
+      DATABASE_URL: postgres://user:pass@localhost:5432/db
+      MEILI_HOST: http://localhost:7700
+      MEILI_SEARCH_KEY: masterKey
+      BETTER_AUTH_SECRET: ci-placeholder-secret
+      BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_BASE_URL: http://localhost:3000
+      NEXT_PUBLIC_IMAGE_BASE_URL: http://localhost:9000/card-images
+      ADMIN_EMAILS: admin@example.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npm run build -w web

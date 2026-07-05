@@ -62,17 +62,6 @@ export async function loadAttributes(db: DB, cards: DistCard[], labels: LabelInd
   const subTypeRows = attributeRows(d.subTypes, [])
   if (subTypeRows.length) await db.insert(subTypes).values(subTypeRows).onConflictDoNothing()
 
-  // lessons carry a curated color in addition to sort order.
-  const lessonLabels = labels['lessons'] ?? {}
-  const lessonRows = [...d.lessons].map((code) => {
-    const cfg = ATTRIBUTES.lessons.find((l) => l.code === code)
-    return {
-      code,
-      color: cfg?.color ?? null,
-      sortOrder: cfg?.sortOrder ?? 999,
-      labels: lessonLabels[code] ?? {},
-      origin: 'import' as const,
-    }
-  })
+  const lessonRows = attributeRows(d.lessons, ATTRIBUTES.lessons, labels['lessons'])
   if (lessonRows.length) await db.insert(lessons).values(lessonRows).onConflictDoNothing()
 }

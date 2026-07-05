@@ -49,7 +49,6 @@ export type AttributeTermDTO = {
   sortOrder: number
 }
 
-export type LessonDTO = AttributeTermDTO & { color: string | null }
 
 export type RulingDTO = {
   id: string

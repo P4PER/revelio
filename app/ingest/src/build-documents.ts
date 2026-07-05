@@ -1,5 +1,5 @@
 import type { DB } from '@revelio/db'
-import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, lessons } from '@revelio/db'
+import { cards, sets, cardLocalizations, cardTypes, cardSubTypes } from '@revelio/db'
 import type { SearchDocument, CardIndexData } from '@revelio/search'
 import { buildCardDocument } from '@revelio/search'
 
@@ -15,17 +15,15 @@ function groupValues<T>(rows: T[], key: (r: T) => string, val: (r: T) => string)
 }
 
 export async function buildDocuments(db: DB): Promise<Record<string, SearchDocument[]>> {
-  const [allCards, allSets, allLocs, typeLinks, subTypeLinks, allLessons] = await Promise.all([
+  const [allCards, allSets, allLocs, typeLinks, subTypeLinks] = await Promise.all([
     db.select().from(cards),
     db.select().from(sets),
     db.select().from(cardLocalizations),
     db.select().from(cardTypes),
     db.select().from(cardSubTypes),
-    db.select().from(lessons),
   ])
 
   const setByCode = new Map(allSets.map((s) => [s.code, s]))
-  const lessonColor = new Map(allLessons.map((l) => [l.code, l.color]))
   const typesByCard = groupValues(typeLinks, (t) => t.cardId, (t) => t.typeCode)
   const subTypesByCard = groupValues(subTypeLinks, (t) => t.cardId, (t) => t.subTypeCode)
 
@@ -56,7 +54,6 @@ export async function buildDocuments(db: DB): Promise<Record<string, SearchDocum
       number: c.number,
       name: c.name,
       lesson: c.lesson,
-      lessonColor: c.lesson ? (lessonColor.get(c.lesson) ?? null) : null,
       rarity: c.rarity,
       finish: c.finish,
       legality: c.legality,

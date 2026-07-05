@@ -37,7 +37,6 @@ describe('getCardIndexData', () => {
     expect(data?.id).toBe('x-1')
     expect(data?.setName).toBe('Xen')
     expect(data?.isOfficial).toBe(true)
-    expect(data?.lessonColor).toBeNull()
     expect(data?.localizations.en.name).toBe('New Name')
     expect(data?.localizations.de.name).toBe('Deutscher Name')
   })

@@ -10,7 +10,7 @@ import { Toaster } from '@/components/ui/sonner'
 import '../globals.css'
 
 export const metadata: Metadata = {
-  title: 'revelio.cards',
+  title: 'Revelio',
   description: 'A searchable Harry Potter TCG card database.',
 }
 

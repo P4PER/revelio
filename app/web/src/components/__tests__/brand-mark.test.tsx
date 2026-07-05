@@ -5,6 +5,6 @@ import { BrandMark } from '../brand-mark'
 describe('BrandMark', () => {
   it('renders the logo with an accessible name', () => {
     render(<BrandMark />)
-    expect(screen.getByAltText('revelio.cards')).toBeInTheDocument()
+    expect(screen.getByAltText('Revelio')).toBeInTheDocument()
   })
 })

@@ -4,7 +4,7 @@ export function BrandMark() {
   return (
     <Image
       src="/revelio-logo-dark.svg"
-      alt="revelio.cards"
+      alt="Revelio"
       width={426}
       height={78}
       priority

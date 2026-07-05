@@ -14,7 +14,7 @@ export async function SiteHeader() {
   return (
     <header className="border-b border-border/60">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-6 py-2">
-        <Link href="/" aria-label="revelio.cards home" className="shrink-0"><BrandMark /></Link>
+        <Link href="/" aria-label="Revelio home" className="shrink-0"><BrandMark /></Link>
         <Suspense fallback={<div className="mx-auto w-full max-w-md" />}>
           <HeaderSearch placeholder={ts('placeholder')} />
         </Suspense>

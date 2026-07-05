@@ -42,22 +42,23 @@ export function RulingsEditor({
   )
   const [busy, setBusy] = useState(false)
   const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map())
-  const [pendingScrollKey, setPendingScrollKey] = useState<string | null>(null)
+  const pendingScrollKey = useRef<string | null>(null)
 
   // After a newly added ruling has rendered, scroll it into view and focus its
   // first field so the editor lands on the new entry.
   useEffect(() => {
-    if (!pendingScrollKey) return
-    const el = rowRefs.current.get(pendingScrollKey)
+    const key = pendingScrollKey.current
+    if (!key) return
+    const el = rowRefs.current.get(key)
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     el?.querySelector('input')?.focus()
-    setPendingScrollKey(null)
-  }, [pendingScrollKey])
+    pendingScrollKey.current = null
+  }, [rows])
 
   function addRuling() {
     const key = nextKey()
+    pendingScrollKey.current = key
     setRows((rs) => [...rs, { key, id: null, date: '', source: '', text: '' }])
-    setPendingScrollKey(key)
   }
 
   function update(key: string, patch: Partial<Row>) {

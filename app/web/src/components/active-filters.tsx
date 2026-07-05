@@ -6,8 +6,6 @@ import { attrLabel } from '@/lib/attribute-labels'
 import { withParams } from '@/lib/search-params'
 import { Badge } from '@/components/ui/badge'
 
-const humanize = (c: string) => c.replace(/[-_]/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase())
-
 type Chip = { key: string; label: string; remove: Record<string, string | string[] | null> }
 
 export function ActiveFilters({ sets, locale }: { sets: SetDTO[]; locale: string }) {
@@ -15,17 +13,17 @@ export function ActiveFilters({ sets, locale }: { sets: SetDTO[]; locale: string
   const params = useSearchParams()
 
   // Advanced-only chips; Type/Lesson/Official are shown by their quick-filter badges.
-  const multi: { param: string; scope?: 'rarities' | 'finishes' }[] = [
+  const multi: { param: string; scope?: 'rarities' | 'finishes' | 'legalities' }[] = [
     { param: 'rarity', scope: 'rarities' },
     { param: 'finish', scope: 'finishes' },
-    { param: 'legality' },
+    { param: 'legality', scope: 'legalities' },
   ]
 
   const chips: Chip[] = []
   for (const { param, scope } of multi) {
     const values = params.getAll(param)
     for (const v of values) {
-      const label = scope ? attrLabel(scope, v, locale) : humanize(v)
+      const label = scope ? attrLabel(scope, v, locale) : v
       chips.push({ key: `${param}:${v}`, label, remove: { [param]: values.filter((x) => x !== v) } })
     }
   }

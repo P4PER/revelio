@@ -153,7 +153,7 @@ export function CardDetail({
           {card.legality && (
             <>
               <dt className="text-muted-foreground">{t('legality')}</dt>
-              <dd>{card.legality}</dd>
+              <dd>{attrLabel('legalities', card.legality, locale)}</dd>
             </>
           )}
           {card.artist.length > 0 && (

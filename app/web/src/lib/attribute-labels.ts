@@ -1,21 +1,14 @@
-import en from '@/i18n/attribute-labels/en.json'
-import de from '@/i18n/attribute-labels/de.json'
-import { slugify } from '@revelio/core'
+import en from '@/../messages/en.json'
+import de from '@/../messages/de.json'
 
-// The label files are keyed by the original strings ("Charms"); slugify to match our codes.
-type LabelFile = Record<string, unknown>
-const FILES: Record<string, LabelFile> = { en: en as LabelFile, de: de as LabelFile }
+type LabelScope = 'types' | 'lessons' | 'rarities' | 'finishes' | 'legalities'
+type Catalog = { attributes?: Record<string, Record<string, string>> }
+const MESSAGES: Record<string, Catalog> = { en: en as Catalog, de: de as Catalog }
 
-export function attrLabel(
-  scope: 'types' | 'lessons' | 'rarities' | 'finishes',
-  code: string,
-  locale: string,
-): string {
-  const dict = (FILES[locale]?.[scope] ?? FILES.en?.[scope]) as Record<string, string> | undefined
-  if (dict) {
-    for (const [rawKey, label] of Object.entries(dict)) {
-      if (slugify(rawKey) === code) return label
-    }
-  }
-  return code
+// Attribute labels live in the next-intl message catalog, keyed by code. Kept as a
+// plain function (not the useTranslations hook) so it works in both server and
+// client components, which pass `locale` explicitly.
+export function attrLabel(scope: LabelScope, code: string, locale: string): string {
+  const catalog = MESSAGES[locale] ?? MESSAGES.en
+  return catalog.attributes?.[scope]?.[code] ?? code
 }

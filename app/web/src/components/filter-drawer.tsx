@@ -21,8 +21,6 @@ import {
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
-const humanize = (c: string) => c.replace(/[-_]/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase())
-
 type Grp = { param: string; titleKey: string; options: { code: string }[]; label: (c: string) => string }
 
 export function FilterDrawer({ sets, locale }: { sets: SetDTO[]; locale: string }) {
@@ -35,7 +33,7 @@ export function FilterDrawer({ sets, locale }: { sets: SetDTO[]; locale: string 
     { param: 'lesson', titleKey: 'lesson', options: LESSONS, label: (c) => attrLabel('lessons', c, locale) },
     { param: 'rarity', titleKey: 'rarity', options: RARITIES, label: (c) => attrLabel('rarities', c, locale) },
     { param: 'finish', titleKey: 'finish', options: FINISHES, label: (c) => attrLabel('finishes', c, locale) },
-    { param: 'legality', titleKey: 'legality', options: LEGALITIES, label: (c) => humanize(c) },
+    { param: 'legality', titleKey: 'legality', options: LEGALITIES, label: (c) => attrLabel('legalities', c, locale) },
   ]
 
   // pending state seeded from the URL

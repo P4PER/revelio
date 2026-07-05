@@ -68,7 +68,7 @@ export default async function EditCardPage({
   const fallbackLang = imgLang && imgLang !== lang ? imgLang : null
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-10">
+    <main className="mx-auto max-w-5xl px-6 py-10">
       <div className="mb-6 flex items-center justify-between gap-4">
         <Link
           href={`/card/${id}`}
@@ -103,8 +103,10 @@ export default async function EditCardPage({
       </div>
       <h1 className="text-2xl font-semibold text-primary">{t('title')}</h1>
       <p className="mb-8 text-sm text-muted-foreground">{card.name} · {id}</p>
-      <div className="space-y-8">
-        <ImageUploader key={`img-${lang}`} cardId={id} lang={lang} imageSrc={imageSrc} fallbackLang={fallbackLang} />
+      <div className="grid gap-8 md:grid-cols-[minmax(0,340px)_1fr]">
+        <div className="md:sticky md:top-6 md:self-start">
+          <ImageUploader key={`img-${lang}`} cardId={id} lang={lang} imageSrc={imageSrc} fallbackLang={fallbackLang} />
+        </div>
         <CardEditForm
           key={lang}
           cardId={id}

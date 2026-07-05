@@ -101,7 +101,9 @@
     "imageUploaded": "Bild hochgeladen.",
     "imageRemoved": "Bild entfernt.",
     "imageFailed": "Bild konnte nicht gespeichert werden.",
-    "usingFallback": "Nutzt aktuell das {lang}-Bild."
+    "usingFallback": "Nutzt aktuell das {lang}-Bild.",
+    "changeImage": "Bild ändern",
+    "noImage": "Kein Bild"
   },
   "auth": {
     "title": "Anmelden",

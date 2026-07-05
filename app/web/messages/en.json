@@ -101,7 +101,9 @@
     "imageUploaded": "Image uploaded.",
     "imageRemoved": "Image removed.",
     "imageFailed": "Could not save the image.",
-    "usingFallback": "Currently using the {lang} image."
+    "usingFallback": "Currently using the {lang} image.",
+    "changeImage": "Change image",
+    "noImage": "No image"
   },
   "auth": {
     "title": "Sign in",

@@ -127,6 +127,22 @@ export async function upsertLocalization(
     })
 }
 
+export async function setLocalizationImage(
+  db: DB,
+  cardId: string,
+  lang: string,
+  imageFile: string | null,
+): Promise<void> {
+  const now = new Date()
+  await db
+    .insert(cardLocalizations)
+    .values({ cardId, lang, name: '', imageFile, origin: 'user', updatedAt: now })
+    .onConflictDoUpdate({
+      target: [cardLocalizations.cardId, cardLocalizations.lang],
+      set: { imageFile, origin: 'user', updatedAt: now },
+    })
+}
+
 export async function getCardIndexData(db: DB, cardId: string): Promise<CardIndexData | null> {
   const [card] = await db.select().from(cards).where(eq(cards.id, cardId)).limit(1)
   if (!card) return null

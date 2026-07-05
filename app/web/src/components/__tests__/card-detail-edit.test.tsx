@@ -13,7 +13,7 @@ const card = {
   id: 'x-1', setCode: 'X', number: '1', name: 'Card', types: [], subTypes: [],
   lesson: null, cost: null, rarity: null, finish: null, legality: null, artist: [],
   health: null, damagePerTurn: null, orientation: null, defaultLanguage: 'en',
-  localizations: { en: { lang: 'en', name: 'Card', status: 'official', source: null, text: null, flavorText: null, imageFile: null, imageUrl: null } },
+  localizations: { en: { lang: 'en', name: 'Card', status: 'official', source: null, text: null, flavorText: null, imageFile: 'art.png', imageUrl: null } },
   rulings: [],
   set: { code: 'X', name: 'Xen', releaseDate: null, isOfficial: true, symbol: null },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -78,6 +78,15 @@ describe('CardDetail edit link', () => {
     )
     expect(screen.getByText('take 2 lessons')).toBeInTheDocument()
     expect(screen.getByText('do 10 damage')).toBeInTheDocument()
+  })
+
+  it('renders the card image when the language has one', () => {
+    render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        <CardDetail card={card} locale="en" imageBase="https://img.test" canEdit={false} />
+      </NextIntlClientProvider>,
+    )
+    expect(screen.getByRole('img', { name: card.localizations.en.name })).toBeInTheDocument()
   })
 
 })

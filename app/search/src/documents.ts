@@ -1,4 +1,5 @@
 import type { Settings, MeiliSearch } from 'meilisearch'
+import { effectiveImageLang } from '@revelio/core'
 
 export type SearchDocument = {
   id: string
@@ -17,7 +18,8 @@ export type SearchDocument = {
   legality: string | null
   cost: number | null
   isOfficial: boolean
-  imageFile: string | null
+  imageLang: string | null
+  defaultLanguage: string
 }
 
 export function cardsIndex(lang: string): string {
@@ -69,7 +71,7 @@ export function buildCardDocument(d: CardIndexData, lang: string): SearchDocumen
     setCode: d.setCode,
     setName: d.setName,
     number: d.number,
-    name: loc?.name ?? d.name,
+    name: loc?.name || d.name,
     text: loc?.text ?? null,
     flavorText: loc?.flavorText ?? null,
     types: d.types,
@@ -81,7 +83,8 @@ export function buildCardDocument(d: CardIndexData, lang: string): SearchDocumen
     legality: d.legality,
     cost: d.cost,
     isOfficial: d.isOfficial,
-    imageFile: loc?.imageFile ?? null,
+    imageLang: effectiveImageLang((l) => !!d.localizations[l]?.imageFile, lang, d.defaultLanguage),
+    defaultLanguage: d.defaultLanguage,
   }
 }
 

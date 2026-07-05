@@ -1,3 +1,11 @@
+# Local dev stack. Ports bind to 127.0.0.1 only (loopback) — these services
+# use weak dev credentials (masterKey / minioadmin) and must not be exposed to
+# the LAN. The published ports let a web run on the host (`npm run dev`/`start`
+# in app/web) reach the seeded stack:
+#   MEILI_HOST=http://localhost:7700  MEILI_SEARCH_KEY=masterKey
+#   NEXT_PUBLIC_IMAGE_BASE_URL=http://localhost:9000/card-images
+# Note: these ports collide with the standalone test containers
+# (revelio-testmeili:7700, revelio-testminio:9000) — stop those first.
 services:
   postgres:
     image: postgres:16-alpine
@@ -5,6 +13,8 @@ services:
       POSTGRES_USER: revelio
       POSTGRES_PASSWORD: revelio
       POSTGRES_DB: revelio
+    ports:
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -14,7 +24,10 @@ services:
       retries: 10
 
   ingest:
-    image: ghcr.io/replace_me/revelio-ingest:latest
+    image: revelio-ingest:local
+    build:
+      context: .
+      dockerfile: ingest/Dockerfile
     depends_on:
       postgres:
         condition: service_healthy
@@ -35,10 +48,17 @@ services:
       S3_SECRET_KEY: minioadmin
       S3_REGION: us-east-1
       S3_FORCE_PATH_STYLE: "true"
+    volumes:
+      - ../card-data/dist:/data:ro
+      - ../card-data/i18n:/i18n:ro
+      - ../card-data/assets:/assets:ro
     restart: "no"
 
   migrate:
-    image: ghcr.io/replace_me/revelio-ingest:latest
+    image: revelio-ingest:local
+    build:
+      context: .
+      dockerfile: ingest/Dockerfile
     profiles: ["tools"]          # not started by `up`; run via `docker compose run --rm migrate`
     depends_on:
       postgres:
@@ -53,6 +73,8 @@ services:
     environment:
       MEILI_MASTER_KEY: masterKey
       MEILI_NO_ANALYTICS: "true"
+    ports:
+      - "127.0.0.1:7700:7700"
     volumes:
       - meili:/meili_data
     healthcheck:
@@ -68,7 +90,8 @@ services:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
     ports:
-      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9000:9000" # S3 API
+      - "127.0.0.1:9001:9001" # web console
     volumes:
       - minio:/data
     healthcheck:

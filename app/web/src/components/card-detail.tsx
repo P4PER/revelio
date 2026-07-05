@@ -8,6 +8,7 @@ import { effectiveImageLang, imageKey, imageUrl, LESSONS } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
 import { pickLocalization } from '@/lib/card-view'
 import { Badge } from '@/components/ui/badge'
+import { LightningDivider } from '@/components/lightning-divider'
 
 // Sub-types have no i18n label group; humanize the slug (death_eater -> Death Eater).
 const humanize = (code: string) =>
@@ -125,7 +126,10 @@ export function CardDetail({
           </dl>
         )}
         {loc.flavorText && (
-          <p className="mt-4 border-l-2 border-border pl-4 italic text-muted-foreground">{loc.flavorText}</p>
+          <>
+            <LightningDivider />
+            <p className="whitespace-pre-line text-center italic text-muted-foreground">{loc.flavorText}</p>
+          </>
         )}
 
         <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">

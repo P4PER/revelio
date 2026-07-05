@@ -1,4 +1,7 @@
 {
+  "meta": {
+    "description": "A searchable Harry Potter TCG card database."
+  },
   "home": {
     "titleSuffix": "Harry Potter TCG card search",
     "tagline": "Reveal every Harry Potter TCG card.",

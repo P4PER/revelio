@@ -1,4 +1,7 @@
 {
+  "meta": {
+    "description": "Eine durchsuchbare Datenbank für das Harry-Potter-Sammelkartenspiel."
+  },
   "home": {
     "titleSuffix": "Harry Potter TCG Kartensuche",
     "tagline": "Enthülle jede Harry-Potter-TCG-Karte.",

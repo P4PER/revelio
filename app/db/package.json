@@ -8,7 +8,8 @@
     "generate": "drizzle-kit generate",
     "migrate": "tsx src/migrate-cli.ts",
     "check": "drizzle-kit check",
-    "verify": "node scripts/verify-migrations.mjs"
+    "verify": "node scripts/verify-migrations.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@revelio/search": "*",

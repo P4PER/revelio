@@ -13,7 +13,7 @@ import '../globals.css'
 export const metadata: Metadata = {
   title: {
     default: BRAND_NAME,
-    template: `%s ⚡ ${BRAND_NAME}`,
+    template: `%s · ${BRAND_NAME}`,
   },
   description: 'A searchable Harry Potter TCG card database.',
 }

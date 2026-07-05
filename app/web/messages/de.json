@@ -1,6 +1,5 @@
 {
   "home": {
-    "title": "Revelio",
     "tagline": "Enthülle jede Harry-Potter-TCG-Karte.",
     "searchPlaceholder": "Karten suchen…",
     "allCards": "Alle Karten",
@@ -13,7 +12,7 @@
     "new": "Neu"
   },
   "footer": {
-    "disclaimer": "Revelio ist ein inoffizielles, nicht-kommerzielles Fan-Projekt. Harry Potter, das Harry Potter Sammelkartenspiel, alle Kartennamen, Illustrationen und Marken sind Eigentum von Warner Bros. Entertainment Inc., Wizards of the Coast und ihren jeweiligen Rechteinhabern. Revelio steht in keiner Verbindung zu ihnen und wird nicht von ihnen unterstützt."
+    "disclaimer": "{brand} ist ein inoffizielles, nicht-kommerzielles Fan-Projekt. Harry Potter, das Harry Potter Sammelkartenspiel, alle Kartennamen, Illustrationen und Marken sind Eigentum von Warner Bros. Entertainment Inc., Wizards of the Coast und ihren jeweiligen Rechteinhabern. {brand} steht in keiner Verbindung zu ihnen und wird nicht von ihnen unterstützt."
   },
   "nav": {
     "language": "Sprache",
@@ -120,8 +119,8 @@
     "noAccount": "Noch kein Konto?",
     "register": "Registrieren",
     "haveAccount": "Schon ein Konto?",
-    "subtitle": "Gib deine E-Mail-Adresse ein, um dich bei Revelio anzumelden.",
-    "registerSubtitle": "Gib deine E-Mail und einen Benutzernamen ein, um dein Revelio-Konto zu erstellen.",
+    "subtitle": "Gib deine E-Mail-Adresse ein, um dich bei {brand} anzumelden.",
+    "registerSubtitle": "Gib deine E-Mail und einen Benutzernamen ein, um dein {brand}-Konto zu erstellen.",
     "noAccountError": "Kein Konto für diese E-Mail gefunden. Bitte zuerst registrieren.",
     "usernameTaken": "Dieser Benutzername ist vergeben. Bitte einen anderen wählen."
   }

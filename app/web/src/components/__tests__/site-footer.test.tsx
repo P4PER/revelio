@@ -11,7 +11,7 @@ describe('SiteFooter', () => {
         <SiteFooter />
       </NextIntlClientProvider>,
     )
-    expect(screen.getByText(/unofficial fan project/i)).toBeInTheDocument()
+    expect(screen.getByText(/non-commercial fan project/i)).toBeInTheDocument()
     expect(screen.getByText(/Warner Bros\./)).toBeInTheDocument()
   })
 })

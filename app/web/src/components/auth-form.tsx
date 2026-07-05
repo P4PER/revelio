@@ -4,6 +4,7 @@ import { useRouter, Link } from '@/../i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { authClient } from '@/lib/auth-client'
 import { emailHasAccount, usernameAvailable } from '@/lib/auth-actions'
+import { BRAND_NAME } from '@/lib/brand'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
@@ -66,7 +67,9 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       </h1>
       {step === 'email' && (
         <p className="mb-6 text-sm text-muted-foreground">
-          {register ? t('registerSubtitle') : t('subtitle')}
+          {register
+            ? t('registerSubtitle', { brand: BRAND_NAME })
+            : t('subtitle', { brand: BRAND_NAME })}
         </p>
       )}
       {step === 'email' ? (

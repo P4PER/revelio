@@ -1,6 +1,5 @@
 {
   "home": {
-    "title": "Revelio",
     "tagline": "Reveal every Harry Potter TCG card.",
     "searchPlaceholder": "Search cards…",
     "allCards": "Browse all cards",
@@ -13,7 +12,7 @@
     "new": "New"
   },
   "footer": {
-    "disclaimer": "Revelio is an unofficial, non-commercial fan project. Harry Potter, the Harry Potter Trading Card Game, all card names, artwork, and trademarks are the property of Warner Bros. Entertainment Inc., Wizards of the Coast, and their respective owners. Revelio is not affiliated with or endorsed by them."
+    "disclaimer": "{brand} is an unofficial, non-commercial fan project. Harry Potter, the Harry Potter Trading Card Game, all card names, artwork, and trademarks are the property of Warner Bros. Entertainment Inc., Wizards of the Coast, and their respective owners. {brand} is not affiliated with or endorsed by them."
   },
   "nav": {
     "language": "Language",
@@ -120,8 +119,8 @@
     "noAccount": "Need an account?",
     "register": "Register",
     "haveAccount": "Already have an account?",
-    "subtitle": "Enter your email address to sign in to Revelio.",
-    "registerSubtitle": "Enter your email and a username to create your Revelio account.",
+    "subtitle": "Enter your email address to sign in to {brand}.",
+    "registerSubtitle": "Enter your email and a username to create your {brand} account.",
     "noAccountError": "No account found for that email. Please register first.",
     "usernameTaken": "That username is taken. Please choose another."
   }

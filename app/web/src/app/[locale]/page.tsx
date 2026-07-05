@@ -32,7 +32,6 @@ export async function generateMetadata({
   languages['x-default'] = `${BASE_URL}${getPathname({ href: '/', locale: routing.defaultLocale })}`
 
   return {
-    title: t('title'),
     description: t('tagline'),
     alternates: { canonical: `${BASE_URL}${getPathname({ href: '/', locale })}`, languages },
   }

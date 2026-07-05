@@ -4,13 +4,17 @@ import { NextIntlClientProvider, hasLocale } from 'next-intl'
 import { notFound } from 'next/navigation'
 import { getMessages, setRequestLocale } from 'next-intl/server'
 import { routing } from '@/../i18n/routing'
+import { BRAND_NAME } from '@/lib/brand'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { Toaster } from '@/components/ui/sonner'
 import '../globals.css'
 
 export const metadata: Metadata = {
-  title: 'Revelio',
+  title: {
+    default: BRAND_NAME,
+    template: `%s ⚡ ${BRAND_NAME}`,
+  },
   description: 'A searchable Harry Potter TCG card database.',
 }
 

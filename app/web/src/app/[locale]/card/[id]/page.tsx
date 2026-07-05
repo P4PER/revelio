@@ -33,7 +33,7 @@ export async function generateMetadata({
     routing.locales.map((l) => [l, `${BASE_URL}${getPathname({ href: `/card/${id}`, locale: l })}`]),
   )
   return {
-    title: `${loc.name} · Revelio`,
+    title: loc.name,
     description: loc.text ?? undefined,
     alternates: { canonical: `${BASE_URL}${getPathname({ href: `/card/${id}`, locale })}`, languages },
     openGraph: {

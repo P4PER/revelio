@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { getTranslations } from 'next-intl/server'
 import { HeaderSearch } from './header-search'
 import { Link } from '@/../i18n/navigation'
+import { BRAND_NAME } from '@/lib/brand'
 import { Button } from '@/components/ui/button'
 import { BrandMark } from './brand-mark'
 import { LanguageSwitcher } from './language-switcher'
@@ -14,7 +15,7 @@ export async function SiteHeader() {
   return (
     <header className="border-b border-border/60">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-6 py-2">
-        <Link href="/" aria-label="Revelio home" className="shrink-0"><BrandMark /></Link>
+        <Link href="/" aria-label={`${BRAND_NAME} home`} className="shrink-0"><BrandMark /></Link>
         <Suspense fallback={<div className="mx-auto w-full max-w-md" />}>
           <HeaderSearch placeholder={ts('placeholder')} />
         </Suspense>

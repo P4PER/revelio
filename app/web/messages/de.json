@@ -1,5 +1,6 @@
 {
   "home": {
+    "titleSuffix": "Harry Potter TCG Kartensuche",
     "tagline": "Enthülle jede Harry-Potter-TCG-Karte.",
     "searchPlaceholder": "Karten suchen…",
     "allCards": "Alle Karten",

@@ -7,6 +7,7 @@ import { getPathname, Link } from '@/../i18n/navigation'
 import { getDb } from '@/lib/db'
 import { listSets } from '@revelio/db'
 import { byReleaseDate } from '@/lib/set-sort'
+import { BRAND_NAME } from '@/lib/brand'
 import { HomeSearch } from '@/components/home-search'
 import { StarField } from '@/components/star-field'
 import { Badge } from '@/components/ui/badge'
@@ -32,6 +33,7 @@ export async function generateMetadata({
   languages['x-default'] = `${BASE_URL}${getPathname({ href: '/', locale: routing.defaultLocale })}`
 
   return {
+    title: { absolute: `${BRAND_NAME}: ${t('titleSuffix')}` },
     description: t('tagline'),
     alternates: { canonical: `${BASE_URL}${getPathname({ href: '/', locale })}`, languages },
   }

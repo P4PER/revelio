@@ -4,10 +4,11 @@ import { Pencil } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import { Button } from '@/components/ui/button'
 import type { CardDetailDTO } from '@revelio/core'
-import { effectiveImageLang, imageKey, imageUrl, LESSONS } from '@revelio/core'
+import { effectiveImageLang, imageKey, imageUrl } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
 import { pickLocalization } from '@/lib/card-view'
 import { Badge } from '@/components/ui/badge'
+import { LessonCost } from '@/components/lesson-cost'
 import { LightningDivider } from '@/components/lightning-divider'
 
 // Sub-types have no i18n label group; humanize the slug (death_eater -> Death Eater).
@@ -26,7 +27,6 @@ export function CardDetail({
   const tEdit = useTranslations('edit')
   const { loc, isFallback } = pickLocalization(card, locale)
   if (!loc) return null
-  const lessonColor = LESSONS.find((l) => l.code === card.lesson)?.color ?? undefined
   const rulingText = (r: { text: Record<string, string> }) =>
     r.text[locale] ?? r.text[card.defaultLanguage] ?? Object.values(r.text)[0] ?? ''
   const imgLang = effectiveImageLang(
@@ -55,7 +55,16 @@ export function CardDetail({
       </div>
       <div>
         <div className="flex items-start justify-between gap-4">
-          <h1 className="text-3xl font-semibold text-primary">{loc.name}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-semibold text-primary">{loc.name}</h1>
+            {card.lesson && (
+              <LessonCost
+                lesson={card.lesson}
+                cost={card.cost}
+                label={attrLabel('lessons', card.lesson, locale)}
+              />
+            )}
+          </div>
           {canEdit && (
             <Button asChild variant="outline" size="sm" className="shrink-0 gap-1.5">
               <Link href={`/card/${card.id}/edit`}>
@@ -74,16 +83,6 @@ export function CardDetail({
           <Badge data-testid="machine-badge" variant="secondary" className="mt-3">
             {t('machineTranslation')}
           </Badge>
-        )}
-
-        {card.lesson && (
-          <div className="mt-4">
-            <Badge variant="outline" className="text-sm px-2.5 py-1" style={{ borderColor: lessonColor, color: lessonColor }}>
-              {card.cost != null
-                ? `${card.cost} ${attrLabel('lessons', card.lesson, locale)}`
-                : attrLabel('lessons', card.lesson, locale)}
-            </Badge>
-          </div>
         )}
 
         {card.types.length > 0 && (

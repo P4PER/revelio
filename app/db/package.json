@@ -6,7 +6,9 @@
   "exports": { ".": "./src/index.ts" },
   "scripts": {
     "generate": "drizzle-kit generate",
-    "migrate": "tsx src/migrate-cli.ts"
+    "migrate": "tsx src/migrate-cli.ts",
+    "check": "drizzle-kit check",
+    "verify": "node scripts/verify-migrations.mjs"
   },
   "dependencies": {
     "@revelio/search": "*",

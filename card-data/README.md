@@ -15,9 +15,7 @@ card-data/
   image_overrides.json      # id -> correct accio filename (typo/name fixes)
   translations/<lang>.json  # editable per-language text overlays (id -> fields)
   i18n/labels.<lang>.json   # UI label dictionaries (types, lessons, rarities)
-  DATABASE-CHOICE.md        # which DB fits (PostgreSQL)
   IMAGES-SOURCING.md        # where card images & symbols come from
-  STRUCTURE-REVIEW.md       # structure notes / rationale
   dist/                     # GENERATED (git-ignored) – build output
     cards.json              #   full bundle, all languages
     sets.json               #   set metadata keyed by setCode

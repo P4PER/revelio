@@ -10,5 +10,7 @@ const MESSAGES: Record<string, Catalog> = { en: en as Catalog, de: de as Catalog
 // client components, which pass `locale` explicitly.
 export function attrLabel(scope: LabelScope, code: string, locale: string): string {
   const catalog = MESSAGES[locale] ?? MESSAGES.en
-  return catalog.attributes?.[scope]?.[code] ?? code
+  return catalog.attributes?.[scope]?.[code]
+    ?? MESSAGES.en.attributes?.[scope]?.[code]
+    ?? code
 }

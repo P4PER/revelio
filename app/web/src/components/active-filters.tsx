@@ -13,7 +13,7 @@ export function ActiveFilters({ sets, locale }: { sets: SetDTO[]; locale: string
   const params = useSearchParams()
 
   // Advanced-only chips; Type/Lesson/Official are shown by their quick-filter badges.
-  const multi: { param: string; scope?: 'rarities' | 'finishes' | 'legalities' }[] = [
+  const multi: { param: string; scope: 'rarities' | 'finishes' | 'legalities' }[] = [
     { param: 'rarity', scope: 'rarities' },
     { param: 'finish', scope: 'finishes' },
     { param: 'legality', scope: 'legalities' },
@@ -23,7 +23,7 @@ export function ActiveFilters({ sets, locale }: { sets: SetDTO[]; locale: string
   for (const { param, scope } of multi) {
     const values = params.getAll(param)
     for (const v of values) {
-      const label = scope ? attrLabel(scope, v, locale) : v
+      const label = attrLabel(scope, v, locale)
       chips.push({ key: `${param}:${v}`, label, remove: { [param]: values.filter((x) => x !== v) } })
     }
   }

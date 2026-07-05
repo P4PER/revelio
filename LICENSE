@@ -1,0 +1,44 @@
+Revelio (revelio.cards) — Source-Available License
+Copyright (c) 2026 the Revelio team. All rights reserved.
+
+This source code is made publicly available for reference and transparency
+only. It is NOT open source: no rights are granted to use it beyond reading.
+
+1. Permission
+   You may view and read the source code in this repository for personal,
+   educational, and evaluation purposes.
+
+2. Restrictions
+   Without the prior written permission of the Revelio team, you may NOT:
+     (a) use, run, host, or deploy this software or any part of it, whether
+         for private, public, or commercial purposes;
+     (b) copy, reproduce, or redistribute the source code, in whole or in
+         part, in original or modified form;
+     (c) modify, adapt, translate, or create derivative works based on it;
+     (d) sublicense, sell, rent, or otherwise transfer any rights to it.
+
+   All rights not expressly granted above are reserved by the Revelio team.
+
+3. Harry Potter intellectual property
+   Revelio is an unofficial, non-commercial fan project for the Harry Potter
+   Trading Card Game (2001, Wizards of the Coast). The names "Harry Potter"
+   and "Wizards of the Coast", all card names and card text, and all related
+   artwork, characters, logos, and trademarks are the property of Warner Bros.
+   Entertainment Inc., Wizards of the Coast, and their respective owners.
+
+   This license covers ONLY the original source code and data-build tooling
+   authored by the Revelio team. It grants no rights whatsoever in the Harry
+   Potter intellectual property, which is neither owned nor licensed by this
+   project. That intellectual property remains subject to the rights of its
+   owners, independently of this license.
+
+4. No warranty
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL
+   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
+   FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+
+For permission requests, please contact the Revelio team.

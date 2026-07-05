@@ -25,7 +25,7 @@ Today `card_rulings` PK `(cardId, seq)` stores `text` as jsonb `Record<lang,stri
 
 `RulingDTO` gains `id`: `{ id: string; seq: number; date: string | null; source: string | null; text: Record<string,string> }`. `getCardById` assembles `text` by joining the child rows. The public detail page is unaffected (it reads `RulingDTO.text[locale]` as before).
 
-This requires: schema edit → **regenerate the consolidated migration** → **fresh DB / re-seed** (the project's existing pattern; data re-seeds from source) → rewrite the rulings ingest.
+This requires: schema edit → **regenerate the consolidated migration** → **fresh DB / re-seed** (the project's existing pattern; data re-seeds from source) → rewrite the rulings ingest. (Superseded by Plan 5a — migrations are now incremental; see docs/MIGRATIONS.md.)
 
 ## Why this eliminates the workaround
 

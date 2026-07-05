@@ -67,5 +67,5 @@ Open registration — anyone can create an account and is a **`user`** by defaul
 ## Deferred / notes
 
 - Rate-limiting on OTP requests (Better Auth has options) — enable sensible defaults; revisit for prod.
-- The regenerated-migration pattern means adding auth tables needs a fresh DB / re-seed (see the Plan 5 migration-strategy TODO).
+- The regenerated-migration pattern means adding auth tables needs a fresh DB / re-seed (see the Plan 5 migration-strategy TODO). (Superseded by Plan 5a — migrations are now incremental; see docs/MIGRATIONS.md.)
 - Prod email delivery + email verification/anti-abuse hardening land in Plan 5.

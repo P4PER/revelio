@@ -4,7 +4,6 @@ import { loadDist } from './load-dist.js'
 import { loadSets } from './load-sets.js'
 import { loadAttributes } from './load-attributes.js'
 import { loadCards } from './load-cards.js'
-import { loadLabels } from './load-labels.js'
 import { indexCards } from './index-cards.js'
 import { createS3Client, ensureBucket, uploadAssets, type S3Config } from './upload-images.js'
 
@@ -21,9 +20,8 @@ export async function runIngest(opts: {
   try {
     await runMigrations(db)
     const { sets, cards } = await loadDist(opts.dataDir)
-    const labels = await loadLabels(opts.i18nDir)
     await loadSets(db, sets)
-    await loadAttributes(db, cards, labels)
+    await loadAttributes(db, cards)
     await loadCards(db, cards)
     if (opts.meiliHost) {
       const meili = createMeiliClient(opts.meiliHost, opts.meiliKey ?? '')

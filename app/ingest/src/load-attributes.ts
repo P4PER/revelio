@@ -2,7 +2,6 @@ import type { DB } from '@revelio/db'
 import { types, subTypes, lessons, rarities, finishes, legalities } from '@revelio/db'
 import { ATTRIBUTES, slugify } from '@revelio/core'
 import type { DistCard } from './types.js'
-import type { LabelIndex } from './load-labels.js'
 
 type Provide = { lesson?: string | null }
 
@@ -29,39 +28,38 @@ function distinctAttributes(cards: DistCard[]) {
   return acc
 }
 
-// Merge a derived code set with curated sort orders (default 999 when uncurated).
-function attributeRows(
-  codes: Set<string>,
-  cfg: readonly { code: string; sortOrder: number }[],
-  labelsForScope: Record<string, Record<string, string>> = {},
-) {
-  return [...codes].map((code) => ({
-    code,
-    sortOrder: cfg.find((e) => e.code === code)?.sortOrder ?? 999,
-    labels: labelsForScope[code] ?? {},
-    origin: 'import' as const,
-  }))
+// Ordered vocab: sort_order is the 1-based position in the curated attributes.ts
+// array (999 when a derived code is not curated there).
+function orderedRows(codes: Set<string>, cfg: readonly { code: string }[]) {
+  return [...codes].map((code) => {
+    const idx = cfg.findIndex((e) => e.code === code)
+    return { code, sortOrder: idx === -1 ? 999 : idx + 1 }
+  })
 }
 
-export async function loadAttributes(db: DB, cards: DistCard[], labels: LabelIndex = {}): Promise<void> {
+// Code-only vocab: no sort_order column.
+function codeRows(codes: Set<string>) {
+  return [...codes].map((code) => ({ code }))
+}
+
+export async function loadAttributes(db: DB, cards: DistCard[]): Promise<void> {
   const d = distinctAttributes(cards)
 
-  const typeRows = attributeRows(d.types, ATTRIBUTES.types, labels['types'])
+  const typeRows = orderedRows(d.types, ATTRIBUTES.types)
   if (typeRows.length) await db.insert(types).values(typeRows).onConflictDoNothing()
 
-  const rarityRows = attributeRows(d.rarities, ATTRIBUTES.rarities, labels['rarities'])
+  const rarityRows = orderedRows(d.rarities, ATTRIBUTES.rarities)
   if (rarityRows.length) await db.insert(rarities).values(rarityRows).onConflictDoNothing()
 
-  const finishRows = attributeRows(d.finishes, ATTRIBUTES.finishes, labels['finishes'])
+  const finishRows = orderedRows(d.finishes, ATTRIBUTES.finishes)
   if (finishRows.length) await db.insert(finishes).values(finishRows).onConflictDoNothing()
 
-  const legalityRows = attributeRows(d.legalities, ATTRIBUTES.legalities)
+  const lessonRows = orderedRows(d.lessons, ATTRIBUTES.lessons)
+  if (lessonRows.length) await db.insert(lessons).values(lessonRows).onConflictDoNothing()
+
+  const legalityRows = codeRows(d.legalities)
   if (legalityRows.length) await db.insert(legalities).values(legalityRows).onConflictDoNothing()
 
-  // sub_types has no curated config — self-extends from data with default order.
-  const subTypeRows = attributeRows(d.subTypes, [])
+  const subTypeRows = codeRows(d.subTypes)
   if (subTypeRows.length) await db.insert(subTypes).values(subTypeRows).onConflictDoNothing()
-
-  const lessonRows = attributeRows(d.lessons, ATTRIBUTES.lessons, labels['lessons'])
-  if (lessonRows.length) await db.insert(lessons).values(lessonRows).onConflictDoNothing()
 }

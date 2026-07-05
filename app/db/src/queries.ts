@@ -1,7 +1,7 @@
 import { eq, asc, sql, inArray, and, isNotNull } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import type { DB } from './client'
-import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingTexts, lessons } from './schema'
+import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingTexts } from './schema'
 import type { SetDTO, CardLocalizationDTO, CardDetailDTO, AdventureData, MatchData } from '@revelio/core'
 import type { CardIndexData } from '@revelio/search'
 
@@ -152,11 +152,6 @@ export async function getCardIndexData(db: DB, cardId: string): Promise<CardInde
     db.select().from(cardTypes).where(eq(cardTypes.cardId, cardId)),
     db.select().from(cardSubTypes).where(eq(cardSubTypes.cardId, cardId)),
   ])
-  let lessonColor: string | null = null
-  if (card.lesson) {
-    const [l] = await db.select().from(lessons).where(eq(lessons.code, card.lesson)).limit(1)
-    lessonColor = l?.color ?? null
-  }
   const localizations: CardIndexData['localizations'] = {}
   for (const l of locRows) {
     localizations[l.lang] = { name: l.name, text: l.text, flavorText: l.flavorText, imageFile: l.imageFile }
@@ -168,7 +163,6 @@ export async function getCardIndexData(db: DB, cardId: string): Promise<CardInde
     number: card.number,
     name: card.name,
     lesson: card.lesson,
-    lessonColor,
     rarity: card.rarity,
     finish: card.finish,
     legality: card.legality,

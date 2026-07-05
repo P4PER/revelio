@@ -1,0 +1,1 @@
+ALTER TABLE "lessons" DROP COLUMN "color";

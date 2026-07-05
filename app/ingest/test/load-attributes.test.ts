@@ -32,10 +32,9 @@ describe('loadAttributes', () => {
     expect(rows[0].sortOrder).toBe(999)
   })
 
-  it('applies curated color + order to a lesson derived from provides', async () => {
+  it('applies curated order to a lesson derived from provides', async () => {
     const rows = await ctx.db.select().from(lessons).where(eq(lessons.code, 'charms'))
     expect(rows).toHaveLength(1) // Charms comes from Flobberworm.provides
-    expect(rows[0].color).toBe('#5B8DEF')
     expect(rows[0].sortOrder).toBe(2)
   })
 

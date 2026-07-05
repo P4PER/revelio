@@ -12,7 +12,6 @@ export type SearchDocument = {
   types: string[]
   subTypes: string[]
   lesson: string | null
-  lessonColor: string | null
   rarity: string | null
   finish: string | null
   legality: string | null
@@ -52,7 +51,6 @@ export type CardIndexData = {
   number: string
   name: string // card-level fallback name
   lesson: string | null
-  lessonColor: string | null
   rarity: string | null
   finish: string | null
   legality: string | null
@@ -77,7 +75,6 @@ export function buildCardDocument(d: CardIndexData, lang: string): SearchDocumen
     types: d.types,
     subTypes: d.subTypes,
     lesson: d.lesson,
-    lessonColor: d.lesson ? (d.lessonColor ?? null) : null,
     rarity: d.rarity,
     finish: d.finish,
     legality: d.legality,

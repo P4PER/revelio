@@ -26,7 +26,6 @@ export const subTypes = pgTable('sub_types', {
 
 export const lessons = pgTable('lessons', {
   code: text('code').primaryKey(),
-  color: text('color'),
   sortOrder: integer('sort_order').notNull().default(0),
   labels: jsonb('labels').notNull().default({}),
   ...editable,

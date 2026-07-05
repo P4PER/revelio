@@ -17,13 +17,14 @@ export const TYPES: AttributeMeta[] = [
   { code: 'match', sortOrder: 9 },
 ]
 
-// First-pass HP-flavored accent colors on the dark canvas; tunable later.
+// Mirrors the printed colour of each lesson symbol (see app/web/public/lessons/*.svg)
+// so lesson-tinted UI stays consistent with the icons.
 export const LESSONS: LessonMeta[] = [
-  { code: 'care_of_magical_creatures', color: '#5CB878', sortOrder: 1 },
-  { code: 'charms', color: '#5B8DEF', sortOrder: 2 },
-  { code: 'potions', color: '#A06CD5', sortOrder: 3 },
-  { code: 'transfiguration', color: '#E0555B', sortOrder: 4 },
-  { code: 'quidditch', color: '#EA7B3C', sortOrder: 5 },
+  { code: 'care_of_magical_creatures', color: '#836444', sortOrder: 1 },
+  { code: 'charms', color: '#0069A9', sortOrder: 2 },
+  { code: 'potions', color: '#00A661', sortOrder: 3 },
+  { code: 'transfiguration', color: '#BC3E4D', sortOrder: 4 },
+  { code: 'quidditch', color: '#E2AE37', sortOrder: 5 },
 ]
 
 export const RARITIES: AttributeMeta[] = [

@@ -9,9 +9,9 @@ const lang = uniqueLang()
 const uid = cardsIndex(lang)
 
 const docs: SearchDocument[] = [
-  { id: 'a', setCode: 'BS', setName: 'Base', number: '1', name: 'Harry Potter', text: 'The boy who lived', flavorText: null, types: ['character'], subTypes: ['wizard', 'gryffindor'], lesson: null, lessonColor: null, rarity: 'rare', finish: 'normal', legality: 'legal', cost: null, isOfficial: true, imageLang: 'en', defaultLanguage: 'en' },
-  { id: 'b', setCode: 'BS', setName: 'Base', number: '2', name: 'Flobberworm', text: 'A dull creature', flavorText: null, types: ['creature'], subTypes: [], lesson: null, lessonColor: null, rarity: 'common', finish: 'normal', legality: 'legal', cost: 2, isOfficial: true, imageLang: null, defaultLanguage: 'en' },
-  { id: 'c', setCode: 'QC', setName: 'Quidditch Cup', number: '1', name: 'The Snitch', text: 'Golden', flavorText: null, types: ['match'], subTypes: [], lesson: null, lessonColor: null, rarity: 'uncommon', finish: 'normal', legality: 'legal', cost: null, isOfficial: false, imageLang: null, defaultLanguage: 'en' },
+  { id: 'a', setCode: 'BS', setName: 'Base', number: '1', name: 'Harry Potter', text: 'The boy who lived', flavorText: null, types: ['character'], subTypes: ['wizard', 'gryffindor'], lesson: null, rarity: 'rare', finish: 'normal', legality: 'legal', cost: null, isOfficial: true, imageLang: 'en', defaultLanguage: 'en' },
+  { id: 'b', setCode: 'BS', setName: 'Base', number: '2', name: 'Flobberworm', text: 'A dull creature', flavorText: null, types: ['creature'], subTypes: [], lesson: null, rarity: 'common', finish: 'normal', legality: 'legal', cost: 2, isOfficial: true, imageLang: null, defaultLanguage: 'en' },
+  { id: 'c', setCode: 'QC', setName: 'Quidditch Cup', number: '1', name: 'The Snitch', text: 'Golden', flavorText: null, types: ['match'], subTypes: [], lesson: null, rarity: 'uncommon', finish: 'normal', legality: 'legal', cost: null, isOfficial: false, imageLang: null, defaultLanguage: 'en' },
 ]
 
 beforeAll(async () => {

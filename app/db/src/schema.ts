@@ -10,46 +10,35 @@ const editable = {
 }
 
 // --- reference (vocabulary) tables ---
+// Codes are FK anchors for cards. Labels live in the next-intl message catalog
+// (app/web/messages/*.json), never here. sort_order is only kept where display
+// order is deliberate (array position in app/core/src/attributes.ts).
 export const types = pgTable('types', {
   code: text('code').primaryKey(),
   sortOrder: integer('sort_order').notNull().default(0),
-  labels: jsonb('labels').notNull().default({}),
-  ...editable,
 })
 
 export const subTypes = pgTable('sub_types', {
   code: text('code').primaryKey(),
-  sortOrder: integer('sort_order').notNull().default(0),
-  labels: jsonb('labels').notNull().default({}),
-  ...editable,
 })
 
 export const lessons = pgTable('lessons', {
   code: text('code').primaryKey(),
   sortOrder: integer('sort_order').notNull().default(0),
-  labels: jsonb('labels').notNull().default({}),
-  ...editable,
 })
 
 export const rarities = pgTable('rarities', {
   code: text('code').primaryKey(),
   sortOrder: integer('sort_order').notNull().default(0),
-  labels: jsonb('labels').notNull().default({}),
-  ...editable,
 })
 
 export const finishes = pgTable('finishes', {
   code: text('code').primaryKey(),
   sortOrder: integer('sort_order').notNull().default(0),
-  labels: jsonb('labels').notNull().default({}),
-  ...editable,
 })
 
 export const legalities = pgTable('legalities', {
   code: text('code').primaryKey(),
-  sortOrder: integer('sort_order').notNull().default(0),
-  labels: jsonb('labels').notNull().default({}),
-  ...editable,
 })
 
 // --- core tables ---

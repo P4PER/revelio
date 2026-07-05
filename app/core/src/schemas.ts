@@ -2,7 +2,6 @@ import { z } from 'zod'
 
 export const attributeMetaSchema = z.object({
   code: z.string().regex(/^[a-z0-9_]+$/),
-  sortOrder: z.number().int().nonnegative(),
 })
 
 export const lessonMetaSchema = attributeMetaSchema.extend({

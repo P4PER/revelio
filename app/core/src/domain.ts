@@ -41,15 +41,6 @@ export type CardDTO = {
   localizations: Record<string, CardLocalizationDTO>
 }
 
-// An attribute term as the API returns it for facets/filters: the DB code plus the
-// i18n-resolved display label for the request language.
-export type AttributeTermDTO = {
-  code: string
-  label: string
-  sortOrder: number
-}
-
-
 export type RulingDTO = {
   id: string
   seq: number

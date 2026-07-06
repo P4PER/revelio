@@ -13,7 +13,6 @@ import { hasRequiredRole } from '@/lib/roles'
 export async function SiteHeader() {
   const t = await getTranslations('nav')
   const ts = await getTranslations('search')
-  const ta = await getTranslations('auth')
   const session = await getSession()
   const isEditor = hasRequiredRole(session?.user?.role, 'editor')
   return (
@@ -24,14 +23,14 @@ export async function SiteHeader() {
           <HeaderSearch placeholder={ts('placeholder')} />
         </Suspense>
         <nav className="ml-auto flex shrink-0 items-center gap-3">
-          {isEditor && (
-            <Button variant="ghost" size="sm" asChild><Link href="/admin">{t('admin')}</Link></Button>
-          )}
           <Button variant="ghost" size="sm" asChild><Link href="/sets">{t('sets')}</Link></Button>
           <span className="h-5 w-px bg-border/70" aria-hidden />
           <LanguageSwitcher />
           <span className="h-5 w-px bg-border/70" aria-hidden />
-          <AccountMenu signInLabel={ta('signIn')} signOutLabel={ta('signOut')} />
+          {/* Admin entry is editor-gated via the isEditor flag (server-side role
+              check); the /admin route is independently enforced server-side too
+              (layout requireRole). */}
+          <AccountMenu isEditor={isEditor} />
         </nav>
       </div>
     </header>

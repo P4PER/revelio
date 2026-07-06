@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
+import { DatePicker } from '@/components/date-picker'
 
 export type SetFormInitial = {
   code: string
@@ -73,12 +74,12 @@ export function SetForm({
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="set-date">{t('releaseDate')}</Label>
-        <Input
+        <DatePicker
           id="set-date"
-          type="date"
           value={releaseDate}
-          onChange={(e) => setReleaseDate(e.target.value)}
-          aria-label={t('releaseDate')}
+          onChange={setReleaseDate}
+          ariaLabel={t('releaseDate')}
+          placeholder={t('releaseDate')}
         />
       </div>
       <label className="flex items-center gap-2">

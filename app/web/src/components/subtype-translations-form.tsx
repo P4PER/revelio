@@ -76,7 +76,7 @@ export function SubTypeTranslationsForm({ locales, rows }: { locales: string[]; 
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t('searchPlaceholder')}
           aria-label={t('searchPlaceholder')}
-          className="max-w-xs"
+          className="h-8 max-w-xs"
         />
         <Button
           type="button"

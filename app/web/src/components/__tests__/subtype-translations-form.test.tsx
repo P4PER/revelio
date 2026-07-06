@@ -7,16 +7,16 @@ import { SubTypeTranslationsForm } from '../subtype-translations-form'
 vi.mock('@/lib/sub-type-actions', () => ({ saveSubTypeTranslationsAction: vi.fn(async () => ({ ok: true })) }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
-function renderForm() {
+type Row = { code: string; labels: Record<string, string> }
+const defaultRows: Row[] = [
+  { code: 'death_eater', labels: { de: 'Todesser' } },
+  { code: 'wizard', labels: {} },
+]
+
+function renderForm(rows: Row[] = defaultRows) {
   return render(
     <NextIntlClientProvider locale="en" messages={en}>
-      <SubTypeTranslationsForm
-        locales={['en', 'de']}
-        rows={[
-          { code: 'death_eater', labels: { de: 'Todesser' } },
-          { code: 'wizard', labels: {} },
-        ]}
-      />
+      <SubTypeTranslationsForm locales={['en', 'de']} rows={rows} />
     </NextIntlClientProvider>,
   )
 }
@@ -48,5 +48,27 @@ describe('SubTypeTranslationsForm', () => {
       ],
     })
     expect(toast.success).toHaveBeenCalled()
+  })
+
+  it('filters rows by the search query (code or translation text)', () => {
+    renderForm()
+    fireEvent.change(screen.getByPlaceholderText(/search/i), { target: { value: 'wiz' } })
+    expect(screen.getByText('wizard')).toBeInTheDocument()
+    expect(screen.queryByText('death_eater')).not.toBeInTheDocument()
+
+    // search also matches translation text
+    fireEvent.change(screen.getByPlaceholderText(/search/i), { target: { value: 'todes' } })
+    expect(screen.getByText('death_eater')).toBeInTheDocument()
+    expect(screen.queryByText('wizard')).not.toBeInTheDocument()
+  })
+
+  it('"only untranslated" hides fully-translated rows', () => {
+    renderForm([
+      { code: 'death_eater', labels: { en: 'Death Eater', de: 'Todesser' } }, // complete
+      { code: 'wizard', labels: { en: 'Wizard' } }, // missing de
+    ])
+    fireEvent.click(screen.getByRole('button', { name: /only untranslated/i }))
+    expect(screen.getByText('wizard')).toBeInTheDocument()
+    expect(screen.queryByText('death_eater')).not.toBeInTheDocument()
   })
 })

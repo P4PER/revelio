@@ -151,6 +151,10 @@
     "code": "Code",
     "save": "Save",
     "saved": "Saved",
-    "saveError": "Could not save"
+    "saveError": "Could not save",
+    "searchPlaceholder": "Search code or translation…",
+    "onlyUntranslated": "Only untranslated",
+    "untranslatedFirst": "Untranslated first",
+    "noResults": "No matches"
   }
 }

@@ -151,6 +151,10 @@
     "code": "Code",
     "save": "Speichern",
     "saved": "Gespeichert",
-    "saveError": "Speichern fehlgeschlagen"
+    "saveError": "Speichern fehlgeschlagen",
+    "searchPlaceholder": "Code oder Übersetzung suchen …",
+    "onlyUntranslated": "Nur unübersetzte",
+    "untranslatedFirst": "Unübersetzte zuerst",
+    "noResults": "Keine Treffer"
   }
 }

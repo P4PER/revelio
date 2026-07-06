@@ -40,6 +40,14 @@ export const legalities = pgTable('legalities', {
   code: text('code').primaryKey(),
 })
 
+export const subTypeTranslations = pgTable('sub_type_translations', {
+  subTypeCode: text('sub_type_code').notNull().references(() => subTypes.code, { onDelete: 'cascade' }),
+  lang: text('lang').notNull(),
+  label: text('label').notNull(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.subTypeCode, t.lang] }),
+}))
+
 // --- core tables ---
 export const sets = pgTable('sets', {
   code: text('code').primaryKey(),

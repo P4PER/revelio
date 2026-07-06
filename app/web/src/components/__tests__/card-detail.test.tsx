@@ -45,4 +45,18 @@ describe('CardDetail', () => {
     expect(screen.getByTestId('machine-badge')).toBeInTheDocument()
     expect(screen.getByText('Bewacht.')).toBeInTheDocument()
   })
+  it('prefers translated sub-type labels and humanizes the rest', () => {
+    const multiSubTypeCard = { ...card, subTypes: ['wizard', 'death_eater'] }
+    render(
+      <CardDetail
+        card={multiSubTypeCard}
+        locale="en"
+        imageBase="http://img"
+        subTypeLabels={{ wizard: 'Zauberer' }}
+      />,
+      { wrapper: Wrapper },
+    )
+    expect(screen.getByText(/Zauberer/)).toBeInTheDocument()
+    expect(screen.getByText(/Death Eater/)).toBeInTheDocument()
+  })
 })

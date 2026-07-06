@@ -1,5 +1,5 @@
 import type { DB } from '@revelio/db'
-import { types, subTypes, lessons, rarities, finishes, legalities } from '@revelio/db'
+import { types, subTypes, subTypeTranslations, lessons, rarities, finishes, legalities } from '@revelio/db'
 import { ATTRIBUTES, slugify } from '@revelio/core'
 import type { DistCard } from './types.js'
 
@@ -14,9 +14,16 @@ function distinctAttributes(cards: DistCard[]) {
     finishes: new Set<string>(),
     legalities: new Set<string>(),
   }
+  // slug -> first-seen source label for sub-types. The source strings are the
+  // English names we slugify the codes from, so they seed the en translation.
+  const subTypeEn = new Map<string, string>()
   for (const c of cards) {
     c.types.forEach((x) => acc.types.add(slugify(x)))
-    c.subTypes.forEach((x) => acc.subTypes.add(slugify(x)))
+    c.subTypes.forEach((x) => {
+      const code = slugify(x)
+      acc.subTypes.add(code)
+      if (!subTypeEn.has(code)) subTypeEn.set(code, x)
+    })
     if (c.lesson) acc.lessons.add(slugify(c.lesson))
     if (c.rarity) acc.rarities.add(slugify(c.rarity))
     if (c.finish) acc.finishes.add(slugify(c.finish))
@@ -25,7 +32,7 @@ function distinctAttributes(cards: DistCard[]) {
       if (p?.lesson) acc.lessons.add(slugify(p.lesson))
     }
   }
-  return acc
+  return { ...acc, subTypeEn }
 }
 
 // Ordered vocab: sort_order is the 1-based position in the curated attributes.ts
@@ -62,4 +69,9 @@ export async function loadAttributes(db: DB, cards: DistCard[]): Promise<void> {
 
   const subTypeRows = codeRows(d.subTypes)
   if (subTypeRows.length) await db.insert(subTypes).values(subTypeRows).onConflictDoNothing()
+
+  // Seed the English sub-type translation from the source label. onConflictDoNothing
+  // so admin edits and existing rows survive a re-ingest; new codes get their en.
+  const enRows = [...d.subTypeEn].map(([code, label]) => ({ subTypeCode: code, lang: 'en', label }))
+  if (enRows.length) await db.insert(subTypeTranslations).values(enRows).onConflictDoNothing()
 }

@@ -10,18 +10,16 @@ import { pickLocalization } from '@/lib/card-view'
 import { Badge } from '@/components/ui/badge'
 import { LessonCost } from '@/components/lesson-cost'
 import { LightningDivider } from '@/components/lightning-divider'
-
-// Sub-types have no i18n label group; humanize the slug (death_eater -> Death Eater).
-const humanize = (code: string) =>
-  code.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+import { humanize } from '@/lib/humanize'
 
 export function CardDetail({
-  card, locale, imageBase, canEdit = false,
+  card, locale, imageBase, canEdit = false, subTypeLabels = {},
 }: {
   card: CardDetailDTO
   locale: string
   imageBase: string
   canEdit?: boolean
+  subTypeLabels?: Record<string, string>
 }) {
   const t = useTranslations('card')
   const tEdit = useTranslations('edit')
@@ -93,7 +91,7 @@ export function CardDetail({
             {card.subTypes.length > 0 && (
               <span className="text-sm text-muted-foreground">
                 {' — '}
-                {card.subTypes.map((st) => humanize(st)).join(', ')}
+                {card.subTypes.map((st) => subTypeLabels[st] ?? humanize(st)).join(', ')}
               </span>
             )}
           </p>

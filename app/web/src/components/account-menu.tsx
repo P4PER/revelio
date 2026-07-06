@@ -1,5 +1,6 @@
 'use client'
-import { ChevronDown, CircleUser, LogOut } from 'lucide-react'
+import { ChevronDown, CircleUser, LogOut, Shield } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Link } from '@/../i18n/navigation'
 import { useSession, signOut } from '@/lib/auth-client'
 import { Button } from '@/components/ui/button'
@@ -12,12 +13,14 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 
-export function AccountMenu({ signInLabel, signOutLabel }: { signInLabel: string; signOutLabel: string }) {
+export function AccountMenu({ isEditor }: { isEditor: boolean }) {
   const { data } = useSession()
+  const tAuth = useTranslations('auth')
+  const tNav = useTranslations('nav')
   if (!data?.user) {
     return (
       <Button variant="ghost" size="sm" asChild>
-        <Link href="/login">{signInLabel}</Link>
+        <Link href="/login">{tAuth('signIn')}</Link>
       </Button>
     )
   }
@@ -36,12 +39,20 @@ export function AccountMenu({ signInLabel, signOutLabel }: { signInLabel: string
           {data.user.email}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {isEditor && (
+          <>
+            <DropdownMenuItem asChild>
+              <Link href="/admin"><Shield />{tNav('admin')}</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuItem
           onSelect={() => signOut()}
           className="text-destructive focus:bg-destructive/10 focus:text-destructive"
         >
           <LogOut />
-          {signOutLabel}
+          {tAuth('signOut')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

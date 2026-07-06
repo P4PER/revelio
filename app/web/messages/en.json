@@ -156,6 +156,33 @@
     "onlyUntranslated": "Only untranslated",
     "untranslatedFirst": "Untranslated first",
     "noResults": "No matches",
-    "clearSearch": "Clear search"
+    "clearSearch": "Clear search",
+    "sets": {
+      "title": "Sets",
+      "desc": "Create and edit card sets.",
+      "new": "New set",
+      "name": "Name",
+      "code": "Code",
+      "releaseDate": "Release date",
+      "official": "Official",
+      "cardCount": "Cards",
+      "symbol": "Symbol",
+      "localizedNames": "Localized names",
+      "create": "Create",
+      "save": "Save",
+      "created": "Set created",
+      "updated": "Saved",
+      "delete": "Delete set",
+      "deleted": "Set deleted",
+      "deleteBlocked": "A set with cards cannot be deleted.",
+      "codeExists": "A set with this code already exists.",
+      "back": "Back to sets",
+      "uploadSymbol": "Change symbol",
+      "removeSymbol": "Remove symbol",
+      "symbolUpdated": "Symbol updated",
+      "symbolRemoved": "Symbol removed",
+      "noSymbol": "No symbol",
+      "saveError": "Could not save"
+    }
   }
 }

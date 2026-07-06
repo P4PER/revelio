@@ -1,7 +1,7 @@
 import { eq, asc, sql, inArray, and, isNotNull } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import type { DB } from './client'
-import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingTexts } from './schema'
+import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingTexts, subTypes, subTypeTranslations } from './schema'
 import type { SetDTO, CardLocalizationDTO, CardDetailDTO, AdventureData, MatchData } from '@revelio/core'
 import type { CardIndexData } from '@revelio/search'
 
@@ -230,4 +230,45 @@ export async function listRulingSources(db: DB): Promise<string[]> {
     .where(isNotNull(cardRulings.source))
     .orderBy(asc(cardRulings.source))
   return rows.map((r) => r.source).filter((s): s is string => !!s)
+}
+
+export async function getSubTypeLabels(db: DB, lang: string): Promise<Record<string, string>> {
+  const rows = await db.select().from(subTypeTranslations).where(eq(subTypeTranslations.lang, lang))
+  return Object.fromEntries(rows.map((r) => [r.subTypeCode, r.label]))
+}
+
+export async function listSubTypesWithTranslations(
+  db: DB,
+): Promise<{ code: string; labels: Record<string, string> }[]> {
+  const codes = await db.select().from(subTypes).orderBy(asc(subTypes.code))
+  const trans = await db.select().from(subTypeTranslations)
+  const byCode = new Map<string, Record<string, string>>()
+  for (const t of trans) {
+    const m = byCode.get(t.subTypeCode) ?? {}
+    m[t.lang] = t.label
+    byCode.set(t.subTypeCode, m)
+  }
+  return codes.map((c) => ({ code: c.code, labels: byCode.get(c.code) ?? {} }))
+}
+
+export async function saveSubTypeTranslations(
+  db: DB,
+  rows: { code: string; lang: string; label: string }[],
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    for (const r of rows) {
+      if (r.label.trim() === '') {
+        await tx.delete(subTypeTranslations).where(
+          and(eq(subTypeTranslations.subTypeCode, r.code), eq(subTypeTranslations.lang, r.lang)),
+        )
+      } else {
+        await tx.insert(subTypeTranslations)
+          .values({ subTypeCode: r.code, lang: r.lang, label: r.label })
+          .onConflictDoUpdate({
+            target: [subTypeTranslations.subTypeCode, subTypeTranslations.lang],
+            set: { label: r.label },
+          })
+      }
+    }
+  })
 }

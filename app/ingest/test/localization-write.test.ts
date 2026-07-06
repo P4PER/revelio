@@ -35,7 +35,6 @@ describe('getCardIndexData', () => {
   it('returns the card data shaped for the document builder', async () => {
     const data = await getCardIndexData(ctx.db, 'x-1')
     expect(data?.id).toBe('x-1')
-    expect(data?.setName).toBe('Xen')
     expect(data?.isOfficial).toBe(true)
     expect(data?.localizations.en.name).toBe('New Name')
     expect(data?.localizations.de.name).toBe('Deutscher Name')

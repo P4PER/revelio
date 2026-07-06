@@ -11,8 +11,8 @@ const client = createMeiliClient(
 )
 
 const docs: SearchDocument[] = [
-  { id: 'a', setCode: 'BS', setName: 'Base', number: '1', name: 'Harry Potter', text: null, flavorText: null, types: ['character'], subTypes: [], lesson: null, rarity: 'rare', finish: 'normal', legality: 'legal', cost: null, isOfficial: true, imageLang: 'en', defaultLanguage: 'en' },
-  { id: 'b', setCode: 'BS', setName: 'Base', number: '2', name: 'Flobberworm', text: null, flavorText: null, types: ['creature'], subTypes: [], lesson: null, rarity: 'common', finish: 'normal', legality: 'legal', cost: 2, isOfficial: false, imageLang: null, defaultLanguage: 'en' },
+  { id: 'a', setCode: 'BS', number: '1', name: 'Harry Potter', text: null, flavorText: null, types: ['character'], subTypes: [], lesson: null, rarity: 'rare', finish: 'normal', legality: 'legal', cost: null, isOfficial: true, imageLang: 'en', defaultLanguage: 'en' },
+  { id: 'b', setCode: 'BS', number: '2', name: 'Flobberworm', text: null, flavorText: null, types: ['creature'], subTypes: [], lesson: null, rarity: 'common', finish: 'normal', legality: 'legal', cost: 2, isOfficial: false, imageLang: null, defaultLanguage: 'en' },
 ]
 
 beforeAll(async () => {

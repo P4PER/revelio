@@ -203,7 +203,6 @@ export async function getCardIndexData(db: DB, cardId: string): Promise<CardInde
   return {
     id: card.id,
     setCode: card.setCode,
-    setName: setRow?.name ?? card.setCode,
     number: card.number,
     name: card.name,
     lesson: card.lesson,

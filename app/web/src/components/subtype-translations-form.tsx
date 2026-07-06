@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { ArrowDown, ArrowUp } from 'lucide-react'
+import { useRouter } from '@/../i18n/navigation'
 import { saveSubTypeTranslationsAction } from '@/lib/sub-type-actions'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -11,6 +12,7 @@ type Row = { code: string; labels: Record<string, string> }
 
 export function SubTypeTranslationsForm({ locales, rows }: { locales: string[]; rows: Row[] }) {
   const t = useTranslations('admin')
+  const router = useRouter()
   const [values, setValues] = useState<Record<string, Record<string, string>>>(
     () => Object.fromEntries(rows.map((r) => [r.code, { ...r.labels }])),
   )
@@ -24,29 +26,31 @@ export function SubTypeTranslationsForm({ locales, rows }: { locales: string[]; 
     setValues((v) => ({ ...v, [code]: { ...v[code], [lang]: label } }))
   }
 
-  // A code is untranslated if any locale's current value is blank.
+  // Filter and sort from the LOADED labels, not the live inputs, so the row you
+  // are editing doesn't vanish or jump while you type. The view re-evaluates
+  // after a save (router.refresh reloads `rows`).
   const visible = useMemo(() => {
-    const untranslated = (code: string) =>
-      locales.some((lang) => (values[code]?.[lang] ?? '').trim() === '')
+    const untranslated = (r: Row) =>
+      locales.some((lang) => (r.labels[lang] ?? '').trim() === '')
     const q = query.trim().toLowerCase()
     let list = rows
     if (q) {
       list = list.filter(
         (r) =>
           r.code.toLowerCase().includes(q) ||
-          locales.some((lang) => (values[r.code]?.[lang] ?? '').toLowerCase().includes(q)),
+          locales.some((lang) => (r.labels[lang] ?? '').toLowerCase().includes(q)),
       )
     }
-    if (onlyUntranslated) list = list.filter((r) => untranslated(r.code))
+    if (onlyUntranslated) list = list.filter((r) => untranslated(r))
     return [...list].sort((a, b) => {
       if (untranslatedFirst) {
-        const ua = untranslated(a.code) ? 0 : 1
-        const ub = untranslated(b.code) ? 0 : 1
+        const ua = untranslated(a) ? 0 : 1
+        const ub = untranslated(b) ? 0 : 1
         if (ua !== ub) return ua - ub
       }
       return dir === 'asc' ? a.code.localeCompare(b.code) : b.code.localeCompare(a.code)
     })
-  }, [rows, locales, values, query, onlyUntranslated, untranslatedFirst, dir])
+  }, [rows, locales, query, onlyUntranslated, untranslatedFirst, dir])
 
   async function save() {
     setBusy(true)
@@ -56,8 +60,12 @@ export function SubTypeTranslationsForm({ locales, rows }: { locales: string[]; 
     )
     const res = await saveSubTypeTranslationsAction({ rows: payload })
     setBusy(false)
-    if (res.ok) toast.success(t('saved'))
-    else toast.error(t('saveError'))
+    if (res.ok) {
+      toast.success(t('saved'))
+      router.refresh() // reload `rows` so the filter/sort reflect the saved state
+    } else {
+      toast.error(t('saveError'))
+    }
   }
 
   return (

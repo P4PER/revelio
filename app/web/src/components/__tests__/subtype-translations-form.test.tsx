@@ -6,6 +6,7 @@ import { SubTypeTranslationsForm } from '../subtype-translations-form'
 
 vi.mock('@/lib/sub-type-actions', () => ({ saveSubTypeTranslationsAction: vi.fn(async () => ({ ok: true })) }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('@/../i18n/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
 
 type Row = { code: string; labels: Record<string, string> }
 const defaultRows: Row[] = [
@@ -70,5 +71,15 @@ describe('SubTypeTranslationsForm', () => {
     fireEvent.click(screen.getByRole('button', { name: /only untranslated/i }))
     expect(screen.getByText('wizard')).toBeInTheDocument()
     expect(screen.queryByText('death_eater')).not.toBeInTheDocument()
+  })
+
+  it('keeps the edited row visible while typing under "only untranslated"', () => {
+    renderForm([{ code: 'wizard', labels: {} }]) // untranslated
+    fireEvent.click(screen.getByRole('button', { name: /only untranslated/i }))
+    expect(screen.getByText('wizard')).toBeInTheDocument()
+    // filling the cells must NOT drop the row from view mid-edit
+    fireEvent.change(screen.getByLabelText('wizard en'), { target: { value: 'Wizard' } })
+    fireEvent.change(screen.getByLabelText('wizard de'), { target: { value: 'Zauberer' } })
+    expect(screen.getByText('wizard')).toBeInTheDocument()
   })
 })

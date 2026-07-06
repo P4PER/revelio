@@ -11,6 +11,7 @@ import { pickLocalization } from '@/lib/card-view'
 import { CardDetail } from '@/components/card-detail'
 import { getSession } from '@/lib/session'
 import { hasRequiredRole } from '@/lib/roles'
+import { getSubTypeLabelMap } from '@/lib/subtype-labels'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://revelio.cards'
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
@@ -56,5 +57,14 @@ export default async function CardPage({
   if (!loc) notFound()
   const session = await getSession()
   const canEdit = hasRequiredRole(session?.user?.role, 'editor')
-  return <CardDetail card={card} locale={locale} imageBase={IMAGE_BASE} canEdit={canEdit} />
+  const subTypeLabels = await getSubTypeLabelMap(locale)
+  return (
+    <CardDetail
+      card={card}
+      locale={locale}
+      imageBase={IMAGE_BASE}
+      canEdit={canEdit}
+      subTypeLabels={subTypeLabels}
+    />
+  )
 }

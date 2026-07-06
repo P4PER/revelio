@@ -16,7 +16,7 @@ for a fixed vocabulary:
   authoritative option list; keeps the literal-union types).
 - **Labels / translations** → the standard **next-intl** message catalog.
 - **DB reference tables** → **codes only** (plus a `sort_order` column on the
-  four tables where display order is deliberate). They exist purely as
+  two tables with an inherent rank — `rarities`, `finishes`). They exist purely as
   foreign-key integrity anchors for `cards`.
 
 No admin editor and no Meilisearch reindex are involved. This is a
@@ -79,8 +79,10 @@ because new entries appear without a deploy and cannot live in a static catalog.
 - Move attribute labels into the next-intl catalog; delete the bespoke
   `attribute-labels/{en,de}.json` and its slugify lookup.
 - Drop the dead `labels` jsonb from all six reference tables.
-- Drop `sort_order` from `legalities` and `sub_types`; keep it on `types`,
-  `lessons`, `rarities`, `finishes`.
+- Drop `sort_order` from `types`, `lessons`, `legalities`, `sub_types`; keep it
+  only on `rarities` and `finishes` (the vocabularies with an inherent rank).
+  `types`/`lessons` are unordered sets whose display order lives in the
+  `attributes.ts` array position, and nothing reads their `sort_order` from the DB.
 - Drop the `editable` mixin (`created_at`/`updated_at`/`origin`) from the six
   reference tables (never-edited seed data).
 - Remove the now-redundant `sortOrder` field from the `attributes.ts` constants
@@ -134,8 +136,8 @@ Target columns for the reference tables:
 
 | Table | `code` (pk) | `sort_order` | ~~`labels`~~ | ~~`editable` mixin~~ |
 |---|:--:|:--:|:--:|:--:|
-| `types`, `lessons`, `rarities`, `finishes` | ✅ | ✅ | drop | drop |
-| `legalities`, `sub_types` | ✅ | — | drop | drop |
+| `rarities`, `finishes` | ✅ | ✅ | drop | drop |
+| `types`, `lessons`, `legalities`, `sub_types` | ✅ | — | drop | drop |
 
 `cards`, `sets`, `card_rulings`, `card_localizations` **keep** the `editable`
 mixin — they are genuinely editable.
@@ -147,9 +149,9 @@ migration together. Never regenerate `0000`. `npm run verify` (CI) must pass.
 
 ### 4. `ingest/src/load-attributes.ts`
 
-- Seed **`code` only** for `legalities` and `sub_types`.
-- Seed **`code` + `sort_order`** for `types`/`lessons`/`rarities`/`finishes`,
-  deriving `sort_order` from the **array position** in `attributes.ts`.
+- Seed **`code` only** for `types`, `lessons`, `legalities`, `sub_types`.
+- Seed **`code` + `sort_order`** for `rarities` and `finishes`, deriving
+  `sort_order` from the **array position** in `attributes.ts`.
 - Stop seeding `labels` and the mixin fields.
 
 ### 5. Labels via next-intl
@@ -189,7 +191,7 @@ the index.
   for an unknown key, and now resolves `legalities`.
 - `attributeMetaSchema`/`lessonMetaSchema` still validate the trimmed constants.
 - `load-attributes` seeds `code` for all tables and `sort_order` (from array
-  position) only for the four kept tables; no `labels`/mixin writes.
+  position) only for `rarities`/`finishes`; no `labels`/mixin writes.
 - A grep-level guard/assertion that no runtime code references the dropped
   columns; `npm run typecheck` and `npm run verify -w @revelio/db` pass.
 - Existing Postgres-backed tests (Testcontainers) cover the migration applying
@@ -217,8 +219,9 @@ path. It is intentionally not part of this cleanup.
 5. **Type safety** → preserved; constants keep the literal-union types, no codegen.
 6. **Reindex on edit** → none; Meili stores codes.
 7. **Permissions** → not applicable; no write surface.
-8. **Migration** → drop `labels` (all six), `sort_order` (legalities/sub_types),
-   and the `editable` mixin (all six); incremental append-only migration.
+8. **Migration** → drop `labels` (all six), `sort_order`
+   (types/lessons/legalities/sub_types), and the `editable` mixin (all six);
+   incremental append-only migration.
 
 ## Next step
 

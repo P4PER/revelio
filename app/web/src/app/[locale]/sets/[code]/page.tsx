@@ -20,7 +20,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, code } = await params
   setRequestLocale(locale)
-  const set = await getSetByCode(getDb(), code)
+  const set = await getSetByCode(getDb(), code, locale)
   return set ? { title: `${set.name} (${set.code})` } : {}
 }
 
@@ -33,7 +33,7 @@ export default async function SetPage({
 }) {
   const { locale, code } = await params
   setRequestLocale(locale)
-  const set = await getSetByCode(getDb(), code)
+  const set = await getSetByCode(getDb(), code, locale)
   if (!set) notFound()
   const t = await getTranslations('sets')
 

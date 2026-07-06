@@ -92,7 +92,7 @@ export default async function HomePage({
 }) {
   const { locale } = await params
   setRequestLocale(locale)
-  const sets = await listSets(getDb())
+  const sets = await listSets(getDb(), locale)
   const recentSets = [...sets].sort((a, b) => byReleaseDate(b, a)).slice(0, 5)
   return <Home recentSets={recentSets} />
 }

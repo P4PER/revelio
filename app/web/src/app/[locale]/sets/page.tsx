@@ -41,7 +41,7 @@ export default async function SetsPage({ params }: { params: Promise<{ locale: s
   const { locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations('sets')
-  const sets = await listSets(getDb())
+  const sets = await listSets(getDb(), locale)
   const official = sets.filter((s) => s.isOfficial).sort(byReleaseDate)
   const fan = sets.filter((s) => !s.isOfficial).sort(byReleaseDate)
 

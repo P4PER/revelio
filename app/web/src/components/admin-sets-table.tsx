@@ -178,7 +178,9 @@ export function AdminSetsTable({ sets, imageBase }: { sets: SetDTO[]; imageBase:
                   <span className="flex h-6 w-6 items-center justify-center">
                     {s.symbol && imageBase ? (
                       <SetSymbol code={s.code} base={imageBase} className="h-5 w-5 text-foreground/80" />
-                    ) : null}
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground">{s.code}</span>
+                    )}
                   </span>
                 </td>
                 <td className="px-3 py-2 font-medium">

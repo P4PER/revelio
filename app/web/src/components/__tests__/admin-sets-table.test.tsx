@@ -82,4 +82,12 @@ describe('AdminSetsTable', () => {
     expect(screen.queryAllByRole('link')).toHaveLength(0)
     expect(screen.getByText('No matches')).toBeInTheDocument()
   })
+
+  it('renders the set code as a symbol-cell fallback when the set has no symbol', () => {
+    renderTable()
+    // QC has symbol: null → its code shows in BOTH the Code column and the symbol-cell fallback.
+    expect(screen.getAllByText('QC')).toHaveLength(2)
+    // BS has a symbol → symbol cell renders <SetSymbol>, not text, so its code shows only in the Code column.
+    expect(screen.getAllByText('BS')).toHaveLength(1)
+  })
 })

@@ -54,6 +54,7 @@ export function SetSymbolUploader({
       <div
         role="button"
         tabIndex={0}
+        aria-label={t('symbol')}
         aria-busy={busy}
         onClick={() => !busy && inputRef.current?.click()}
         onKeyDown={(e) => {

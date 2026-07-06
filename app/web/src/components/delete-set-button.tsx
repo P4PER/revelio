@@ -21,6 +21,9 @@ export function DeleteSetButton({ code, cardCount }: { code: string; cardCount: 
       toast.success(t('deleted'))
       router.push('/admin/sets')
     } else {
+      // 'has-cards' is a defensive fallback: the button is disabled whenever
+      // cardCount > 0, so this branch only fires if the count went stale
+      // (e.g. a card was added to the set between page load and this click).
       toast.error(res.error === 'has-cards' ? t('deleteBlocked') : t('saveError'))
     }
   }

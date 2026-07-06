@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { types, subTypes, lessons, rarities } from '@revelio/db'
+import { types, subTypes, lessons, rarities, getSubTypeLabels } from '@revelio/db'
 import { eq } from 'drizzle-orm'
 import { loadAttributes } from '../src/load-attributes.js'
 import { loadDist } from '../src/load-dist.js'
@@ -26,6 +26,11 @@ describe('loadAttributes', () => {
   it('derives sub_types (incl. from cards)', async () => {
     const rows = await ctx.db.select().from(subTypes)
     expect(rows.map((r) => r.code).sort()).toEqual(['gryffindor', 'wizard'])
+  })
+
+  it('seeds the English sub-type translation from the source label', async () => {
+    const en = await getSubTypeLabels(ctx.db, 'en')
+    expect(en).toEqual({ wizard: 'Wizard', gryffindor: 'Gryffindor' })
   })
 
   it('derives a lesson from provides (codes only, no order)', async () => {

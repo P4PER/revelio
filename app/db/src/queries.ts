@@ -63,6 +63,68 @@ export async function getSetForEdit(db: DB, code: string): Promise<SetForEdit | 
   }
 }
 
+export type SetWriteInput = {
+  name: string
+  releaseDate: string | null
+  isOfficial: boolean
+  localizations: Record<string, string>
+}
+
+export async function createSet(db: DB, code: string, input: SetWriteInput): Promise<void> {
+  await db.transaction(async (tx) => {
+    await tx.insert(sets).values({
+      code,
+      name: input.name,
+      releaseDate: input.releaseDate,
+      isOfficial: input.isOfficial,
+      origin: 'user',
+    })
+    const rows = Object.entries(input.localizations)
+      .filter(([, name]) => name.trim() !== '')
+      .map(([lang, name]) => ({ setCode: code, lang, name }))
+    if (rows.length) await tx.insert(setLocalizations).values(rows)
+  })
+}
+
+export async function updateSet(db: DB, code: string, input: SetWriteInput): Promise<void> {
+  const now = new Date()
+  await db.transaction(async (tx) => {
+    await tx
+      .update(sets)
+      .set({
+        name: input.name,
+        releaseDate: input.releaseDate,
+        isOfficial: input.isOfficial,
+        origin: 'user',
+        updatedAt: now,
+      })
+      .where(eq(sets.code, code))
+    for (const [lang, name] of Object.entries(input.localizations)) {
+      if (name.trim() === '') {
+        await tx
+          .delete(setLocalizations)
+          .where(and(eq(setLocalizations.setCode, code), eq(setLocalizations.lang, lang)))
+      } else {
+        await tx
+          .insert(setLocalizations)
+          .values({ setCode: code, lang, name })
+          .onConflictDoUpdate({
+            target: [setLocalizations.setCode, setLocalizations.lang],
+            set: { name },
+          })
+      }
+    }
+  })
+}
+
+export async function deleteSet(db: DB, code: string): Promise<void> {
+  await db.delete(sets).where(eq(sets.code, code))
+}
+
+export async function setSymbolFile(db: DB, code: string, symbol: string | null): Promise<void> {
+  await db.update(sets).set({ symbol, updatedAt: new Date() }).where(eq(sets.code, code))
+}
+
 export async function getCardById(db: DB, id: string, locale?: string): Promise<CardDetailDTO | null> {
   const [card] = await db.select().from(cards).where(eq(cards.id, id)).limit(1)
   if (!card) return null

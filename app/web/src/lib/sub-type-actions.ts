@@ -20,5 +20,7 @@ export async function saveSubTypeTranslationsAction(input: unknown): Promise<Sub
   const parsed = schema.safeParse(input)
   if (!parsed.success) return { ok: false, error: 'invalid' }
   await saveSubTypeTranslations(getDb(), parsed.data.rows)
+  // No cache to invalidate: getSubTypeLabelMap reads per request and the card
+  // page renders dynamically, so edits are visible on the next render.
   return { ok: true }
 }

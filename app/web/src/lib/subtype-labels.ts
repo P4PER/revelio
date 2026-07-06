@@ -1,14 +1,10 @@
 import 'server-only'
-import { unstable_cache } from 'next/cache'
 import { getDb } from '@/lib/db'
 import { getSubTypeLabels } from '@revelio/db'
 
-// Sub-type translations change rarely; cache per locale under a shared tag the
-// save action revalidates. Returns code -> label for the given locale.
+// sub_type_translations is a tiny table and the card page renders dynamically,
+// so read it per request — no cache layer to keep consistent, and editor saves
+// show up immediately.
 export function getSubTypeLabelMap(locale: string): Promise<Record<string, string>> {
-  return unstable_cache(
-    () => getSubTypeLabels(getDb(), locale),
-    ['sub-type-labels', locale],
-    { tags: ['sub-type-labels'] },
-  )()
+  return getSubTypeLabels(getDb(), locale)
 }

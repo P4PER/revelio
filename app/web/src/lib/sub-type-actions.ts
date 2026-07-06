@@ -1,6 +1,5 @@
 'use server'
 import { z } from 'zod'
-import { updateTag } from 'next/cache'
 import { requireRole } from '@/lib/session'
 import { getDb } from '@/lib/db'
 import { saveSubTypeTranslations } from '@revelio/db'
@@ -21,6 +20,5 @@ export async function saveSubTypeTranslationsAction(input: unknown): Promise<Sub
   const parsed = schema.safeParse(input)
   if (!parsed.success) return { ok: false, error: 'invalid' }
   await saveSubTypeTranslations(getDb(), parsed.data.rows)
-  updateTag('sub-type-labels')
   return { ok: true }
 }

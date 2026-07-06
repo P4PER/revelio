@@ -14,7 +14,7 @@ vi.mock('@/lib/set-actions', () => ({
   updateSetAction: (...a: unknown[]) => update(...a),
   uploadSetSymbol: (...a: unknown[]) => upload(...a),
 }))
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() } }))
 vi.mock('@/../i18n/navigation', () => ({ useRouter: () => ({ push, refresh }) }))
 
 function renderForm(mode: 'create' | 'edit', initial = {
@@ -61,7 +61,9 @@ describe('SetForm', () => {
     renderForm('create')
     fireEvent.change(screen.getByLabelText('Code'), { target: { value: 'PROMO' } })
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Promo' } })
-    const fileInput = screen.getByLabelText('Change symbol') // aria-label = t('uploadSymbol')
+    // the hidden file input and the preview trigger button share t('uploadSymbol') as their
+    // accessible name; select the input specifically
+    const fileInput = screen.getByLabelText('Change symbol', { selector: 'input' })
     fireEvent.change(fileInput, { target: { files: [new File(['x'], 'promo.png', { type: 'image/png' })] } })
     fireEvent.click(screen.getByRole('button', { name: 'Create' }))
 
@@ -71,6 +73,23 @@ describe('SetForm', () => {
     expect(fd.get('code')).toBe('PROMO')
     expect((fd.get('file') as File).name).toBe('promo.png')
     await waitFor(() => expect(push).toHaveBeenCalledWith('/admin/sets'))
+  })
+
+  it('create mode still redirects (and unblocks) when the symbol upload throws', async () => {
+    upload.mockRejectedValueOnce(new Error('boom'))
+    renderForm('create')
+    fireEvent.change(screen.getByLabelText('Code'), { target: { value: 'THROW' } })
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Throws' } })
+    const fileInput = screen.getByLabelText('Change symbol', { selector: 'input' })
+    fireEvent.change(fileInput, { target: { files: [new File(['x'], 'bad.svg', { type: 'image/svg+xml' })] } })
+    const createBtn = screen.getByRole('button', { name: 'Create' })
+    fireEvent.click(createBtn)
+
+    // the set was created; the upload throw is non-fatal, so we still route to the list
+    await waitFor(() => expect(create).toHaveBeenCalled())
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/admin/sets'))
+    // and the Create button is not stuck disabled (busy was reset in finally)
+    await waitFor(() => expect(createBtn).not.toBeDisabled())
   })
 
   it('create mode without a symbol does not call uploadSetSymbol', async () => {

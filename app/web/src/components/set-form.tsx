@@ -45,25 +45,32 @@ export function SetForm({
 
   async function submit() {
     setBusy(true)
-    const payload = { name, releaseDate, isOfficial, localizations: locNames }
-    const res =
-      mode === 'create'
-        ? await createSetAction({ code, ...payload })
-        : await updateSetAction(code, payload)
-    if (res.ok && mode === 'create' && symbolFile) {
-      const fd = new FormData()
-      fd.append('code', code)
-      fd.append('file', symbolFile)
-      const up = await uploadSetSymbol(fd)
-      if (!up.ok) toast.warning(t('saveError')) // set was created; only the symbol upload failed
-    }
-    setBusy(false)
-    if (res.ok) {
-      toast.success(t(mode === 'create' ? 'created' : 'updated'))
-      if (mode === 'create') router.push('/admin/sets')
-      else router.refresh()
-    } else {
-      toast.error(res.error === 'exists' ? t('codeExists') : t('saveError'))
+    try {
+      const payload = { name, releaseDate, isOfficial, localizations: locNames }
+      const res =
+        mode === 'create'
+          ? await createSetAction({ code, ...payload })
+          : await updateSetAction(code, payload)
+      if (res.ok && mode === 'create' && symbolFile) {
+        try {
+          const fd = new FormData()
+          fd.append('code', code)
+          fd.append('file', symbolFile)
+          const up = await uploadSetSymbol(fd)
+          if (!up.ok) toast.warning(t('saveError'))
+        } catch {
+          toast.warning(t('saveError')) // set was created; only the symbol upload failed
+        }
+      }
+      if (res.ok) {
+        toast.success(t(mode === 'create' ? 'created' : 'updated'))
+        if (mode === 'create') router.push('/admin/sets')
+        else router.refresh()
+      } else {
+        toast.error(res.error === 'exists' ? t('codeExists') : t('saveError'))
+      }
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -106,6 +113,7 @@ export function SetForm({
             <button
               type="button"
               onClick={() => symbolInputRef.current?.click()}
+              aria-label={t('uploadSymbol')}
               className="group relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-border/60 bg-card"
             >
               {previewUrl ? (

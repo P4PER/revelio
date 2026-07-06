@@ -15,6 +15,13 @@
       "when": 1783284051087,
       "tag": "0001_normal_blizzard",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783296159086,
+      "tag": "0002_easy_the_liberteens",
+      "breakpoints": true
     }
   ]
 }

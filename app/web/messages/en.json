@@ -128,5 +128,19 @@
     "registerSubtitle": "Enter your email and a username to create your {brand} account.",
     "noAccountError": "No account found for that email. Please register first.",
     "usernameTaken": "That username is taken. Please choose another."
+  },
+  "attributes": {
+    "types": {
+      "character": "Character", "creature": "Creature", "spell": "Spell", "item": "Item",
+      "lesson": "Lesson", "adventure": "Adventure", "location": "Location", "event": "Event",
+      "match": "Match"
+    },
+    "lessons": {
+      "care_of_magical_creatures": "Care of Magical Creatures", "charms": "Charms",
+      "potions": "Potions", "transfiguration": "Transfiguration", "quidditch": "Quidditch"
+    },
+    "rarities": { "common": "Common", "uncommon": "Uncommon", "rare": "Rare", "lesson": "Lesson" },
+    "finishes": { "normal": "Normal", "foil": "Foil", "holo": "Holo Portrait" },
+    "legalities": { "legal": "Legal", "restricted": "Restricted", "banned": "Banned", "unknown": "Unknown" }
   }
 }

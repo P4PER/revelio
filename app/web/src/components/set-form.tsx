@@ -1,14 +1,15 @@
 'use client'
-import { useState } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { useRouter } from '@/../i18n/navigation'
-import { createSetAction, updateSetAction } from '@/lib/set-actions'
+import { createSetAction, updateSetAction, uploadSetSymbol } from '@/lib/set-actions'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DatePicker } from '@/components/date-picker'
+import { ImagePlus, Trash2 } from 'lucide-react'
 
 export type SetFormInitial = {
   code: string
@@ -37,6 +38,10 @@ export function SetForm({
     () => Object.fromEntries(locales.map((l) => [l, initial.localizations[l] ?? ''])),
   )
   const [busy, setBusy] = useState(false)
+  const [symbolFile, setSymbolFile] = useState<File | null>(null)
+  const symbolInputRef = useRef<HTMLInputElement>(null)
+  const previewUrl = useMemo(() => (symbolFile ? URL.createObjectURL(symbolFile) : null), [symbolFile])
+  useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl) }, [previewUrl])
 
   async function submit() {
     setBusy(true)
@@ -45,6 +50,13 @@ export function SetForm({
       mode === 'create'
         ? await createSetAction({ code, ...payload })
         : await updateSetAction(code, payload)
+    if (res.ok && mode === 'create' && symbolFile) {
+      const fd = new FormData()
+      fd.append('code', code)
+      fd.append('file', symbolFile)
+      const up = await uploadSetSymbol(fd)
+      if (!up.ok) toast.warning(t('saveError')) // set was created; only the symbol upload failed
+    }
     setBusy(false)
     if (res.ok) {
       toast.success(t(mode === 'create' ? 'created' : 'updated'))
@@ -86,6 +98,48 @@ export function SetForm({
         <Checkbox checked={isOfficial} onCheckedChange={(v) => setIsOfficial(v === true)} />
         <span className="text-sm">{t('official')}</span>
       </label>
+
+      {mode === 'create' && (
+        <div className="space-y-1.5">
+          <Label>{t('symbol')}</Label>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => symbolInputRef.current?.click()}
+              className="group relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-border/60 bg-card"
+            >
+              {previewUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- local object-URL preview
+                <img src={previewUrl} alt="" className="h-full w-full object-contain" />
+              ) : (
+                <ImagePlus className="size-5 text-muted-foreground" />
+              )}
+            </button>
+            <input
+              ref={symbolInputRef}
+              type="file"
+              accept="image/*"
+              aria-label={t('uploadSymbol')}
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0]
+                if (f) setSymbolFile(f)
+                e.target.value = ''
+              }}
+            />
+            {symbolFile && (
+              <button
+                type="button"
+                onClick={() => setSymbolFile(null)}
+                className="inline-flex cursor-pointer items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-destructive"
+              >
+                <Trash2 className="size-3.5" />
+                {t('removeSymbol')}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       <fieldset className="space-y-3">
         <legend className="text-sm font-medium">{t('localizedNames')}</legend>

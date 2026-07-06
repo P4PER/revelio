@@ -155,6 +155,7 @@
     "searchPlaceholder": "Search code or translation…",
     "onlyUntranslated": "Only untranslated",
     "untranslatedFirst": "Untranslated first",
-    "noResults": "No matches"
+    "noResults": "No matches",
+    "clearSearch": "Clear search"
   }
 }

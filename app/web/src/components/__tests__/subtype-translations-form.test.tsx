@@ -63,6 +63,17 @@ describe('SubTypeTranslationsForm', () => {
     expect(screen.queryByText('wizard')).not.toBeInTheDocument()
   })
 
+  it('clears the search via the clear button (shown only with a query)', () => {
+    renderForm()
+    expect(screen.queryByRole('button', { name: /clear search/i })).not.toBeInTheDocument()
+    const search = screen.getByPlaceholderText(/search/i)
+    fireEvent.change(search, { target: { value: 'wiz' } })
+    expect(screen.queryByText('death_eater')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /clear search/i }))
+    expect((search as HTMLInputElement).value).toBe('')
+    expect(screen.getByText('death_eater')).toBeInTheDocument()
+  })
+
   it('"only untranslated" hides fully-translated rows', () => {
     renderForm([
       { code: 'death_eater', labels: { en: 'Death Eater', de: 'Todesser' } }, // complete

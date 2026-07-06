@@ -155,6 +155,7 @@
     "searchPlaceholder": "Code oder Übersetzung suchen …",
     "onlyUntranslated": "Nur unübersetzte",
     "untranslatedFirst": "Unübersetzte zuerst",
-    "noResults": "Keine Treffer"
+    "noResults": "Keine Treffer",
+    "clearSearch": "Suche löschen"
   }
 }

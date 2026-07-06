@@ -2,7 +2,7 @@
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { ArrowDown, ArrowUp } from 'lucide-react'
+import { ArrowDown, ArrowUp, X } from 'lucide-react'
 import { useRouter } from '@/../i18n/navigation'
 import { saveSubTypeTranslationsAction } from '@/lib/sub-type-actions'
 import { Input } from '@/components/ui/input'
@@ -71,13 +71,25 @@ export function SubTypeTranslationsForm({ locales, rows }: { locales: string[]; 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t('searchPlaceholder')}
-          aria-label={t('searchPlaceholder')}
-          className="h-8 max-w-xs"
-        />
+        <div className="relative w-full max-w-xs">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t('searchPlaceholder')}
+            aria-label={t('searchPlaceholder')}
+            className="h-8 w-full pr-8"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              aria-label={t('clearSearch')}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <X className="size-4" />
+            </button>
+          )}
+        </div>
         <Button
           type="button"
           size="sm"

@@ -1,5 +1,5 @@
 {
-  "id": "8b5f61f1-27d7-4b86-95b9-735a846d4bf7",
+  "id": "a57aa82d-84a5-4446-837a-1afb0370a1e6",
   "prevId": "e40a8622-38c6-4bb0-b21f-7e904d46fc89",
   "version": "7",
   "dialect": "postgresql",
@@ -667,13 +667,6 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true
-        },
-        "sort_order": {
-          "name": "sort_order",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
         }
       },
       "indexes": {},
@@ -810,13 +803,6 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true
-        },
-        "sort_order": {
-          "name": "sort_order",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
         }
       },
       "indexes": {},

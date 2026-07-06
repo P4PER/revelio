@@ -7,6 +7,7 @@ ALTER TABLE "legalities" DROP COLUMN "labels";--> statement-breakpoint
 ALTER TABLE "legalities" DROP COLUMN "created_at";--> statement-breakpoint
 ALTER TABLE "legalities" DROP COLUMN "updated_at";--> statement-breakpoint
 ALTER TABLE "legalities" DROP COLUMN "origin";--> statement-breakpoint
+ALTER TABLE "lessons" DROP COLUMN "sort_order";--> statement-breakpoint
 ALTER TABLE "lessons" DROP COLUMN "labels";--> statement-breakpoint
 ALTER TABLE "lessons" DROP COLUMN "created_at";--> statement-breakpoint
 ALTER TABLE "lessons" DROP COLUMN "updated_at";--> statement-breakpoint
@@ -20,6 +21,7 @@ ALTER TABLE "sub_types" DROP COLUMN "labels";--> statement-breakpoint
 ALTER TABLE "sub_types" DROP COLUMN "created_at";--> statement-breakpoint
 ALTER TABLE "sub_types" DROP COLUMN "updated_at";--> statement-breakpoint
 ALTER TABLE "sub_types" DROP COLUMN "origin";--> statement-breakpoint
+ALTER TABLE "types" DROP COLUMN "sort_order";--> statement-breakpoint
 ALTER TABLE "types" DROP COLUMN "labels";--> statement-breakpoint
 ALTER TABLE "types" DROP COLUMN "created_at";--> statement-breakpoint
 ALTER TABLE "types" DROP COLUMN "updated_at";--> statement-breakpoint

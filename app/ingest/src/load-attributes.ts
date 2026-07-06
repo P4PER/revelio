@@ -45,7 +45,7 @@ function codeRows(codes: Set<string>) {
 export async function loadAttributes(db: DB, cards: DistCard[]): Promise<void> {
   const d = distinctAttributes(cards)
 
-  const typeRows = orderedRows(d.types, ATTRIBUTES.types)
+  const typeRows = codeRows(d.types)
   if (typeRows.length) await db.insert(types).values(typeRows).onConflictDoNothing()
 
   const rarityRows = orderedRows(d.rarities, ATTRIBUTES.rarities)
@@ -54,7 +54,7 @@ export async function loadAttributes(db: DB, cards: DistCard[]): Promise<void> {
   const finishRows = orderedRows(d.finishes, ATTRIBUTES.finishes)
   if (finishRows.length) await db.insert(finishes).values(finishRows).onConflictDoNothing()
 
-  const lessonRows = orderedRows(d.lessons, ATTRIBUTES.lessons)
+  const lessonRows = codeRows(d.lessons)
   if (lessonRows.length) await db.insert(lessons).values(lessonRows).onConflictDoNothing()
 
   const legalityRows = codeRows(d.legalities)

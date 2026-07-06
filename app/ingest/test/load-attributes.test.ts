@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { types, subTypes, lessons } from '@revelio/db'
+import { types, subTypes, lessons, rarities } from '@revelio/db'
 import { eq } from 'drizzle-orm'
 import { loadAttributes } from '../src/load-attributes.js'
 import { loadDist } from '../src/load-dist.js'
@@ -28,10 +28,15 @@ describe('loadAttributes', () => {
     expect(rows.map((r) => r.code).sort()).toEqual(['gryffindor', 'wizard'])
   })
 
-  it('applies curated order (array position) to a lesson from provides', async () => {
+  it('derives a lesson from provides (codes only, no order)', async () => {
     const rows = await ctx.db.select().from(lessons).where(eq(lessons.code, 'charms'))
     expect(rows).toHaveLength(1) // Charms comes from Flobberworm.provides
-    expect(rows[0].sortOrder).toBe(2) // charms is the 2nd entry in LESSONS
+  })
+
+  it('applies curated order (array position) to a ranked vocab (rarities)', async () => {
+    const rows = await ctx.db.select().from(rarities).where(eq(rarities.code, 'rare'))
+    expect(rows).toHaveLength(1)
+    expect(rows[0].sortOrder).toBe(3) // rare is the 3rd entry in RARITIES
   })
 
   it('is additive on re-run', async () => {

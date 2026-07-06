@@ -1,16 +1,16 @@
 import { eq, asc, sql, inArray, and, isNotNull } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import type { DB } from './client'
-import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations } from './schema'
+import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations, setLocalizations } from './schema'
 import type { SetDTO, CardLocalizationDTO, CardDetailDTO, AdventureData, MatchData } from '@revelio/core'
 import type { CardIndexData } from '@revelio/search'
 
 type SetRow = typeof sets.$inferSelect
 
-function toSetDTO(row: SetRow): SetDTO {
+function toSetDTO(row: SetRow, name: string = row.name): SetDTO {
   return {
     code: row.code,
-    name: row.name,
+    name,
     releaseDate: row.releaseDate,
     isOfficial: row.isOfficial,
     cardCount: row.cardCount,
@@ -18,20 +18,64 @@ function toSetDTO(row: SetRow): SetDTO {
   }
 }
 
-export async function listSets(db: DB): Promise<SetDTO[]> {
+export async function listSets(db: DB, locale?: string): Promise<SetDTO[]> {
   const rows = await db.select().from(sets).orderBy(asc(sets.releaseDate), asc(sets.code))
-  return rows.map(toSetDTO)
+  if (!locale) return rows.map((r) => toSetDTO(r))
+  const locs = await db.select().from(setLocalizations).where(eq(setLocalizations.lang, locale))
+  const nameByCode = new Map(locs.map((l) => [l.setCode, l.name]))
+  return rows.map((r) => toSetDTO(r, nameByCode.get(r.code) ?? r.name))
 }
 
-export async function getSetByCode(db: DB, code: string): Promise<SetDTO | null> {
+export async function getSetByCode(db: DB, code: string, locale?: string): Promise<SetDTO | null> {
   const [row] = await db.select().from(sets).where(eq(sets.code, code)).limit(1)
-  return row ? toSetDTO(row) : null
+  if (!row) return null
+  if (!locale) return toSetDTO(row)
+  const [loc] = await db
+    .select()
+    .from(setLocalizations)
+    .where(and(eq(setLocalizations.setCode, code), eq(setLocalizations.lang, locale)))
+    .limit(1)
+  return toSetDTO(row, loc?.name ?? row.name)
 }
 
-export async function getCardById(db: DB, id: string): Promise<CardDetailDTO | null> {
+export type SetForEdit = {
+  code: string
+  name: string
+  releaseDate: string | null
+  isOfficial: boolean
+  cardCount: number
+  symbol: string | null
+  localizations: Record<string, string>
+}
+
+export async function getSetForEdit(db: DB, code: string): Promise<SetForEdit | null> {
+  const [row] = await db.select().from(sets).where(eq(sets.code, code)).limit(1)
+  if (!row) return null
+  const locs = await db.select().from(setLocalizations).where(eq(setLocalizations.setCode, code))
+  return {
+    code: row.code,
+    name: row.name,
+    releaseDate: row.releaseDate,
+    isOfficial: row.isOfficial,
+    cardCount: row.cardCount,
+    symbol: row.symbol,
+    localizations: Object.fromEntries(locs.map((l) => [l.lang, l.name])),
+  }
+}
+
+export async function getCardById(db: DB, id: string, locale?: string): Promise<CardDetailDTO | null> {
   const [card] = await db.select().from(cards).where(eq(cards.id, id)).limit(1)
   if (!card) return null
   const [setRow] = await db.select().from(sets).where(eq(sets.code, card.setCode)).limit(1)
+  let setName = setRow?.name
+  if (locale && setRow) {
+    const [loc] = await db
+      .select()
+      .from(setLocalizations)
+      .where(and(eq(setLocalizations.setCode, card.setCode), eq(setLocalizations.lang, locale)))
+      .limit(1)
+    setName = loc?.name ?? setRow.name
+  }
   const [locRows, typeRows, subTypeRows, rulingRows] = await Promise.all([
     db.select().from(cardLocalizations).where(eq(cardLocalizations.cardId, id)),
     db.select().from(cardTypes).where(eq(cardTypes.cardId, id)),
@@ -83,7 +127,7 @@ export async function getCardById(db: DB, id: string): Promise<CardDetailDTO | n
       source: r.source,
       text: textsByRuling.get(r.id) ?? {},
     })),
-    set: toSetDTO(setRow),
+    set: toSetDTO(setRow, setName),
   }
 }
 

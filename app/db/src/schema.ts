@@ -59,6 +59,14 @@ export const sets = pgTable('sets', {
   ...editable,
 })
 
+export const setLocalizations = pgTable('set_localizations', {
+  setCode: text('set_code').notNull().references(() => sets.code, { onDelete: 'cascade' }),
+  lang: text('lang').notNull(),
+  name: text('name').notNull(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.setCode, t.lang] }),
+}))
+
 export const cards = pgTable('cards', {
   id: text('id').primaryKey(),
   setCode: text('set_code').notNull().references(() => sets.code),

@@ -4,7 +4,6 @@ import { loadSets } from '../src/load-sets.js'
 import { loadAttributes } from '../src/load-attributes.js'
 import { loadCards } from '../src/load-cards.js'
 import { loadDist } from '../src/load-dist.js'
-import { loadLabels } from '../src/load-labels.js'
 import { indexCards } from '../src/index-cards.js'
 import { withMigratedDb } from './helpers.js'
 import { fileURLToPath } from 'node:url'
@@ -12,7 +11,6 @@ import { dirname, resolve } from 'node:path'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const fixtureDir = resolve(here, 'fixtures/dataset')
-const i18nDir = resolve(here, 'fixtures/i18n')
 
 const client = createMeiliClient(
   process.env.TEST_MEILI_HOST ?? 'http://localhost:7700',
@@ -25,7 +23,7 @@ beforeAll(async () => {
   ctx = await withMigratedDb()
   const { sets, cards } = await loadDist(fixtureDir)
   await loadSets(ctx.db, sets)
-  await loadAttributes(ctx.db, cards, await loadLabels(i18nDir))
+  await loadAttributes(ctx.db, cards)
   await loadCards(ctx.db, cards)
   langs = await indexCards(ctx.db, client)
 }, 120_000)

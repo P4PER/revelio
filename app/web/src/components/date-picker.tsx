@@ -58,6 +58,9 @@ export function DatePicker({
       <PopoverContent align="start">
         <Calendar
           mode="single"
+          captionLayout="dropdown"
+          startMonth={new Date(1990, 0)}
+          endMonth={new Date(new Date().getFullYear() + 1, 11)}
           selected={date}
           defaultMonth={date}
           onSelect={(d) => {

@@ -3,8 +3,7 @@ import { Plus } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import { getDb } from '@/lib/db'
 import { listSets } from '@revelio/db'
-import { SetSymbol } from '@/components/set-symbol'
-import { formatReleaseMonth } from '@/lib/set-sort'
+import { AdminSetsTable } from '@/components/admin-sets-table'
 import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
@@ -31,26 +30,7 @@ export default async function AdminSetsPage({ params }: { params: Promise<{ loca
           </Link>
         </Button>
       </div>
-      <ul className="divide-y rounded-lg border">
-        {sets.map((s) => (
-          <li key={s.code}>
-            <Link href={`/admin/sets/${s.code}/edit`} className="flex items-center gap-4 p-3 transition-colors hover:bg-muted/50">
-              <span className="flex h-8 w-8 items-center justify-center">
-                {s.symbol && IMAGE_BASE ? (
-                  <SetSymbol code={s.code} base={IMAGE_BASE} className="h-6 w-6 text-foreground/80" />
-                ) : (
-                  <span className="text-xs text-muted-foreground">{s.code}</span>
-                )}
-              </span>
-              <span className="flex-1 font-medium">{s.name}</span>
-              <span className="font-mono text-xs text-muted-foreground">{s.code}</span>
-              <span className="w-24 text-right text-sm text-muted-foreground">{formatReleaseMonth(s.releaseDate)}</span>
-              <span className="w-14 text-right text-sm text-muted-foreground">{s.cardCount}</span>
-              <span className="w-16 text-right text-xs text-muted-foreground">{s.isOfficial ? t('official') : 'Fan'}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <AdminSetsTable sets={sets} imageBase={IMAGE_BASE} />
     </div>
   )
 }

@@ -20,7 +20,8 @@
   },
   "nav": {
     "language": "Language",
-    "sets": "Sets"
+    "sets": "Sets",
+    "admin": "Admin"
   },
   "search": {
     "title": "Search",
@@ -142,5 +143,14 @@
     "rarities": { "common": "Common", "uncommon": "Uncommon", "rare": "Rare", "lesson": "Lesson" },
     "finishes": { "normal": "Normal", "foil": "Foil", "holo": "Holo Portrait" },
     "legalities": { "legal": "Legal", "restricted": "Restricted", "banned": "Banned", "unknown": "Unknown" }
+  },
+  "admin": {
+    "title": "Admin",
+    "subTypes": "Sub-types",
+    "subTypesDesc": "Translate creature and character sub-types.",
+    "code": "Code",
+    "save": "Save",
+    "saved": "Saved",
+    "saveError": "Could not save"
   }
 }

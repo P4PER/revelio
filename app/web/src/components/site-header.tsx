@@ -7,11 +7,15 @@ import { Button } from '@/components/ui/button'
 import { BrandMark } from './brand-mark'
 import { LanguageSwitcher } from './language-switcher'
 import { AccountMenu } from './account-menu'
+import { getSession } from '@/lib/session'
+import { hasRequiredRole } from '@/lib/roles'
 
 export async function SiteHeader() {
   const t = await getTranslations('nav')
   const ts = await getTranslations('search')
   const ta = await getTranslations('auth')
+  const session = await getSession()
+  const isEditor = hasRequiredRole(session?.user?.role, 'editor')
   return (
     <header className="border-b border-border/60">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-6 py-2">
@@ -20,6 +24,9 @@ export async function SiteHeader() {
           <HeaderSearch placeholder={ts('placeholder')} />
         </Suspense>
         <nav className="ml-auto flex shrink-0 items-center gap-3">
+          {isEditor && (
+            <Button variant="ghost" size="sm" asChild><Link href="/admin">{t('admin')}</Link></Button>
+          )}
           <Button variant="ghost" size="sm" asChild><Link href="/sets">{t('sets')}</Link></Button>
           <span className="h-5 w-px bg-border/70" aria-hidden />
           <LanguageSwitcher />

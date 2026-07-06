@@ -20,7 +20,8 @@
   },
   "nav": {
     "language": "Sprache",
-    "sets": "Editionen"
+    "sets": "Editionen",
+    "admin": "Admin"
   },
   "search": {
     "title": "Suche",
@@ -142,5 +143,14 @@
     "rarities": { "common": "Häufig", "uncommon": "Ungewöhnlich", "rare": "Selten", "lesson": "Lektion" },
     "finishes": { "normal": "Normal", "foil": "Folie", "holo": "Holo-Porträt" },
     "legalities": { "legal": "Legal", "restricted": "Eingeschränkt", "banned": "Verboten", "unknown": "Unbekannt" }
+  },
+  "admin": {
+    "title": "Admin",
+    "subTypes": "Unterarten",
+    "subTypesDesc": "Kreatur- und Charakter-Unterarten übersetzen.",
+    "code": "Code",
+    "save": "Speichern",
+    "saved": "Gespeichert",
+    "saveError": "Speichern fehlgeschlagen"
   }
 }

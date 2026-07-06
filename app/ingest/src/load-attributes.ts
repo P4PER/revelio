@@ -1,5 +1,5 @@
 import type { DB } from '@revelio/db'
-import { types, subTypes, subTypeTranslations, lessons, rarities, finishes, legalities } from '@revelio/db'
+import { types, subTypes, subTypeLocalizations, lessons, rarities, finishes, legalities } from '@revelio/db'
 import { ATTRIBUTES, slugify } from '@revelio/core'
 import type { DistCard } from './types.js'
 
@@ -73,5 +73,5 @@ export async function loadAttributes(db: DB, cards: DistCard[]): Promise<void> {
   // Seed the English sub-type translation from the source label. onConflictDoNothing
   // so admin edits and existing rows survive a re-ingest; new codes get their en.
   const enRows = [...d.subTypeEn].map(([code, label]) => ({ subTypeCode: code, lang: 'en', label }))
-  if (enRows.length) await db.insert(subTypeTranslations).values(enRows).onConflictDoNothing()
+  if (enRows.length) await db.insert(subTypeLocalizations).values(enRows).onConflictDoNothing()
 }

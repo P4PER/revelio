@@ -1,7 +1,7 @@
 import { eq, asc, sql, inArray, and, isNotNull } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import type { DB } from './client'
-import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingTexts, subTypes, subTypeTranslations } from './schema'
+import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations } from './schema'
 import type { SetDTO, CardLocalizationDTO, CardDetailDTO, AdventureData, MatchData } from '@revelio/core'
 import type { CardIndexData } from '@revelio/search'
 
@@ -39,8 +39,8 @@ export async function getCardById(db: DB, id: string): Promise<CardDetailDTO | n
     db.select().from(cardRulings).where(eq(cardRulings.cardId, id)).orderBy(asc(cardRulings.seq)),
   ])
   const rulingTextRows = rulingRows.length
-    ? await db.select().from(cardRulingTexts).where(
-        inArray(cardRulingTexts.rulingId, rulingRows.map((r) => r.id)),
+    ? await db.select().from(cardRulingLocalizations).where(
+        inArray(cardRulingLocalizations.rulingId, rulingRows.map((r) => r.id)),
       )
     : []
   const textsByRuling = new Map<string, Record<string, string>>()
@@ -210,11 +210,11 @@ export async function saveRulings(
         await tx.insert(cardRulings).values({ id, cardId, seq: i, date, source, origin: 'user', updatedAt: now })
       }
       if (text) {
-        await tx.insert(cardRulingTexts)
+        await tx.insert(cardRulingLocalizations)
           .values({ rulingId: id, lang, text })
-          .onConflictDoUpdate({ target: [cardRulingTexts.rulingId, cardRulingTexts.lang], set: { text } })
+          .onConflictDoUpdate({ target: [cardRulingLocalizations.rulingId, cardRulingLocalizations.lang], set: { text } })
       } else {
-        await tx.delete(cardRulingTexts).where(and(eq(cardRulingTexts.rulingId, id), eq(cardRulingTexts.lang, lang)))
+        await tx.delete(cardRulingLocalizations).where(and(eq(cardRulingLocalizations.rulingId, id), eq(cardRulingLocalizations.lang, lang)))
       }
     }
 
@@ -233,7 +233,7 @@ export async function listRulingSources(db: DB): Promise<string[]> {
 }
 
 export async function getSubTypeLabels(db: DB, lang: string): Promise<Record<string, string>> {
-  const rows = await db.select().from(subTypeTranslations).where(eq(subTypeTranslations.lang, lang))
+  const rows = await db.select().from(subTypeLocalizations).where(eq(subTypeLocalizations.lang, lang))
   return Object.fromEntries(rows.map((r) => [r.subTypeCode, r.label]))
 }
 
@@ -241,7 +241,7 @@ export async function listSubTypesWithTranslations(
   db: DB,
 ): Promise<{ code: string; labels: Record<string, string> }[]> {
   const codes = await db.select().from(subTypes).orderBy(asc(subTypes.code))
-  const trans = await db.select().from(subTypeTranslations)
+  const trans = await db.select().from(subTypeLocalizations)
   const byCode = new Map<string, Record<string, string>>()
   for (const t of trans) {
     const m = byCode.get(t.subTypeCode) ?? {}
@@ -258,14 +258,14 @@ export async function saveSubTypeTranslations(
   await db.transaction(async (tx) => {
     for (const r of rows) {
       if (r.label.trim() === '') {
-        await tx.delete(subTypeTranslations).where(
-          and(eq(subTypeTranslations.subTypeCode, r.code), eq(subTypeTranslations.lang, r.lang)),
+        await tx.delete(subTypeLocalizations).where(
+          and(eq(subTypeLocalizations.subTypeCode, r.code), eq(subTypeLocalizations.lang, r.lang)),
         )
       } else {
-        await tx.insert(subTypeTranslations)
+        await tx.insert(subTypeLocalizations)
           .values({ subTypeCode: r.code, lang: r.lang, label: r.label })
           .onConflictDoUpdate({
-            target: [subTypeTranslations.subTypeCode, subTypeTranslations.lang],
+            target: [subTypeLocalizations.subTypeCode, subTypeLocalizations.lang],
             set: { label: r.label },
           })
       }

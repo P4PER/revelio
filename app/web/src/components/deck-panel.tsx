@@ -80,7 +80,9 @@ export function DeckPanel({
           </span>
         )}
         <span className="min-w-0 flex-1 truncate text-sm">{e.name}</span>
-        <span className="text-[0.62rem] tracking-wide text-muted-foreground uppercase">{e.setCode}</span>
+        <span className="text-[0.62rem] tracking-wide text-muted-foreground uppercase">
+          {e.setCode} · {e.number}
+        </span>
       </div>
     )
   }
@@ -97,7 +99,9 @@ export function DeckPanel({
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-semibold">{character.name}</div>
-            <div className="text-xs text-muted-foreground">{character.setCode}</div>
+            <div className="text-xs text-muted-foreground">
+              {character.setCode} · {character.number}
+            </div>
           </div>
           <span className="rounded-full border border-primary/60 px-2 py-0.5 text-[0.62rem] tracking-wide text-primary uppercase">
             {t('panel.characterBadge')}

@@ -441,7 +441,7 @@ async function cardViewMetaByIds(db: DB, ids: string[]): Promise<Map<string, Omi
       types: typesById.get(c.id) ?? [], subTypes: subsById.get(c.id) ?? [],
     })
     out.set(c.id, {
-      cardId: c.id, name: c.name, cost: c.cost ?? null, setCode: c.setCode,
+      cardId: c.id, name: c.name, cost: c.cost ?? null, setCode: c.setCode, number: c.number,
       lesson: c.lesson ?? null, isOfficial: m.isOfficial, legality: m.legality,
       isLesson: m.isLesson, isStartingCharacter: m.isStartingCharacter,
     })
@@ -467,6 +467,7 @@ export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; user
     return {
       cardId: d.cardId, zone: d.zone as DeckCardView['zone'], quantity: d.quantity,
       name: meta?.name ?? d.cardId, cost: meta?.cost ?? null, setCode: meta?.setCode ?? '',
+      number: meta?.number ?? '',
       lesson: meta?.lesson ?? null, isOfficial: meta?.isOfficial ?? false, legality: meta?.legality ?? null,
       isLesson: meta?.isLesson ?? false, isStartingCharacter: meta?.isStartingCharacter ?? false,
     }

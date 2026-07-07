@@ -78,6 +78,7 @@ export type DeckCardView = DeckCardDTO & {
   name: string
   cost: number | null
   setCode: string
+  number: string
   lesson: string | null
   isOfficial: boolean
   legality: string | null

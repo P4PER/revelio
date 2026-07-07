@@ -44,6 +44,8 @@ describe('deck queries', () => {
     expect(got?.views.find((v) => v.cardId === 'bs-accio')?.name).toBe('Accio')
     // BS is an official set — the sets-join must surface that on the view.
     expect(got?.views.find((v) => v.cardId === 'bs-accio')?.isOfficial).toBe(true)
+    // The seeded collector number is threaded through onto the view.
+    expect(got?.views.find((v) => v.cardId === 'bs-accio')?.number).toBe('2')
 
     const list = await listDecksByUser(ctx.db, 'u1')
     expect(list).toHaveLength(1)
@@ -115,11 +117,11 @@ describe('deck queries', () => {
     const out = await getCardViews(ctx.db, ['bs-harry', 'pr-dobby', 'does-not-exist'])
 
     expect(Object.keys(out).sort()).toEqual(['bs-harry', 'pr-dobby'])
-    expect(out['bs-harry']).toMatchObject({ cardId: 'bs-harry', name: 'Harry Potter', setCode: 'BS' })
+    expect(out['bs-harry']).toMatchObject({ cardId: 'bs-harry', name: 'Harry Potter', setCode: 'BS', number: '1' })
     // BS is an official set — the sets-join must surface that on the view.
     expect(out['bs-harry'].isOfficial).toBe(true)
     // PR is not an official set.
-    expect(out['pr-dobby']).toMatchObject({ cardId: 'pr-dobby', name: 'Dobby', setCode: 'PR' })
+    expect(out['pr-dobby']).toMatchObject({ cardId: 'pr-dobby', name: 'Dobby', setCode: 'PR', number: '1' })
     expect(out['pr-dobby'].isOfficial).toBe(false)
     // A nonexistent card id is simply absent, not a placeholder entry — callers
     // (deck import) rely on this to distinguish resolved from unresolved ids.

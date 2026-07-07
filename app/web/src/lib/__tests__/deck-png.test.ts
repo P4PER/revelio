@@ -4,27 +4,27 @@ import { layoutDeckLines } from '../deck-png'
 
 const harry: DeckCardView = {
   cardId: 'bs-harry', zone: 'character', quantity: 1,
-  name: 'Harry Potter', cost: null, setCode: 'BS', lesson: null,
+  name: 'Harry Potter', cost: null, setCode: 'BS', number: '1', lesson: null,
   isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: true,
 }
 const accio: DeckCardView = {
   cardId: 'bs-accio', zone: 'main', quantity: 4,
-  name: 'Accio', cost: 1, setCode: 'BS', lesson: 'charms',
+  name: 'Accio', cost: 1, setCode: 'BS', number: '2', lesson: 'charms',
   isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: false,
 }
 const charmsLesson: DeckCardView = {
   cardId: 'bs-charms-class', zone: 'main', quantity: 6,
-  name: 'Charms Class', cost: null, setCode: 'BS', lesson: 'charms',
+  name: 'Charms Class', cost: null, setCode: 'BS', number: '3', lesson: 'charms',
   isOfficial: true, legality: 'legal', isLesson: true, isStartingCharacter: false,
 }
 const item: DeckCardView = {
   cardId: 'bs-nimbus', zone: 'main', quantity: 2,
-  name: 'Nimbus Two Thousand', cost: 2, setCode: 'BS', lesson: null,
+  name: 'Nimbus Two Thousand', cost: 2, setCode: 'BS', number: '4', lesson: null,
   isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: false,
 }
 const sideCard: DeckCardView = {
   cardId: 'bs-dobby', zone: 'sideboard', quantity: 1,
-  name: 'Dobby', cost: 1, setCode: 'BS', lesson: null,
+  name: 'Dobby', cost: 1, setCode: 'BS', number: '5', lesson: null,
   isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: false,
 }
 

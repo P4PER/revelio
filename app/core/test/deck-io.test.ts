@@ -31,8 +31,8 @@ describe('json round-trip', () => {
 describe('text export', () => {
   it('groups by zone with a header and counts', () => {
     const views: DeckCardView[] = [
-      { cardId: 'HARRY', zone: 'character', quantity: 1, name: 'Harry Potter', cost: null, setCode: 'BS', lesson: null, isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: true },
-      { cardId: 'da-accio', zone: 'main', quantity: 4, name: 'Accio', cost: 2, setCode: 'DA', lesson: 'charms', isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: false },
+      { cardId: 'HARRY', zone: 'character', quantity: 1, name: 'Harry Potter', cost: null, setCode: 'BS', number: '1', lesson: null, isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: true },
+      { cardId: 'da-accio', zone: 'main', quantity: 4, name: 'Accio', cost: 2, setCode: 'DA', number: '12', lesson: 'charms', isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: false },
     ]
     const text = toText({ name: 'Charms Aggro', format: 'revival' }, views)
     expect(text).toContain('# Charms Aggro (Revival)')

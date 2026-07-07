@@ -51,7 +51,7 @@ vi.mock('@/lib/deck-model', async (importOriginal) => {
 const emptyState: BuilderState = { name: '', format: 'revival', visibility: 'private', entries: [] }
 
 const draftEntry = {
-  cardId: 'accio', zone: 'main' as const, quantity: 2, name: 'Accio', cost: 1, setCode: 'BS',
+  cardId: 'accio', zone: 'main' as const, quantity: 2, name: 'Accio', cost: 1, setCode: 'BS', number: '1',
   lesson: null, isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: false,
 }
 

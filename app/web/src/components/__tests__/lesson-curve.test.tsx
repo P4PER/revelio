@@ -6,7 +6,7 @@ import type { DeckCardView } from '@revelio/core'
 import { LessonCurve } from '../lesson-curve'
 
 const entry = (over: Partial<DeckCardView> = {}): DeckCardView => ({
-  cardId: 'x', zone: 'main', quantity: 1, name: 'Card', cost: 1, setCode: 'BS', lesson: null,
+  cardId: 'x', zone: 'main', quantity: 1, name: 'Card', cost: 1, setCode: 'BS', number: '1', lesson: null,
   isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: false, ...over,
 })
 

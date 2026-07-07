@@ -5,11 +5,11 @@ import { jsonToEntries, resolveKey, textLinesToEntries } from '../deck-import'
 type CardViewMeta = Omit<DeckCardView, 'zone' | 'quantity'>
 
 const accioView: CardViewMeta = {
-  cardId: 'bs-accio', name: 'Accio', cost: 1, setCode: 'BS', lesson: 'charms',
+  cardId: 'bs-accio', name: 'Accio', cost: 1, setCode: 'BS', number: '1', lesson: 'charms',
   isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: false,
 }
 const harryView: CardViewMeta = {
-  cardId: 'bs-harry', name: 'Harry Potter', cost: null, setCode: 'BS', lesson: null,
+  cardId: 'bs-harry', name: 'Harry Potter', cost: null, setCode: 'BS', number: '2', lesson: null,
   isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: true,
 }
 

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { emptyDeck, addCard, copyLimitReached, setFormat } from '../deck-model'
 
 const view = (id: string, over: Partial<Parameters<typeof addCard>[1]> = {}) => ({
-  cardId: id, name: id, cost: 1, setCode: 'BS', lesson: null,
+  cardId: id, name: id, cost: 1, setCode: 'BS', number: '1', lesson: null,
   isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: false, ...over,
 })
 

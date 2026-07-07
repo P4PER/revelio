@@ -5,7 +5,7 @@ import { DeckFormat, DeckVisibility, DeckZone } from '@revelio/core'
 import type { SearchResult } from '@revelio/search'
 import { getSession } from '@/lib/session'
 import { getDb } from '@/lib/db'
-import { createDeck, updateDeck, deleteDeck, getDeck } from '@revelio/db'
+import { createDeck, updateDeck, updateDeckMeta, deleteDeck, getDeck } from '@revelio/db'
 import { getSearchClient, runSearch } from '@/lib/search-client'
 import type { SearchState } from '@/lib/search-params'
 
@@ -46,6 +46,29 @@ export async function updateDeckAction(id: string, input: unknown): Promise<Deck
   if (!existing) return { ok: false, error: 'invalid' }
   if (existing.userId !== userId) return { ok: false, error: 'forbidden' }
   await updateDeck(getDb(), id, parsed.data)
+  revalidatePath('/decks')
+  revalidatePath(`/decks/${id}`)
+  return { ok: true, id }
+}
+
+const metaSchema = z.object({
+  name: z.string().trim().min(1).max(120).optional(),
+  visibility: DeckVisibility.optional(),
+})
+
+// Lightweight sibling to updateDeckAction: touches only name/visibility, never
+// the card list. Used by the /decks list page (rename, visibility toggle),
+// which only has a DeckSummary — reusing updateDeckAction there would wipe
+// the deck's cards since it always replaces the full card set.
+export async function updateDeckMetaAction(id: string, input: unknown): Promise<DeckActionResult> {
+  const userId = await requireUserId()
+  if (!userId) return { ok: false, error: 'auth' }
+  const parsed = metaSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: 'invalid' }
+  const existing = await getDeck(getDb(), id)
+  if (!existing) return { ok: false, error: 'invalid' }
+  if (existing.userId !== userId) return { ok: false, error: 'forbidden' }
+  await updateDeckMeta(getDb(), id, parsed.data)
   revalidatePath('/decks')
   revalidatePath(`/decks/${id}`)
   return { ok: true, id }

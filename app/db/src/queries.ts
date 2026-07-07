@@ -408,6 +408,18 @@ export async function listDecksByUser(db: DB, userId: string): Promise<DeckSumma
   }))
 }
 
+// Updates only name/visibility (+ updatedAt) — never touches deck_cards. Used
+// by list-page actions (rename, visibility toggle) where the caller only has
+// a DeckSummary, not the full card list `updateDeck` requires.
+export async function updateDeckMeta(
+  db: DB, id: string, fields: { name?: string; visibility?: DeckVisibility },
+): Promise<void> {
+  const set: Partial<typeof decks.$inferInsert> = { updatedAt: new Date() }
+  if (fields.name !== undefined) set.name = fields.name
+  if (fields.visibility !== undefined) set.visibility = fields.visibility
+  await db.update(decks).set(set).where(eq(decks.id, id))
+}
+
 export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; userId: string; views: DeckCardView[] } | null> {
   const [row] = await db.select().from(decks).where(eq(decks.id, id)).limit(1)
   if (!row) return null

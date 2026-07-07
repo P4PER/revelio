@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { withMigratedDb } from './helpers.js'
 import {
-  createDeck, getDeck, listDecksByUser, updateDeck, deleteDeck, resolveCardsByName,
+  createDeck, getDeck, listDecksByUser, updateDeck, updateDeckMeta, deleteDeck, resolveCardsByName,
   user, sets, cards,
 } from '@revelio/db'
 
@@ -60,6 +60,37 @@ describe('deck queries', () => {
 
     await deleteDeck(ctx.db, id)
     expect(await getDeck(ctx.db, id)).toBeNull()
+  })
+
+  it('updateDeckMeta changes name/visibility without touching card rows', async () => {
+    const id = await createDeck(ctx.db, 'u1', {
+      name: 'Meta Deck', format: 'revival', visibility: 'private',
+      cards: [
+        { cardId: 'bs-harry', zone: 'character', quantity: 1 },
+        { cardId: 'bs-accio', zone: 'main', quantity: 4 },
+      ],
+    })
+
+    await updateDeckMeta(ctx.db, id, { name: 'Renamed Meta Deck', visibility: 'public' })
+    const after = await getDeck(ctx.db, id)
+    expect(after?.deck.name).toBe('Renamed Meta Deck')
+    expect(after?.deck.visibility).toBe('public')
+    // Card rows are untouched — same two entries, same zones/quantities.
+    expect(after?.deck.cards).toHaveLength(2)
+    expect(after?.deck.cards).toEqual(
+      expect.arrayContaining([
+        { cardId: 'bs-harry', zone: 'character', quantity: 1 },
+        { cardId: 'bs-accio', zone: 'main', quantity: 4 },
+      ]),
+    )
+
+    // Updating only one field leaves the other untouched.
+    await updateDeckMeta(ctx.db, id, { visibility: 'private' })
+    const after2 = await getDeck(ctx.db, id)
+    expect(after2?.deck.name).toBe('Renamed Meta Deck')
+    expect(after2?.deck.visibility).toBe('private')
+
+    await deleteDeck(ctx.db, id)
   })
 
   it('resolves card names to ids, honoring the setCode-scoped map key', async () => {

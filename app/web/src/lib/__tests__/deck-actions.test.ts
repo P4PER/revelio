@@ -4,6 +4,7 @@ const m = vi.hoisted(() => ({
   getSession: vi.fn(async () => ({ user: { id: 'u1' } })),
   createDeck: vi.fn(async () => 'new-id'),
   updateDeck: vi.fn(async () => {}),
+  updateDeckMeta: vi.fn(async () => {}),
   deleteDeck: vi.fn(async () => {}),
   getDeck: vi.fn(async () => ({ userId: 'u1', deck: { name: 'D', format: 'revival', visibility: 'private', cards: [] } })),
   revalidatePath: vi.fn(),
@@ -15,13 +16,14 @@ vi.mock('@/lib/db', () => ({ getDb: () => ({}) }))
 vi.mock('@revelio/db', () => ({
   createDeck: m.createDeck,
   updateDeck: m.updateDeck,
+  updateDeckMeta: m.updateDeckMeta,
   deleteDeck: m.deleteDeck,
   getDeck: m.getDeck,
 }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
 vi.mock('@/lib/search-client', () => ({ getSearchClient: m.getSearchClient, runSearch: m.runSearch }))
 
-import { createDeckAction, updateDeckAction, deleteDeckAction, duplicateDeckAction, searchDeckCards } from '../deck-actions'
+import { createDeckAction, updateDeckAction, updateDeckMetaAction, deleteDeckAction, duplicateDeckAction, searchDeckCards } from '../deck-actions'
 
 const validInput = { name: 'D', format: 'revival', visibility: 'private', cards: [{ cardId: 'x', zone: 'main', quantity: 4 }] }
 
@@ -56,6 +58,36 @@ it('rejects delete on a deck owned by someone else', async () => {
   m.getDeck.mockResolvedValueOnce({ userId: 'other', deck: {} } as never)
   expect(await deleteDeckAction('d1')).toEqual({ ok: false, error: 'forbidden' })
   expect(m.deleteDeck).not.toHaveBeenCalled()
+})
+
+it('rejects meta update when logged out', async () => {
+  m.getSession.mockResolvedValueOnce(null as never)
+  expect(await updateDeckMetaAction('d1', { name: 'New Name' })).toEqual({ ok: false, error: 'auth' })
+  expect(m.updateDeckMeta).not.toHaveBeenCalled()
+})
+
+it('rejects meta update on a deck owned by someone else', async () => {
+  m.getDeck.mockResolvedValueOnce({ userId: 'other', deck: {} } as never)
+  expect(await updateDeckMetaAction('d1', { name: 'New Name' })).toEqual({ ok: false, error: 'forbidden' })
+  expect(m.updateDeckMeta).not.toHaveBeenCalled()
+})
+
+it('rejects invalid meta input', async () => {
+  expect(await updateDeckMetaAction('d1', { name: '' })).toEqual({ ok: false, error: 'invalid' })
+  expect(await updateDeckMetaAction('d1', { visibility: 'nope' })).toEqual({ ok: false, error: 'invalid' })
+  expect(m.updateDeckMeta).not.toHaveBeenCalled()
+})
+
+it('updates only the provided meta fields, leaving cards untouched', async () => {
+  const r = await updateDeckMetaAction('d1', { name: 'Renamed' })
+  expect(r).toEqual({ ok: true, id: 'd1' })
+  expect(m.updateDeckMeta).toHaveBeenCalledWith(expect.anything(), 'd1', { name: 'Renamed' })
+})
+
+it('toggles visibility via meta update', async () => {
+  const r = await updateDeckMetaAction('d1', { visibility: 'public' })
+  expect(r).toEqual({ ok: true, id: 'd1' })
+  expect(m.updateDeckMeta).toHaveBeenCalledWith(expect.anything(), 'd1', { visibility: 'public' })
 })
 
 it('rejects duplicate when logged out', async () => {

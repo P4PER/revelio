@@ -1,3 +1,5 @@
+import type { DeckFormat, DeckVisibility, DeckZone } from './deck'
+
 // The transport/domain shape shared by the API and the frontend (distinct from the
 // Drizzle persistence rows in @revelio/db). Grows as the web app is built.
 export type SetDTO = {
@@ -58,4 +60,27 @@ export type CardDetailDTO = CardDTO & {
   defaultLanguage: string
   rulings: RulingDTO[]
   set: SetDTO
+}
+
+export type DeckCardDTO = { cardId: string; zone: DeckZone; quantity: number }
+
+export type DeckDTO = {
+  id: string
+  name: string
+  format: DeckFormat
+  visibility: DeckVisibility
+  cards: DeckCardDTO[]
+  createdAt: string
+  updatedAt: string
+}
+
+export type DeckCardView = DeckCardDTO & {
+  name: string
+  cost: number | null
+  setCode: string
+  lesson: string | null
+  isOfficial: boolean
+  legality: string | null
+  isLesson: boolean
+  isStartingCharacter: boolean
 }

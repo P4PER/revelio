@@ -199,6 +199,11 @@
     "saveError": "Deck konnte nicht gespeichert werden.",
     "loginToSave": "Zum Speichern anmelden",
     "draftNotice": "Dein Entwurf wird auf diesem Gerät gespeichert. Melde dich an, damit wir ihn in deinem Konto sichern können.",
+    "savePrompt": {
+      "message": "Dieses Deck in deinem Konto speichern?",
+      "accept": "Im Konto speichern",
+      "dismiss": "Nicht jetzt"
+    },
     "import": "Importieren",
     "export": "Exportieren",
     "comingSoon": "Demnächst verfügbar",

@@ -47,6 +47,8 @@ export function DeckBuilder({
   const router = useRouter()
   const [state, setState] = useState<BuilderState>(initial)
   const [saving, setSaving] = useState(false)
+  const [savingDraft, setSavingDraft] = useState(false)
+  const [showSavePrompt, setShowSavePrompt] = useState(false)
   const isFirstSave = useRef(true)
 
   // Guests without a deckId may have a locally-saved draft. Load it after mount
@@ -59,6 +61,19 @@ export function DeckBuilder({
       // React state, guarded by the empty dep array so it fires exactly once.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (draft) setState(draft)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // A user who just logged in on the "new deck" page may still have a guest
+  // draft sitting in localStorage from before they signed in. Offer to save
+  // it to their account instead of silently discarding it.
+  useEffect(() => {
+    if (loggedIn && !deckId) {
+      const draft = loadDraft()
+      const hasContent = !!draft && (draft.entries.length > 0 || draft.name.trim().length > 0)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (hasContent) setShowSavePrompt(true)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -122,6 +137,34 @@ export function DeckBuilder({
     }
   }
 
+  async function handleSaveDraftToAccount() {
+    const draft = loadDraft()
+    if (!draft) {
+      setShowSavePrompt(false)
+      return
+    }
+    setSavingDraft(true)
+    try {
+      const input = {
+        name: draft.name.trim() || t('namePlaceholder'),
+        format: draft.format,
+        visibility: draft.visibility,
+        cards: draft.entries.map((e) => ({ cardId: e.cardId, zone: e.zone, quantity: e.quantity })),
+      }
+      const result = await createDeckAction(input)
+      if (!result.ok) {
+        toast.error(t('saveError'))
+        return
+      }
+      clearDraft()
+      setShowSavePrompt(false)
+      toast.success(t('saved'))
+      router.push(`/decks/${result.id}`)
+    } finally {
+      setSavingDraft(false)
+    }
+  }
+
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-border/60">
       <div className="flex flex-wrap items-center gap-3 border-b border-border/60 bg-card/60 px-4 py-2.5">
@@ -173,6 +216,24 @@ export function DeckBuilder({
         <p className="border-b border-border/60 bg-card/40 px-4 py-1.5 text-xs text-muted-foreground">
           {t('draftNotice')}
         </p>
+      )}
+
+      {showSavePrompt && (
+        <div className="flex flex-wrap items-center gap-3 border-b border-border/60 bg-primary/10 px-4 py-2">
+          <p className="flex-1 text-xs text-foreground">{t('savePrompt.message')}</p>
+          <Button type="button" size="sm" disabled={savingDraft} onClick={handleSaveDraftToAccount}>
+            {t('savePrompt.accept')}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            disabled={savingDraft}
+            onClick={() => setShowSavePrompt(false)}
+          >
+            {t('savePrompt.dismiss')}
+          </Button>
+        </div>
       )}
 
       <div className="grid grid-cols-1 md:h-[70vh] md:min-h-[560px] md:grid-cols-[1.15fr_0.85fr]">

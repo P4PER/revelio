@@ -199,6 +199,11 @@
     "saveError": "Could not save the deck.",
     "loginToSave": "Log in to save",
     "draftNotice": "Your draft is kept on this device. Log in and we'll offer to save it to your account.",
+    "savePrompt": {
+      "message": "Save this deck to your account?",
+      "accept": "Save to account",
+      "dismiss": "Not now"
+    },
     "import": "Import",
     "export": "Export",
     "comingSoon": "Coming soon",

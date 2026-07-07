@@ -90,4 +90,14 @@ describe('AdminSetsTable', () => {
     // BS has a symbol → symbol cell renders <SetSymbol>, not text, so its code shows only in the Code column.
     expect(screen.getAllByText('BS')).toHaveLength(1)
   })
+
+  it('paginates when there are more than one page of sets', () => {
+    const many: SetDTO[] = Array.from({ length: 25 }, (_, i) => ({
+      code: `S${i}`, name: `Set ${String(i).padStart(2, '0')}`, releaseDate: '2001-01-01', isOfficial: true, cardCount: i, symbol: null,
+    }))
+    renderTable(many)
+    expect(screen.getAllByRole('link')).toHaveLength(20) // pageSize 20
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    expect(screen.getAllByRole('link')).toHaveLength(5)  // remaining 5 on page 2
+  })
 })

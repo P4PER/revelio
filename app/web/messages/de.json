@@ -168,6 +168,8 @@
       "fan": "Fan",
       "cardCount": "Karten",
       "searchPlaceholder": "Name oder Code suchen…",
+      "prevPage": "Zurück",
+      "nextPage": "Weiter",
       "symbol": "Symbol",
       "localizedNames": "Lokalisierte Namen",
       "create": "Erstellen",

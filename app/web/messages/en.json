@@ -168,6 +168,8 @@
       "fan": "Fan",
       "cardCount": "Cards",
       "searchPlaceholder": "Search name or code…",
+      "prevPage": "Previous",
+      "nextPage": "Next",
       "symbol": "Symbol",
       "localizedNames": "Localized names",
       "create": "Create",

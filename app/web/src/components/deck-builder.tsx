@@ -20,6 +20,8 @@ import { LegalitySeal } from './legality-seal'
 import { LessonCurve } from './lesson-curve'
 import { DeckPanel } from './deck-panel'
 import { DeckCardBrowser } from './deck-card-browser'
+import { DeckExportMenu } from './deck-export-menu'
+import { DeckImportDialog } from './deck-import-dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -196,12 +198,8 @@ export function DeckBuilder({
           ))}
         </div>
         <LegalitySeal status={evaluation.status} mainCount={mainCount} violations={evaluation.violations} />
-        <Button type="button" variant="ghost" size="sm" disabled title={t('comingSoon')}>
-          {t('import')}
-        </Button>
-        <Button type="button" variant="ghost" size="sm" disabled title={t('comingSoon')}>
-          {t('export')}
-        </Button>
+        <DeckImportDialog state={state} onImport={setState} />
+        <DeckExportMenu state={state} />
         {loggedIn ? (
           <Button type="button" size="sm" disabled={saving} onClick={handleSave}>
             {t('save')}

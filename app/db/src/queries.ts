@@ -420,32 +420,55 @@ export async function updateDeckMeta(
   await db.update(decks).set(set).where(eq(decks.id, id))
 }
 
+// Shared by getDeck (view for every deck_card row, falling back to defaults
+// for cards that no longer exist) and getCardViews (import: callers need to
+// tell "resolved" apart from "missing" so an absent id here means "skip me").
+async function cardViewMetaByIds(db: DB, ids: string[]): Promise<Map<string, Omit<DeckCardView, 'zone' | 'quantity'>>> {
+  const uniqueIds = [...new Set(ids)]
+  const cardRows = uniqueIds.length ? await db.select().from(cards).where(inArray(cards.id, uniqueIds)) : []
+  const typeRows = uniqueIds.length ? await db.select().from(cardTypes).where(inArray(cardTypes.cardId, uniqueIds)) : []
+  const subRows = uniqueIds.length ? await db.select().from(cardSubTypes).where(inArray(cardSubTypes.cardId, uniqueIds)) : []
+  const setCodes = [...new Set(cardRows.map((c) => c.setCode))]
+  const setRows = setCodes.length ? await db.select().from(sets).where(inArray(sets.code, setCodes)) : []
+  const isOfficialBySetCode = new Map(setRows.map((s) => [s.code, s.isOfficial]))
+  const typesById = groupCodes(typeRows, (r) => r.cardId, (r) => r.typeCode)
+  const subsById = groupCodes(subRows, (r) => r.cardId, (r) => r.subTypeCode)
+
+  const out = new Map<string, Omit<DeckCardView, 'zone' | 'quantity'>>()
+  for (const c of cardRows) {
+    const m = deckCardMeta({
+      id: c.id, isOfficial: isOfficialBySetCode.get(c.setCode) ?? false, legality: c.legality ?? null,
+      types: typesById.get(c.id) ?? [], subTypes: subsById.get(c.id) ?? [],
+    })
+    out.set(c.id, {
+      cardId: c.id, name: c.name, cost: c.cost ?? null, setCode: c.setCode,
+      lesson: c.lesson ?? null, isOfficial: m.isOfficial, legality: m.legality,
+      isLesson: m.isLesson, isStartingCharacter: m.isStartingCharacter,
+    })
+  }
+  return out
+}
+
+// Card view metadata (name/cost/lesson/legality/…) for an arbitrary set of card
+// ids, keyed by cardId. Ids with no matching card are simply absent from the
+// result — callers (e.g. deck import) use that to flag/skip unresolved cards.
+export async function getCardViews(db: DB, ids: string[]): Promise<Record<string, Omit<DeckCardView, 'zone' | 'quantity'>>> {
+  return Object.fromEntries(await cardViewMetaByIds(db, ids))
+}
+
 export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; userId: string; views: DeckCardView[] } | null> {
   const [row] = await db.select().from(decks).where(eq(decks.id, id)).limit(1)
   if (!row) return null
   const dcs = await db.select().from(deckCards).where(eq(deckCards.deckId, id))
-  const ids = dcs.map((d) => d.cardId)
-  const cardRows = ids.length ? await db.select().from(cards).where(inArray(cards.id, ids)) : []
-  const typeRows = ids.length ? await db.select().from(cardTypes).where(inArray(cardTypes.cardId, ids)) : []
-  const subRows = ids.length ? await db.select().from(cardSubTypes).where(inArray(cardSubTypes.cardId, ids)) : []
-  const setCodes = [...new Set(cardRows.map((c) => c.setCode))]
-  const setRows = setCodes.length ? await db.select().from(sets).where(inArray(sets.code, setCodes)) : []
-  const isOfficialBySetCode = new Map(setRows.map((s) => [s.code, s.isOfficial]))
-  const byId = new Map(cardRows.map((c) => [c.id, c]))
-  const typesById = groupCodes(typeRows, (r) => r.cardId, (r) => r.typeCode)
-  const subsById = groupCodes(subRows, (r) => r.cardId, (r) => r.subTypeCode)
+  const metaById = await cardViewMetaByIds(db, dcs.map((d) => d.cardId))
 
   const views: DeckCardView[] = dcs.map((d) => {
-    const c = byId.get(d.cardId)
-    const m = deckCardMeta({
-      id: d.cardId, isOfficial: (c && isOfficialBySetCode.get(c.setCode)) ?? false, legality: c?.legality ?? null,
-      types: typesById.get(d.cardId) ?? [], subTypes: subsById.get(d.cardId) ?? [],
-    })
+    const meta = metaById.get(d.cardId)
     return {
       cardId: d.cardId, zone: d.zone as DeckCardView['zone'], quantity: d.quantity,
-      name: c?.name ?? d.cardId, cost: c?.cost ?? null, setCode: c?.setCode ?? '',
-      lesson: c?.lesson ?? null, isOfficial: m.isOfficial, legality: m.legality,
-      isLesson: m.isLesson, isStartingCharacter: m.isStartingCharacter,
+      name: meta?.name ?? d.cardId, cost: meta?.cost ?? null, setCode: meta?.setCode ?? '',
+      lesson: meta?.lesson ?? null, isOfficial: meta?.isOfficial ?? false, legality: meta?.legality ?? null,
+      isLesson: meta?.isLesson ?? false, isStartingCharacter: meta?.isStartingCharacter ?? false,
     }
   })
   const deck: DeckDTO = {

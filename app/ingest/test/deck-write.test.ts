@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { withMigratedDb } from './helpers.js'
 import {
-  createDeck, getDeck, listDecksByUser, updateDeck, updateDeckMeta, deleteDeck, resolveCardsByName,
+  createDeck, getDeck, listDecksByUser, updateDeck, updateDeckMeta, deleteDeck, resolveCardsByName, getCardViews,
   user, sets, cards,
 } from '@revelio/db'
 
@@ -109,5 +109,20 @@ describe('deck queries', () => {
     expect(out['dobby|']).toBeNull()
     // Set-scoped lookup disambiguates to the promo printing.
     expect(out['dobby|PR']).toBe('pr-dobby')
+  })
+
+  it('getCardViews returns view metadata keyed by cardId, omitting unresolvable ids', async () => {
+    const out = await getCardViews(ctx.db, ['bs-harry', 'pr-dobby', 'does-not-exist'])
+
+    expect(Object.keys(out).sort()).toEqual(['bs-harry', 'pr-dobby'])
+    expect(out['bs-harry']).toMatchObject({ cardId: 'bs-harry', name: 'Harry Potter', setCode: 'BS' })
+    // BS is an official set — the sets-join must surface that on the view.
+    expect(out['bs-harry'].isOfficial).toBe(true)
+    // PR is not an official set.
+    expect(out['pr-dobby']).toMatchObject({ cardId: 'pr-dobby', name: 'Dobby', setCode: 'PR' })
+    expect(out['pr-dobby'].isOfficial).toBe(false)
+    // A nonexistent card id is simply absent, not a placeholder entry — callers
+    // (deck import) rely on this to distinguish resolved from unresolved ids.
+    expect(out['does-not-exist']).toBeUndefined()
   })
 })

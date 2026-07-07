@@ -2,11 +2,11 @@
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { DeckFormat, DeckVisibility, DeckZone } from '@revelio/core'
-import type { CardDetailDTO } from '@revelio/core'
+import type { CardDetailDTO, DeckCardView } from '@revelio/core'
 import type { SearchResult } from '@revelio/search'
 import { getSession } from '@/lib/session'
 import { getDb } from '@/lib/db'
-import { createDeck, updateDeck, updateDeckMeta, deleteDeck, getDeck, getCardById } from '@revelio/db'
+import { createDeck, updateDeck, updateDeckMeta, deleteDeck, getDeck, getCardById, getCardViews, resolveCardsByName } from '@revelio/db'
 import { getSearchClient, runSearch } from '@/lib/search-client'
 import type { SearchState } from '@/lib/search-params'
 
@@ -122,6 +122,21 @@ export async function searchDeckCards(locale: string, input: unknown): Promise<S
 // card page) — no auth gate needed.
 export async function getCardDetailAction(id: string, locale: string): Promise<CardDetailDTO | null> {
   return getCardById(getDb(), id, locale)
+}
+
+// Card view metadata (name/cost/lesson/legality/…) for an arbitrary set of
+// card ids. Used by deck import (JSON path) to turn the {cardId,zone,quantity}
+// rows from a parsed deck file into full DeckCardViews the builder can render.
+// Public read data (same as getCardDetailAction) — no auth gate needed.
+export async function getCardViewsAction(ids: string[]): Promise<Record<string, Omit<DeckCardView, 'zone' | 'quantity'>>> {
+  return getCardViews(getDb(), ids)
+}
+
+// Resolves {name, setCode} pairs to card ids for the text-import path. Ambiguous
+// or missing names resolve to null; the import dialog surfaces those back to
+// the user rather than silently dropping them.
+export async function resolveImportNames(names: { name: string; setCode: string | null }[]): Promise<Record<string, string | null>> {
+  return resolveCardsByName(getDb(), names)
 }
 
 export async function duplicateDeckAction(id: string): Promise<DeckActionResult> {

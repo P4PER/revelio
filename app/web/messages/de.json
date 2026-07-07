@@ -204,9 +204,30 @@
       "accept": "Im Konto speichern",
       "dismiss": "Nicht jetzt"
     },
-    "import": "Importieren",
-    "export": "Exportieren",
     "comingSoon": "Demnächst verfügbar",
+    "export": {
+      "button": "Exportieren",
+      "text": "Textdatei",
+      "json": "JSON",
+      "png": "PNG",
+      "copy": "Kopieren",
+      "download": "Herunterladen",
+      "copied": "In die Zwischenablage kopiert."
+    },
+    "import": {
+      "button": "Importieren",
+      "title": "Deck importieren",
+      "pasteLabel": "Deckliste einfügen",
+      "pastePlaceholder": "Text- oder JSON-Deckdaten einfügen …",
+      "fileLabel": "Oder Datei auswählen",
+      "submit": "Importieren",
+      "success": "Deck importiert.",
+      "invalidJson": "Das sieht nicht nach gültigem Deck-JSON aus.",
+      "emptyInput": "Füge zuerst eine Deckliste ein oder wähle eine Datei aus.",
+      "noLines": "In diesem Text wurden keine Kartenzeilen gefunden.",
+      "unparsedTitle": "Diese Zeilen konnten nicht gelesen werden:",
+      "unresolvedTitle": "Diese Karten konnten nicht zugeordnet werden:"
+    },
     "format": {
       "label": "Format",
       "classic": "Classic",

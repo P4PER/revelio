@@ -204,9 +204,30 @@
       "accept": "Save to account",
       "dismiss": "Not now"
     },
-    "import": "Import",
-    "export": "Export",
     "comingSoon": "Coming soon",
+    "export": {
+      "button": "Export",
+      "text": "Plain text",
+      "json": "JSON",
+      "png": "PNG",
+      "copy": "Copy",
+      "download": "Download",
+      "copied": "Copied to clipboard."
+    },
+    "import": {
+      "button": "Import",
+      "title": "Import deck",
+      "pasteLabel": "Paste a deck list",
+      "pastePlaceholder": "Paste plain-text or JSON deck data…",
+      "fileLabel": "Or choose a file",
+      "submit": "Import",
+      "success": "Deck imported.",
+      "invalidJson": "That doesn't look like valid deck JSON.",
+      "emptyInput": "Paste a deck list or choose a file first.",
+      "noLines": "No card lines were found in that text.",
+      "unparsedTitle": "These lines couldn't be read:",
+      "unresolvedTitle": "These cards couldn't be matched:"
+    },
     "format": {
       "label": "Format",
       "classic": "Classic",

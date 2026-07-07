@@ -13,11 +13,15 @@ const createDeckAction = vi.fn(async () => ({ ok: true, id: 'new-id' }))
 const updateDeckAction = vi.fn(async () => ({ ok: true, id: 'existing-id' }))
 const searchDeckCards = vi.fn(async (): Promise<SearchResult> => EMPTY_RESULT)
 const getCardDetailAction = vi.fn(() => new Promise(() => {}))
+const getCardViewsAction = vi.fn(async () => ({}))
+const resolveImportNames = vi.fn(async () => ({}))
 vi.mock('@/lib/deck-actions', () => ({
   createDeckAction: (...a: unknown[]) => createDeckAction(...a),
   updateDeckAction: (...a: unknown[]) => updateDeckAction(...a),
   searchDeckCards: (...a: unknown[]) => searchDeckCards(...a),
   getCardDetailAction: (...a: unknown[]) => getCardDetailAction(...a),
+  getCardViewsAction: (...a: unknown[]) => getCardViewsAction(...a),
+  resolveImportNames: (...a: unknown[]) => resolveImportNames(...a),
 }))
 
 const push = vi.fn()

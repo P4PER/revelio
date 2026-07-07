@@ -45,11 +45,22 @@ export function DeckBuilder({
 }) {
   const t = useTranslations('decks')
   const router = useRouter()
-  const [state, setState] = useState<BuilderState>(() => {
-    if (!deckId && !loggedIn) return loadDraft() ?? initial
-    return initial
-  })
+  const [state, setState] = useState<BuilderState>(initial)
   const [saving, setSaving] = useState(false)
+
+  // Guests without a deckId may have a locally-saved draft. Load it after mount
+  // (not in the lazy initializer) so the client's first render matches the
+  // server HTML and we avoid a hydration mismatch.
+  useEffect(() => {
+    if (!deckId && !loggedIn) {
+      const draft = loadDraft()
+      // Intentional: mount-only sync from localStorage (an external system) into
+      // React state, guarded by the empty dep array so it fires exactly once.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (draft) setState(draft)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (!deckId && !loggedIn) saveDraft(state)
@@ -114,7 +125,7 @@ export function DeckBuilder({
           onChange={(e) => setState((s) => ({ ...s, name: e.target.value }))}
           placeholder={t('namePlaceholder')}
           aria-label={t('namePlaceholder')}
-          className="h-8 w-56 border-none bg-transparent px-1 text-base font-semibold shadow-none focus-visible:ring-0"
+          className="h-8 w-56 border-none bg-transparent px-1 text-base font-semibold shadow-none focus-visible:ring-2 focus-visible:ring-ring"
         />
         <div className="flex-1" />
         <div role="group" aria-label={t('format.label')} className="inline-flex rounded-full border border-border bg-muted p-0.5">
@@ -152,6 +163,12 @@ export function DeckBuilder({
           </Button>
         )}
       </div>
+
+      {!deckId && !loggedIn && (
+        <p className="border-b border-border/60 bg-card/40 px-4 py-1.5 text-xs text-muted-foreground">
+          {t('draftNotice')}
+        </p>
+      )}
 
       <div className="grid grid-cols-1 md:h-[70vh] md:min-h-[560px] md:grid-cols-[1.15fr_0.85fr]">
         <div className="min-h-0 overflow-hidden border-b border-border/60 md:border-r md:border-b-0">

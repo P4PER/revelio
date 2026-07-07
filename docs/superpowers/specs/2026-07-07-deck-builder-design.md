@@ -111,6 +111,25 @@ Notes:
   `deck-actions.ts` composes these into its `z.object({...})` write schema (as
   `set-actions.ts` etc. already do), and the legality engine's `DeckFormat`/`DeckZone`
   types below are these same exported types.
+
+  Split by nature, matching the existing `schemas.ts` (Zod, runtime) vs `domain.ts`
+  (pure DTO types, zod-free) separation: the **`z.enum` validators** live in
+  `schemas.ts`; the **deck DTO shapes** live in `domain.ts` alongside `SetDTO`/`CardDTO`
+  and import the format/zone types:
+
+  ```ts
+  // core/src/domain.ts
+  export type DeckCardDTO = { cardId: string; zone: DeckZone; quantity: number }
+  export type DeckDTO = {
+    id: string
+    name: string
+    format: DeckFormat
+    visibility: DeckVisibility
+    cards: DeckCardDTO[]
+    createdAt: string
+    updatedAt: string
+  }
+  ```
 - The PK `(deckId, cardId, zone)` lets the same card sit in both `main` and `sideboard`
   (their copies sum toward the 4-copy limit); `quantity` holds the per-zone count.
 - The starting character is a `deck_cards` row with `zone = 'character'`, `quantity = 1`.

@@ -204,7 +204,6 @@
       "accept": "Im Konto speichern",
       "dismiss": "Nicht jetzt"
     },
-    "comingSoon": "Demnächst verfügbar",
     "export": {
       "button": "Exportieren",
       "text": "Textdatei",
@@ -212,7 +211,9 @@
       "png": "PNG",
       "copy": "Kopieren",
       "download": "Herunterladen",
-      "copied": "In die Zwischenablage kopiert."
+      "copied": "In die Zwischenablage kopiert.",
+      "copyError": "Kopieren in die Zwischenablage fehlgeschlagen.",
+      "pngError": "PNG konnte nicht erstellt werden."
     },
     "import": {
       "button": "Importieren",

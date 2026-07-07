@@ -204,7 +204,6 @@
       "accept": "Save to account",
       "dismiss": "Not now"
     },
-    "comingSoon": "Coming soon",
     "export": {
       "button": "Export",
       "text": "Plain text",
@@ -212,7 +211,9 @@
       "png": "PNG",
       "copy": "Copy",
       "download": "Download",
-      "copied": "Copied to clipboard."
+      "copied": "Copied to clipboard.",
+      "copyError": "Could not copy to clipboard.",
+      "pngError": "Could not generate the PNG."
     },
     "import": {
       "button": "Import",

@@ -5,6 +5,7 @@ import { Copy, Download, FileJson, FileText, Image as ImageIcon } from 'lucide-r
 import { toJson, toText } from '@revelio/core'
 import type { DeckDTO } from '@revelio/core'
 import type { BuilderState } from '@/lib/deck-model'
+import { renderDeckPng } from '@/lib/deck-png'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -32,8 +33,8 @@ function download(filename: string, content: string, mimeType: string) {
 
 // Export menu for the deck builder's command bar. Text/JSON each build their
 // serialized form from the current (unsaved) builder state via @revelio/core's
-// pure toText/toJson — no server round-trip needed. PNG (Task 12) is wired up
-// as a disabled placeholder.
+// pure toText/toJson — no server round-trip needed. PNG renders a deck sheet
+// client-side onto a canvas (see deck-png.ts) and downloads the resulting blob.
 export function DeckExportMenu({ state }: { state: BuilderState }) {
   const t = useTranslations('decks')
 
@@ -56,8 +57,27 @@ export function DeckExportMenu({ state }: { state: BuilderState }) {
   }
 
   async function copy(content: string) {
-    await navigator.clipboard.writeText(content)
-    toast.success(t('export.copied'))
+    try {
+      await navigator.clipboard.writeText(content)
+      toast.success(t('export.copied'))
+    } catch {
+      toast.error(t('export.copyError'))
+    }
+  }
+
+  async function exportPng() {
+    try {
+      const name = state.name.trim() || t('namePlaceholder')
+      const blob = await renderDeckPng({ name, format: state.format }, state.entries)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${slugify(state.name)}.png`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      toast.error(t('export.pngError'))
+    }
   }
 
   return (
@@ -110,7 +130,7 @@ export function DeckExportMenu({ state }: { state: BuilderState }) {
           </Button>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem disabled title={t('comingSoon')}>
+        <DropdownMenuItem onSelect={() => exportPng()}>
           <ImageIcon />
           {t('export.png')}
         </DropdownMenuItem>

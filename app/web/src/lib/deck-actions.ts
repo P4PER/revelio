@@ -2,9 +2,12 @@
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { DeckFormat, DeckVisibility, DeckZone } from '@revelio/core'
+import type { SearchResult } from '@revelio/search'
 import { getSession } from '@/lib/session'
 import { getDb } from '@/lib/db'
 import { createDeck, updateDeck, deleteDeck, getDeck } from '@revelio/db'
+import { getSearchClient, runSearch } from '@/lib/search-client'
+import type { SearchState } from '@/lib/search-params'
 
 export type DeckActionResult = { ok: true; id: string } | { ok: false; error: string }
 
@@ -57,6 +60,38 @@ export async function deleteDeckAction(id: string): Promise<DeckActionResult> {
   await deleteDeck(getDb(), id)
   revalidatePath('/decks')
   return { ok: true, id }
+}
+
+const deckSearchSchema = z.object({
+  query: z.string().optional(),
+  format: DeckFormat,
+  lessons: z.array(z.string()).optional(),
+  costMin: z.number().nullable().optional(),
+  costMax: z.number().nullable().optional(),
+  set: z.string().optional(),
+  page: z.number().int().positive().optional(),
+})
+
+// Card pool for the deck builder's browse pane: Classic restricts to official
+// sets, Revival searches everything (banned cards are still returned — the
+// browser flags/disables them client-side rather than filtering them out).
+export async function searchDeckCards(locale: string, input: unknown): Promise<SearchResult> {
+  const d = deckSearchSchema.parse(input)
+  const state: SearchState = {
+    q: d.query ?? '',
+    types: [],
+    lessons: d.lessons ?? [],
+    official: d.format === 'classic' ? true : null,
+    sort: 'relevance',
+    page: d.page ?? 1,
+    set: d.set,
+    rarities: [],
+    finishes: [],
+    legalities: [],
+    costMin: d.costMin ?? null,
+    costMax: d.costMax ?? null,
+  }
+  return runSearch(getSearchClient(), locale, state)
 }
 
 export async function duplicateDeckAction(id: string): Promise<DeckActionResult> {

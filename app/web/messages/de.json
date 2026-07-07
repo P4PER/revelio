@@ -188,5 +188,68 @@
       "noSymbol": "Kein Symbol",
       "saveError": "Speichern fehlgeschlagen"
     }
+  },
+  "decks": {
+    "title": "Neues Deck",
+    "namePlaceholder": "Unbenanntes Deck",
+    "save": "Deck speichern",
+    "saved": "Deck gespeichert.",
+    "saveError": "Deck konnte nicht gespeichert werden.",
+    "loginToSave": "Zum Speichern anmelden",
+    "draftNotice": "Dein Entwurf wird auf diesem Gerät gespeichert. Melde dich an, damit wir ihn in deinem Konto sichern können.",
+    "import": "Importieren",
+    "export": "Exportieren",
+    "comingSoon": "Demnächst verfügbar",
+    "format": {
+      "label": "Format",
+      "classic": "Classic",
+      "revival": "Revival"
+    },
+    "status": {
+      "legal": "Turnierlegal",
+      "incomplete": "Unvollständig",
+      "incompleteNeeds": "Unvollständig · noch {count} Karten nötig",
+      "illegal": "Nicht legal"
+    },
+    "seal": {
+      "ariaLabel": "{count} von {total} Hauptdeck-Karten"
+    },
+    "curve": {
+      "title": "Lektionskurve",
+      "ariaLabel": "Karten nach Kosten"
+    },
+    "panel": {
+      "character": "Startcharakter",
+      "characterBadge": "Charakter",
+      "noCharacter": "Noch kein Startcharakter gewählt.",
+      "main": "Hauptdeck",
+      "emptyMain": "Noch keine Karten im Hauptdeck. Füge Karten aus dem Browser hinzu.",
+      "sideboard": "Sideboard",
+      "emptySideboard": "Keine Karten im Sideboard.",
+      "lessons": "Lektionen",
+      "items": "Gegenstände",
+      "increase": "{name} erhöhen",
+      "decrease": "{name} verringern"
+    },
+    "browse": {
+      "searchPlaceholder": "{format}-Karten durchsuchen…",
+      "resultCount": "{count} Karten",
+      "noResults": "Keine Karten gefunden.",
+      "add": "+ Hinzufügen",
+      "addAria": "{name} hinzufügen",
+      "banned": "Verboten",
+      "anySet": "Beliebiges Set",
+      "costMax": "Max. Kosten"
+    },
+    "violation": {
+      "no_character": "Kein Startcharakter gewählt",
+      "multiple_characters": "Nur ein Startcharakter ist erlaubt",
+      "invalid_character": "{cardId} kann kein Startcharakter sein",
+      "main_deck_size": "Hauptdeck hat {actual} / 60 Karten",
+      "sideboard_too_large": "Sideboard hat {actual} Karten (max. 15)",
+      "too_many_copies": "{count} Kopien von {cardId} (max. 4)",
+      "card_not_in_format": "{cardId} ist in diesem Format nicht legal",
+      "banned_card": "{cardId} ist in Revival verboten"
+    }
   }
 }

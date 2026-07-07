@@ -7,6 +7,8 @@ const m = vi.hoisted(() => ({
   deleteDeck: vi.fn(async () => {}),
   getDeck: vi.fn(async () => ({ userId: 'u1', deck: { name: 'D', format: 'revival', visibility: 'private', cards: [] } })),
   revalidatePath: vi.fn(),
+  getSearchClient: vi.fn(() => 'client'),
+  runSearch: vi.fn(async () => ({ hits: [], total: 0, page: 1, hitsPerPage: 24 })),
 }))
 vi.mock('@/lib/session', () => ({ getSession: m.getSession }))
 vi.mock('@/lib/db', () => ({ getDb: () => ({}) }))
@@ -17,8 +19,9 @@ vi.mock('@revelio/db', () => ({
   getDeck: m.getDeck,
 }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
+vi.mock('@/lib/search-client', () => ({ getSearchClient: m.getSearchClient, runSearch: m.runSearch }))
 
-import { createDeckAction, updateDeckAction, deleteDeckAction, duplicateDeckAction } from '../deck-actions'
+import { createDeckAction, updateDeckAction, deleteDeckAction, duplicateDeckAction, searchDeckCards } from '../deck-actions'
 
 const validInput = { name: 'D', format: 'revival', visibility: 'private', cards: [{ cardId: 'x', zone: 'main', quantity: 4 }] }
 
@@ -85,4 +88,22 @@ it('duplicates a deck with the session user id and suffixed name', async () => {
       cards: deckCards,
     }),
   )
+})
+
+it('searchDeckCards restricts classic to official sets only', async () => {
+  await searchDeckCards('en', { query: 'accio', format: 'classic', lessons: ['charms'] })
+  expect(m.runSearch).toHaveBeenCalledWith(
+    'client',
+    'en',
+    expect.objectContaining({ q: 'accio', official: true, lessons: ['charms'] }),
+  )
+})
+
+it('searchDeckCards searches all sets (official: null) for revival', async () => {
+  await searchDeckCards('en', { format: 'revival' })
+  expect(m.runSearch).toHaveBeenCalledWith('client', 'en', expect.objectContaining({ official: null }))
+})
+
+it('searchDeckCards rejects an invalid shape', async () => {
+  await expect(searchDeckCards('en', { format: 'not-a-format' })).rejects.toThrow()
 })

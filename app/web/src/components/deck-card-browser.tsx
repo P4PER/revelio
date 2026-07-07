@@ -2,16 +2,24 @@
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useLocale, useTranslations } from 'next-intl'
-import { Search } from 'lucide-react'
+import { Info, Search } from 'lucide-react'
 import { LESSONS, deckCardMeta, imageUrl, thumbKey } from '@revelio/core'
-import type { DeckCardView, DeckFormat, SetDTO } from '@revelio/core'
+import type { DeckCardView, DeckFormat, DeckZone, SetDTO } from '@revelio/core'
 import type { SearchDocument, SearchResult } from '@revelio/search'
 import { searchDeckCards } from '@/lib/deck-actions'
 import { attrLabel } from '@/lib/attribute-labels'
-import { lessonBgClass } from '@/lib/lesson-colors'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu'
+import { CardDetailSheet } from '@/components/card-detail-sheet'
+import { lessonBgClass } from '@/lib/lesson-colors'
 
 const EMPTY_RESULT: SearchResult = { hits: [], total: 0, page: 1, hitsPerPage: 24 }
 const DEBOUNCE_MS = 300
@@ -52,7 +60,7 @@ export function DeckCardBrowser({
   imageBase: string
   sets: SetDTO[]
   copyLimitReached: (cardId: string, isLesson: boolean) => boolean
-  onAdd: (view: Omit<DeckCardView, 'zone' | 'quantity'>) => void
+  onAdd: (view: Omit<DeckCardView, 'zone' | 'quantity'>, zone: DeckZone) => void
 }) {
   const t = useTranslations('decks')
   const locale = useLocale()
@@ -62,6 +70,7 @@ export function DeckCardBrowser({
   const [costMax, setCostMax] = useState('')
   const [result, setResult] = useState<SearchResult>(EMPTY_RESULT)
   const [pending, setPending] = useState(false)
+  const [detailId, setDetailId] = useState<string | null>(null)
 
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reqId = useRef(0)
@@ -150,7 +159,7 @@ export function DeckCardBrowser({
         </div>
       </div>
 
-      <div className="grid flex-1 auto-rows-min grid-cols-2 gap-3 overflow-y-auto p-3 sm:grid-cols-3">
+      <div className="grid flex-1 auto-rows-min grid-cols-2 gap-3 overflow-y-auto p-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {result.hits.length === 0 && !pending && (
           <p className="col-span-full py-10 text-center text-sm text-muted-foreground" role="status">
             {t('browse.noResults')}
@@ -159,7 +168,7 @@ export function DeckCardBrowser({
         {result.hits.map((hit) => {
           const view = toAddView(hit)
           const banned = format === 'revival' && hit.legality === 'banned'
-          const blocked = banned || copyLimitReached(hit.id, view.isLesson)
+          const zoneBlocked = copyLimitReached(hit.id, view.isLesson)
           return (
             <div key={hit.id} className="group relative overflow-hidden rounded-lg border border-border/60 bg-card">
               <div className={cn('relative aspect-[5/7] bg-muted', banned && 'grayscale brightness-75')}>
@@ -180,14 +189,6 @@ export function DeckCardBrowser({
                   className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/85 via-transparent to-transparent"
                   aria-hidden
                 />
-                {hit.cost != null && (
-                  <span className="absolute top-1.5 left-1.5 grid size-5 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-[0.65rem] font-bold text-primary-foreground shadow">
-                    {hit.cost}
-                  </span>
-                )}
-                {hit.lesson && (
-                  <span className={cn('absolute top-1.5 right-1.5 size-3 rounded-sm shadow', lessonBgClass(hit.lesson))} aria-hidden />
-                )}
                 {banned && (
                   <span className="absolute top-2 left-1/2 -translate-x-1/2 -rotate-6 rounded bg-destructive px-2 py-0.5 text-[0.6rem] font-bold tracking-wide text-white uppercase">
                     {t('browse.banned')}
@@ -198,23 +199,57 @@ export function DeckCardBrowser({
                   <div className="text-[0.62rem] tracking-wide text-muted-foreground uppercase">{hit.setCode}</div>
                 </div>
               </div>
-              <button
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    disabled={banned}
+                    aria-label={t('browse.addAria', { name: hit.name })}
+                    className="absolute inset-0 grid place-items-center bg-background/55 opacity-0 transition-opacity focus-visible:opacity-100 disabled:cursor-not-allowed group-hover:opacity-100"
+                  >
+                    {!banned && (
+                      <span className="rounded-full bg-gradient-to-b from-primary to-primary/80 px-3 py-1.5 text-xs font-bold text-primary-foreground">
+                        {t('browse.add')}
+                      </span>
+                    )}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center">
+                  {view.isStartingCharacter && (
+                    <DropdownMenuItem onSelect={() => onAdd(view, 'character')}>
+                      {t('browse.addToCharacter')}
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem disabled={zoneBlocked} onSelect={() => onAdd(view, 'main')}>
+                    {t('browse.addToMain')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem disabled={zoneBlocked} onSelect={() => onAdd(view, 'sideboard')}>
+                    {t('browse.addToSideboard')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Button
                 type="button"
-                disabled={blocked}
-                onClick={() => onAdd(view)}
-                aria-label={t('browse.addAria', { name: hit.name })}
-                className="absolute inset-0 grid place-items-center bg-background/55 opacity-0 transition-opacity focus-visible:opacity-100 disabled:cursor-not-allowed group-hover:opacity-100"
+                size="icon-xs"
+                variant="secondary"
+                aria-label={t('browse.infoAria', { name: hit.name })}
+                onClick={() => setDetailId(hit.id)}
+                className="absolute top-1.5 right-1.5 opacity-0 shadow transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
               >
-                {!blocked && (
-                  <span className="rounded-full bg-gradient-to-b from-primary to-primary/80 px-3 py-1.5 text-xs font-bold text-primary-foreground">
-                    {t('browse.add')}
-                  </span>
-                )}
-              </button>
+                <Info />
+              </Button>
             </div>
           )
         })}
       </div>
+
+      <CardDetailSheet
+        cardId={detailId}
+        imageBase={imageBase}
+        onOpenChange={(open) => { if (!open) setDetailId(null) }}
+      />
     </div>
   )
 }

@@ -2,10 +2,11 @@
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { DeckFormat, DeckVisibility, DeckZone } from '@revelio/core'
+import type { CardDetailDTO } from '@revelio/core'
 import type { SearchResult } from '@revelio/search'
 import { getSession } from '@/lib/session'
 import { getDb } from '@/lib/db'
-import { createDeck, updateDeck, updateDeckMeta, deleteDeck, getDeck } from '@revelio/db'
+import { createDeck, updateDeck, updateDeckMeta, deleteDeck, getDeck, getCardById } from '@revelio/db'
 import { getSearchClient, runSearch } from '@/lib/search-client'
 import type { SearchState } from '@/lib/search-params'
 
@@ -115,6 +116,12 @@ export async function searchDeckCards(locale: string, input: unknown): Promise<S
     costMax: d.costMax ?? null,
   }
   return runSearch(getSearchClient(), locale, state)
+}
+
+// Full card detail for the browser's Info Sheet. Public read data (same as the
+// card page) — no auth gate needed.
+export async function getCardDetailAction(id: string, locale: string): Promise<CardDetailDTO | null> {
+  return getCardById(getDb(), id, locale)
 }
 
 export async function duplicateDeckAction(id: string): Promise<DeckActionResult> {

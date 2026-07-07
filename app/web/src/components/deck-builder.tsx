@@ -82,8 +82,8 @@ export function DeckBuilder({
     })
   }
 
-  function handleAdd(view: Omit<DeckCardView, 'zone' | 'quantity'>) {
-    setState((s) => addCard(s, view, view.isStartingCharacter ? 'character' : 'main'))
+  function handleAdd(view: Omit<DeckCardView, 'zone' | 'quantity'>, zone: DeckZone) {
+    setState((s) => addCard(s, view, zone))
   }
 
   const metaMap = Object.fromEntries(

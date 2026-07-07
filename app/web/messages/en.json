@@ -239,6 +239,13 @@
       "noResults": "No cards found.",
       "add": "+ Add",
       "addAria": "Add {name}",
+      "addToCharacter": "Set as starting character",
+      "addToMain": "Add to main deck",
+      "addToSideboard": "Add to sideboard",
+      "infoAria": "View details for {name}",
+      "detailTitle": "Card details",
+      "detailLoading": "Loading…",
+      "detailError": "Couldn't load card details.",
       "banned": "Banned",
       "anySet": "Any set",
       "costMax": "Max cost"

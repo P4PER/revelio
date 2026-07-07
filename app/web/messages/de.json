@@ -239,6 +239,13 @@
       "noResults": "Keine Karten gefunden.",
       "add": "+ Hinzufügen",
       "addAria": "{name} hinzufügen",
+      "addToCharacter": "Als Startcharakter festlegen",
+      "addToMain": "Zum Hauptdeck hinzufügen",
+      "addToSideboard": "Zum Sideboard hinzufügen",
+      "infoAria": "Details zu {name} anzeigen",
+      "detailTitle": "Kartendetails",
+      "detailLoading": "Wird geladen…",
+      "detailError": "Kartendetails konnten nicht geladen werden.",
       "banned": "Verboten",
       "anySet": "Beliebiges Set",
       "costMax": "Max. Kosten"

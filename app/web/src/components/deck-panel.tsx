@@ -4,6 +4,7 @@ import { Minus, Plus, Wand2 } from 'lucide-react'
 import type { DeckCardView, DeckZone } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
 import { lessonBgClass } from '@/lib/lesson-colors'
+import { LessonCost } from './lesson-cost'
 import { cn } from '@/lib/utils'
 
 const LESSON_GROUP = '__lesson__'
@@ -74,11 +75,19 @@ export function DeckPanel({
             <Plus className="size-3" />
           </button>
         </span>
-        {e.cost != null && (
+        {e.lesson ? (
+          <LessonCost
+            lesson={e.lesson}
+            cost={e.cost}
+            label={attrLabel('lessons', e.lesson, locale)}
+            className="size-5 shrink-0"
+            numberClassName="text-[0.62rem]"
+          />
+        ) : e.cost != null ? (
           <span className="grid size-5 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-[0.62rem] font-bold text-primary-foreground">
             {e.cost}
           </span>
-        )}
+        ) : null}
         <span className="min-w-0 flex-1 truncate text-sm">{e.name}</span>
         <span className="text-[0.62rem] tracking-wide text-muted-foreground uppercase">
           {e.setCode} · #{e.number}

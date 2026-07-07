@@ -137,7 +137,7 @@ export async function getCardViewsAction(ids: string[]): Promise<Record<string, 
 // Resolves {name, setCode} pairs to card ids for the text-import path. Ambiguous
 // or missing names resolve to null; the import dialog surfaces those back to
 // the user rather than silently dropping them.
-export async function resolveImportNames(names: { name: string; setCode: string | null }[]): Promise<Record<string, string | null>> {
+export async function resolveImportNames(names: { name: string; setCode: string | null; number: string | null }[]): Promise<Record<string, string | null>> {
   return resolveCardsByName(getDb(), names)
 }
 

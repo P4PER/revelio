@@ -32,35 +32,37 @@ export function jsonToEntries(
 }
 
 // The key resolveCardsByName groups its lookups by — must match @revelio/db's
-// `resolveCardsByName` exactly (lowercased name + '|' + setCode, empty string
-// when there's no setCode).
-export function resolveKey(name: string, setCode: string | null): string {
-  return `${name.toLowerCase()}|${setCode ?? ''}`
+// `resolveCardsByName` exactly (lowercased name + '|' + setCode + '|' + number,
+// empty string for each part that's absent).
+export function resolveKey(name: string, setCode: string | null, number: string | null): string {
+  return `${name.toLowerCase()}|${setCode ?? ''}|${number ?? ''}`
 }
 
-// Text import: parseText doesn't carry zones, so every resolved line becomes
-// a main-deck entry. Lines whose name didn't resolve to exactly one card
-// (missing or ambiguous — resolveCardsByName maps both to null) or whose
-// resolved card has no view metadata are collected into `unresolved` rather
-// than dropped. Multiple lines resolving to the same card are merged so the
-// builder doesn't end up with duplicate main-deck rows for one cardId.
+// Text import: each parsed line carries the zone parseText assigned it (the
+// "// Character" / "// Main deck" / "// Sideboard" section it fell under,
+// defaulting to main for a bare list). Lines whose name didn't resolve to
+// exactly one card (missing or ambiguous — resolveCardsByName maps both to
+// null) or whose resolved card has no view metadata are collected into
+// `unresolved` rather than dropped. Lines resolving to the same card in the
+// same zone are merged so the builder doesn't end up with duplicate rows.
 export function textLinesToEntries(
   lines: ParsedTextLine[],
   resolved: Record<string, string | null>,
   views: Record<string, CardViewMeta>,
 ): { entries: DeckCardView[]; unresolved: ParsedTextLine[] } {
-  const byId = new Map<string, DeckCardView>()
+  const byKey = new Map<string, DeckCardView>()
   const unresolved: ParsedTextLine[] = []
   for (const line of lines) {
-    const cardId = resolved[resolveKey(line.name, line.setCode)]
+    const cardId = resolved[resolveKey(line.name, line.setCode, line.number)]
     const meta = cardId ? views[cardId] : undefined
     if (!cardId || !meta) {
       unresolved.push(line)
       continue
     }
-    const existing = byId.get(cardId)
+    const key = `${line.zone}:${cardId}`
+    const existing = byKey.get(key)
     if (existing) existing.quantity += line.quantity
-    else byId.set(cardId, { ...meta, zone: 'main', quantity: line.quantity })
+    else byKey.set(key, { ...meta, zone: line.zone, quantity: line.quantity })
   }
-  return { entries: [...byId.values()], unresolved }
+  return { entries: [...byKey.values()], unresolved }
 }

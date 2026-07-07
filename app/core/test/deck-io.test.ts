@@ -35,17 +35,28 @@ describe('text export', () => {
       { cardId: 'da-accio', zone: 'main', quantity: 4, name: 'Accio', cost: 2, setCode: 'DA', number: '12', lesson: 'charms', isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: false },
     ]
     const text = toText({ name: 'Charms Aggro', format: 'revival' }, views)
-    expect(text).toContain('# Charms Aggro (Revival)')
-    expect(text).toContain('Character: 1x Harry Potter (BS)')
-    expect(text).toContain('4x Accio (DA)')
+    expect(text).toContain('// Charms Aggro (Revival)')
+    expect(text).toContain('// Character\nHarry Potter (BS 1)')
+    expect(text).toContain('// Main deck (4)')
+    expect(text).toContain('4x Accio (DA 12)')
   })
 })
 
 describe('text import', () => {
-  it('parses "4x Accio (DA)" and "4 Accio"', () => {
-    const { lines, unparsed } = parseText('4x Accio (DA)\n4 Accio\n\n# comment')
-    expect(lines).toContainEqual({ quantity: 4, name: 'Accio', setCode: 'DA' })
-    expect(lines).toContainEqual({ quantity: 4, name: 'Accio', setCode: null })
+  it('parses "4x Accio (DA 12)", "4x Accio (DA)" and "4 Accio"', () => {
+    const { lines, unparsed } = parseText('4x Accio (DA 12)\n4x Accio (DA)\n4 Accio\n\n# comment')
+    expect(lines).toContainEqual({ quantity: 4, name: 'Accio', setCode: 'DA', number: '12', zone: 'main' })
+    expect(lines).toContainEqual({ quantity: 4, name: 'Accio', setCode: 'DA', number: null, zone: 'main' })
+    expect(lines).toContainEqual({ quantity: 4, name: 'Accio', setCode: null, number: null, zone: 'main' })
+    expect(unparsed).toEqual([])
+  })
+  it('assigns the starting character (with its number) from a "// Character" section', () => {
+    const { lines, unparsed } = parseText(
+      '// Charms Aggro (Revival)\n\n// Character\nHermione Granger (BS 9)\n\n// Main deck (4)\n4x Accio (DA 12)\n\n// Sideboard (2)\n2x Lumos (BS 5)',
+    )
+    expect(lines).toContainEqual({ quantity: 1, name: 'Hermione Granger', setCode: 'BS', number: '9', zone: 'character' })
+    expect(lines).toContainEqual({ quantity: 4, name: 'Accio', setCode: 'DA', number: '12', zone: 'main' })
+    expect(lines).toContainEqual({ quantity: 2, name: 'Lumos', setCode: 'BS', number: '5', zone: 'sideboard' })
     expect(unparsed).toEqual([])
   })
   it('collects unparseable lines', () => {

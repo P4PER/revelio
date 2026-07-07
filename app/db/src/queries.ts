@@ -518,15 +518,21 @@ export async function deleteDeck(db: DB, id: string): Promise<void> {
 }
 
 export async function resolveCardsByName(
-  db: DB, names: { name: string; setCode: string | null }[],
+  db: DB, names: { name: string; setCode: string | null; number?: string | null }[],
 ): Promise<Record<string, string | null>> {
   const out: Record<string, string | null> = {}
   for (const n of names) {
-    const key = `${n.name.toLowerCase()}|${n.setCode ?? ''}`
+    const number = n.number ?? null
+    const key = `${n.name.toLowerCase()}|${n.setCode ?? ''}|${number ?? ''}`
     if (key in out) continue
-    const where = n.setCode
-      ? and(sql`lower(${cards.name}) = ${n.name.toLowerCase()}`, eq(cards.setCode, n.setCode))
-      : sql`lower(${cards.name}) = ${n.name.toLowerCase()}`
+    // (set, number) is unique within a set, so prefer it when the number is
+    // present — a name alone can be ambiguous (holo/foil printings share a
+    // name). Fall back to name (+ set) when there's no number.
+    const where = n.setCode && number
+      ? and(eq(cards.setCode, n.setCode), eq(cards.number, number))
+      : n.setCode
+        ? and(sql`lower(${cards.name}) = ${n.name.toLowerCase()}`, eq(cards.setCode, n.setCode))
+        : sql`lower(${cards.name}) = ${n.name.toLowerCase()}`
     const rows = await db.select({ id: cards.id }).from(cards).where(where).limit(2)
     out[key] = rows.length === 1 ? rows[0].id : null // ambiguous (>1) or missing (0) → null
   }

@@ -21,7 +21,8 @@ import {
 } from '@/components/ui/sheet'
 
 function lineLabel(l: ParsedTextLine): string {
-  return `${l.quantity}x ${l.name}${l.setCode ? ` (${l.setCode})` : ''}`
+  const ref = l.setCode ? ` (${l.setCode}${l.number ? ` ${l.number}` : ''})` : ''
+  return `${l.quantity}x ${l.name}${ref}`
 }
 
 // Returns the parsed JSON value only when it looks like a deck object (as
@@ -100,7 +101,7 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
       toast.error(t('import.noLines'))
       return
     }
-    const resolved = await resolveImportNames(lines.map((l) => ({ name: l.name, setCode: l.setCode })))
+    const resolved = await resolveImportNames(lines.map((l) => ({ name: l.name, setCode: l.setCode, number: l.number })))
     const ids = [...new Set(Object.values(resolved).filter((id): id is string => id !== null))]
     const views = await getCardViewsAction(ids)
     const { entries, unresolved: badLines2 } = textLinesToEntries(lines, resolved, views)

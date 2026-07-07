@@ -42,36 +42,52 @@ it('jsonToEntries reports cardIds with no matching view instead of dropping them
 })
 
 it('resolveKey matches the @revelio/db resolveCardsByName key format', () => {
-  expect(resolveKey('Accio', null)).toBe('accio|')
-  expect(resolveKey('Dobby', 'PR')).toBe('dobby|PR')
+  expect(resolveKey('Accio', null, null)).toBe('accio||')
+  expect(resolveKey('Dobby', 'PR', null)).toBe('dobby|PR|')
+  expect(resolveKey('Hermione Granger', 'BS', '9')).toBe('hermione granger|BS|9')
 })
 
-it('textLinesToEntries maps resolved lines to main-deck entries and merges duplicates', () => {
+it('textLinesToEntries maps resolved lines to their zone and merges duplicates in the same zone', () => {
   const lines: ParsedTextLine[] = [
-    { quantity: 2, name: 'Accio', setCode: null },
-    { quantity: 2, name: 'Accio', setCode: null },
+    { quantity: 2, name: 'Accio', setCode: null, number: null, zone: 'main' },
+    { quantity: 2, name: 'Accio', setCode: null, number: null, zone: 'main' },
   ]
-  const resolved = { 'accio|': 'bs-accio' }
+  const resolved = { 'accio||': 'bs-accio' }
   const { entries, unresolved } = textLinesToEntries(lines, resolved, { 'bs-accio': accioView })
 
   expect(unresolved).toEqual([])
   expect(entries).toEqual([{ ...accioView, zone: 'main', quantity: 4 }])
 })
 
+it('textLinesToEntries places a character-zone line (resolved by set+number) in the character zone', () => {
+  const lines: ParsedTextLine[] = [
+    { quantity: 1, name: 'Harry Potter', setCode: 'BS', number: '2', zone: 'character' },
+    { quantity: 4, name: 'Accio', setCode: 'BS', number: '1', zone: 'main' },
+  ]
+  const resolved = { 'harry potter|BS|2': 'bs-harry', 'accio|BS|1': 'bs-accio' }
+  const { entries, unresolved } = textLinesToEntries(lines, resolved, { 'bs-harry': harryView, 'bs-accio': accioView })
+
+  expect(unresolved).toEqual([])
+  expect(entries).toEqual([
+    { ...harryView, zone: 'character', quantity: 1 },
+    { ...accioView, zone: 'main', quantity: 4 },
+  ])
+})
+
 it('textLinesToEntries surfaces unresolved (missing/ambiguous) and viewless lines instead of dropping them', () => {
   const lines: ParsedTextLine[] = [
-    { quantity: 1, name: 'Nimbus 9000', setCode: null }, // never resolved
-    { quantity: 1, name: 'Dobby', setCode: null }, // resolves to null (ambiguous)
-    { quantity: 1, name: 'Ghost Card', setCode: null }, // resolves but has no view
-    { quantity: 3, name: 'Accio', setCode: null },
+    { quantity: 1, name: 'Nimbus 9000', setCode: null, number: null, zone: 'main' }, // never resolved
+    { quantity: 1, name: 'Dobby', setCode: null, number: null, zone: 'main' }, // resolves to null (ambiguous)
+    { quantity: 1, name: 'Ghost Card', setCode: null, number: null, zone: 'main' }, // resolves but has no view
+    { quantity: 3, name: 'Accio', setCode: null, number: null, zone: 'main' },
   ]
-  const resolved = { 'dobby|': null, 'ghost card|': 'ghost-id', 'accio|': 'bs-accio' }
+  const resolved = { 'dobby||': null, 'ghost card||': 'ghost-id', 'accio||': 'bs-accio' }
   const { entries, unresolved } = textLinesToEntries(lines, resolved, { 'bs-accio': accioView })
 
   expect(entries).toEqual([{ ...accioView, zone: 'main', quantity: 3 }])
   expect(unresolved).toEqual([
-    { quantity: 1, name: 'Nimbus 9000', setCode: null },
-    { quantity: 1, name: 'Dobby', setCode: null },
-    { quantity: 1, name: 'Ghost Card', setCode: null },
+    { quantity: 1, name: 'Nimbus 9000', setCode: null, number: null, zone: 'main' },
+    { quantity: 1, name: 'Dobby', setCode: null, number: null, zone: 'main' },
+    { quantity: 1, name: 'Ghost Card', setCode: null, number: null, zone: 'main' },
   ])
 })

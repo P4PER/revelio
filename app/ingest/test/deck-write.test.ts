@@ -95,22 +95,26 @@ describe('deck queries', () => {
     await deleteDeck(ctx.db, id)
   })
 
-  it('resolves card names to ids, honoring the setCode-scoped map key', async () => {
+  it('resolves card names to ids, honoring the setCode/number-scoped map key', async () => {
     const out = await resolveCardsByName(ctx.db, [
       { name: 'Harry Potter', setCode: null },
       { name: 'Nimbus 9000 (does not exist)', setCode: null },
       { name: 'Dobby', setCode: null },
       { name: 'Dobby', setCode: 'PR' },
+      { name: 'Harry Potter', setCode: 'BS', number: '1' },
     ])
 
     // Exact, unambiguous name match.
-    expect(out['harry potter|']).toBe('bs-harry')
+    expect(out['harry potter||']).toBe('bs-harry')
     // Missing name resolves to null.
-    expect(out['nimbus 9000 (does not exist)|']).toBeNull()
+    expect(out['nimbus 9000 (does not exist)||']).toBeNull()
     // Ambiguous match (two cards named "Dobby", no setCode given) resolves to null.
-    expect(out['dobby|']).toBeNull()
+    expect(out['dobby||']).toBeNull()
     // Set-scoped lookup disambiguates to the promo printing.
-    expect(out['dobby|PR']).toBe('pr-dobby')
+    expect(out['dobby|PR|']).toBe('pr-dobby')
+    // (set, number) resolves directly — the primary path for re-import, since a
+    // name can have several printings in one set.
+    expect(out['harry potter|BS|1']).toBe('bs-harry')
   })
 
   it('getCardViews returns view metadata keyed by cardId, omitting unresolvable ids', async () => {

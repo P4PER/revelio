@@ -9,11 +9,15 @@ export function LessonCost({
   cost,
   label,
   className,
+  numberClassName = 'text-2xl',
 }: {
   lesson: string
   cost: number | null
   label: string
   className?: string
+  // Font size of the overlaid cost number, so the pip can be reused at small
+  // sizes (e.g. the deck panel rows) where the default text-2xl would overflow.
+  numberClassName?: string
 }) {
   return (
     <span
@@ -26,7 +30,10 @@ export function LessonCost({
       {cost != null && (
         <span
           aria-hidden
-          className="absolute inset-0 flex items-center justify-center text-2xl font-bold leading-none text-white [-webkit-text-stroke:0.6px_rgba(0,0,0,0.55)] [text-shadow:0_1px_1.5px_rgba(0,0,0,0.6)]"
+          className={cn(
+            'absolute inset-0 flex items-center justify-center font-bold leading-none text-white [-webkit-text-stroke:0.6px_rgba(0,0,0,0.55)] [text-shadow:0_1px_1.5px_rgba(0,0,0,0.6)]',
+            numberClassName,
+          )}
         >
           {cost}
         </span>

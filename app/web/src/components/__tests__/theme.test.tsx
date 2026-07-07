@@ -16,11 +16,11 @@ describe('theme + shadcn', () => {
   it('registers all five lesson colors as theme tokens', async () => {
     const css = await readFile(resolve(process.cwd(), 'src/app/globals.css'), 'utf8')
     const expected: Record<string, string> = {
-      care_of_magical_creatures: '#5CB878',
-      charms: '#5B8DEF',
-      potions: '#A06CD5',
-      transfiguration: '#E0555B',
-      quidditch: '#EA7B3C',
+      care_of_magical_creatures: '#836444',
+      charms: '#0069A9',
+      potions: '#00A661',
+      transfiguration: '#BC3E4D',
+      quidditch: '#E2AE37',
     }
     for (const [code, hex] of Object.entries(expected)) {
       expect(css).toMatch(new RegExp(`--color-lesson-${code}\\s*:\\s*${hex}`, 'i'))

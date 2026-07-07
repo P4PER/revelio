@@ -21,7 +21,9 @@
   "nav": {
     "language": "Language",
     "sets": "Sets",
-    "admin": "Admin"
+    "admin": "Admin",
+    "deckBuilder": "Deck Builder",
+    "myDecks": "My Decks"
   },
   "search": {
     "title": "Search",
@@ -250,6 +252,47 @@
       "too_many_copies": "{count} copies of {cardId} (max 4)",
       "card_not_in_format": "{cardId} isn't legal in this format",
       "banned_card": "{cardId} is banned in Revival"
+    },
+    "list": {
+      "title": "My Decks",
+      "newDeck": "New deck",
+      "cardCount": "{count} / 60 cards",
+      "updatedAt": "Updated {date}",
+      "visibility": {
+        "private": "Private",
+        "public": "Public"
+      },
+      "actions": {
+        "menuLabel": "Deck actions for {name}",
+        "open": "Open",
+        "rename": "Rename",
+        "renameSave": "Save",
+        "renameCancel": "Cancel",
+        "duplicate": "Duplicate",
+        "delete": "Delete",
+        "makePrivate": "Make private",
+        "makePublic": "Make public"
+      },
+      "confirmDelete": "Delete \"{name}\"? This can't be undone.",
+      "deleted": "Deck deleted.",
+      "deleteError": "Could not delete the deck.",
+      "duplicated": "Deck duplicated.",
+      "duplicateError": "Could not duplicate the deck.",
+      "renamed": "Deck renamed.",
+      "renameError": "Could not rename the deck.",
+      "visibilityUpdated": "Visibility updated.",
+      "visibilityError": "Could not update visibility.",
+      "empty": {
+        "title": "No decks yet",
+        "desc": "Build your first deck and it'll show up here.",
+        "cta": "Build a deck"
+      },
+      "loggedOut": {
+        "title": "Sign in to see your decks",
+        "desc": "Create an account to save decks to your profile and pick up where you left off.",
+        "signIn": "Sign in",
+        "tryBuilder": "Try the builder"
+      }
     }
   }
 }

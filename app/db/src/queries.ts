@@ -1,8 +1,9 @@
-import { eq, asc, sql, inArray, and, isNotNull } from 'drizzle-orm'
+import { eq, asc, desc, sql, inArray, and, isNotNull } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import type { DB } from './client'
-import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations, setLocalizations } from './schema'
-import type { SetDTO, CardLocalizationDTO, CardDetailDTO, AdventureData, MatchData } from '@revelio/core'
+import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations, setLocalizations, decks, deckCards } from './schema'
+import type { SetDTO, CardLocalizationDTO, CardDetailDTO, AdventureData, MatchData, DeckDTO, DeckCardView, DeckFormat, DeckVisibility } from '@revelio/core'
+import { deckCardMeta } from '@revelio/core'
 import type { CardIndexData } from '@revelio/search'
 
 type SetRow = typeof sets.$inferSelect
@@ -376,4 +377,115 @@ export async function saveSubTypeTranslations(
       }
     }
   })
+}
+
+export type DeckWriteInput = {
+  name: string
+  format: DeckFormat
+  visibility: DeckVisibility
+  cards: { cardId: string; zone: string; quantity: number }[]
+}
+export type DeckSummary = {
+  id: string; name: string; format: DeckFormat; visibility: DeckVisibility
+  cardCount: number; updatedAt: string
+}
+
+export async function listDecksByUser(db: DB, userId: string): Promise<DeckSummary[]> {
+  const rows = await db.select().from(decks).where(eq(decks.userId, userId)).orderBy(desc(decks.updatedAt))
+  if (rows.length === 0) return []
+  const counts = await db
+    .select({ deckId: deckCards.deckId, total: sql<number>`sum(${deckCards.quantity})::int` })
+    .from(deckCards)
+    .where(inArray(deckCards.deckId, rows.map((r) => r.id)))
+    .groupBy(deckCards.deckId)
+  const byDeck = new Map(counts.map((c) => [c.deckId, c.total]))
+  return rows.map((r) => ({
+    id: r.id, name: r.name, format: r.format as DeckFormat, visibility: r.visibility as DeckVisibility,
+    cardCount: byDeck.get(r.id) ?? 0, updatedAt: r.updatedAt.toISOString(),
+  }))
+}
+
+export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; userId: string; views: DeckCardView[] } | null> {
+  const [row] = await db.select().from(decks).where(eq(decks.id, id)).limit(1)
+  if (!row) return null
+  const dcs = await db.select().from(deckCards).where(eq(deckCards.deckId, id))
+  const ids = dcs.map((d) => d.cardId)
+  const cardRows = ids.length ? await db.select().from(cards).where(inArray(cards.id, ids)) : []
+  const typeRows = ids.length ? await db.select().from(cardTypes).where(inArray(cardTypes.cardId, ids)) : []
+  const subRows = ids.length ? await db.select().from(cardSubTypes).where(inArray(cardSubTypes.cardId, ids)) : []
+  const setCodes = [...new Set(cardRows.map((c) => c.setCode))]
+  const setRows = setCodes.length ? await db.select().from(sets).where(inArray(sets.code, setCodes)) : []
+  const isOfficialBySetCode = new Map(setRows.map((s) => [s.code, s.isOfficial]))
+  const byId = new Map(cardRows.map((c) => [c.id, c]))
+  const typesById = groupCodes(typeRows, (r) => r.cardId, (r) => r.typeCode)
+  const subsById = groupCodes(subRows, (r) => r.cardId, (r) => r.subTypeCode)
+
+  const views: DeckCardView[] = dcs.map((d) => {
+    const c = byId.get(d.cardId)
+    const m = deckCardMeta({
+      id: d.cardId, isOfficial: (c && isOfficialBySetCode.get(c.setCode)) ?? false, legality: c?.legality ?? null,
+      types: typesById.get(d.cardId) ?? [], subTypes: subsById.get(d.cardId) ?? [],
+    })
+    return {
+      cardId: d.cardId, zone: d.zone as DeckCardView['zone'], quantity: d.quantity,
+      name: c?.name ?? d.cardId, cost: c?.cost ?? null, setCode: c?.setCode ?? '',
+      lesson: c?.lesson ?? null, isOfficial: m.isOfficial, legality: m.legality,
+      isLesson: m.isLesson, isStartingCharacter: m.isStartingCharacter,
+    }
+  })
+  const deck: DeckDTO = {
+    id: row.id, name: row.name, format: row.format as DeckFormat,
+    visibility: row.visibility as DeckVisibility,
+    cards: dcs.map((d) => ({ cardId: d.cardId, zone: d.zone as DeckCardView['zone'], quantity: d.quantity })),
+    createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString(),
+  }
+  return { deck, userId: row.userId, views }
+}
+
+// Small helper: group junction rows into a code[] per parent id.
+function groupCodes<T>(rows: T[], key: (r: T) => string, code: (r: T) => string): Map<string, string[]> {
+  const m = new Map<string, string[]>()
+  for (const r of rows) { const k = key(r); const arr = m.get(k) ?? []; arr.push(code(r)); m.set(k, arr) }
+  return m
+}
+
+async function replaceDeckCards(db: DB, id: string, cardsIn: DeckWriteInput['cards']): Promise<void> {
+  await db.delete(deckCards).where(eq(deckCards.deckId, id))
+  if (cardsIn.length) {
+    await db.insert(deckCards).values(cardsIn.map((c) => ({ deckId: id, cardId: c.cardId, zone: c.zone, quantity: c.quantity })))
+  }
+}
+
+export async function createDeck(db: DB, userId: string, input: DeckWriteInput): Promise<string> {
+  const id = randomUUID()
+  await db.insert(decks).values({ id, userId, name: input.name, format: input.format, visibility: input.visibility })
+  await replaceDeckCards(db, id, input.cards)
+  return id
+}
+
+export async function updateDeck(db: DB, id: string, input: DeckWriteInput): Promise<void> {
+  await db.update(decks).set({
+    name: input.name, format: input.format, visibility: input.visibility, updatedAt: new Date(),
+  }).where(eq(decks.id, id))
+  await replaceDeckCards(db, id, input.cards)
+}
+
+export async function deleteDeck(db: DB, id: string): Promise<void> {
+  await db.delete(decks).where(eq(decks.id, id))
+}
+
+export async function resolveCardsByName(
+  db: DB, names: { name: string; setCode: string | null }[],
+): Promise<Record<string, string | null>> {
+  const out: Record<string, string | null> = {}
+  for (const n of names) {
+    const key = `${n.name.toLowerCase()}|${n.setCode ?? ''}`
+    if (key in out) continue
+    const where = n.setCode
+      ? and(sql`lower(${cards.name}) = ${n.name.toLowerCase()}`, eq(cards.setCode, n.setCode))
+      : sql`lower(${cards.name}) = ${n.name.toLowerCase()}`
+    const rows = await db.select({ id: cards.id }).from(cards).where(where).limit(2)
+    out[key] = rows.length === 1 ? rows[0].id : null // ambiguous (>1) or missing (0) → null
+  }
+  return out
 }

@@ -12,22 +12,16 @@ import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
-  Select, SelectContent, SelectGroup, SelectItem, SelectLabel,
-  SelectSeparator, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
-import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { CardDetailSheet } from '@/components/card-detail-sheet'
-import { SetSymbol } from '@/components/set-symbol'
-import { byReleaseDate } from '@/lib/set-sort'
+import { DeckFilterDrawer, EMPTY_DECK_FILTERS, type DeckFilters } from '@/components/deck-filter-drawer'
 
 const EMPTY_RESULT: SearchResult = { hits: [], total: 0, page: 1, hitsPerPage: 24 }
 const DEBOUNCE_MS = 300
-const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
 function toAddView(hit: SearchDocument): Omit<DeckCardView, 'zone' | 'quantity'> {
   const meta = deckCardMeta({
@@ -69,11 +63,10 @@ export function DeckCardBrowser({
   onAdd: (view: Omit<DeckCardView, 'zone' | 'quantity'>, zone: DeckZone) => void
 }) {
   const t = useTranslations('decks')
-  const tf = useTranslations('filters')
   const locale = useLocale()
   const [query, setQuery] = useState('')
   const [lessons, setLessons] = useState<string[]>([])
-  const [set, setSet] = useState('')
+  const [filters, setFilters] = useState<DeckFilters>(EMPTY_DECK_FILTERS)
   const [page, setPage] = useState(1)
   const [result, setResult] = useState<SearchResult>(EMPTY_RESULT)
   const [pending, setPending] = useState(false)
@@ -85,7 +78,7 @@ export function DeckCardBrowser({
   // Any change to the filters should strand the user back on page 1 rather
   // than leaving them on a page that may no longer exist for the new result set.
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setPage(1) }, [query, format, lessons, set])
+  useEffect(() => { setPage(1) }, [query, format, lessons, filters])
 
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current)
@@ -96,7 +89,13 @@ export function DeckCardBrowser({
         query,
         format,
         lessons,
-        set: set || undefined,
+        set: filters.set || undefined,
+        types: filters.types,
+        rarities: filters.rarities,
+        finishes: filters.finishes,
+        legalities: filters.legalities,
+        costMin: filters.costMin,
+        costMax: filters.costMax,
         page,
       })
         .then((r) => {
@@ -107,24 +106,11 @@ export function DeckCardBrowser({
         })
     }, DEBOUNCE_MS)
     return () => { if (timer.current) clearTimeout(timer.current) }
-  }, [query, format, lessons, set, page, locale])
+  }, [query, format, lessons, filters, page, locale])
 
   function toggleLesson(code: string) {
     setLessons((ls) => (ls.includes(code) ? ls.filter((c) => c !== code) : [...ls, code]))
   }
-
-  const officialSets = sets.filter((s) => s.isOfficial).sort(byReleaseDate)
-  const fanSets = sets.filter((s) => !s.isOfficial).sort(byReleaseDate)
-  const setItem = (s: SetDTO) => (
-    <SelectItem key={s.code} value={s.code}>
-      <span className="flex items-center gap-2">
-        {s.symbol && IMAGE_BASE ? (
-          <SetSymbol code={s.code} base={IMAGE_BASE} className="h-4 w-4 shrink-0 text-foreground/80" />
-        ) : null}
-        {s.name}
-      </span>
-    </SelectItem>
-  )
 
   return (
     <div className="flex h-full flex-col">
@@ -139,9 +125,12 @@ export function DeckCardBrowser({
             className="pl-9"
           />
         </div>
-        <p className="text-xs text-muted-foreground" role="status">
-          {t('browse.resultCount', { count: result.total })}
-        </p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs text-muted-foreground" role="status">
+            {t('browse.resultCount', { count: result.total })}
+          </p>
+          <DeckFilterDrawer sets={sets} value={filters} onApply={setFilters} />
+        </div>
         <div className="flex flex-wrap items-center gap-1.5">
           {LESSONS.map((l) => {
             const active = lessons.includes(l.code)
@@ -161,32 +150,6 @@ export function DeckCardBrowser({
               </button>
             )
           })}
-          <Select value={set || 'any'} onValueChange={(v) => setSet(v === 'any' ? '' : v)}>
-            <SelectTrigger size="sm" className="w-auto rounded-full text-xs" aria-label={t('browse.anySet')}>
-              <SelectValue placeholder={t('browse.anySet')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="any">{t('browse.anySet')}</SelectItem>
-              {officialSets.length > 0 && (
-                <>
-                  <SelectSeparator />
-                  <SelectGroup>
-                    <SelectLabel>{tf('original')}</SelectLabel>
-                    {officialSets.map(setItem)}
-                  </SelectGroup>
-                </>
-              )}
-              {fanSets.length > 0 && (
-                <>
-                  <SelectSeparator />
-                  <SelectGroup>
-                    <SelectLabel>{tf('fanMade')}</SelectLabel>
-                    {fanSets.map(setItem)}
-                  </SelectGroup>
-                </>
-              )}
-            </SelectContent>
-          </Select>
         </div>
       </div>
 

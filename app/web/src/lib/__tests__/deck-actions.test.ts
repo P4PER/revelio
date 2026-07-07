@@ -137,6 +137,28 @@ it('searchDeckCards searches all sets (official: null) for revival', async () =>
   expect(m.runSearch).toHaveBeenCalledWith('client', 'en', expect.objectContaining({ official: null }), expect.objectContaining({ hitsPerPage: 30 }))
 })
 
+it('searchDeckCards forwards the advanced filters (types/rarities/finishes/legalities/cost/set) into the search state', async () => {
+  await searchDeckCards('en', {
+    format: 'revival',
+    types: ['character'],
+    rarities: ['rare'],
+    finishes: ['foil'],
+    legalities: ['banned'],
+    set: 'BS',
+    costMin: 1,
+    costMax: 4,
+  })
+  expect(m.runSearch).toHaveBeenCalledWith(
+    'client',
+    'en',
+    expect.objectContaining({
+      types: ['character'], rarities: ['rare'], finishes: ['foil'], legalities: ['banned'],
+      set: 'BS', costMin: 1, costMax: 4,
+    }),
+    expect.objectContaining({ hitsPerPage: 30 }),
+  )
+})
+
 it('searchDeckCards rejects an invalid shape', async () => {
   await expect(searchDeckCards('en', { format: 'not-a-format' })).rejects.toThrow()
 })

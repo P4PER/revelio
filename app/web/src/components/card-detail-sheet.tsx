@@ -54,7 +54,7 @@ function CardDetailBody({ cardId, imageBase }: { cardId: string; imageBase: stri
   return (
     <>
       <SheetHeader>
-        <SheetTitle>{title}</SheetTitle>
+        <SheetTitle className="sr-only">{title}</SheetTitle>
       </SheetHeader>
       {loading && (
         <p className="px-4 py-6 text-sm text-muted-foreground" role="status">

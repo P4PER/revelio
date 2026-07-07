@@ -50,7 +50,7 @@ export default async function EditDeckPage({
   }
 
   return (
-    <main className="mx-auto max-w-[1850px] px-6 py-6">
+    <main className="mx-auto max-w-[2100px] px-6 py-6">
       <DeckBuilder initial={state} deckId={id} loggedIn sets={sets} imageBase={IMAGE_BASE} />
     </main>
   )

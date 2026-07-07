@@ -298,7 +298,10 @@
       "detailLoading": "Loading…",
       "detailError": "Couldn't load card details.",
       "banned": "Banned",
-      "anySet": "Any set"
+      "anySet": "Any set",
+      "prev": "Previous",
+      "next": "Next",
+      "pageStatus": "Showing {from}–{to} of {total}"
     },
     "violation": {
       "no_character": "No starting character chosen",

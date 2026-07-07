@@ -74,12 +74,18 @@ export function DeckCardBrowser({
   const [query, setQuery] = useState('')
   const [lessons, setLessons] = useState<string[]>([])
   const [set, setSet] = useState('')
+  const [page, setPage] = useState(1)
   const [result, setResult] = useState<SearchResult>(EMPTY_RESULT)
   const [pending, setPending] = useState(false)
   const [detailId, setDetailId] = useState<string | null>(null)
 
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reqId = useRef(0)
+
+  // Any change to the filters should strand the user back on page 1 rather
+  // than leaving them on a page that may no longer exist for the new result set.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { setPage(1) }, [query, format, lessons, set])
 
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current)
@@ -91,6 +97,7 @@ export function DeckCardBrowser({
         format,
         lessons,
         set: set || undefined,
+        page,
       })
         .then((r) => {
           if (id === reqId.current) { setResult(r); setPending(false) }
@@ -100,7 +107,7 @@ export function DeckCardBrowser({
         })
     }, DEBOUNCE_MS)
     return () => { if (timer.current) clearTimeout(timer.current) }
-  }, [query, format, lessons, set, locale])
+  }, [query, format, lessons, set, page, locale])
 
   function toggleLesson(code: string) {
     setLessons((ls) => (ls.includes(code) ? ls.filter((c) => c !== code) : [...ls, code]))
@@ -183,7 +190,7 @@ export function DeckCardBrowser({
         </div>
       </div>
 
-      <div className="grid flex-1 auto-rows-min grid-cols-2 gap-4 overflow-y-auto p-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
+      <div className="grid flex-1 auto-rows-min gap-4 overflow-y-auto p-3 [grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]">
         {result.hits.length === 0 && !pending && (
           <p className="col-span-full py-10 text-center text-sm text-muted-foreground" role="status">
             {t('browse.noResults')}
@@ -270,6 +277,38 @@ export function DeckCardBrowser({
           )
         })}
       </div>
+
+      {result.total > 0 && (
+        <div className="flex items-center justify-between gap-3 border-t border-border/60 px-3 py-2">
+          <p className="text-xs text-muted-foreground" role="status">
+            {t('browse.pageStatus', {
+              from: (result.page - 1) * result.hitsPerPage + 1,
+              to: Math.min(result.page * result.hitsPerPage, result.total),
+              total: result.total,
+            })}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={result.page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              {t('browse.prev')}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={result.page >= Math.ceil(result.total / result.hitsPerPage)}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              {t('browse.next')}
+            </Button>
+          </div>
+        </div>
+      )}
 
       <CardDetailSheet
         cardId={detailId}

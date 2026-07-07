@@ -298,7 +298,10 @@
       "detailLoading": "Wird geladen…",
       "detailError": "Kartendetails konnten nicht geladen werden.",
       "banned": "Verboten",
-      "anySet": "Beliebiges Set"
+      "anySet": "Beliebiges Set",
+      "prev": "Zurück",
+      "next": "Weiter",
+      "pageStatus": "{from}–{to} von {total} werden angezeigt"
     },
     "violation": {
       "no_character": "Kein Startcharakter gewählt",

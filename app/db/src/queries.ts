@@ -8,6 +8,9 @@ import type { CardIndexData } from '@revelio/search'
 
 type SetRow = typeof sets.$inferSelect
 
+// The transaction handle drizzle passes into `db.transaction(async (tx) => ...)`.
+type Tx = Parameters<Parameters<DB['transaction']>[0]>[0]
+
 function toSetDTO(row: SetRow, name: string = row.name): SetDTO {
   return {
     code: row.code,
@@ -449,25 +452,29 @@ function groupCodes<T>(rows: T[], key: (r: T) => string, code: (r: T) => string)
   return m
 }
 
-async function replaceDeckCards(db: DB, id: string, cardsIn: DeckWriteInput['cards']): Promise<void> {
-  await db.delete(deckCards).where(eq(deckCards.deckId, id))
+async function replaceDeckCards(tx: Tx, id: string, cardsIn: DeckWriteInput['cards']): Promise<void> {
+  await tx.delete(deckCards).where(eq(deckCards.deckId, id))
   if (cardsIn.length) {
-    await db.insert(deckCards).values(cardsIn.map((c) => ({ deckId: id, cardId: c.cardId, zone: c.zone, quantity: c.quantity })))
+    await tx.insert(deckCards).values(cardsIn.map((c) => ({ deckId: id, cardId: c.cardId, zone: c.zone, quantity: c.quantity })))
   }
 }
 
 export async function createDeck(db: DB, userId: string, input: DeckWriteInput): Promise<string> {
   const id = randomUUID()
-  await db.insert(decks).values({ id, userId, name: input.name, format: input.format, visibility: input.visibility })
-  await replaceDeckCards(db, id, input.cards)
+  await db.transaction(async (tx) => {
+    await tx.insert(decks).values({ id, userId, name: input.name, format: input.format, visibility: input.visibility })
+    await replaceDeckCards(tx, id, input.cards)
+  })
   return id
 }
 
 export async function updateDeck(db: DB, id: string, input: DeckWriteInput): Promise<void> {
-  await db.update(decks).set({
-    name: input.name, format: input.format, visibility: input.visibility, updatedAt: new Date(),
-  }).where(eq(decks.id, id))
-  await replaceDeckCards(db, id, input.cards)
+  await db.transaction(async (tx) => {
+    await tx.update(decks).set({
+      name: input.name, format: input.format, visibility: input.visibility, updatedAt: new Date(),
+    }).where(eq(decks.id, id))
+    await replaceDeckCards(tx, id, input.cards)
+  })
 }
 
 export async function deleteDeck(db: DB, id: string): Promise<void> {

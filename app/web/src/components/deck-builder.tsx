@@ -141,7 +141,7 @@ export function DeckBuilder({
               aria-pressed={state.format === f}
               onClick={() => setState((s) => setFormat(s, f))}
               className={cn(
-                'rounded-full px-3 py-1 text-xs font-medium transition',
+                'cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition',
                 state.format === f
                   ? 'bg-gradient-to-b from-primary to-primary/80 text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground',

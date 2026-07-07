@@ -247,8 +247,7 @@
       "detailLoading": "Loading…",
       "detailError": "Couldn't load card details.",
       "banned": "Banned",
-      "anySet": "Any set",
-      "costMax": "Max cost"
+      "anySet": "Any set"
     },
     "violation": {
       "no_character": "No starting character chosen",

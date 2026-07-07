@@ -11,7 +11,10 @@ import { attrLabel } from '@/lib/attribute-labels'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select, SelectContent, SelectGroup, SelectItem, SelectLabel,
+  SelectSeparator, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -19,10 +22,13 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { CardDetailSheet } from '@/components/card-detail-sheet'
+import { SetSymbol } from '@/components/set-symbol'
+import { byReleaseDate } from '@/lib/set-sort'
 import { lessonBgClass } from '@/lib/lesson-colors'
 
 const EMPTY_RESULT: SearchResult = { hits: [], total: 0, page: 1, hitsPerPage: 24 }
 const DEBOUNCE_MS = 300
+const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
 function toAddView(hit: SearchDocument): Omit<DeckCardView, 'zone' | 'quantity'> {
   const meta = deckCardMeta({
@@ -63,11 +69,11 @@ export function DeckCardBrowser({
   onAdd: (view: Omit<DeckCardView, 'zone' | 'quantity'>, zone: DeckZone) => void
 }) {
   const t = useTranslations('decks')
+  const tf = useTranslations('filters')
   const locale = useLocale()
   const [query, setQuery] = useState('')
   const [lessons, setLessons] = useState<string[]>([])
   const [set, setSet] = useState('')
-  const [costMax, setCostMax] = useState('')
   const [result, setResult] = useState<SearchResult>(EMPTY_RESULT)
   const [pending, setPending] = useState(false)
   const [detailId, setDetailId] = useState<string | null>(null)
@@ -85,7 +91,6 @@ export function DeckCardBrowser({
         format,
         lessons,
         set: set || undefined,
-        costMax: costMax === '' ? null : Number(costMax),
       })
         .then((r) => {
           if (id === reqId.current) { setResult(r); setPending(false) }
@@ -95,11 +100,24 @@ export function DeckCardBrowser({
         })
     }, DEBOUNCE_MS)
     return () => { if (timer.current) clearTimeout(timer.current) }
-  }, [query, format, lessons, set, costMax, locale])
+  }, [query, format, lessons, set, locale])
 
   function toggleLesson(code: string) {
     setLessons((ls) => (ls.includes(code) ? ls.filter((c) => c !== code) : [...ls, code]))
   }
+
+  const officialSets = sets.filter((s) => s.isOfficial).sort(byReleaseDate)
+  const fanSets = sets.filter((s) => !s.isOfficial).sort(byReleaseDate)
+  const setItem = (s: SetDTO) => (
+    <SelectItem key={s.code} value={s.code}>
+      <span className="flex items-center gap-2">
+        {s.symbol && IMAGE_BASE ? (
+          <SetSymbol code={s.code} base={IMAGE_BASE} className="h-4 w-4 shrink-0 text-foreground/80" />
+        ) : null}
+        {s.name}
+      </span>
+    </SelectItem>
+  )
 
   return (
     <div className="flex h-full flex-col">
@@ -127,7 +145,7 @@ export function DeckCardBrowser({
                 aria-pressed={active}
                 onClick={() => toggleLesson(l.code)}
                 className={cn(
-                  'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs',
+                  'inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs',
                   active ? 'border-accent bg-accent/20 text-foreground' : 'border-border text-muted-foreground hover:text-foreground',
                 )}
               >
@@ -142,24 +160,30 @@ export function DeckCardBrowser({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="any">{t('browse.anySet')}</SelectItem>
-              {sets.map((s) => (
-                <SelectItem key={s.code} value={s.code}>{s.name}</SelectItem>
-              ))}
+              {officialSets.length > 0 && (
+                <>
+                  <SelectSeparator />
+                  <SelectGroup>
+                    <SelectLabel>{tf('original')}</SelectLabel>
+                    {officialSets.map(setItem)}
+                  </SelectGroup>
+                </>
+              )}
+              {fanSets.length > 0 && (
+                <>
+                  <SelectSeparator />
+                  <SelectGroup>
+                    <SelectLabel>{tf('fanMade')}</SelectLabel>
+                    {fanSets.map(setItem)}
+                  </SelectGroup>
+                </>
+              )}
             </SelectContent>
           </Select>
-          <Input
-            type="number"
-            inputMode="numeric"
-            value={costMax}
-            onChange={(e) => setCostMax(e.target.value)}
-            placeholder={t('browse.costMax')}
-            aria-label={t('browse.costMax')}
-            className="h-7 w-24 rounded-full text-xs"
-          />
         </div>
       </div>
 
-      <div className="grid flex-1 auto-rows-min grid-cols-2 gap-3 overflow-y-auto p-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid flex-1 auto-rows-min grid-cols-2 gap-4 overflow-y-auto p-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
         {result.hits.length === 0 && !pending && (
           <p className="col-span-full py-10 text-center text-sm text-muted-foreground" role="status">
             {t('browse.noResults')}
@@ -200,20 +224,22 @@ export function DeckCardBrowser({
                 </div>
               </div>
 
+              <div
+                className="pointer-events-none absolute inset-0 bg-background/45 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
+                aria-hidden
+              />
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button
+                  <Button
                     type="button"
+                    size="sm"
                     disabled={banned}
                     aria-label={t('browse.addAria', { name: hit.name })}
-                    className="absolute inset-0 grid place-items-center bg-background/55 opacity-0 transition-opacity focus-visible:opacity-100 disabled:cursor-not-allowed group-hover:opacity-100"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-0 shadow transition-opacity focus-visible:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100"
                   >
-                    {!banned && (
-                      <span className="rounded-full bg-gradient-to-b from-primary to-primary/80 px-3 py-1.5 text-xs font-bold text-primary-foreground">
-                        {t('browse.add')}
-                      </span>
-                    )}
-                  </button>
+                    {t('browse.add')}
+                  </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="center">
                   {view.isStartingCharacter && (

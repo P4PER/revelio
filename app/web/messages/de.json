@@ -247,8 +247,7 @@
       "detailLoading": "Wird geladen…",
       "detailError": "Kartendetails konnten nicht geladen werden.",
       "banned": "Verboten",
-      "anySet": "Beliebiges Set",
-      "costMax": "Max. Kosten"
+      "anySet": "Beliebiges Set"
     },
     "violation": {
       "no_character": "Kein Startcharakter gewählt",

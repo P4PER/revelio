@@ -59,7 +59,7 @@ export function DeckPanel({
           <button
             type="button"
             aria-label={t('panel.decrease', { name: e.name })}
-            className="grid h-6 w-5 place-items-center text-muted-foreground hover:text-primary"
+            className="grid h-6 w-5 cursor-pointer place-items-center text-muted-foreground hover:text-primary"
             onClick={() => onQuantityChange(e.cardId, e.zone, e.quantity - 1)}
           >
             <Minus className="size-3" />
@@ -68,7 +68,7 @@ export function DeckPanel({
           <button
             type="button"
             aria-label={t('panel.increase', { name: e.name })}
-            className="grid h-6 w-5 place-items-center text-muted-foreground hover:text-primary"
+            className="grid h-6 w-5 cursor-pointer place-items-center text-muted-foreground hover:text-primary"
             onClick={() => onQuantityChange(e.cardId, e.zone, e.quantity + 1)}
           >
             <Plus className="size-3" />

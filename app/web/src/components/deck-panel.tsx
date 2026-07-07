@@ -3,9 +3,8 @@ import { useLocale, useTranslations } from 'next-intl'
 import { Minus, Plus, Wand2 } from 'lucide-react'
 import type { DeckCardView, DeckZone } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
-import { lessonBgClass } from '@/lib/lesson-colors'
+import { lessonColor } from '@/lib/lesson-colors'
 import { LessonCost } from './lesson-cost'
-import { cn } from '@/lib/utils'
 
 const LESSON_GROUP = '__lesson__'
 const ITEM_GROUP = '__item__'
@@ -19,10 +18,13 @@ function groupKey(e: DeckCardView): string {
   return ITEM_GROUP
 }
 
-function groupColorClass(key: string): string {
-  if (key === LESSON_GROUP) return 'bg-primary'
-  if (key === ITEM_GROUP) return 'bg-muted-foreground'
-  return lessonBgClass(key)
+// CSS color for a main-zone group's marker bar. Real lesson groups get their
+// lesson tint from the LESSONS palette; the two synthetic buckets fall back to
+// theme tokens.
+function groupColor(key: string): string {
+  if (key === LESSON_GROUP) return 'var(--primary)'
+  if (key === ITEM_GROUP) return 'var(--muted-foreground)'
+  return lessonColor(key) ?? 'var(--muted-foreground)'
 }
 
 // Takes the deck's full entry list, groups the main zone by lesson (falling
@@ -128,7 +130,7 @@ export function DeckPanel({
       {[...groups.entries()].map(([key, list]) => (
         <div key={key} className="mx-2.5 mb-0.5">
           <div className="flex items-center gap-2 px-1.5 py-1.5 text-sm font-semibold">
-            <span className={cn('h-3.5 w-1 rounded-sm', groupColorClass(key))} aria-hidden />
+            <span className="h-3.5 w-1 rounded-sm" style={{ backgroundColor: groupColor(key) }} aria-hidden />
             {groupLabel(key)}
             <span className="ml-auto text-xs font-medium text-muted-foreground">
               {list.reduce((n, e) => n + e.quantity, 0)}

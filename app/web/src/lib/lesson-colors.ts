@@ -1,16 +1,14 @@
-// Literal Tailwind class names for the lesson-tinted tokens defined in globals.css
-// (--color-lesson-*). Tailwind's content scanner needs the full class string to
-// appear verbatim somewhere in source, so these must stay as literal object
-// values rather than being built with a template string like `bg-lesson-${code}`.
-export const LESSON_BG_CLASS: Record<string, string> = {
-  care_of_magical_creatures: 'bg-lesson-care_of_magical_creatures',
-  charms: 'bg-lesson-charms',
-  potions: 'bg-lesson-potions',
-  transfiguration: 'bg-lesson-transfiguration',
-  quidditch: 'bg-lesson-quidditch',
-}
+import { LESSONS } from '@revelio/core'
 
-export function lessonBgClass(code: string | null | undefined): string {
-  if (!code) return 'bg-muted-foreground'
-  return LESSON_BG_CLASS[code] ?? 'bg-muted-foreground'
+// The `bg-lesson-*` Tailwind utilities (from the --color-lesson-* tokens in
+// globals.css) don't reliably generate in this Tailwind v4 setup, so lesson
+// tints are applied as inline `background-color` from the LESSONS palette —
+// the same source of truth used by the advanced-search quick filters. This
+// keeps every lesson swatch in sync with the lesson icons (which fill from the
+// identical hex values).
+const LESSON_COLOR = new Map(LESSONS.map((l) => [l.code, l.color]))
+
+// Hex tint for a lesson code, or undefined for a non-lesson / unknown code.
+export function lessonColor(code: string | null | undefined): string | undefined {
+  return code ? LESSON_COLOR.get(code) : undefined
 }

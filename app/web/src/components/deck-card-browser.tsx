@@ -24,7 +24,6 @@ import {
 import { CardDetailSheet } from '@/components/card-detail-sheet'
 import { SetSymbol } from '@/components/set-symbol'
 import { byReleaseDate } from '@/lib/set-sort'
-import { lessonBgClass } from '@/lib/lesson-colors'
 
 const EMPTY_RESULT: SearchResult = { hits: [], total: 0, page: 1, hitsPerPage: 24 }
 const DEBOUNCE_MS = 300
@@ -157,7 +156,7 @@ export function DeckCardBrowser({
                   active ? 'border-accent bg-accent/20 text-foreground' : 'border-border text-muted-foreground hover:text-foreground',
                 )}
               >
-                <span className={cn('size-2 rounded-sm', lessonBgClass(l.code))} aria-hidden />
+                <span className="size-2 rounded-sm" style={{ backgroundColor: l.color }} aria-hidden />
                 {attrLabel('lessons', l.code, locale)}
               </button>
             )

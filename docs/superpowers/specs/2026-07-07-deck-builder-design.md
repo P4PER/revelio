@@ -199,7 +199,14 @@ The **4-copy limit is also hard-blocked in the UI at add time** (steppers refuse
 A nav entry (in the account menu / header) points to the builder and My Decks, following
 the existing nav pattern.
 
-## Builder UI (two-pane)
+## Builder UI (two-pane) — "Workbench" direction
+
+Chosen layout: the dense two-pane **Workbench** — browse left, deck right, one command
+bar on top (mockup approved 2026-07-07). Signature element: the **legality seal**, a gold
+gauge in the command bar that fills toward 60 and recolors by state (gold/green = legal,
+amber = incomplete, red = illegal), with a violations tooltip. A compact **lesson curve**
+sits above the deck list. All styling derives from the existing Reveal-Glow tokens
+(`globals.css`) and lesson colors — no new design system.
 
 - **Left — card browser.** Reuses the existing Meilisearch search + `filter-drawer`
   filters, **scoped by format**: Classic → `isOfficial = true`; Revival → all sets, with

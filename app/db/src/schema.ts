@@ -40,7 +40,7 @@ export const legalities = pgTable('legalities', {
   code: text('code').primaryKey(),
 })
 
-export const subTypeTranslations = pgTable('sub_type_translations', {
+export const subTypeLocalizations = pgTable('sub_type_localizations', {
   subTypeCode: text('sub_type_code').notNull().references(() => subTypes.code, { onDelete: 'cascade' }),
   lang: text('lang').notNull(),
   label: text('label').notNull(),
@@ -58,6 +58,14 @@ export const sets = pgTable('sets', {
   symbol: text('symbol'),
   ...editable,
 })
+
+export const setLocalizations = pgTable('set_localizations', {
+  setCode: text('set_code').notNull().references(() => sets.code, { onDelete: 'cascade' }),
+  lang: text('lang').notNull(),
+  name: text('name').notNull(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.setCode, t.lang] }),
+}))
 
 export const cards = pgTable('cards', {
   id: text('id').primaryKey(),
@@ -108,7 +116,7 @@ export const cardRulings = pgTable('card_rulings', {
   byCard: index('card_rulings_card_id_idx').on(t.cardId),
 }))
 
-export const cardRulingTexts = pgTable('card_ruling_texts', {
+export const cardRulingLocalizations = pgTable('card_ruling_localizations', {
   rulingId: text('ruling_id').notNull().references(() => cardRulings.id, { onDelete: 'cascade' }),
   lang: text('lang').notNull(),
   text: text('text').notNull(),

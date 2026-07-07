@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { buildCardDocument, type CardIndexData } from '@revelio/search'
 
 const base: CardIndexData = {
-  id: 'x-1', setCode: 'X', setName: 'Xen', number: '1', name: 'Fallback',
+  id: 'x-1', setCode: 'X', number: '1', name: 'Fallback',
   lesson: 'creatures', rarity: 'common', finish: null,
   legality: null, cost: 2, isOfficial: true, types: ['spell'], subTypes: [],
   defaultLanguage: 'en',
@@ -32,7 +32,7 @@ describe('buildCardDocument', () => {
   })
   it('resolves imageLang with fallback and carries defaultLanguage', () => {
     const base = {
-      id: 'x-1', setCode: 'X', setName: 'X', number: '1', name: 'N',
+      id: 'x-1', setCode: 'X', number: '1', name: 'N',
       lesson: null, rarity: null, finish: null, legality: null,
       cost: null, isOfficial: true, types: [], subTypes: [], defaultLanguage: 'en',
     }

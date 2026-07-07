@@ -17,7 +17,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://revelio.cards'
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
 // Deduped per request: generateMetadata + the page share one DB round-trip.
-const loadCard = cache((id: string) => getCardById(getDb(), id))
+const loadCard = cache((id: string, locale: string) => getCardById(getDb(), id, locale))
 
 export async function generateMetadata({
   params,
@@ -25,7 +25,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string; id: string }>
 }): Promise<Metadata> {
   const { locale, id } = await params
-  const card = await loadCard(id)
+  const card = await loadCard(id, locale)
   if (!card) return {}
   const { loc } = pickLocalization(card, locale)
   const ogLang = effectiveImageLang((l) => !!card.localizations[l]?.imageFile, locale, card.defaultLanguage)
@@ -51,7 +51,7 @@ export default async function CardPage({
 }) {
   const { locale, id } = await params
   setRequestLocale(locale)
-  const card = await loadCard(id)
+  const card = await loadCard(id, locale)
   if (!card) notFound()
   const { loc } = pickLocalization(card, locale)
   if (!loc) notFound()

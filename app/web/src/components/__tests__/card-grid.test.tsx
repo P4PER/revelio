@@ -7,7 +7,7 @@ vi.mock('next/image', () => ({ default: (props: Record<string, unknown>) => <img
 vi.mock('@/../i18n/navigation', () => ({ Link: (p: { href: string; children: React.ReactNode; className?: string }) => <a href={p.href}>{p.children}</a> }))
 
 const hit = (id: string, name: string): SearchDocument => ({
-  id, setCode: 'BS', setName: 'Base', number: '1', name, text: null, flavorText: null,
+  id, setCode: 'BS', number: '1', name, text: null, flavorText: null,
   types: [], subTypes: [], lesson: null, rarity: null, finish: null,
   legality: null, cost: null, isOfficial: true, imageLang: 'en', defaultLanguage: 'en',
 })

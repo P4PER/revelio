@@ -4,7 +4,6 @@ import { effectiveImageLang } from '@revelio/core'
 export type SearchDocument = {
   id: string
   setCode: string
-  setName: string
   number: string
   name: string
   text: string | null
@@ -47,7 +46,6 @@ export type LocalizationFields = {
 export type CardIndexData = {
   id: string
   setCode: string
-  setName: string
   number: string
   name: string // card-level fallback name
   lesson: string | null
@@ -67,7 +65,6 @@ export function buildCardDocument(d: CardIndexData, lang: string): SearchDocumen
   return {
     id: d.id,
     setCode: d.setCode,
-    setName: d.setName,
     number: d.number,
     name: loc?.name || d.name,
     text: loc?.text ?? null,

@@ -50,7 +50,6 @@ describe('buildDocuments', () => {
 
   it('carries set metadata (name + isOfficial)', () => {
     const snitch = byLang.en.find((d) => d.id === 'qc-1-the-snitch')!
-    expect(snitch.setName).toBe('Quidditch Cup')
     expect(snitch.isOfficial).toBe(true)
   })
 })

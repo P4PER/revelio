@@ -156,6 +156,37 @@
     "onlyUntranslated": "Nur unübersetzte",
     "untranslatedFirst": "Unübersetzte zuerst",
     "noResults": "Keine Treffer",
-    "clearSearch": "Suche löschen"
+    "clearSearch": "Suche löschen",
+    "sets": {
+      "title": "Sets",
+      "desc": "Kartensets erstellen und bearbeiten.",
+      "new": "Neues Set",
+      "name": "Name",
+      "code": "Code",
+      "releaseDate": "Erscheinungsdatum",
+      "official": "Offiziell",
+      "fan": "Fan",
+      "cardCount": "Karten",
+      "searchPlaceholder": "Name oder Code suchen…",
+      "prevPage": "Zurück",
+      "nextPage": "Weiter",
+      "symbol": "Symbol",
+      "localizedNames": "Lokalisierte Namen",
+      "create": "Erstellen",
+      "save": "Speichern",
+      "created": "Set erstellt",
+      "updated": "Gespeichert",
+      "delete": "Set löschen",
+      "deleted": "Set gelöscht",
+      "deleteBlocked": "Ein Set mit Karten kann nicht gelöscht werden.",
+      "codeExists": "Ein Set mit diesem Code existiert bereits.",
+      "back": "Zurück zu den Sets",
+      "uploadSymbol": "Symbol ändern",
+      "removeSymbol": "Symbol entfernen",
+      "symbolUpdated": "Symbol aktualisiert",
+      "symbolRemoved": "Symbol entfernt",
+      "noSymbol": "Kein Symbol",
+      "saveError": "Speichern fehlgeschlagen"
+    }
   }
 }

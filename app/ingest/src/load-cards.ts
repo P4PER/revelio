@@ -1,5 +1,5 @@
 import type { DB } from '@revelio/db'
-import { cards, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingTexts } from '@revelio/db'
+import { cards, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations } from '@revelio/db'
 import { slugify } from '@revelio/core'
 import type { DistCard } from './types.js'
 
@@ -73,5 +73,5 @@ export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
       .map(({ r, i }) => ({ rulingId: `${c.id}-r${i}`, lang: c.defaultLanguage, text: r.ruling as string })),
   )
   if (rulingParents.length) await db.insert(cardRulings).values(rulingParents).onConflictDoNothing()
-  if (rulingTexts.length) await db.insert(cardRulingTexts).values(rulingTexts).onConflictDoNothing()
+  if (rulingTexts.length) await db.insert(cardRulingLocalizations).values(rulingTexts).onConflictDoNothing()
 }

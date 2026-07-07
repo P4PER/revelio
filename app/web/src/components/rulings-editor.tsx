@@ -5,9 +5,9 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { ChevronUp, ChevronDown, X } from 'lucide-react'
 import { saveRulingsAction, type RulingsSaveResult } from '@/lib/rulings-actions'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
+import { DatePicker } from '@/components/date-picker'
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select'
@@ -152,14 +152,15 @@ export function RulingsEditor({
             </Button>
           </div>
           <div className="flex gap-3">
-            <label className="flex-1 space-y-1">
+            <div className="flex-1 space-y-1">
               <span className="text-sm font-medium">{t('rulingDate')}</span>
-              <Input
-                type="date"
+              <DatePicker
                 value={r.date}
-                onChange={(e) => update(r.key, { date: e.target.value })}
+                onChange={(v) => update(r.key, { date: v })}
+                ariaLabel={t('rulingDate')}
+                placeholder={t('rulingDate')}
               />
-            </label>
+            </div>
             <div className="flex-1 space-y-1">
               <span className="text-sm font-medium">{t('rulingSource')}</span>
               <Select value={r.source} onValueChange={(v) => update(r.key, { source: v })}>

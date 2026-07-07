@@ -29,6 +29,20 @@
       "when": 1783344462259,
       "tag": "0003_normal_thena",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783430000000,
+      "tag": "0004_rename_localizations",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783363532417,
+      "tag": "0005_eminent_wallflower",
+      "breakpoints": true
     }
   ]
 }

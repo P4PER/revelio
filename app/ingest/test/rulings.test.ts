@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { eq } from 'drizzle-orm'
-import { sets, cards, cardRulings, cardRulingTexts, saveRulings, getCardById } from '@revelio/db'
+import { sets, cards, cardRulings, cardRulingLocalizations, saveRulings, getCardById } from '@revelio/db'
 import { withMigratedDb } from './helpers'
 
 let ctx: Awaited<ReturnType<typeof withMigratedDb>>
@@ -21,7 +21,7 @@ describe('saveRulings', () => {
     expect(parents.length).toBe(2)
     expect(parents.every((p) => p.origin === 'user')).toBe(true)
     expect(parents.map((p) => p.seq).sort()).toEqual([0, 1])
-    const texts = await ctx.db.select().from(cardRulingTexts)
+    const texts = await ctx.db.select().from(cardRulingLocalizations)
     expect(texts.map((t) => t.text).sort()).toEqual(['first', 'second'])
   })
 
@@ -29,7 +29,7 @@ describe('saveRulings', () => {
     const card = await getCardById(ctx.db, 'x-1')
     const first = card!.rulings.find((r) => r.text.en === 'first')!
     // seed a German text on that ruling
-    await ctx.db.insert(cardRulingTexts).values({ rulingId: first.id, lang: 'de', text: 'erste' })
+    await ctx.db.insert(cardRulingLocalizations).values({ rulingId: first.id, lang: 'de', text: 'erste' })
     // edit only the English text, keep both rulings
     const rows = card!.rulings.map((r) => ({ id: r.id, date: r.date, source: r.source, text: r.text.en === 'first' ? 'FIRST' : r.text.en ?? '' }))
     await saveRulings(ctx.db, 'x-1', 'en', rows)
@@ -44,7 +44,7 @@ describe('saveRulings', () => {
     await saveRulings(ctx.db, 'x-1', 'en', [{ id: keep.id, date: keep.date, source: keep.source, text: keep.text.en ?? '' }])
     const parents = await ctx.db.select().from(cardRulings).where(eq(cardRulings.cardId, 'x-1'))
     expect(parents.length).toBe(1)
-    const texts = await ctx.db.select().from(cardRulingTexts)
+    const texts = await ctx.db.select().from(cardRulingLocalizations)
     // only the kept ruling's texts remain (the deleted ruling's en+de are gone)
     expect(texts.every((t) => t.rulingId === keep.id)).toBe(true)
   })
@@ -58,7 +58,7 @@ describe('saveRulings', () => {
     ])
     const parents = await ctx.db.select().from(cardRulings).where(eq(cardRulings.cardId, 'x-1'))
     expect(parents.length).toBe(1) // the empty new row was dropped; the existing ruling stays (id preserved regardless of empty fields)
-    const texts = await ctx.db.select().from(cardRulingTexts).where(eq(cardRulingTexts.rulingId, only.id))
+    const texts = await ctx.db.select().from(cardRulingLocalizations).where(eq(cardRulingLocalizations.rulingId, only.id))
     expect(texts.find((t) => t.lang === 'en')).toBeUndefined() // en text removed
   })
 })

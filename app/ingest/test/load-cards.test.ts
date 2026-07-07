@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { eq } from 'drizzle-orm'
-import { cards, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingTexts, getCardById } from '@revelio/db'
+import { cards, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, getCardById } from '@revelio/db'
 import { loadSets } from '../src/load-sets.js'
 import { loadAttributes } from '../src/load-attributes.js'
 import { loadCards } from '../src/load-cards.js'
@@ -84,7 +84,7 @@ describe('rulings (normalized parent + child)', () => {
     expect(flob.seq).toBe(0)
     expect(flob.date).toBe('2001-08-31')
     expect(flob.source).toBe('POJO')
-    const texts = await ctx.db.select().from(cardRulingTexts)
+    const texts = await ctx.db.select().from(cardRulingLocalizations)
     const t = texts.find((x) => x.rulingId === 'bs-2-flobberworm-r0')!
     expect(t.lang).toBe('en')
     expect(t.text).toBe('A ruling.')

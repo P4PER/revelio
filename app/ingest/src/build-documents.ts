@@ -50,7 +50,6 @@ export async function buildDocuments(db: DB): Promise<Record<string, SearchDocum
     return {
       id: c.id,
       setCode: c.setCode,
-      setName: set?.name ?? c.setCode,
       number: c.number,
       name: c.name,
       lesson: c.lesson,

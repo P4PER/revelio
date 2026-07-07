@@ -1,16 +1,16 @@
 import { eq, asc, sql, inArray, and, isNotNull } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import type { DB } from './client'
-import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingTexts, subTypes, subTypeTranslations } from './schema'
+import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations, setLocalizations } from './schema'
 import type { SetDTO, CardLocalizationDTO, CardDetailDTO, AdventureData, MatchData } from '@revelio/core'
 import type { CardIndexData } from '@revelio/search'
 
 type SetRow = typeof sets.$inferSelect
 
-function toSetDTO(row: SetRow): SetDTO {
+function toSetDTO(row: SetRow, name: string = row.name): SetDTO {
   return {
     code: row.code,
-    name: row.name,
+    name,
     releaseDate: row.releaseDate,
     isOfficial: row.isOfficial,
     cardCount: row.cardCount,
@@ -18,20 +18,126 @@ function toSetDTO(row: SetRow): SetDTO {
   }
 }
 
-export async function listSets(db: DB): Promise<SetDTO[]> {
+export async function listSets(db: DB, locale?: string): Promise<SetDTO[]> {
   const rows = await db.select().from(sets).orderBy(asc(sets.releaseDate), asc(sets.code))
-  return rows.map(toSetDTO)
+  if (!locale) return rows.map((r) => toSetDTO(r))
+  const locs = await db.select().from(setLocalizations).where(eq(setLocalizations.lang, locale))
+  const nameByCode = new Map(locs.map((l) => [l.setCode, l.name]))
+  return rows.map((r) => toSetDTO(r, nameByCode.get(r.code) ?? r.name))
 }
 
-export async function getSetByCode(db: DB, code: string): Promise<SetDTO | null> {
+export async function getSetByCode(db: DB, code: string, locale?: string): Promise<SetDTO | null> {
   const [row] = await db.select().from(sets).where(eq(sets.code, code)).limit(1)
-  return row ? toSetDTO(row) : null
+  if (!row) return null
+  if (!locale) return toSetDTO(row)
+  const [loc] = await db
+    .select()
+    .from(setLocalizations)
+    .where(and(eq(setLocalizations.setCode, code), eq(setLocalizations.lang, locale)))
+    .limit(1)
+  return toSetDTO(row, loc?.name ?? row.name)
 }
 
-export async function getCardById(db: DB, id: string): Promise<CardDetailDTO | null> {
+export type SetForEdit = {
+  code: string
+  name: string
+  releaseDate: string | null
+  isOfficial: boolean
+  cardCount: number
+  symbol: string | null
+  localizations: Record<string, string>
+}
+
+export async function getSetForEdit(db: DB, code: string): Promise<SetForEdit | null> {
+  const [row] = await db.select().from(sets).where(eq(sets.code, code)).limit(1)
+  if (!row) return null
+  const locs = await db.select().from(setLocalizations).where(eq(setLocalizations.setCode, code))
+  return {
+    code: row.code,
+    name: row.name,
+    releaseDate: row.releaseDate,
+    isOfficial: row.isOfficial,
+    cardCount: row.cardCount,
+    symbol: row.symbol,
+    localizations: Object.fromEntries(locs.map((l) => [l.lang, l.name])),
+  }
+}
+
+export type SetWriteInput = {
+  name: string
+  releaseDate: string | null
+  isOfficial: boolean
+  localizations: Record<string, string>
+}
+
+export async function createSet(db: DB, code: string, input: SetWriteInput): Promise<void> {
+  await db.transaction(async (tx) => {
+    await tx.insert(sets).values({
+      code,
+      name: input.name,
+      releaseDate: input.releaseDate,
+      isOfficial: input.isOfficial,
+      origin: 'user',
+    })
+    const rows = Object.entries(input.localizations)
+      .filter(([, name]) => name.trim() !== '')
+      .map(([lang, name]) => ({ setCode: code, lang, name }))
+    if (rows.length) await tx.insert(setLocalizations).values(rows)
+  })
+}
+
+export async function updateSet(db: DB, code: string, input: SetWriteInput): Promise<void> {
+  const now = new Date()
+  await db.transaction(async (tx) => {
+    await tx
+      .update(sets)
+      .set({
+        name: input.name,
+        releaseDate: input.releaseDate,
+        isOfficial: input.isOfficial,
+        origin: 'user',
+        updatedAt: now,
+      })
+      .where(eq(sets.code, code))
+    for (const [lang, name] of Object.entries(input.localizations)) {
+      if (name.trim() === '') {
+        await tx
+          .delete(setLocalizations)
+          .where(and(eq(setLocalizations.setCode, code), eq(setLocalizations.lang, lang)))
+      } else {
+        await tx
+          .insert(setLocalizations)
+          .values({ setCode: code, lang, name })
+          .onConflictDoUpdate({
+            target: [setLocalizations.setCode, setLocalizations.lang],
+            set: { name },
+          })
+      }
+    }
+  })
+}
+
+export async function deleteSet(db: DB, code: string): Promise<void> {
+  await db.delete(sets).where(eq(sets.code, code))
+}
+
+export async function setSymbolFile(db: DB, code: string, symbol: string | null): Promise<void> {
+  await db.update(sets).set({ symbol, updatedAt: new Date() }).where(eq(sets.code, code))
+}
+
+export async function getCardById(db: DB, id: string, locale?: string): Promise<CardDetailDTO | null> {
   const [card] = await db.select().from(cards).where(eq(cards.id, id)).limit(1)
   if (!card) return null
   const [setRow] = await db.select().from(sets).where(eq(sets.code, card.setCode)).limit(1)
+  let setName = setRow?.name
+  if (locale && setRow) {
+    const [loc] = await db
+      .select()
+      .from(setLocalizations)
+      .where(and(eq(setLocalizations.setCode, card.setCode), eq(setLocalizations.lang, locale)))
+      .limit(1)
+    setName = loc?.name ?? setRow.name
+  }
   const [locRows, typeRows, subTypeRows, rulingRows] = await Promise.all([
     db.select().from(cardLocalizations).where(eq(cardLocalizations.cardId, id)),
     db.select().from(cardTypes).where(eq(cardTypes.cardId, id)),
@@ -39,8 +145,8 @@ export async function getCardById(db: DB, id: string): Promise<CardDetailDTO | n
     db.select().from(cardRulings).where(eq(cardRulings.cardId, id)).orderBy(asc(cardRulings.seq)),
   ])
   const rulingTextRows = rulingRows.length
-    ? await db.select().from(cardRulingTexts).where(
-        inArray(cardRulingTexts.rulingId, rulingRows.map((r) => r.id)),
+    ? await db.select().from(cardRulingLocalizations).where(
+        inArray(cardRulingLocalizations.rulingId, rulingRows.map((r) => r.id)),
       )
     : []
   const textsByRuling = new Map<string, Record<string, string>>()
@@ -83,7 +189,7 @@ export async function getCardById(db: DB, id: string): Promise<CardDetailDTO | n
       source: r.source,
       text: textsByRuling.get(r.id) ?? {},
     })),
-    set: toSetDTO(setRow),
+    set: toSetDTO(setRow, setName),
   }
 }
 
@@ -159,7 +265,6 @@ export async function getCardIndexData(db: DB, cardId: string): Promise<CardInde
   return {
     id: card.id,
     setCode: card.setCode,
-    setName: setRow?.name ?? card.setCode,
     number: card.number,
     name: card.name,
     lesson: card.lesson,
@@ -210,11 +315,11 @@ export async function saveRulings(
         await tx.insert(cardRulings).values({ id, cardId, seq: i, date, source, origin: 'user', updatedAt: now })
       }
       if (text) {
-        await tx.insert(cardRulingTexts)
+        await tx.insert(cardRulingLocalizations)
           .values({ rulingId: id, lang, text })
-          .onConflictDoUpdate({ target: [cardRulingTexts.rulingId, cardRulingTexts.lang], set: { text } })
+          .onConflictDoUpdate({ target: [cardRulingLocalizations.rulingId, cardRulingLocalizations.lang], set: { text } })
       } else {
-        await tx.delete(cardRulingTexts).where(and(eq(cardRulingTexts.rulingId, id), eq(cardRulingTexts.lang, lang)))
+        await tx.delete(cardRulingLocalizations).where(and(eq(cardRulingLocalizations.rulingId, id), eq(cardRulingLocalizations.lang, lang)))
       }
     }
 
@@ -233,7 +338,7 @@ export async function listRulingSources(db: DB): Promise<string[]> {
 }
 
 export async function getSubTypeLabels(db: DB, lang: string): Promise<Record<string, string>> {
-  const rows = await db.select().from(subTypeTranslations).where(eq(subTypeTranslations.lang, lang))
+  const rows = await db.select().from(subTypeLocalizations).where(eq(subTypeLocalizations.lang, lang))
   return Object.fromEntries(rows.map((r) => [r.subTypeCode, r.label]))
 }
 
@@ -241,7 +346,7 @@ export async function listSubTypesWithTranslations(
   db: DB,
 ): Promise<{ code: string; labels: Record<string, string> }[]> {
   const codes = await db.select().from(subTypes).orderBy(asc(subTypes.code))
-  const trans = await db.select().from(subTypeTranslations)
+  const trans = await db.select().from(subTypeLocalizations)
   const byCode = new Map<string, Record<string, string>>()
   for (const t of trans) {
     const m = byCode.get(t.subTypeCode) ?? {}
@@ -258,14 +363,14 @@ export async function saveSubTypeTranslations(
   await db.transaction(async (tx) => {
     for (const r of rows) {
       if (r.label.trim() === '') {
-        await tx.delete(subTypeTranslations).where(
-          and(eq(subTypeTranslations.subTypeCode, r.code), eq(subTypeTranslations.lang, r.lang)),
+        await tx.delete(subTypeLocalizations).where(
+          and(eq(subTypeLocalizations.subTypeCode, r.code), eq(subTypeLocalizations.lang, r.lang)),
         )
       } else {
-        await tx.insert(subTypeTranslations)
+        await tx.insert(subTypeLocalizations)
           .values({ subTypeCode: r.code, lang: r.lang, label: r.label })
           .onConflictDoUpdate({
-            target: [subTypeTranslations.subTypeCode, subTypeTranslations.lang],
+            target: [subTypeLocalizations.subTypeCode, subTypeLocalizations.lang],
             set: { label: r.label },
           })
       }

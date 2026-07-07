@@ -36,7 +36,7 @@ export default async function SearchPage({
   const current = toURLSearchParams(await searchParams)
   const state = parseSearchParams(current)
   const results = await runSearch(getSearchClient(), locale, state)
-  const sets = await listSets(getDb())
+  const sets = await listSets(getDb(), locale)
   const t = await getTranslations('search')
 
   return (

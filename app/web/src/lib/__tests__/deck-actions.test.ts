@@ -18,7 +18,7 @@ vi.mock('@revelio/db', () => ({
 }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
 
-import { createDeckAction, updateDeckAction, deleteDeckAction } from '../deck-actions'
+import { createDeckAction, updateDeckAction, deleteDeckAction, duplicateDeckAction } from '../deck-actions'
 
 const validInput = { name: 'D', format: 'revival', visibility: 'private', cards: [{ cardId: 'x', zone: 'main', quantity: 4 }] }
 
@@ -52,4 +52,37 @@ it('rejects update on a deck owned by someone else', async () => {
 it('rejects delete on a deck owned by someone else', async () => {
   m.getDeck.mockResolvedValueOnce({ userId: 'other', deck: {} } as never)
   expect(await deleteDeckAction('d1')).toEqual({ ok: false, error: 'forbidden' })
+  expect(m.deleteDeck).not.toHaveBeenCalled()
+})
+
+it('rejects duplicate when logged out', async () => {
+  m.getSession.mockResolvedValueOnce(null as never)
+  expect(await duplicateDeckAction('d1')).toEqual({ ok: false, error: 'auth' })
+  expect(m.createDeck).not.toHaveBeenCalled()
+})
+
+it('rejects duplicate on a deck owned by someone else', async () => {
+  m.getDeck.mockResolvedValueOnce({ userId: 'other', deck: { name: 'D', format: 'revival', visibility: 'private', cards: [] } } as never)
+  expect(await duplicateDeckAction('d1')).toEqual({ ok: false, error: 'forbidden' })
+  expect(m.createDeck).not.toHaveBeenCalled()
+})
+
+it('duplicates a deck with the session user id and suffixed name', async () => {
+  const deckCards = [{ cardId: 'x', zone: 'main' as const, quantity: 4 }]
+  m.getDeck.mockResolvedValueOnce({
+    userId: 'u1',
+    deck: { name: 'Original Deck', format: 'revival', visibility: 'private', cards: deckCards },
+  } as never)
+  const r = await duplicateDeckAction('d1')
+  expect(r).toEqual({ ok: true, id: 'new-id' })
+  expect(m.createDeck).toHaveBeenCalledWith(
+    expect.anything(),
+    'u1',
+    expect.objectContaining({
+      name: 'Original Deck (copy)',
+      format: 'revival',
+      visibility: 'private',
+      cards: deckCards,
+    }),
+  )
 })

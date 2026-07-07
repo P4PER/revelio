@@ -22,7 +22,12 @@ function renderIt(hasSymbol = false) {
   )
 }
 
-beforeEach(() => { refresh.mockReset(); upload.mockClear(); remove.mockClear() })
+beforeEach(() => {
+  refresh.mockReset(); upload.mockClear(); remove.mockClear()
+  // jsdom lacks object-URL support; staged mode's local preview needs it
+  ;(URL as unknown as { createObjectURL: () => string }).createObjectURL = vi.fn(() => 'blob:mock')
+  ;(URL as unknown as { revokeObjectURL: () => void }).revokeObjectURL = vi.fn()
+})
 
 describe('SetSymbolUploader', () => {
   it('uploads a chosen file with the set code', async () => {
@@ -45,5 +50,34 @@ describe('SetSymbolUploader', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: 'Remove symbol' }))
     await waitFor(() => expect(remove).toHaveBeenCalledWith('BS'))
+  })
+
+  it('staged mode stages a file via onStagedChange instead of uploading', () => {
+    const onStagedChange = vi.fn()
+    render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        <SetSymbolUploader staged stagedFile={null} onStagedChange={onStagedChange} />
+      </NextIntlClientProvider>,
+    )
+    const input = screen.getByLabelText('Change symbol', { selector: 'input' })
+    fireEvent.change(input, { target: { files: [new File(['x'], 'logo.png', { type: 'image/png' })] } })
+    expect(onStagedChange).toHaveBeenCalledTimes(1)
+    expect(onStagedChange.mock.calls[0][0].name).toBe('logo.png')
+    expect(upload).not.toHaveBeenCalled() // the committed upload action mock is untouched
+  })
+
+  it('staged mode clears via onStagedChange(null) when a file is staged', () => {
+    const onStagedChange = vi.fn()
+    render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        <SetSymbolUploader
+          staged
+          stagedFile={new File(['x'], 'logo.png', { type: 'image/png' })}
+          onStagedChange={onStagedChange}
+        />
+      </NextIntlClientProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Remove symbol' }))
+    expect(onStagedChange).toHaveBeenCalledWith(null)
   })
 })

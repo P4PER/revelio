@@ -1,5 +1,5 @@
 'use client'
-import { useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { ImagePlus, Trash2, Loader2 } from 'lucide-react'
@@ -12,21 +12,32 @@ export function SetSymbolUploader({
   code,
   hasSymbol,
   imageBase,
+  staged = false,
+  stagedFile = null,
+  onStagedChange,
 }: {
-  code: string
-  hasSymbol: boolean
-  imageBase: string
+  code?: string
+  hasSymbol?: boolean
+  imageBase?: string
+  staged?: boolean
+  stagedFile?: File | null
+  onStagedChange?: (f: File | null) => void
 }) {
   const t = useTranslations('admin.sets')
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
+  const previewUrl = useMemo(
+    () => (staged && stagedFile ? URL.createObjectURL(stagedFile) : null),
+    [staged, stagedFile],
+  )
+  useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl) }, [previewUrl])
 
   async function doUpload(file: File) {
     setBusy(true)
     try {
       const fd = new FormData()
-      fd.append('code', code)
+      fd.append('code', code!)
       fd.append('file', file)
       const res = await uploadSetSymbol(fd)
       if (!res.ok) return toast.error(t('saveError'))
@@ -40,13 +51,23 @@ export function SetSymbolUploader({
   async function onRemove() {
     setBusy(true)
     try {
-      const res = await removeSetSymbol(code)
+      const res = await removeSetSymbol(code!)
       if (!res.ok) return toast.error(t('saveError'))
       toast.success(t('symbolRemoved'))
       router.refresh()
     } finally {
       setBusy(false)
     }
+  }
+
+  function onPick(file: File) {
+    if (staged) { onStagedChange?.(file); return }
+    doUpload(file)
+  }
+
+  function handleRemove() {
+    if (staged) { onStagedChange?.(null); return }
+    onRemove()
   }
 
   return (
@@ -64,11 +85,18 @@ export function SetSymbolUploader({
           }
         }}
         className={cn(
-          'group relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-xl border border-border/60 bg-card outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          'group relative flex h-28 w-28 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-border/60 bg-card outline-none focus-visible:ring-2 focus-visible:ring-ring',
         )}
       >
-        {hasSymbol && imageBase ? (
-          <SetSymbol code={code} base={imageBase} className="h-12 w-12 text-foreground/80" />
+        {staged ? (
+          previewUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- local object-URL preview
+            <img src={previewUrl} alt="" className="h-full w-full object-contain" />
+          ) : (
+            <span className="px-2 text-center text-xs text-muted-foreground">{t('noSymbol')}</span>
+          )
+        ) : hasSymbol && imageBase ? (
+          <SetSymbol code={code!} base={imageBase} className="h-12 w-12 text-foreground/80" />
         ) : (
           <span className="px-2 text-center text-xs text-muted-foreground">{t('noSymbol')}</span>
         )}
@@ -90,15 +118,15 @@ export function SetSymbolUploader({
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0]
-          if (f) doUpload(f)
+          if (f) onPick(f)
           e.target.value = ''
         }}
       />
 
-      {hasSymbol ? (
+      {(staged ? !!stagedFile : hasSymbol) ? (
         <button
           type="button"
-          onClick={onRemove}
+          onClick={handleRemove}
           disabled={busy}
           className="inline-flex cursor-pointer items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
         >

@@ -91,8 +91,26 @@ export const deckCards = pgTable('deck_cards', {
 ```
 
 Notes:
-- `format`/`visibility`/`zone` are `text` (project convention — cf. `roles`, `legality`),
-  with the allowed values enforced by a Zod enum in `@revelio/core`, not a PG enum.
+- `format`/`visibility`/`zone` are `text` (project convention — cf. `roles`, `origin`;
+  the codebase uses **no** `pgEnum`). Allowed values are enforced by **Zod enums**, not a
+  PG enum — matching the existing `z.enum(['machine', 'official'])` pattern in
+  `localization-actions.ts`. The three enums are defined **centrally** in
+  `@revelio/core` (`core/src/schemas.ts`) so the DB query layer, server actions, and UI
+  share one source of truth:
+
+  ```ts
+  // core/src/schemas.ts
+  export const DeckFormat     = z.enum(['classic', 'revival'])
+  export const DeckVisibility = z.enum(['private', 'public'])
+  export const DeckZone       = z.enum(['character', 'main', 'sideboard'])
+  export type DeckFormat     = z.infer<typeof DeckFormat>
+  export type DeckVisibility = z.infer<typeof DeckVisibility>
+  export type DeckZone       = z.infer<typeof DeckZone>
+  ```
+
+  `deck-actions.ts` composes these into its `z.object({...})` write schema (as
+  `set-actions.ts` etc. already do), and the legality engine's `DeckFormat`/`DeckZone`
+  types below are these same exported types.
 - The PK `(deckId, cardId, zone)` lets the same card sit in both `main` and `sideboard`
   (their copies sum toward the 4-copy limit); `quantity` holds the per-zone count.
 - The starting character is a `deck_cards` row with `zone = 'character'`, `quantity = 1`.
@@ -105,8 +123,7 @@ A single framework-agnostic module, no I/O — the natural home given `core`'s "
 rule and existing `attributes.ts`/`schemas.ts`.
 
 ```ts
-type DeckFormat = 'classic' | 'revival'
-type DeckZone = 'character' | 'main' | 'sideboard'
+// DeckFormat and DeckZone are the z.infer types exported from schemas.ts (above).
 type DeckStatus = 'legal' | 'incomplete' | 'illegal'
 
 // Minimal per-card facts the engine needs (supplied by caller from card data).

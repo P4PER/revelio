@@ -265,7 +265,7 @@ export function DeckCardBrowser({
 
               <Button
                 type="button"
-                size="icon-xs"
+                size="icon-sm"
                 variant="secondary"
                 aria-label={t('browse.infoAria', { name: hit.name })}
                 onClick={() => setDetailId(hit.id)}

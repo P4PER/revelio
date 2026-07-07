@@ -235,7 +235,7 @@ export function DeckBuilder({
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:h-[70vh] md:min-h-[560px] md:grid-cols-[1.15fr_0.85fr]">
+      <div className="grid grid-cols-1 md:h-[calc(100dvh-11rem)] md:min-h-[560px] md:grid-cols-[1.15fr_0.85fr]">
         <div className="min-h-0 overflow-hidden border-b border-border/60 md:border-r md:border-b-0">
           <DeckCardBrowser
             format={state.format}

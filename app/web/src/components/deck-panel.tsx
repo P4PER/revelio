@@ -93,7 +93,7 @@ export function DeckPanel({
       {character ? (
         <div className="mx-4 mb-2 flex items-center gap-3 rounded-lg border border-primary/60 bg-gradient-to-r from-primary/10 to-transparent p-2.5">
           <div className="grid size-10 shrink-0 place-items-center rounded-md bg-gradient-to-br from-accent to-secondary">
-            <Wand2 className="size-5 text-primary-foreground" />
+            <Wand2 className="size-5 text-primary" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-semibold">{character.name}</div>

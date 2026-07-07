@@ -134,17 +134,40 @@
   },
   "attributes": {
     "types": {
-      "character": "Charakter", "creature": "Kreatur", "spell": "Zauber", "item": "Gegenstand",
-      "lesson": "Lektion", "adventure": "Abenteuer", "location": "Ort", "event": "Ereignis",
+      "character": "Charakter",
+      "creature": "Kreatur",
+      "spell": "Zauber",
+      "item": "Gegenstand",
+      "lesson": "Lektion",
+      "adventure": "Abenteuer",
+      "location": "Ort",
+      "event": "Ereignis",
       "match": "Spiel"
     },
     "lessons": {
-      "care_of_magical_creatures": "Pflege magischer Geschöpfe", "charms": "Zauberkunst",
-      "potions": "Zaubertränke", "transfiguration": "Verwandlung", "quidditch": "Quidditch"
+      "care_of_magical_creatures": "Pflege magischer Geschöpfe",
+      "charms": "Zauberkunst",
+      "potions": "Zaubertränke",
+      "transfiguration": "Verwandlung",
+      "quidditch": "Quidditch"
     },
-    "rarities": { "common": "Häufig", "uncommon": "Ungewöhnlich", "rare": "Selten", "lesson": "Lektion" },
-    "finishes": { "normal": "Normal", "foil": "Folie", "holo": "Holo-Porträt" },
-    "legalities": { "legal": "Legal", "restricted": "Eingeschränkt", "banned": "Verboten", "unknown": "Unbekannt" }
+    "rarities": {
+      "common": "Häufig",
+      "uncommon": "Ungewöhnlich",
+      "rare": "Selten",
+      "lesson": "Lektion"
+    },
+    "finishes": {
+      "normal": "Normal",
+      "foil": "Folie",
+      "holo": "Holo-Porträt"
+    },
+    "legalities": {
+      "legal": "Legal",
+      "restricted": "Eingeschränkt",
+      "banned": "Verboten",
+      "unknown": "Unbekannt"
+    }
   },
   "admin": {
     "title": "Admin",
@@ -221,6 +244,7 @@
       "pasteLabel": "Deckliste einfügen",
       "pastePlaceholder": "Text- oder JSON-Deckdaten einfügen …",
       "fileLabel": "Oder Datei auswählen",
+      "fileChoose": "Datei auswählen",
       "submit": "Importieren",
       "success": "Deck importiert.",
       "invalidJson": "Das sieht nicht nach gültigem Deck-JSON aus.",

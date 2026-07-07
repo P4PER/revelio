@@ -3,6 +3,7 @@ import { useId, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
+import { Upload } from 'lucide-react'
 import { parseJson, parseText } from '@revelio/core'
 import type { ParsedTextLine } from '@revelio/core'
 import { getCardViewsAction, resolveImportNames } from '@/lib/deck-actions'
@@ -155,10 +156,23 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label htmlFor={fileId} className="text-xs font-medium text-muted-foreground">
+            <span className="text-xs font-medium text-muted-foreground">
               {t('import.fileLabel')}
+            </span>
+            <label
+              htmlFor={fileId}
+              className="group inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border/60 bg-card px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:border-accent hover:bg-muted/50 hover:text-foreground focus-within:ring-2 focus-within:ring-ring"
+            >
+              <Upload className="size-4 shrink-0" aria-hidden />
+              <span className="truncate">{t('import.fileChoose')}</span>
+              <input
+                id={fileId}
+                type="file"
+                accept=".txt,.json,text/plain,application/json"
+                onChange={handleFile}
+                className="sr-only"
+              />
             </label>
-            <input id={fileId} type="file" accept=".txt,.json,text/plain,application/json" onChange={handleFile} className="text-sm" />
           </div>
 
           {unparsed.length > 0 && (

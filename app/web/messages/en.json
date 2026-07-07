@@ -134,17 +134,40 @@
   },
   "attributes": {
     "types": {
-      "character": "Character", "creature": "Creature", "spell": "Spell", "item": "Item",
-      "lesson": "Lesson", "adventure": "Adventure", "location": "Location", "event": "Event",
+      "character": "Character",
+      "creature": "Creature",
+      "spell": "Spell",
+      "item": "Item",
+      "lesson": "Lesson",
+      "adventure": "Adventure",
+      "location": "Location",
+      "event": "Event",
       "match": "Match"
     },
     "lessons": {
-      "care_of_magical_creatures": "Care of Magical Creatures", "charms": "Charms",
-      "potions": "Potions", "transfiguration": "Transfiguration", "quidditch": "Quidditch"
+      "care_of_magical_creatures": "Care of Magical Creatures",
+      "charms": "Charms",
+      "potions": "Potions",
+      "transfiguration": "Transfiguration",
+      "quidditch": "Quidditch"
     },
-    "rarities": { "common": "Common", "uncommon": "Uncommon", "rare": "Rare", "lesson": "Lesson" },
-    "finishes": { "normal": "Normal", "foil": "Foil", "holo": "Holo Portrait" },
-    "legalities": { "legal": "Legal", "restricted": "Restricted", "banned": "Banned", "unknown": "Unknown" }
+    "rarities": {
+      "common": "Common",
+      "uncommon": "Uncommon",
+      "rare": "Rare",
+      "lesson": "Lesson"
+    },
+    "finishes": {
+      "normal": "Normal",
+      "foil": "Foil",
+      "holo": "Holo Portrait"
+    },
+    "legalities": {
+      "legal": "Legal",
+      "restricted": "Restricted",
+      "banned": "Banned",
+      "unknown": "Unknown"
+    }
   },
   "admin": {
     "title": "Admin",
@@ -221,6 +244,7 @@
       "pasteLabel": "Paste a deck list",
       "pastePlaceholder": "Paste plain-text or JSON deck data…",
       "fileLabel": "Or choose a file",
+      "fileChoose": "Choose a file",
       "submit": "Import",
       "success": "Deck imported.",
       "invalidJson": "That doesn't look like valid deck JSON.",

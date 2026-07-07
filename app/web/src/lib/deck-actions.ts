@@ -115,7 +115,9 @@ export async function searchDeckCards(locale: string, input: unknown): Promise<S
     costMin: d.costMin ?? null,
     costMax: d.costMax ?? null,
   }
-  return runSearch(getSearchClient(), locale, state)
+  // The builder browses in a wide grid, so fetch a larger page than the
+  // default search results view (24).
+  return runSearch(getSearchClient(), locale, state, { hitsPerPage: 30 })
 }
 
 // Full card detail for the browser's Info Sheet. Public read data (same as the

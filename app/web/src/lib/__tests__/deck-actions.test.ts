@@ -128,12 +128,13 @@ it('searchDeckCards restricts classic to official sets only', async () => {
     'client',
     'en',
     expect.objectContaining({ q: 'accio', official: true, lessons: ['charms'] }),
+    expect.objectContaining({ hitsPerPage: 30 }),
   )
 })
 
 it('searchDeckCards searches all sets (official: null) for revival', async () => {
   await searchDeckCards('en', { format: 'revival' })
-  expect(m.runSearch).toHaveBeenCalledWith('client', 'en', expect.objectContaining({ official: null }))
+  expect(m.runSearch).toHaveBeenCalledWith('client', 'en', expect.objectContaining({ official: null }), expect.objectContaining({ hitsPerPage: 30 }))
 })
 
 it('searchDeckCards rejects an invalid shape', async () => {

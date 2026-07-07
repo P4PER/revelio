@@ -13,7 +13,8 @@ export async function runSearch(
   client: MeiliSearch,
   lang: string,
   state: SearchState,
+  overrides?: { hitsPerPage?: number },
 ): Promise<SearchResult> {
   const { query, options } = toSearchOptions(state)
-  return searchCards(client, lang, query, options)
+  return searchCards(client, lang, query, { ...options, ...overrides })
 }

@@ -16,8 +16,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, id } = await params
   setRequestLocale(locale)
-  const [existing, t] = await Promise.all([getDeck(getDb(), id), getTranslations('decks')])
-  return { title: existing?.deck.name ?? t('title') }
+  const [session, existing, t] = await Promise.all([
+    getSession(),
+    getDeck(getDb(), id),
+    getTranslations('decks'),
+  ])
+  const isOwner = !!existing && existing.userId === session?.user?.id
+  return { title: isOwner ? existing.deck.name : t('title') }
 }
 
 export default async function EditDeckPage({

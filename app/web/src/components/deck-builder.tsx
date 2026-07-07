@@ -51,11 +51,12 @@ export function DeckBuilder({
   const [showSavePrompt, setShowSavePrompt] = useState(false)
   const isFirstSave = useRef(true)
 
-  // Guests without a deckId may have a locally-saved draft. Load it after mount
-  // (not in the lazy initializer) so the client's first render matches the
-  // server HTML and we avoid a hydration mismatch.
+  // Anyone without a deckId (guest or a logged-in user landing on /decks/new)
+  // may have a locally-saved draft. Load it after mount (not in the lazy
+  // initializer) so the client's first render matches the server HTML and we
+  // avoid a hydration mismatch.
   useEffect(() => {
-    if (!deckId && !loggedIn) {
+    if (!deckId) {
       const draft = loadDraft()
       // Intentional: mount-only sync from localStorage (an external system) into
       // React state, guarded by the empty dep array so it fires exactly once.

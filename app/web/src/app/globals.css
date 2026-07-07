@@ -48,11 +48,11 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 
   /* Lesson subject colors — bg-lesson-charms, text-lesson-charms, etc. */
-  --color-lesson-care_of_magical_creatures: #5CB878;
-  --color-lesson-charms: #5B8DEF;
-  --color-lesson-potions: #A06CD5;
-  --color-lesson-transfiguration: #E0555B;
-  --color-lesson-quidditch: #EA7B3C;
+  --color-lesson-care_of_magical_creatures: #836444;
+  --color-lesson-charms: #0069A9;
+  --color-lesson-potions: #00A661;
+  --color-lesson-transfiguration: #BC3E4D;
+  --color-lesson-quidditch: #E2AE37;
 }
 
 /* ─── Reveal-Glow dark palette (dark-first: values live in :root) ─── */

@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Link, useRouter } from '@/../i18n/navigation'
@@ -47,6 +47,7 @@ export function DeckBuilder({
   const router = useRouter()
   const [state, setState] = useState<BuilderState>(initial)
   const [saving, setSaving] = useState(false)
+  const isFirstSave = useRef(true)
 
   // Guests without a deckId may have a locally-saved draft. Load it after mount
   // (not in the lazy initializer) so the client's first render matches the
@@ -63,6 +64,10 @@ export function DeckBuilder({
   }, [])
 
   useEffect(() => {
+    if (isFirstSave.current) {
+      isFirstSave.current = false
+      return
+    }
     if (!deckId && !loggedIn) saveDraft(state)
   }, [state, deckId, loggedIn])
 

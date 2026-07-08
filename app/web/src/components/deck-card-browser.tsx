@@ -125,12 +125,6 @@ export function DeckCardBrowser({
             className="pl-9"
           />
         </div>
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-xs text-muted-foreground" role="status">
-            {t('browse.resultCount', { count: result.total })}
-          </p>
-          <DeckFilterDrawer sets={sets} value={filters} onApply={setFilters} />
-        </div>
         <div className="flex flex-wrap items-center gap-1.5">
           {LESSONS.map((l) => {
             const active = lessons.includes(l.code)
@@ -150,7 +144,13 @@ export function DeckCardBrowser({
               </button>
             )
           })}
+          <div className="ml-auto">
+            <DeckFilterDrawer sets={sets} value={filters} onApply={setFilters} />
+          </div>
         </div>
+        <p className="text-xs text-muted-foreground" role="status">
+          {t('browse.resultCount', { count: result.total })}
+        </p>
       </div>
 
       <div className="grid flex-1 auto-rows-min gap-4 overflow-y-auto p-3 [grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]">

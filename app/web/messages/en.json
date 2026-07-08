@@ -354,7 +354,12 @@
         "makePrivate": "Make private",
         "makePublic": "Make public"
       },
-      "confirmDelete": "Delete \"{name}\"? This can't be undone.",
+      "deleteDialog": {
+        "title": "Delete deck?",
+        "description": "\"{name}\" will be permanently deleted. This can't be undone.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
       "deleted": "Deck deleted.",
       "deleteError": "Could not delete the deck.",
       "duplicated": "Deck duplicated.",

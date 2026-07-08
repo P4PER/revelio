@@ -354,7 +354,12 @@
         "makePrivate": "Privat machen",
         "makePublic": "Öffentlich machen"
       },
-      "confirmDelete": "„{name}“ löschen? Das kann nicht rückgängig gemacht werden.",
+      "deleteDialog": {
+        "title": "Deck löschen?",
+        "description": "„{name}“ wird dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden.",
+        "confirm": "Löschen",
+        "cancel": "Abbrechen"
+      },
       "deleted": "Deck gelöscht.",
       "deleteError": "Deck konnte nicht gelöscht werden.",
       "duplicated": "Deck dupliziert.",

@@ -250,7 +250,13 @@
       "viewList": "List",
       "viewGallery": "Gallery",
       "cardCount": "{count} cards",
-      "updatedAt": "Updated {date}"
+      "updatedAt": "Updated {date}",
+      "publishDialog": {
+        "title": "Publish this deck?",
+        "description": "Anyone with the link will be able to view it. You can unpublish at any time.",
+        "confirm": "Publish",
+        "cancel": "Cancel"
+      }
     },
     "import": {
       "button": "Import",

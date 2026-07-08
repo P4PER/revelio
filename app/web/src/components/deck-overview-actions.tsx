@@ -15,6 +15,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 export function DeckOverviewActions({
   deckId,
@@ -80,10 +91,26 @@ export function DeckOverviewActions({
 
       {isOwner &&
         (visibility === 'private' ? (
-          <Button variant="outline" disabled={pending} onClick={() => setVisibility('public')}>
-            <Globe className="size-4" />
-            {t('overview.publish')}
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" disabled={pending}>
+                <Globe className="size-4" />
+                {t('overview.publish')}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('overview.publishDialog.title')}</AlertDialogTitle>
+                <AlertDialogDescription>{t('overview.publishDialog.description')}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('overview.publishDialog.cancel')}</AlertDialogCancel>
+                <AlertDialogAction onClick={() => setVisibility('public')}>
+                  {t('overview.publishDialog.confirm')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         ) : (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

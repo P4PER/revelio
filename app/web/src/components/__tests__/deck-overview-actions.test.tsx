@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, fireEvent, within, waitFor } from '@testing-library/react'
 import type { DeckCardView } from '@revelio/core'
 import { renderWithIntl } from '@/test/intl'
+import { updateDeckMetaAction } from '@/lib/deck-actions'
 import { DeckOverviewActions } from '@/components/deck-overview-actions'
 
 vi.mock('@/../i18n/navigation', () => ({
@@ -40,5 +41,17 @@ describe('DeckOverviewActions visibility', () => {
     expect(screen.queryByText('Published')).not.toBeInTheDocument()
     expect(screen.getByText('Export')).toBeInTheDocument()
     expect(screen.getByText('Duplicate → editor')).toBeInTheDocument()
+  })
+
+  it('asks for confirmation before publishing and publishes on confirm', async () => {
+    renderWithIntl(<DeckOverviewActions {...base} visibility="private" isOwner loggedIn />)
+    // Clicking Publish does not publish immediately — it opens a confirm dialog.
+    fireEvent.click(screen.getByText('Publish'))
+    expect(await screen.findByText('Publish this deck?')).toBeInTheDocument()
+    const dialog = screen.getByRole('alertdialog')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Publish' }))
+    await waitFor(() =>
+      expect(updateDeckMetaAction).toHaveBeenCalledWith('d1', { name: 'My Deck', visibility: 'public' }),
+    )
   })
 })

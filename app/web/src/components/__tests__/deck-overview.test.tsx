@@ -40,4 +40,12 @@ describe('DeckOverview', () => {
     expect(screen.getByTestId('gallery-view')).toBeInTheDocument()
     expect(window.localStorage.getItem('revelio.deck.view')).toBe('gallery')
   })
+
+  it('shows the back link only to logged-in viewers', () => {
+    const { unmount } = renderWithIntl(<DeckOverview {...props} loggedIn />)
+    expect(screen.getByText('Back to My Decks')).toBeInTheDocument()
+    unmount()
+    renderWithIntl(<DeckOverview {...props} loggedIn={false} />)
+    expect(screen.queryByText('Back to My Decks')).not.toBeInTheDocument()
+  })
 })

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from '@/../i18n/navigation'
 import { useTranslations } from 'next-intl'
+import { SlidersHorizontal } from 'lucide-react'
 import {
   TYPES, LESSONS, RARITIES, FINISHES, LEGALITIES, type SetDTO,
 } from '@revelio/core'
@@ -97,10 +98,28 @@ export function FilterDrawer({ sets, locale }: { sets: SetDTO[]; locale: string 
     </SelectItem>
   )
 
+  // Count of filters currently applied to the results (from the URL) — the
+  // multi-value groups plus set / cost / official. The query and sort are not
+  // filters, so they don't count.
+  const activeCount =
+    groups.reduce((n, g) => n + params.getAll(g.param).length, 0) +
+    (params.get('set') ? 1 : 0) +
+    (params.get('costMin') ? 1 : 0) +
+    (params.get('costMax') ? 1 : 0) +
+    (params.get('official') ? 1 : 0)
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm">{t('button')}</Button>
+        <Button variant="outline" size="sm" className="gap-1.5">
+          <SlidersHorizontal className="size-3.5" />
+          {t('button')}
+          {activeCount > 0 && (
+            <span className="grid min-w-4 place-items-center rounded-full bg-primary px-1 text-[0.62rem] font-bold text-primary-foreground tabular-nums">
+              {activeCount}
+            </span>
+          )}
+        </Button>
       </SheetTrigger>
       <SheetContent aria-describedby={undefined} className="w-[340px] overflow-y-auto sm:max-w-none">
         <SheetHeader><SheetTitle>{t('title')}</SheetTitle></SheetHeader>

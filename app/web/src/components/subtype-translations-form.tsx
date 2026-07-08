@@ -8,6 +8,9 @@ import { saveSubTypeTranslationsAction } from '@/lib/sub-type-actions'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { FieldError } from '@/components/ui/field-error'
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table'
 
 type Row = { code: string; labels: Record<string, string> }
 
@@ -114,11 +117,11 @@ export function SubTypeTranslationsForm({ locales, rows }: { locales: string[]; 
         </Button>
       </div>
 
-      <div className="max-h-[70vh] overflow-auto rounded-lg border">
-        <table className="w-full text-sm">
-          <thead className="sticky top-0 z-10 bg-muted">
-            <tr className="text-left">
-              <th className="sticky left-0 z-20 bg-muted px-3 py-2 font-medium">
+      <div className="rounded-lg border">
+        <Table containerClassName="max-h-[70vh]">
+          <TableHeader className="sticky top-0 z-10 bg-muted">
+            <TableRow>
+              <TableHead className="sticky left-0 z-20 bg-muted">
                 <button
                   type="button"
                   className="inline-flex items-center gap-1 hover:text-foreground"
@@ -127,41 +130,41 @@ export function SubTypeTranslationsForm({ locales, rows }: { locales: string[]; 
                   {t('code')}
                   {dir === 'asc' ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />}
                 </button>
-              </th>
+              </TableHead>
               {locales.map((l) => (
-                <th key={l} className="px-3 py-2 font-medium">{l.toUpperCase()}</th>
+                <TableHead key={l}>{l.toUpperCase()}</TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {visible.map((r) => (
-              <tr key={r.code} className="border-t">
-                <td className="sticky left-0 z-10 bg-background px-3 py-2 font-mono text-muted-foreground">
+              <TableRow key={r.code}>
+                <TableCell className="sticky left-0 z-10 bg-background font-mono text-muted-foreground">
                   {r.code}
-                </td>
+                </TableCell>
                 {locales.map((lang) => (
-                  <td key={lang} className="px-3 py-2">
+                  <TableCell key={lang}>
                     <Input
                       value={values[r.code]?.[lang] ?? ''}
                       onChange={(e) => setCell(r.code, lang, e.target.value)}
                       aria-label={`${r.code} ${lang}`}
                     />
-                  </td>
+                  </TableCell>
                 ))}
-              </tr>
+              </TableRow>
             ))}
             {visible.length === 0 && (
-              <tr>
-                <td
+              <TableRow>
+                <TableCell
                   colSpan={locales.length + 1}
-                  className="px-3 py-6 text-center text-muted-foreground"
+                  className="py-6 text-center text-muted-foreground"
                 >
                   {t('noResults')}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <div className="space-y-1.5">

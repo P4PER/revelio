@@ -112,7 +112,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
         return (
           <div
             key={deck.id}
-            className="flex flex-col gap-3 rounded-xl border border-border/60 bg-card/40 p-4"
+            className="group relative flex flex-col gap-3 rounded-xl border border-border/60 bg-card/40 p-4 transition-colors hover:border-accent/60 hover:bg-card/70"
           >
             <div className="flex items-start justify-between gap-2">
               {isRenaming ? (
@@ -153,7 +153,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
               ) : (
                 <Link
                   href={`/decks/${deck.id}`}
-                  className="line-clamp-2 flex-1 font-semibold text-foreground hover:underline"
+                  className="line-clamp-2 flex-1 font-semibold text-foreground transition-colors group-hover:text-primary after:absolute after:inset-0 after:rounded-xl"
                 >
                   {deck.name}
                 </Link>
@@ -167,6 +167,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
                       variant="ghost"
                       disabled={busy}
                       aria-label={t('list.actions.menuLabel', { name: deck.name })}
+                      className="relative z-10"
                     >
                       <MoreHorizontal className="size-4" />
                     </Button>

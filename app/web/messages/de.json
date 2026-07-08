@@ -238,6 +238,20 @@
       "copyError": "Kopieren in die Zwischenablage fehlgeschlagen.",
       "pngError": "PNG konnte nicht erstellt werden."
     },
+    "overview": {
+      "backToDecks": "Zurück zu meinen Decks",
+      "edit": "Bearbeiten",
+      "publish": "Veröffentlichen",
+      "published": "Veröffentlicht",
+      "unpublish": "Zurückziehen",
+      "copyLink": "Link kopieren",
+      "linkCopied": "Link in die Zwischenablage kopiert.",
+      "duplicate": "Duplizieren → Editor",
+      "viewList": "Liste",
+      "viewGallery": "Galerie",
+      "cardCount": "{count} Karten",
+      "updatedAt": "Aktualisiert {date}"
+    },
     "import": {
       "button": "Importieren",
       "title": "Deck importieren",
@@ -325,6 +339,7 @@
       "actions": {
         "menuLabel": "Deck-Aktionen für {name}",
         "open": "Öffnen",
+        "edit": "Bearbeiten",
         "rename": "Umbenennen",
         "renameSave": "Speichern",
         "renameCancel": "Abbrechen",

@@ -1,7 +1,7 @@
 'use client'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { Copy, Download, FileJson, FileText, Image as ImageIcon } from 'lucide-react'
+import { Copy, Download, FileJson, FileText, Image as ImageIcon, Upload } from 'lucide-react'
 import { toJson, toText } from '@revelio/core'
 import type { DeckDTO } from '@revelio/core'
 import type { BuilderState } from '@/lib/deck-model'
@@ -38,9 +38,13 @@ function download(filename: string, content: string, mimeType: string) {
 export function DeckExportMenu({
   state,
   align = 'end',
+  variant = 'ghost',
+  size = 'sm',
 }: {
   state: BuilderState
   align?: 'start' | 'end'
+  variant?: 'ghost' | 'outline'
+  size?: 'sm' | 'default'
 }) {
   const t = useTranslations('decks')
 
@@ -89,7 +93,8 @@ export function DeckExportMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant="ghost" size="sm">
+        <Button type="button" variant={variant} size={size}>
+          {variant === 'outline' && <Upload className="size-4" />}
           {t('export.button')}
         </Button>
       </DropdownMenuTrigger>

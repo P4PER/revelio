@@ -51,6 +51,15 @@ describe('SubTypeTranslationsForm', () => {
     expect(toast.success).toHaveBeenCalled()
   })
 
+  it('shows an inline error when saving fails', async () => {
+    const { saveSubTypeTranslationsAction } = await import('@/lib/sub-type-actions')
+    ;(saveSubTypeTranslationsAction as unknown as { mockResolvedValueOnce: (v: unknown) => void })
+      .mockResolvedValueOnce({ ok: false })
+    renderForm()
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    expect(await screen.findByText(en.admin.saveError)).toBeInTheDocument()
+  })
+
   it('filters rows by the search query (code or translation text)', () => {
     renderForm()
     fireEvent.change(screen.getByPlaceholderText(/search/i), { target: { value: 'wiz' } })

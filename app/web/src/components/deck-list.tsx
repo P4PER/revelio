@@ -9,6 +9,7 @@ import { duplicateDeckAction, deleteDeckAction, updateDeckMetaAction } from '@/l
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { FieldError } from '@/components/ui/field-error'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -28,17 +29,20 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [draftName, setDraftName] = useState('')
+  const [renameError, setRenameError] = useState('')
 
   const dateFormatter = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' })
 
   function startRename(deck: DeckSummary) {
     setRenamingId(deck.id)
     setDraftName(deck.name)
+    setRenameError('')
   }
 
   function cancelRename() {
     setRenamingId(null)
     setDraftName('')
+    setRenameError('')
   }
 
   function saveRename(deck: DeckSummary) {
@@ -47,6 +51,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
       cancelRename()
       return
     }
+    setRenameError('')
     setPendingId(deck.id)
     startTransition(async () => {
       const res = await updateDeckMetaAction(deck.id, { name })
@@ -55,7 +60,8 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
         toast.success(t('list.renamed'))
         cancelRename()
       } else {
-        toast.error(t('list.renameError'))
+        // keep the inline editor open so the error shows where the user typed
+        setRenameError(t('list.renameError'))
       }
     })
   }
@@ -116,39 +122,43 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
           >
             <div className="flex items-start justify-between gap-2">
               {isRenaming ? (
-                <div className="flex flex-1 items-center gap-1.5">
-                  <Input
-                    autoFocus
-                    value={draftName}
-                    onChange={(e) => setDraftName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') saveRename(deck)
-                      if (e.key === 'Escape') cancelRename()
-                    }}
-                    aria-label={t('list.actions.rename')}
-                    className="h-8"
-                    disabled={busy}
-                  />
-                  <Button
-                    type="button"
-                    size="icon-sm"
-                    variant="ghost"
-                    disabled={busy}
-                    onClick={() => saveRename(deck)}
-                    aria-label={t('list.actions.renameSave')}
-                  >
-                    <Check className="size-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    size="icon-sm"
-                    variant="ghost"
-                    disabled={busy}
-                    onClick={cancelRename}
-                    aria-label={t('list.actions.renameCancel')}
-                  >
-                    <X className="size-4" />
-                  </Button>
+                <div className="flex flex-1 flex-col gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <Input
+                      autoFocus
+                      value={draftName}
+                      onChange={(e) => setDraftName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') saveRename(deck)
+                        if (e.key === 'Escape') cancelRename()
+                      }}
+                      aria-label={t('list.actions.rename')}
+                      aria-invalid={!!renameError}
+                      className="h-8"
+                      disabled={busy}
+                    />
+                    <Button
+                      type="button"
+                      size="icon-sm"
+                      variant="ghost"
+                      disabled={busy}
+                      onClick={() => saveRename(deck)}
+                      aria-label={t('list.actions.renameSave')}
+                    >
+                      <Check className="size-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon-sm"
+                      variant="ghost"
+                      disabled={busy}
+                      onClick={cancelRename}
+                      aria-label={t('list.actions.renameCancel')}
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  </div>
+                  <FieldError>{renameError}</FieldError>
                 </div>
               ) : (
                 <Link

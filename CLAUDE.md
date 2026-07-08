@@ -73,3 +73,7 @@ Design specs and phased implementation plans live in `docs/superpowers/specs/` a
 - **Conventional Commits** for commit messages.
 - Documentation filenames are UPPERCASE (`README.md`, `MIGRATIONS.md`, `BRAND-GUIDE.md`).
 - All docs/specs/prose in English.
+
+## Subagents
+
+Prefer solving tasks in a single session. Only spawn subagents for genuinely independent workstreams.

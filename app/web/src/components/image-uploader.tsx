@@ -5,7 +5,10 @@ import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { ImagePlus, Trash2, Loader2 } from 'lucide-react'
 import { uploadCardImage, removeCardImage } from '@/lib/image-actions'
+import { FieldError } from '@/components/ui/field-error'
 import { cn } from '@/lib/utils'
+
+const MAX_BYTES = 5 * 1024 * 1024
 
 // The card image itself is the upload control: drop a file on it, or hover +
 // click to pick one — either way it uploads immediately. A hover ✕ removes this
@@ -19,11 +22,13 @@ export function ImageUploader({
   fallbackLang: string | null
 }) {
   const t = useTranslations('edit')
+  const tv = useTranslations('validation')
   const locale = useLocale()
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [dragOver, setDragOver] = useState(false)
+  const [fieldError, setFieldError] = useState('')
 
   const fallbackLabel = fallbackLang
     ? (new Intl.DisplayNames([locale], { type: 'language' }).of(fallbackLang) ?? fallbackLang)
@@ -31,6 +36,9 @@ export function ImageUploader({
   const ownImage = !!imageSrc && !fallbackLang
 
   async function doUpload(file: File) {
+    setFieldError('')
+    if (!file.type.startsWith('image/')) return setFieldError(tv('fileType'))
+    if (file.size > MAX_BYTES) return setFieldError(tv('fileSize'))
     setBusy(true)
     try {
       const fd = new FormData()
@@ -38,7 +46,11 @@ export function ImageUploader({
       fd.append('lang', lang)
       fd.append('file', file)
       const res = await uploadCardImage(fd)
-      if (!res.ok) return toast.error(t('imageFailed'))
+      if (!res.ok) {
+        if (res.error === 'type') return setFieldError(tv('fileType'))
+        if (res.error === 'size') return setFieldError(tv('fileSize'))
+        return toast.error(t('imageFailed'))
+      }
       if (res.warning) toast.warning(t('reindexWarning'))
       else toast.success(t('imageUploaded'))
       router.refresh()
@@ -126,6 +138,8 @@ export function ImageUploader({
           e.target.value = ''
         }}
       />
+
+      <FieldError>{fieldError}</FieldError>
 
       {fallbackLabel ? (
         <p className="text-xs text-muted-foreground">{t('usingFallback', { lang: fallbackLabel })}</p>

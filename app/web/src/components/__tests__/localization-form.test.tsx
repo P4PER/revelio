@@ -11,7 +11,6 @@ vi.mock('@/../i18n/navigation', () => ({
 }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), warning: vi.fn(), error: vi.fn() } }))
 
-import { toast } from 'sonner'
 import { LocalizationForm } from '../localization-form'
 import en from '@/../messages/en.json'
 
@@ -35,11 +34,11 @@ function renderForm(kind: 'adventure' | 'match' | null = null) {
 beforeEach(() => updateLocalization.mockClear())
 
 describe('LocalizationForm', () => {
-  it('blocks an empty name and does not call the action', async () => {
+  it('blocks an empty name with an inline error and does not call the action', async () => {
     renderForm()
     await userEvent.clear(screen.getByLabelText(en.edit.name))
     await userEvent.click(screen.getByRole('button', { name: en.edit.save }))
-    expect(toast.error).toHaveBeenCalledWith(en.edit.invalid)
+    expect(await screen.findByText(en.validation.required)).toBeInTheDocument()
     expect(updateLocalization).not.toHaveBeenCalled()
   })
 

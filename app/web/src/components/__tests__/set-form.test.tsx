@@ -100,4 +100,20 @@ describe('SetForm', () => {
     await waitFor(() => expect(create).toHaveBeenCalled())
     expect(upload).not.toHaveBeenCalled()
   })
+
+  it('shows required errors and does not call the action when empty', async () => {
+    renderForm('create')
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+    await waitFor(() => expect(screen.getAllByText(en.validation.required).length).toBeGreaterThan(0))
+    expect(create).not.toHaveBeenCalled()
+  })
+
+  it('maps a duplicate code onto the code field', async () => {
+    create.mockResolvedValueOnce({ ok: false, error: 'exists' })
+    renderForm('create')
+    fireEvent.change(screen.getByLabelText('Code'), { target: { value: 'base' } })
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Base Set' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+    expect(await screen.findByText(en.validation.codeExists)).toBeInTheDocument()
+  })
 })

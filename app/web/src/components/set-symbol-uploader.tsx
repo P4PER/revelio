@@ -6,7 +6,10 @@ import { ImagePlus, Trash2, Loader2 } from 'lucide-react'
 import { useRouter } from '@/../i18n/navigation'
 import { uploadSetSymbol, removeSetSymbol } from '@/lib/set-actions'
 import { SetSymbol } from '@/components/set-symbol'
+import { FieldError } from '@/components/ui/field-error'
 import { cn } from '@/lib/utils'
+
+const MAX_BYTES = 5 * 1024 * 1024
 
 export function SetSymbolUploader({
   code,
@@ -24,9 +27,20 @@ export function SetSymbolUploader({
   onStagedChange?: (f: File | null) => void
 }) {
   const t = useTranslations('admin.sets')
+  const tv = useTranslations('validation')
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
+  const [fieldError, setFieldError] = useState('')
+
+  // Reject the file client-side before staging or uploading. Returns false + sets
+  // the inline error when the type/size is wrong.
+  function accept(file: File): boolean {
+    setFieldError('')
+    if (!file.type.startsWith('image/')) { setFieldError(tv('fileType')); return false }
+    if (file.size > MAX_BYTES) { setFieldError(tv('fileSize')); return false }
+    return true
+  }
   const previewUrl = useMemo(
     () => (staged && stagedFile ? URL.createObjectURL(stagedFile) : null),
     [staged, stagedFile],
@@ -40,7 +54,11 @@ export function SetSymbolUploader({
       fd.append('code', code!)
       fd.append('file', file)
       const res = await uploadSetSymbol(fd)
-      if (!res.ok) return toast.error(t('saveError'))
+      if (!res.ok) {
+        if (res.error === 'type') return setFieldError(tv('fileType'))
+        if (res.error === 'size') return setFieldError(tv('fileSize'))
+        return toast.error(t('saveError'))
+      }
       toast.success(t('symbolUpdated'))
       router.refresh()
     } finally {
@@ -61,6 +79,7 @@ export function SetSymbolUploader({
   }
 
   function onPick(file: File) {
+    if (!accept(file)) return
     if (staged) { onStagedChange?.(file); return }
     doUpload(file)
   }
@@ -122,6 +141,8 @@ export function SetSymbolUploader({
           e.target.value = ''
         }}
       />
+
+      <FieldError>{fieldError}</FieldError>
 
       {(staged ? !!stagedFile : hasSymbol) ? (
         <button

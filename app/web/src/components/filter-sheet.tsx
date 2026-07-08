@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { FieldError } from '@/components/ui/field-error'
 import {
   Select, SelectContent, SelectGroup, SelectItem, SelectLabel,
   SelectSeparator, SelectTrigger, SelectValue,
@@ -66,10 +67,17 @@ export function FilterSheet({
   show?: { lessons?: boolean; official?: boolean }
 }) {
   const t = useTranslations('filters')
+  const tv = useTranslations('validation')
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState<FilterSelection>(value)
 
   const groups = ALL_GROUPS.filter((g) => g.key !== 'lessons' || show.lessons)
+
+  // Both cost bounds set and numeric with min > max → invalid range; block Apply.
+  const costInvalid =
+    draft.costMin !== '' && draft.costMax !== '' &&
+    Number.isFinite(Number(draft.costMin)) && Number.isFinite(Number(draft.costMax)) &&
+    Number(draft.costMin) > Number(draft.costMax)
 
   // Re-seed the pending draft from the applied value each time it opens (a soft
   // navigation doesn't remount, so props may have changed since last open).
@@ -83,6 +91,7 @@ export function FilterSheet({
   }
 
   function apply() {
+    if (costInvalid) return
     onApply(draft)
     setOpen(false)
   }
@@ -189,6 +198,7 @@ export function FilterSheet({
                 value={draft.costMax} onChange={(e) => setDraft((d) => ({ ...d, costMax: e.target.value }))} className="w-20"
               />
             </div>
+            <FieldError className="mt-1">{costInvalid ? tv('costRange') : ''}</FieldError>
           </div>
 
           {show.official && (

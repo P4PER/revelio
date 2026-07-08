@@ -47,4 +47,12 @@ describe('RulingsEditor', () => {
       rulings: [{ id: 'x-1-r0', date: '2001-08-31', source: 'POJO', text: 'new' }],
     })
   })
+
+  it('shows required errors for an incomplete row and does not save', async () => {
+    renderEditor()
+    await userEvent.click(screen.getByRole('button', { name: en.edit.addRuling }))
+    await userEvent.click(screen.getByRole('button', { name: en.edit.saveRulings }))
+    expect(await screen.findAllByText(en.validation.required)).not.toHaveLength(0)
+    expect(saveRulingsAction).not.toHaveBeenCalled()
+  })
 })

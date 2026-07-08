@@ -11,6 +11,7 @@ import { jsonToEntries, textLinesToEntries } from '@/lib/deck-import'
 import type { BuilderState } from '@/lib/deck-model'
 import { Button } from '@/components/ui/button'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
+import { FieldError } from '@/components/ui/field-error'
 import {
   Sheet,
   SheetContent,
@@ -50,11 +51,13 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
   const [busy, setBusy] = useState(false)
   const [unresolved, setUnresolved] = useState<string[]>([])
   const [unparsed, setUnparsed] = useState<string[]>([])
+  const [inputError, setInputError] = useState('')
 
   function reset() {
     setRaw('')
     setUnresolved([])
     setUnparsed([])
+    setInputError('')
   }
 
   function handleOpenChange(next: boolean) {
@@ -74,7 +77,7 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
     try {
       deck = parseJson(value)
     } catch {
-      toast.error(t('import.invalidJson'))
+      setInputError(t('import.invalidJson'))
       return
     }
     const ids = [
@@ -98,7 +101,7 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
     setUnparsed(badLines)
     if (lines.length === 0) {
       setUnresolved([])
-      toast.error(t('import.noLines'))
+      setInputError(t('import.noLines'))
       return
     }
     const resolved = await resolveImportNames(lines.map((l) => ({ name: l.name, setCode: l.setCode, number: l.number })))
@@ -115,9 +118,10 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
   }
 
   async function handleImport() {
+    setInputError('')
     const text = raw.trim()
     if (!text) {
-      toast.error(t('import.emptyInput'))
+      setInputError(t('import.emptyInput'))
       return
     }
     setBusy(true)
@@ -155,6 +159,7 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
               placeholder={t('import.pastePlaceholder')}
               className="max-h-64 font-mono text-xs"
             />
+            <FieldError>{inputError}</FieldError>
           </div>
           <div className="flex flex-col gap-1.5">
             <span className="text-xs font-medium text-muted-foreground">

@@ -66,6 +66,20 @@ describe('SetSymbolUploader', () => {
     expect(upload).not.toHaveBeenCalled() // the committed upload action mock is untouched
   })
 
+  it('staged mode rejects an oversize file inline and does not stage it', async () => {
+    const onStagedChange = vi.fn()
+    render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        <SetSymbolUploader staged stagedFile={null} onStagedChange={onStagedChange} />
+      </NextIntlClientProvider>,
+    )
+    const input = screen.getByLabelText('Change symbol', { selector: 'input' })
+    const big = new File([new Uint8Array(6 * 1024 * 1024)], 'big.png', { type: 'image/png' })
+    fireEvent.change(input, { target: { files: [big] } })
+    expect(await screen.findByText(en.validation.fileSize)).toBeInTheDocument()
+    expect(onStagedChange).not.toHaveBeenCalled()
+  })
+
   it('staged mode clears via onStagedChange(null) when a file is staged', () => {
     const onStagedChange = vi.fn()
     render(

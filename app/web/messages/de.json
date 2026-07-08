@@ -238,6 +238,26 @@
       "copyError": "Kopieren in die Zwischenablage fehlgeschlagen.",
       "pngError": "PNG konnte nicht erstellt werden."
     },
+    "overview": {
+      "backToDecks": "Zurück zu meinen Decks",
+      "edit": "Bearbeiten",
+      "publish": "Veröffentlichen",
+      "published": "Veröffentlicht",
+      "unpublish": "Zurückziehen",
+      "copyLink": "Link kopieren",
+      "linkCopied": "Link in die Zwischenablage kopiert.",
+      "duplicate": "Dieses Deck kopieren",
+      "viewList": "Liste",
+      "viewGallery": "Galerie",
+      "cardCount": "{count} Karten",
+      "updatedAt": "Aktualisiert {date}",
+      "publishDialog": {
+        "title": "Dieses Deck veröffentlichen?",
+        "description": "Jeder mit dem Link kann es dann ansehen. Du kannst die Veröffentlichung jederzeit zurückziehen.",
+        "confirm": "Veröffentlichen",
+        "cancel": "Abbrechen"
+      }
+    },
     "import": {
       "button": "Importieren",
       "title": "Deck importieren",
@@ -325,6 +345,7 @@
       "actions": {
         "menuLabel": "Deck-Aktionen für {name}",
         "open": "Öffnen",
+        "edit": "Bearbeiten",
         "rename": "Umbenennen",
         "renameSave": "Speichern",
         "renameCancel": "Abbrechen",
@@ -333,7 +354,12 @@
         "makePrivate": "Privat machen",
         "makePublic": "Öffentlich machen"
       },
-      "confirmDelete": "„{name}“ löschen? Das kann nicht rückgängig gemacht werden.",
+      "deleteDialog": {
+        "title": "Deck löschen?",
+        "description": "„{name}“ wird dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden.",
+        "confirm": "Löschen",
+        "cancel": "Abbrechen"
+      },
       "deleted": "Deck gelöscht.",
       "deleteError": "Deck konnte nicht gelöscht werden.",
       "duplicated": "Deck dupliziert.",

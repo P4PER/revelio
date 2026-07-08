@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
@@ -64,19 +64,23 @@ describe('DeckList', () => {
     await waitFor(() => expect(duplicateDeckAction).toHaveBeenCalledWith('d1'))
   })
 
-  it('deletes a deck after confirming', async () => {
+  it('deletes a deck after confirming in the dialog', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 })
     renderList()
-    await userEvent.click(screen.getByRole('button', { name: /Deck actions for My Revival Deck/ }))
-    await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }))
-    expect(window.confirm).toHaveBeenCalled()
+    await user.click(screen.getByRole('button', { name: /Deck actions for My Revival Deck/ }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Delete' }))
+    const dialog = await screen.findByRole('alertdialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
     await waitFor(() => expect(deleteDeckAction).toHaveBeenCalledWith('d1'))
   })
 
-  it('does not delete when the confirm is dismissed', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false)
+  it('does not delete when the dialog is cancelled', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 })
     renderList()
-    await userEvent.click(screen.getByRole('button', { name: /Deck actions for My Revival Deck/ }))
-    await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }))
+    await user.click(screen.getByRole('button', { name: /Deck actions for My Revival Deck/ }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Delete' }))
+    const dialog = await screen.findByRole('alertdialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
     expect(deleteDeckAction).not.toHaveBeenCalled()
   })
 

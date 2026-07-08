@@ -481,6 +481,20 @@ export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; user
   return { deck, userId: row.userId, views }
 }
 
+// Viewer-aware read for the public overview page: the owner always sees their
+// deck; everyone else (including guests, viewerId=null) only sees it when it is
+// public. Returning null for a private deck a viewer can't see means the route
+// 404s and can't be used to probe another user's deck IDs.
+export async function getDeckForViewer(
+  db: DB, id: string, viewerId: string | null,
+): Promise<{ deck: DeckDTO; userId: string; views: DeckCardView[] } | null> {
+  const res = await getDeck(db, id)
+  if (!res) return null
+  const isOwner = res.userId === viewerId
+  if (!isOwner && res.deck.visibility !== 'public') return null
+  return res
+}
+
 // Small helper: group junction rows into a code[] per parent id.
 function groupCodes<T>(rows: T[], key: (r: T) => string, code: (r: T) => string): Map<string, string[]> {
   const m = new Map<string, string[]>()

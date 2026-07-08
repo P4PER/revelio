@@ -2,12 +2,22 @@
 import { useState, useTransition } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { MoreHorizontal, Pencil, Copy, Trash2, Eye, EyeOff, Check, X } from 'lucide-react'
+import { MoreHorizontal, Pencil, SquarePen, Copy, Trash2, Eye, EyeOff, Check, X } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import type { DeckSummary } from '@revelio/db'
 import { duplicateDeckAction, deleteDeckAction, updateDeckMetaAction } from '@/lib/deck-actions'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Input } from '@/components/ui/input'
 import { FieldError } from '@/components/ui/field-error'
 import {
@@ -30,6 +40,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [draftName, setDraftName] = useState('')
   const [renameError, setRenameError] = useState('')
+  const [deckToDelete, setDeckToDelete] = useState<DeckSummary | null>(null)
 
   const dateFormatter = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' })
 
@@ -87,8 +98,10 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
     })
   }
 
-  function handleDelete(deck: DeckSummary) {
-    if (!window.confirm(t('list.confirmDelete', { name: deck.name }))) return
+  function confirmDelete() {
+    const deck = deckToDelete
+    if (!deck) return
+    setDeckToDelete(null)
     setPendingId(deck.id)
     startTransition(async () => {
       const res = await deleteDeckAction(deck.id)
@@ -111,6 +124,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
   }
 
   return (
+    <>
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {decks.map((deck) => {
         const busy = isPending && pendingId === deck.id
@@ -186,6 +200,12 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
                     <DropdownMenuItem asChild>
                       <Link href={`/decks/${deck.id}`}>{t('list.actions.open')}</Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/decks/${deck.id}/edit`}>
+                        <SquarePen />
+                        {t('list.actions.edit')}
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => startRename(deck)}>
                       <Pencil />
                       {t('list.actions.rename')}
@@ -202,7 +222,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      onSelect={() => handleDelete(deck)}
+                      onSelect={() => setDeckToDelete(deck)}
                       className="text-destructive focus:bg-destructive/10 focus:text-destructive"
                     >
                       <Trash2 />
@@ -228,5 +248,31 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
         )
       })}
     </div>
+
+      <AlertDialog
+        open={deckToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeckToDelete(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('list.deleteDialog.title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('list.deleteDialog.description', { name: deckToDelete?.name ?? '' })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('list.deleteDialog.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              className={buttonVariants({ variant: 'destructive' })}
+              onClick={confirmDelete}
+            >
+              {t('list.deleteDialog.confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

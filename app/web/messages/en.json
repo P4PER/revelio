@@ -238,6 +238,26 @@
       "copyError": "Could not copy to clipboard.",
       "pngError": "Could not generate the PNG."
     },
+    "overview": {
+      "backToDecks": "Back to My Decks",
+      "edit": "Edit",
+      "publish": "Publish",
+      "published": "Published",
+      "unpublish": "Unpublish",
+      "copyLink": "Copy link",
+      "linkCopied": "Link copied to clipboard.",
+      "duplicate": "Copy this deck",
+      "viewList": "List",
+      "viewGallery": "Gallery",
+      "cardCount": "{count} cards",
+      "updatedAt": "Updated {date}",
+      "publishDialog": {
+        "title": "Publish this deck?",
+        "description": "Anyone with the link will be able to view it. You can unpublish at any time.",
+        "confirm": "Publish",
+        "cancel": "Cancel"
+      }
+    },
     "import": {
       "button": "Import",
       "title": "Import deck",
@@ -325,6 +345,7 @@
       "actions": {
         "menuLabel": "Deck actions for {name}",
         "open": "Open",
+        "edit": "Edit",
         "rename": "Rename",
         "renameSave": "Save",
         "renameCancel": "Cancel",
@@ -333,7 +354,12 @@
         "makePrivate": "Make private",
         "makePublic": "Make public"
       },
-      "confirmDelete": "Delete \"{name}\"? This can't be undone.",
+      "deleteDialog": {
+        "title": "Delete deck?",
+        "description": "\"{name}\" will be permanently deleted. This can't be undone.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
       "deleted": "Deck deleted.",
       "deleteError": "Could not delete the deck.",
       "duplicated": "Deck duplicated.",

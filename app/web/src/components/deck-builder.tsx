@@ -199,7 +199,7 @@ export function DeckBuilder({
         </div>
         <LegalitySeal status={evaluation.status} mainCount={mainCount} violations={evaluation.violations} />
         <DeckImportDialog state={state} onImport={setState} />
-        <DeckExportMenu state={state} />
+        <DeckExportMenu state={state} variant="outline" />
         {loggedIn ? (
           <Button type="button" size="sm" disabled={saving} onClick={handleSave}>
             {t('save')}

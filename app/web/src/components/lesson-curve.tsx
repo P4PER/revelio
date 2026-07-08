@@ -21,7 +21,7 @@ export function LessonCurve({ entries }: { entries: DeckCardView[] }) {
 
   return (
     <div role="group" aria-label={t('curve.ariaLabel')}>
-      <div className="flex h-14 items-end gap-1.5">
+      <div className="flex h-14 items-end gap-1.5 pt-4">
         {counts.map((count, i) => (
           <div
             key={i}

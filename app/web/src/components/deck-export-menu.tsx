@@ -1,7 +1,7 @@
 'use client'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { Copy, Download, FileJson, FileText, Image as ImageIcon } from 'lucide-react'
+import { Copy, Download, FileJson, FileText, Image as ImageIcon, Upload } from 'lucide-react'
 import { toJson, toText } from '@revelio/core'
 import type { DeckDTO } from '@revelio/core'
 import type { BuilderState } from '@/lib/deck-model'
@@ -35,7 +35,17 @@ function download(filename: string, content: string, mimeType: string) {
 // serialized form from the current (unsaved) builder state via @revelio/core's
 // pure toText/toJson — no server round-trip needed. PNG renders a deck sheet
 // client-side onto a canvas (see deck-png.ts) and downloads the resulting blob.
-export function DeckExportMenu({ state }: { state: BuilderState }) {
+export function DeckExportMenu({
+  state,
+  align = 'end',
+  variant = 'ghost',
+  size = 'sm',
+}: {
+  state: BuilderState
+  align?: 'start' | 'end'
+  variant?: 'ghost' | 'outline'
+  size?: 'sm' | 'default'
+}) {
   const t = useTranslations('decks')
 
   function buildText(): string {
@@ -83,17 +93,18 @@ export function DeckExportMenu({ state }: { state: BuilderState }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant="ghost" size="sm">
+        <Button type="button" variant={variant} size={size}>
+          {variant === 'outline' && <Upload className="size-4" />}
           {t('export.button')}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-60">
+      <DropdownMenuContent align={align} className="w-fit min-w-56">
         <DropdownMenuLabel className="flex items-center gap-2">
           <FileText className="size-4" />
           {t('export.text')}
         </DropdownMenuLabel>
-        <div className="flex gap-1 px-1.5 pb-1.5">
-          <Button type="button" variant="outline" size="sm" className="flex-1" onClick={() => copy(buildText())}>
+        <div className="grid grid-cols-2 gap-1 px-1.5 pb-1.5">
+          <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => copy(buildText())}>
             <Copy />
             {t('export.copy')}
           </Button>
@@ -101,7 +112,7 @@ export function DeckExportMenu({ state }: { state: BuilderState }) {
             type="button"
             variant="outline"
             size="sm"
-            className="flex-1"
+            className="w-full"
             onClick={() => download(`${slugify(state.name)}.txt`, buildText(), 'text/plain')}
           >
             <Download />
@@ -113,8 +124,8 @@ export function DeckExportMenu({ state }: { state: BuilderState }) {
           <FileJson className="size-4" />
           {t('export.json')}
         </DropdownMenuLabel>
-        <div className="flex gap-1 px-1.5 pb-1.5">
-          <Button type="button" variant="outline" size="sm" className="flex-1" onClick={() => copy(buildJson())}>
+        <div className="grid grid-cols-2 gap-1 px-1.5 pb-1.5">
+          <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => copy(buildJson())}>
             <Copy />
             {t('export.copy')}
           </Button>
@@ -122,7 +133,7 @@ export function DeckExportMenu({ state }: { state: BuilderState }) {
             type="button"
             variant="outline"
             size="sm"
-            className="flex-1"
+            className="w-full"
             onClick={() => download(`${slugify(state.name)}.json`, buildJson(), 'application/json')}
           >
             <Download />

@@ -49,10 +49,10 @@ if (isMain) {
   const s3: S3Config | undefined = process.env.S3_ENDPOINT
     ? {
         endpoint: process.env.S3_ENDPOINT,
-        bucket: process.env.S3_BUCKET ?? 'card-images',
+        bucket: process.env.S3_BUCKET ?? 'images',
         accessKeyId: process.env.S3_ACCESS_KEY ?? '',
         secretAccessKey: process.env.S3_SECRET_KEY ?? '',
-        region: process.env.S3_REGION ?? 'us-east-1',
+        region: process.env.S3_REGION ?? 'eu-central-1',
         forcePathStyle: (process.env.S3_FORCE_PATH_STYLE ?? 'true') === 'true',
       }
     : undefined

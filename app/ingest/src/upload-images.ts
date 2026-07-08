@@ -18,7 +18,7 @@ export type S3Config = {
 export function createS3Client(c: S3Config): S3Client {
   return new S3Client({
     endpoint: c.endpoint,
-    region: c.region ?? 'us-east-1',
+    region: c.region ?? 'eu-central-1',
     credentials: { accessKeyId: c.accessKeyId, secretAccessKey: c.secretAccessKey },
     forcePathStyle: c.forcePathStyle ?? true,
   })

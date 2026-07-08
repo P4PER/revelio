@@ -3,7 +3,7 @@ import { useId, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { Upload } from 'lucide-react'
+import { ClipboardPaste, Upload } from 'lucide-react'
 import { parseJson, parseText } from '@revelio/core'
 import type { ParsedTextLine } from '@revelio/core'
 import { getCardViewsAction, resolveImportNames } from '@/lib/deck-actions'
@@ -139,7 +139,8 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>
-        <Button type="button" variant="ghost" size="sm">
+        <Button type="button" variant="outline" size="sm">
+          <ClipboardPaste className="size-4" />
           {t('import.button')}
         </Button>
       </SheetTrigger>

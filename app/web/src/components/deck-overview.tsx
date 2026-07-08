@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { ChevronLeft, LayoutGrid, List } from 'lucide-react'
 import type { DeckCardView, DeckFormat } from '@revelio/core'
@@ -12,9 +12,7 @@ import { LegalitySeal } from '@/components/legality-seal'
 import { LessonCurve } from '@/components/lesson-curve'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-
-const VIEW_KEY = 'revelio.deck.view'
-type View = 'list' | 'gallery'
+import { DECK_VIEW_COOKIE, type DeckView as View } from '@/lib/deck-view'
 
 export type DeckOverviewProps = {
   deckId: string
@@ -27,26 +25,22 @@ export type DeckOverviewProps = {
   isOwner: boolean
   loggedIn: boolean
   imageBase: string
+  // Persisted view preference, read from a cookie on the server so the correct
+  // view renders on first paint (no list→gallery flash on reload).
+  initialView?: View
 }
 
 export function DeckOverview(props: DeckOverviewProps) {
   const { deckId, name, format, visibility, updatedAt, views, isOwner, loggedIn, imageBase } = props
   const t = useTranslations('decks')
   const locale = useLocale()
-  const [view, setView] = useState<View>('list')
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem(VIEW_KEY)
-    // Intentional: mount-only sync of the persisted view preference from
-    // localStorage into state. Defaulting to 'list' for the server/first client
-    // render avoids a hydration mismatch; the effect switches after mount.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (saved === 'list' || saved === 'gallery') setView(saved)
-  }, [])
+  const [view, setView] = useState<View>(props.initialView ?? 'list')
 
   function changeView(next: View) {
     setView(next)
-    window.localStorage.setItem(VIEW_KEY, next)
+    // Persist in a cookie (not localStorage) so the server can pre-render this
+    // view on the next reload, avoiding a flash of the default view.
+    document.cookie = `${DECK_VIEW_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`
   }
 
   const { status, violations, mainEntries, mainCount } = deckStats(views, format)

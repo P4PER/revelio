@@ -24,7 +24,9 @@ const props = {
   views, isOwner: true, loggedIn: true, imageBase: 'https://img.example',
 }
 
-beforeEach(() => window.localStorage.clear())
+beforeEach(() => {
+  document.cookie = 'revelio.deck-view=; path=/; max-age=0'
+})
 
 describe('DeckOverview', () => {
   it('shows the deck name and defaults to the list view', () => {
@@ -34,11 +36,17 @@ describe('DeckOverview', () => {
     expect(screen.queryByTestId('gallery-view')).not.toBeInTheDocument()
   })
 
-  it('switches to the gallery view and persists the choice', () => {
+  it('renders the initial view supplied by the server (from the cookie)', () => {
+    renderWithIntl(<DeckOverview {...props} initialView="gallery" />)
+    expect(screen.getByTestId('gallery-view')).toBeInTheDocument()
+    expect(screen.queryByTestId('list-view')).not.toBeInTheDocument()
+  })
+
+  it('switches to the gallery view and persists the choice to a cookie', () => {
     renderWithIntl(<DeckOverview {...props} />)
     fireEvent.click(screen.getByText('Gallery'))
     expect(screen.getByTestId('gallery-view')).toBeInTheDocument()
-    expect(window.localStorage.getItem('revelio.deck.view')).toBe('gallery')
+    expect(document.cookie).toContain('revelio.deck-view=gallery')
   })
 
   it('shows the back link only to logged-in viewers', () => {

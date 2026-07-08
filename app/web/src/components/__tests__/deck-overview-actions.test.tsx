@@ -25,7 +25,7 @@ describe('DeckOverviewActions visibility', () => {
     expect(screen.getByText('Edit')).toBeInTheDocument()
     expect(screen.getByText('Publish')).toBeInTheDocument()
     expect(screen.getByText('Export')).toBeInTheDocument()
-    expect(screen.getByText('Duplicate → editor')).toBeInTheDocument()
+    expect(screen.getByText('Copy this deck')).toBeInTheDocument()
   })
 
   it('owner of a public deck sees Published instead of Publish', () => {
@@ -40,7 +40,7 @@ describe('DeckOverviewActions visibility', () => {
     expect(screen.queryByText('Publish')).not.toBeInTheDocument()
     expect(screen.queryByText('Published')).not.toBeInTheDocument()
     expect(screen.getByText('Export')).toBeInTheDocument()
-    expect(screen.getByText('Duplicate → editor')).toBeInTheDocument()
+    expect(screen.getByText('Copy this deck')).toBeInTheDocument()
   })
 
   it('asks for confirmation before publishing and publishes on confirm', async () => {

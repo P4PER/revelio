@@ -13,6 +13,24 @@ if (typeof window !== 'undefined') {
       disconnect() {}
     }
   }
+  // jsdom in this setup ships a non-functional localStorage ({} with no methods);
+  // provide a Map-backed Storage so components/tests using localStorage work.
+  if (typeof window.localStorage?.getItem !== 'function') {
+    const store = new Map<string, string>()
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: (k: string) => (store.has(k) ? (store.get(k) as string) : null),
+        setItem: (k: string, v: string) => void store.set(k, String(v)),
+        removeItem: (k: string) => void store.delete(k),
+        clear: () => store.clear(),
+        key: (i: number) => [...store.keys()][i] ?? null,
+        get length() {
+          return store.size
+        },
+      },
+    })
+  }
 }
 
 // jsdom's Blob/File has no arrayBuffer() (real Node/undici Files used by Next.js

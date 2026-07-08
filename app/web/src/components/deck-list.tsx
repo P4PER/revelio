@@ -186,6 +186,12 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
                     <DropdownMenuItem asChild>
                       <Link href={`/decks/${deck.id}`}>{t('list.actions.open')}</Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/decks/${deck.id}/edit`}>
+                        <Pencil />
+                        {t('list.actions.edit')}
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => startRename(deck)}>
                       <Pencil />
                       {t('list.actions.rename')}

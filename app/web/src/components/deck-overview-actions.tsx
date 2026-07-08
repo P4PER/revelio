@@ -133,7 +133,7 @@ export function DeckOverviewActions({
           </DropdownMenu>
         ))}
 
-      <DeckExportMenu state={state} />
+      <DeckExportMenu state={state} align="start" />
 
       <Button variant="outline" disabled={pending} onClick={duplicate}>
         <Copy className="size-4" />

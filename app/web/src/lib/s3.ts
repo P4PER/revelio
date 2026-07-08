@@ -6,7 +6,7 @@ export function getS3(): S3Client {
   if (!endpoint) throw new Error('S3_ENDPOINT is required')
   return new S3Client({
     endpoint,
-    region: process.env.S3_REGION ?? 'us-east-1',
+    region: process.env.S3_REGION ?? 'eu-central-1',
     credentials: {
       accessKeyId: process.env.S3_ACCESS_KEY ?? '',
       secretAccessKey: process.env.S3_SECRET_KEY ?? '',
@@ -15,7 +15,7 @@ export function getS3(): S3Client {
   })
 }
 
-const bucket = () => process.env.S3_BUCKET ?? 'card-images'
+const bucket = () => process.env.S3_BUCKET ?? 'images'
 
 export async function putObject(s3: S3Client, key: string, body: Buffer, contentType: string) {
   await s3.send(new PutObjectCommand({ Bucket: bucket(), Key: key, Body: body, ContentType: contentType }))

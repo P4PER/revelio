@@ -9,7 +9,7 @@ export function testS3Config(bucket: string) {
     bucket,
     accessKeyId: process.env.TEST_S3_ACCESS_KEY ?? 'minioadmin',
     secretAccessKey: process.env.TEST_S3_SECRET_KEY ?? 'minioadmin',
-    region: 'us-east-1',
+    region: 'eu-central-1',
     forcePathStyle: true,
   }
 }

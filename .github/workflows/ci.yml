@@ -74,7 +74,7 @@ jobs:
       BETTER_AUTH_SECRET: ci-placeholder-secret
       BETTER_AUTH_URL: http://localhost:3000
       NEXT_PUBLIC_BASE_URL: http://localhost:3000
-      NEXT_PUBLIC_IMAGE_BASE_URL: http://localhost:9000/card-images
+      NEXT_PUBLIC_IMAGE_BASE_URL: http://localhost:9000/images
       ADMIN_EMAILS: admin@example.com
     steps:
       - uses: actions/checkout@v4

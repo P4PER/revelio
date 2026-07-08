@@ -37,6 +37,10 @@ export function DeckOverview(props: DeckOverviewProps) {
 
   useEffect(() => {
     const saved = window.localStorage.getItem(VIEW_KEY)
+    // Intentional: mount-only sync of the persisted view preference from
+    // localStorage into state. Defaulting to 'list' for the server/first client
+    // render avoids a hydration mismatch; the effect switches after mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (saved === 'list' || saved === 'gallery') setView(saved)
   }, [])
 

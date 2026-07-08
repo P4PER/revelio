@@ -1,183 +1,52 @@
 'use client'
-import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from '@/../i18n/navigation'
-import { useTranslations } from 'next-intl'
-import {
-  TYPES, LESSONS, RARITIES, FINISHES, LEGALITIES, type SetDTO,
-} from '@revelio/core'
-import { attrLabel } from '@/lib/attribute-labels'
-import { SetSymbol } from './set-symbol'
-import { byReleaseDate } from '@/lib/set-sort'
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import {
-  Select, SelectContent, SelectGroup, SelectItem, SelectLabel,
-  SelectSeparator, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
+import type { SetDTO } from '@revelio/core'
+import { FilterSheet, type FilterSelection } from './filter-sheet'
 
-const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
-
-type Grp = { param: string; titleKey: string; options: { code: string }[]; label: (c: string) => string }
-
+// URL adapter for FilterSheet: reads the applied selection from the /search
+// query string and, on apply, writes it back (preserving q and sort). Soft
+// navigations don't remount, so the value is derived fresh from the URL on
+// every render.
 export function FilterDrawer({ sets, locale }: { sets: SetDTO[]; locale: string }) {
-  const t = useTranslations('filters')
   const router = useRouter()
   const params = useSearchParams()
 
-  const groups: Grp[] = [
-    { param: 'type', titleKey: 'type', options: TYPES, label: (c) => attrLabel('types', c, locale) },
-    { param: 'lesson', titleKey: 'lesson', options: LESSONS, label: (c) => attrLabel('lessons', c, locale) },
-    { param: 'rarity', titleKey: 'rarity', options: RARITIES, label: (c) => attrLabel('rarities', c, locale) },
-    { param: 'finish', titleKey: 'finish', options: FINISHES, label: (c) => attrLabel('finishes', c, locale) },
-    { param: 'legality', titleKey: 'legality', options: LEGALITIES, label: (c) => attrLabel('legalities', c, locale) },
-  ]
-
-  // pending state seeded from the URL
-  const [multi, setMulti] = useState<Record<string, string[]>>(() =>
-    Object.fromEntries(groups.map((g) => [g.param, params.getAll(g.param)])),
-  )
-  const [set, setSet] = useState(params.get('set') ?? '')
-  const [costMin, setCostMin] = useState(params.get('costMin') ?? '')
-  const [costMax, setCostMax] = useState(params.get('costMax') ?? '')
-  const [official, setOfficial] = useState(params.get('official') ?? '')
-  const [open, setOpen] = useState(false)
-
-  // Soft navigations (router.push to /search) don't remount this component, so
-  // re-seed the pending selection from the current URL each time the drawer opens.
-  function onOpenChange(next: boolean) {
-    if (next) {
-      setMulti(Object.fromEntries(groups.map((g) => [g.param, params.getAll(g.param)])))
-      setSet(params.get('set') ?? '')
-      setCostMin(params.get('costMin') ?? '')
-      setCostMax(params.get('costMax') ?? '')
-      setOfficial(params.get('official') ?? '')
-    }
-    setOpen(next)
+  const value: FilterSelection = {
+    types: params.getAll('type'),
+    lessons: params.getAll('lesson'),
+    rarities: params.getAll('rarity'),
+    finishes: params.getAll('finish'),
+    legalities: params.getAll('legality'),
+    set: params.get('set') ?? '',
+    costMin: params.get('costMin') ?? '',
+    costMax: params.get('costMax') ?? '',
+    official: params.get('official') ?? '',
   }
 
-  function toggle(param: string, code: string, on: boolean) {
-    setMulti((m) => ({ ...m, [param]: on ? [...m[param], code] : m[param].filter((c) => c !== code) }))
+  function handleApply(next: FilterSelection) {
+    const p = new URLSearchParams()
+    if (params.get('q')) p.set('q', params.get('q')!)
+    if (params.get('sort')) p.set('sort', params.get('sort')!)
+    for (const c of next.types) p.append('type', c)
+    for (const c of next.lessons) p.append('lesson', c)
+    for (const c of next.rarities) p.append('rarity', c)
+    for (const c of next.finishes) p.append('finish', c)
+    for (const c of next.legalities) p.append('legality', c)
+    if (next.set) p.set('set', next.set)
+    if (next.costMin) p.set('costMin', next.costMin)
+    if (next.costMax) p.set('costMax', next.costMax)
+    if (next.official) p.set('official', next.official)
+    router.push(`/search?${p.toString()}`)
   }
-
-  function apply() {
-    const next = new URLSearchParams()
-    if (params.get('q')) next.set('q', params.get('q')!)
-    if (params.get('sort')) next.set('sort', params.get('sort')!)
-    for (const g of groups) for (const c of multi[g.param]) next.append(g.param, c)
-    if (set) next.set('set', set)
-    if (costMin) next.set('costMin', costMin)
-    if (costMax) next.set('costMax', costMax)
-    if (official) next.set('official', official)
-    router.push(`/search?${next.toString()}`)
-    setOpen(false)
-  }
-
-  function clearAll() {
-    setMulti(Object.fromEntries(groups.map((g) => [g.param, []])))
-    setSet(''); setCostMin(''); setCostMax(''); setOfficial('')
-    const q = params.get('q')
-    router.push(q ? `/search?q=${encodeURIComponent(q)}` : '/search')
-    setOpen(false)
-  }
-
-  const officialSets = sets.filter((s) => s.isOfficial).sort(byReleaseDate)
-  const fanSets = sets.filter((s) => !s.isOfficial).sort(byReleaseDate)
-  const setItem = (s: SetDTO) => (
-    <SelectItem key={s.code} value={s.code}>
-      <span className="flex items-center gap-2">
-        {s.symbol && IMAGE_BASE ? (
-          <SetSymbol code={s.code} base={IMAGE_BASE} className="h-4 w-4 shrink-0 text-foreground/80" />
-        ) : null}
-        {s.name}
-      </span>
-    </SelectItem>
-  )
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetTrigger asChild>
-        <Button variant="outline" size="sm">{t('button')}</Button>
-      </SheetTrigger>
-      <SheetContent aria-describedby={undefined} className="w-[340px] overflow-y-auto sm:max-w-none">
-        <SheetHeader><SheetTitle>{t('title')}</SheetTitle></SheetHeader>
-
-        <div className="space-y-5 px-4 pb-4">
-          <div>
-            <Label className="mb-2 block text-sm font-medium">{t('set')}</Label>
-            <Select value={set || 'any'} onValueChange={(v) => setSet(v === 'any' ? '' : v)}>
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="any">{t('anySet')}</SelectItem>
-                {officialSets.length > 0 && (
-                  <>
-                    <SelectSeparator />
-                    <SelectGroup>
-                      <SelectLabel>{t('original')}</SelectLabel>
-                      {officialSets.map(setItem)}
-                    </SelectGroup>
-                  </>
-                )}
-                {fanSets.length > 0 && (
-                  <>
-                    <SelectSeparator />
-                    <SelectGroup>
-                      <SelectLabel>{t('fanMade')}</SelectLabel>
-                      {fanSets.map(setItem)}
-                    </SelectGroup>
-                  </>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {groups.map((g) => (
-            <fieldset key={g.param}>
-              <legend className="mb-2 text-sm font-medium">{t(g.titleKey)}</legend>
-              <div className="flex flex-wrap gap-x-4 gap-y-2">
-                {g.options.map((o) => {
-                  const id = `${g.param}-${o.code}`
-                  const checked = multi[g.param].includes(o.code)
-                  return (
-                    <div key={o.code} className="flex items-center gap-2">
-                      <Checkbox id={id} checked={checked} onCheckedChange={(v) => toggle(g.param, o.code, v === true)} />
-                      <Label htmlFor={id} className="text-sm font-normal">{g.label(o.code)}</Label>
-                    </div>
-                  )
-                })}
-              </div>
-            </fieldset>
-          ))}
-
-          <div>
-            <Label className="mb-2 block text-sm font-medium">{t('cost')}</Label>
-            <div className="flex items-center gap-2">
-              <Input type="number" inputMode="numeric" aria-label={t('costMin')} placeholder={t('costMin')} value={costMin} onChange={(e) => setCostMin(e.target.value)} className="w-20" />
-              <span className="text-muted-foreground">–</span>
-              <Input type="number" inputMode="numeric" aria-label={t('costMax')} placeholder={t('costMax')} value={costMax} onChange={(e) => setCostMax(e.target.value)} className="w-20" />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <Checkbox id="f-official" checked={official === 'official'} onCheckedChange={(v) => setOfficial(v === true ? 'official' : '')} />
-              <Label htmlFor="f-official" className="text-sm font-normal">{t('official')}</Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox id="f-fan" checked={official === 'fan'} onCheckedChange={(v) => setOfficial(v === true ? 'fan' : '')} />
-              <Label htmlFor="f-fan" className="text-sm font-normal">{t('fan')}</Label>
-            </div>
-          </div>
-        </div>
-
-        <SheetFooter className="flex-row gap-2">
-          <Button onClick={apply} className="flex-1">{t('apply')}</Button>
-          <Button variant="ghost" onClick={clearAll}>{t('clear')}</Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+    <FilterSheet
+      sets={sets}
+      value={value}
+      locale={locale}
+      show={{ lessons: true, official: true }}
+      onApply={handleApply}
+    />
   )
 }

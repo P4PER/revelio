@@ -1,4 +1,5 @@
 import { z } from 'zod'
+export { DeckFormat, DeckVisibility, DeckZone } from './deck'
 
 export const attributeMetaSchema = z.object({
   code: z.string().regex(/^[a-z0-9_]+$/),

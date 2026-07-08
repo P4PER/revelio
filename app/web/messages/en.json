@@ -21,7 +21,9 @@
   "nav": {
     "language": "Language",
     "sets": "Sets",
-    "admin": "Admin"
+    "admin": "Admin",
+    "deckBuilder": "Deck Builder",
+    "myDecks": "My Decks"
   },
   "search": {
     "title": "Search",
@@ -132,17 +134,40 @@
   },
   "attributes": {
     "types": {
-      "character": "Character", "creature": "Creature", "spell": "Spell", "item": "Item",
-      "lesson": "Lesson", "adventure": "Adventure", "location": "Location", "event": "Event",
+      "character": "Character",
+      "creature": "Creature",
+      "spell": "Spell",
+      "item": "Item",
+      "lesson": "Lesson",
+      "adventure": "Adventure",
+      "location": "Location",
+      "event": "Event",
       "match": "Match"
     },
     "lessons": {
-      "care_of_magical_creatures": "Care of Magical Creatures", "charms": "Charms",
-      "potions": "Potions", "transfiguration": "Transfiguration", "quidditch": "Quidditch"
+      "care_of_magical_creatures": "Care of Magical Creatures",
+      "charms": "Charms",
+      "potions": "Potions",
+      "transfiguration": "Transfiguration",
+      "quidditch": "Quidditch"
     },
-    "rarities": { "common": "Common", "uncommon": "Uncommon", "rare": "Rare", "lesson": "Lesson" },
-    "finishes": { "normal": "Normal", "foil": "Foil", "holo": "Holo Portrait" },
-    "legalities": { "legal": "Legal", "restricted": "Restricted", "banned": "Banned", "unknown": "Unknown" }
+    "rarities": {
+      "common": "Common",
+      "uncommon": "Uncommon",
+      "rare": "Rare",
+      "lesson": "Lesson"
+    },
+    "finishes": {
+      "normal": "Normal",
+      "foil": "Foil",
+      "holo": "Holo Portrait"
+    },
+    "legalities": {
+      "legal": "Legal",
+      "restricted": "Restricted",
+      "banned": "Banned",
+      "unknown": "Unknown"
+    }
   },
   "admin": {
     "title": "Admin",
@@ -187,6 +212,147 @@
       "symbolRemoved": "Symbol removed",
       "noSymbol": "No symbol",
       "saveError": "Could not save"
+    }
+  },
+  "decks": {
+    "title": "New deck",
+    "namePlaceholder": "Untitled deck",
+    "save": "Save deck",
+    "saved": "Deck saved.",
+    "saveError": "Could not save the deck.",
+    "loginToSave": "Log in to save",
+    "draftNotice": "Your draft is kept on this device. Log in and we'll offer to save it to your account.",
+    "savePrompt": {
+      "message": "Save this deck to your account?",
+      "accept": "Save to account",
+      "dismiss": "Not now"
+    },
+    "export": {
+      "button": "Export",
+      "text": "Plain text",
+      "json": "JSON",
+      "png": "PNG",
+      "copy": "Copy",
+      "download": "Download",
+      "copied": "Copied to clipboard.",
+      "copyError": "Could not copy to clipboard.",
+      "pngError": "Could not generate the PNG."
+    },
+    "import": {
+      "button": "Import",
+      "title": "Import deck",
+      "pasteLabel": "Paste a deck list",
+      "pastePlaceholder": "Paste plain-text or JSON deck data…",
+      "fileLabel": "Or choose a file",
+      "fileChoose": "Choose a file",
+      "submit": "Import",
+      "success": "Deck imported.",
+      "invalidJson": "That doesn't look like valid deck JSON.",
+      "emptyInput": "Paste a deck list or choose a file first.",
+      "noLines": "No card lines were found in that text.",
+      "unparsedTitle": "These lines couldn't be read:",
+      "unresolvedTitle": "These cards couldn't be matched:"
+    },
+    "format": {
+      "label": "Format",
+      "classic": "Classic",
+      "revival": "Revival"
+    },
+    "status": {
+      "legal": "Tournament legal",
+      "incomplete": "Incomplete",
+      "incompleteNeeds": "Incomplete · needs {count} more cards",
+      "illegal": "Illegal"
+    },
+    "seal": {
+      "ariaLabel": "{count} of {total} main deck cards"
+    },
+    "curve": {
+      "title": "Lesson curve",
+      "ariaLabel": "Cards by cost"
+    },
+    "panel": {
+      "character": "Starting Character",
+      "characterBadge": "Character",
+      "noCharacter": "No starting character chosen yet.",
+      "main": "Main deck",
+      "emptyMain": "No main deck cards yet. Add cards from the browser.",
+      "sideboard": "Sideboard",
+      "emptySideboard": "No sideboard cards.",
+      "lessons": "Lessons",
+      "items": "Items",
+      "increase": "Increase {name}",
+      "decrease": "Decrease {name}"
+    },
+    "browse": {
+      "searchPlaceholder": "Search {format} cards…",
+      "resultCount": "{count} cards",
+      "noResults": "No cards found.",
+      "add": "+ Add",
+      "addAria": "Add {name}",
+      "addToCharacter": "Set as starting character",
+      "addToMain": "Add to main deck",
+      "addToSideboard": "Add to sideboard",
+      "infoAria": "View details for {name}",
+      "detailTitle": "Card details",
+      "detailLoading": "Loading…",
+      "detailError": "Couldn't load card details.",
+      "banned": "Banned",
+      "anySet": "Any set",
+      "prev": "Previous",
+      "next": "Next",
+      "pageStatus": "Showing {from}–{to} of {total}"
+    },
+    "violation": {
+      "no_character": "No starting character chosen",
+      "multiple_characters": "Only one starting character is allowed",
+      "invalid_character": "{cardId} can't be a starting character",
+      "main_deck_size": "Main deck has {actual} / 60 cards",
+      "sideboard_too_large": "Sideboard has {actual} cards (max 15)",
+      "too_many_copies": "{count} copies of {cardId} (max 4)",
+      "card_not_in_format": "{cardId} isn't legal in this format",
+      "banned_card": "{cardId} is banned in Revival"
+    },
+    "list": {
+      "title": "My Decks",
+      "newDeck": "New deck",
+      "cardCount": "{count} / 60 cards",
+      "updatedAt": "Updated {date}",
+      "visibility": {
+        "private": "Private",
+        "public": "Public"
+      },
+      "actions": {
+        "menuLabel": "Deck actions for {name}",
+        "open": "Open",
+        "rename": "Rename",
+        "renameSave": "Save",
+        "renameCancel": "Cancel",
+        "duplicate": "Duplicate",
+        "delete": "Delete",
+        "makePrivate": "Make private",
+        "makePublic": "Make public"
+      },
+      "confirmDelete": "Delete \"{name}\"? This can't be undone.",
+      "deleted": "Deck deleted.",
+      "deleteError": "Could not delete the deck.",
+      "duplicated": "Deck duplicated.",
+      "duplicateError": "Could not duplicate the deck.",
+      "renamed": "Deck renamed.",
+      "renameError": "Could not rename the deck.",
+      "visibilityUpdated": "Visibility updated.",
+      "visibilityError": "Could not update visibility.",
+      "empty": {
+        "title": "No decks yet",
+        "desc": "Build your first deck and it'll show up here.",
+        "cta": "Build a deck"
+      },
+      "loggedOut": {
+        "title": "Sign in to see your decks",
+        "desc": "Create an account to save decks to your profile and pick up where you left off.",
+        "signIn": "Sign in",
+        "tryBuilder": "Try the builder"
+      }
     }
   }
 }

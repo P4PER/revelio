@@ -2,6 +2,7 @@ import {
   pgTable, text, integer, real, boolean, jsonb, timestamp, primaryKey, index,
   date,
 } from 'drizzle-orm/pg-core'
+import { user } from './auth-schema'
 
 const editable = {
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -140,6 +141,22 @@ export const cardLocalizations = pgTable('card_localizations', {
 }, (t) => ({
   pk: primaryKey({ columns: [t.cardId, t.lang] }),
 }))
+
+export const decks = pgTable('decks', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  format: text('format').notNull(),
+  visibility: text('visibility').notNull().default('private'),
+  ...editable,
+}, (t) => ({ byUser: index('decks_user_id_idx').on(t.userId) }))
+
+export const deckCards = pgTable('deck_cards', {
+  deckId: text('deck_id').notNull().references(() => decks.id, { onDelete: 'cascade' }),
+  cardId: text('card_id').notNull().references(() => cards.id),
+  zone: text('zone').notNull(),
+  quantity: integer('quantity').notNull(),
+}, (t) => ({ pk: primaryKey({ columns: [t.deckId, t.cardId, t.zone] }) }))
 
 // Better Auth tables (generated via @better-auth/cli).
 export * from './auth-schema'

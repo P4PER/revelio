@@ -21,7 +21,9 @@
   "nav": {
     "language": "Sprache",
     "sets": "Editionen",
-    "admin": "Admin"
+    "admin": "Admin",
+    "deckBuilder": "Deck-Builder",
+    "myDecks": "Meine Decks"
   },
   "search": {
     "title": "Suche",
@@ -132,17 +134,40 @@
   },
   "attributes": {
     "types": {
-      "character": "Charakter", "creature": "Kreatur", "spell": "Zauber", "item": "Gegenstand",
-      "lesson": "Lektion", "adventure": "Abenteuer", "location": "Ort", "event": "Ereignis",
+      "character": "Charakter",
+      "creature": "Kreatur",
+      "spell": "Zauber",
+      "item": "Gegenstand",
+      "lesson": "Lektion",
+      "adventure": "Abenteuer",
+      "location": "Ort",
+      "event": "Ereignis",
       "match": "Spiel"
     },
     "lessons": {
-      "care_of_magical_creatures": "Pflege magischer Geschöpfe", "charms": "Zauberkunst",
-      "potions": "Zaubertränke", "transfiguration": "Verwandlung", "quidditch": "Quidditch"
+      "care_of_magical_creatures": "Pflege magischer Geschöpfe",
+      "charms": "Zauberkunst",
+      "potions": "Zaubertränke",
+      "transfiguration": "Verwandlung",
+      "quidditch": "Quidditch"
     },
-    "rarities": { "common": "Häufig", "uncommon": "Ungewöhnlich", "rare": "Selten", "lesson": "Lektion" },
-    "finishes": { "normal": "Normal", "foil": "Folie", "holo": "Holo-Porträt" },
-    "legalities": { "legal": "Legal", "restricted": "Eingeschränkt", "banned": "Verboten", "unknown": "Unbekannt" }
+    "rarities": {
+      "common": "Häufig",
+      "uncommon": "Ungewöhnlich",
+      "rare": "Selten",
+      "lesson": "Lektion"
+    },
+    "finishes": {
+      "normal": "Normal",
+      "foil": "Folie",
+      "holo": "Holo-Porträt"
+    },
+    "legalities": {
+      "legal": "Legal",
+      "restricted": "Eingeschränkt",
+      "banned": "Verboten",
+      "unknown": "Unbekannt"
+    }
   },
   "admin": {
     "title": "Admin",
@@ -187,6 +212,147 @@
       "symbolRemoved": "Symbol entfernt",
       "noSymbol": "Kein Symbol",
       "saveError": "Speichern fehlgeschlagen"
+    }
+  },
+  "decks": {
+    "title": "Neues Deck",
+    "namePlaceholder": "Unbenanntes Deck",
+    "save": "Deck speichern",
+    "saved": "Deck gespeichert.",
+    "saveError": "Deck konnte nicht gespeichert werden.",
+    "loginToSave": "Zum Speichern anmelden",
+    "draftNotice": "Dein Entwurf wird auf diesem Gerät gespeichert. Melde dich an, damit wir ihn in deinem Konto sichern können.",
+    "savePrompt": {
+      "message": "Dieses Deck in deinem Konto speichern?",
+      "accept": "Im Konto speichern",
+      "dismiss": "Nicht jetzt"
+    },
+    "export": {
+      "button": "Exportieren",
+      "text": "Textdatei",
+      "json": "JSON",
+      "png": "PNG",
+      "copy": "Kopieren",
+      "download": "Herunterladen",
+      "copied": "In die Zwischenablage kopiert.",
+      "copyError": "Kopieren in die Zwischenablage fehlgeschlagen.",
+      "pngError": "PNG konnte nicht erstellt werden."
+    },
+    "import": {
+      "button": "Importieren",
+      "title": "Deck importieren",
+      "pasteLabel": "Deckliste einfügen",
+      "pastePlaceholder": "Text- oder JSON-Deckdaten einfügen …",
+      "fileLabel": "Oder Datei auswählen",
+      "fileChoose": "Datei auswählen",
+      "submit": "Importieren",
+      "success": "Deck importiert.",
+      "invalidJson": "Das sieht nicht nach gültigem Deck-JSON aus.",
+      "emptyInput": "Füge zuerst eine Deckliste ein oder wähle eine Datei aus.",
+      "noLines": "In diesem Text wurden keine Kartenzeilen gefunden.",
+      "unparsedTitle": "Diese Zeilen konnten nicht gelesen werden:",
+      "unresolvedTitle": "Diese Karten konnten nicht zugeordnet werden:"
+    },
+    "format": {
+      "label": "Format",
+      "classic": "Classic",
+      "revival": "Revival"
+    },
+    "status": {
+      "legal": "Turnierlegal",
+      "incomplete": "Unvollständig",
+      "incompleteNeeds": "Unvollständig · noch {count} Karten nötig",
+      "illegal": "Nicht legal"
+    },
+    "seal": {
+      "ariaLabel": "{count} von {total} Hauptdeck-Karten"
+    },
+    "curve": {
+      "title": "Lektionskurve",
+      "ariaLabel": "Karten nach Kosten"
+    },
+    "panel": {
+      "character": "Startcharakter",
+      "characterBadge": "Charakter",
+      "noCharacter": "Noch kein Startcharakter gewählt.",
+      "main": "Hauptdeck",
+      "emptyMain": "Noch keine Karten im Hauptdeck. Füge Karten aus dem Browser hinzu.",
+      "sideboard": "Sideboard",
+      "emptySideboard": "Keine Karten im Sideboard.",
+      "lessons": "Lektionen",
+      "items": "Gegenstände",
+      "increase": "{name} erhöhen",
+      "decrease": "{name} verringern"
+    },
+    "browse": {
+      "searchPlaceholder": "{format}-Karten durchsuchen…",
+      "resultCount": "{count} Karten",
+      "noResults": "Keine Karten gefunden.",
+      "add": "+ Hinzufügen",
+      "addAria": "{name} hinzufügen",
+      "addToCharacter": "Als Startcharakter festlegen",
+      "addToMain": "Zum Hauptdeck hinzufügen",
+      "addToSideboard": "Zum Sideboard hinzufügen",
+      "infoAria": "Details zu {name} anzeigen",
+      "detailTitle": "Kartendetails",
+      "detailLoading": "Wird geladen…",
+      "detailError": "Kartendetails konnten nicht geladen werden.",
+      "banned": "Verboten",
+      "anySet": "Beliebiges Set",
+      "prev": "Zurück",
+      "next": "Weiter",
+      "pageStatus": "{from}–{to} von {total} werden angezeigt"
+    },
+    "violation": {
+      "no_character": "Kein Startcharakter gewählt",
+      "multiple_characters": "Nur ein Startcharakter ist erlaubt",
+      "invalid_character": "{cardId} kann kein Startcharakter sein",
+      "main_deck_size": "Hauptdeck hat {actual} / 60 Karten",
+      "sideboard_too_large": "Sideboard hat {actual} Karten (max. 15)",
+      "too_many_copies": "{count} Kopien von {cardId} (max. 4)",
+      "card_not_in_format": "{cardId} ist in diesem Format nicht legal",
+      "banned_card": "{cardId} ist in Revival verboten"
+    },
+    "list": {
+      "title": "Meine Decks",
+      "newDeck": "Neues Deck",
+      "cardCount": "{count} / 60 Karten",
+      "updatedAt": "Aktualisiert am {date}",
+      "visibility": {
+        "private": "Privat",
+        "public": "Öffentlich"
+      },
+      "actions": {
+        "menuLabel": "Deck-Aktionen für {name}",
+        "open": "Öffnen",
+        "rename": "Umbenennen",
+        "renameSave": "Speichern",
+        "renameCancel": "Abbrechen",
+        "duplicate": "Duplizieren",
+        "delete": "Löschen",
+        "makePrivate": "Privat machen",
+        "makePublic": "Öffentlich machen"
+      },
+      "confirmDelete": "„{name}“ löschen? Das kann nicht rückgängig gemacht werden.",
+      "deleted": "Deck gelöscht.",
+      "deleteError": "Deck konnte nicht gelöscht werden.",
+      "duplicated": "Deck dupliziert.",
+      "duplicateError": "Deck konnte nicht dupliziert werden.",
+      "renamed": "Deck umbenannt.",
+      "renameError": "Deck konnte nicht umbenannt werden.",
+      "visibilityUpdated": "Sichtbarkeit aktualisiert.",
+      "visibilityError": "Sichtbarkeit konnte nicht aktualisiert werden.",
+      "empty": {
+        "title": "Noch keine Decks",
+        "desc": "Baue dein erstes Deck und es erscheint hier.",
+        "cta": "Deck bauen"
+      },
+      "loggedOut": {
+        "title": "Melde dich an, um deine Decks zu sehen",
+        "desc": "Erstelle ein Konto, um Decks in deinem Profil zu speichern und dort weiterzumachen, wo du aufgehört hast.",
+        "signIn": "Anmelden",
+        "tryBuilder": "Builder ausprobieren"
+      }
     }
   }
 }

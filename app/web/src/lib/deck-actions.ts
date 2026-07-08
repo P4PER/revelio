@@ -150,10 +150,14 @@ export async function duplicateDeckAction(id: string): Promise<DeckActionResult>
   if (!userId) return { ok: false, error: 'auth' }
   const existing = await getDeck(getDb(), id)
   if (!existing) return { ok: false, error: 'invalid' }
-  if (existing.userId !== userId) return { ok: false, error: 'forbidden' }
+  // Owners can duplicate their own decks; anyone logged in can duplicate a
+  // public deck into their own account (the copy is theirs, private by default).
+  if (existing.userId !== userId && existing.deck.visibility !== 'public') {
+    return { ok: false, error: 'forbidden' }
+  }
   const { deck } = existing
   const newId = await createDeck(getDb(), userId, {
-    name: `${deck.name} (copy)`, format: deck.format, visibility: deck.visibility, cards: deck.cards,
+    name: `${deck.name} (copy)`, format: deck.format, visibility: 'private', cards: deck.cards,
   })
   revalidatePath('/decks')
   return { ok: true, id: newId }

@@ -98,4 +98,16 @@ describe('DeckList', () => {
       expect(updateDeckMetaAction).toHaveBeenCalledWith('d1', { name: 'Renamed Deck' }),
     )
   })
+
+  it('keeps the rename input open and shows an inline error on failure', async () => {
+    updateDeckMetaAction.mockResolvedValueOnce({ ok: false, error: 'invalid' } as never)
+    renderList()
+    await userEvent.click(screen.getByRole('button', { name: /Deck actions for My Revival Deck/ }))
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Rename' }))
+    const input = screen.getByRole('textbox', { name: 'Rename' })
+    fireEvent.change(input, { target: { value: 'New Name' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+    expect(await screen.findByText(en.decks.list.renameError)).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Rename' })).toBeInTheDocument()
+  })
 })

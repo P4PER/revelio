@@ -354,5 +354,17 @@
         "tryBuilder": "Try the builder"
       }
     }
+  },
+  "validation": {
+    "required": "This field is required.",
+    "email": "Enter a valid email address.",
+    "sixDigits": "Enter the 6-digit code.",
+    "usernameTaken": "That username is taken.",
+    "noAccount": "No account exists for that email.",
+    "codeExists": "A set with that code already exists.",
+    "fileType": "Choose an image file.",
+    "fileSize": "The image must be 5 MB or smaller.",
+    "costRange": "Min cost must not exceed max cost.",
+    "saveFailed": "Could not save. Please try again."
   }
 }

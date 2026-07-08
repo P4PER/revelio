@@ -354,5 +354,17 @@
         "tryBuilder": "Builder ausprobieren"
       }
     }
+  },
+  "validation": {
+    "required": "Dieses Feld ist erforderlich.",
+    "email": "Gib eine gültige E-Mail-Adresse ein.",
+    "sixDigits": "Gib den 6-stelligen Code ein.",
+    "usernameTaken": "Dieser Benutzername ist vergeben.",
+    "noAccount": "Für diese E-Mail existiert kein Konto.",
+    "codeExists": "Ein Set mit diesem Code existiert bereits.",
+    "fileType": "Wähle eine Bilddatei.",
+    "fileSize": "Das Bild darf höchstens 5 MB groß sein.",
+    "costRange": "Min-Kosten dürfen die Max-Kosten nicht überschreiten.",
+    "saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen."
   }
 }

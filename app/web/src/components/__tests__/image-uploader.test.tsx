@@ -38,6 +38,23 @@ describe('ImageUploader', () => {
     expect((fd.get('file') as File).name).toBe('art.png')
   })
 
+  it('rejects an oversize file inline and does not upload', async () => {
+    const { container } = renderUploader(null)
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement
+    const big = new File([new Uint8Array(6 * 1024 * 1024)], 'big.png', { type: 'image/png' })
+    await userEvent.upload(input, big)
+    expect(await screen.findByText(en.validation.fileSize)).toBeInTheDocument()
+    expect(uploadCardImage).not.toHaveBeenCalled()
+  })
+
+  it('maps a server type error inline', async () => {
+    uploadCardImage.mockResolvedValueOnce({ ok: false, error: 'type' } as never)
+    const { container } = renderUploader(null)
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement
+    await userEvent.upload(input, new File(['x'], 'art.png', { type: 'image/png' }))
+    expect(await screen.findByText(en.validation.fileType)).toBeInTheDocument()
+  })
+
   it('shows the remove button only for the language’s own image and removes it', async () => {
     // fallback image (not own) -> no remove button
     const { unmount } = renderUploader('https://img.test/cards/x-1.webp', 'en')

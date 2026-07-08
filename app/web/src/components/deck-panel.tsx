@@ -34,9 +34,11 @@ function groupColor(key: string): string {
 export function DeckPanel({
   entries,
   onQuantityChange,
+  readOnly = false,
 }: {
   entries: DeckCardView[]
-  onQuantityChange: (cardId: string, zone: DeckZone, qty: number) => void
+  onQuantityChange?: (cardId: string, zone: DeckZone, qty: number) => void
+  readOnly?: boolean
 }) {
   const t = useTranslations('decks')
   const locale = useLocale()
@@ -58,25 +60,29 @@ export function DeckPanel({
   function row(e: DeckCardView) {
     return (
       <div key={`${e.zone}-${e.cardId}`} className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 hover:bg-muted">
-        <span className="inline-flex items-center gap-0.5 rounded-md border border-border bg-background">
-          <button
-            type="button"
-            aria-label={t('panel.decrease', { name: e.name })}
-            className="grid h-6 w-5 cursor-pointer place-items-center text-muted-foreground hover:text-primary"
-            onClick={() => onQuantityChange(e.cardId, e.zone, e.quantity - 1)}
-          >
-            <Minus className="size-3" />
-          </button>
-          <b className="min-w-4 text-center text-xs tabular-nums">{e.quantity}</b>
-          <button
-            type="button"
-            aria-label={t('panel.increase', { name: e.name })}
-            className="grid h-6 w-5 cursor-pointer place-items-center text-muted-foreground hover:text-primary"
-            onClick={() => onQuantityChange(e.cardId, e.zone, e.quantity + 1)}
-          >
-            <Plus className="size-3" />
-          </button>
-        </span>
+        {readOnly ? (
+          <b className="min-w-8 text-center text-xs tabular-nums text-muted-foreground">{e.quantity}×</b>
+        ) : (
+          <span className="inline-flex items-center gap-0.5 rounded-md border border-border bg-background">
+            <button
+              type="button"
+              aria-label={t('panel.decrease', { name: e.name })}
+              className="grid h-6 w-5 cursor-pointer place-items-center text-muted-foreground hover:text-primary"
+              onClick={() => onQuantityChange?.(e.cardId, e.zone, e.quantity - 1)}
+            >
+              <Minus className="size-3" />
+            </button>
+            <b className="min-w-4 text-center text-xs tabular-nums">{e.quantity}</b>
+            <button
+              type="button"
+              aria-label={t('panel.increase', { name: e.name })}
+              className="grid h-6 w-5 cursor-pointer place-items-center text-muted-foreground hover:text-primary"
+              onClick={() => onQuantityChange?.(e.cardId, e.zone, e.quantity + 1)}
+            >
+              <Plus className="size-3" />
+            </button>
+          </span>
+        )}
         {e.lesson ? (
           <LessonCost
             lesson={e.lesson}

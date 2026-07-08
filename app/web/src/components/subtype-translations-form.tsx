@@ -7,6 +7,7 @@ import { useRouter } from '@/../i18n/navigation'
 import { saveSubTypeTranslationsAction } from '@/lib/sub-type-actions'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { FieldError } from '@/components/ui/field-error'
 
 type Row = { code: string; labels: Record<string, string> }
 
@@ -17,6 +18,7 @@ export function SubTypeTranslationsForm({ locales, rows }: { locales: string[]; 
     () => Object.fromEntries(rows.map((r) => [r.code, { ...r.labels }])),
   )
   const [busy, setBusy] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [query, setQuery] = useState('')
   const [onlyUntranslated, setOnlyUntranslated] = useState(false)
   const [untranslatedFirst, setUntranslatedFirst] = useState(false)
@@ -54,6 +56,7 @@ export function SubTypeTranslationsForm({ locales, rows }: { locales: string[]; 
 
   async function save() {
     setBusy(true)
+    setSaveError('')
     // Send the full matrix (not just the filtered view) so every cell is persisted.
     const payload = rows.flatMap((r) =>
       locales.map((lang) => ({ code: r.code, lang, label: values[r.code]?.[lang] ?? '' })),
@@ -64,6 +67,7 @@ export function SubTypeTranslationsForm({ locales, rows }: { locales: string[]; 
       toast.success(t('saved'))
       router.refresh() // reload `rows` so the filter/sort reflect the saved state
     } else {
+      setSaveError(t('saveError'))
       toast.error(t('saveError'))
     }
   }
@@ -160,7 +164,10 @@ export function SubTypeTranslationsForm({ locales, rows }: { locales: string[]; 
         </table>
       </div>
 
-      <Button onClick={save} disabled={busy}>{t('save')}</Button>
+      <div className="space-y-1.5">
+        <Button onClick={save} disabled={busy}>{t('save')}</Button>
+        <FieldError>{saveError}</FieldError>
+      </div>
     </div>
   )
 }

@@ -57,12 +57,19 @@ describe('AuthForm', () => {
     expect(screen.getByRole('link', { name: 'Register' })).toBeInTheDocument()
   })
 
+  it('shows a required error under email when submitting empty (login)', async () => {
+    renderForm('login')
+    await userEvent.click(screen.getByRole('button', { name: 'Send code' }))
+    expect(await screen.findByText(en.validation.required)).toBeInTheDocument()
+    expect(sendVerificationOtp).not.toHaveBeenCalled()
+  })
+
   it('login rejects an unknown email without sending an OTP', async () => {
     emailHasAccount.mockResolvedValueOnce(false)
     renderForm('login')
     await userEvent.type(screen.getByPlaceholderText('Email'), 'ghost@example.com')
     await userEvent.click(screen.getByRole('button', { name: 'Send code' }))
-    expect(await screen.findByText(en.auth.noAccountError)).toBeInTheDocument()
+    expect(await screen.findByText(en.validation.noAccount)).toBeInTheDocument()
     expect(sendVerificationOtp).not.toHaveBeenCalled()
   })
 
@@ -72,7 +79,7 @@ describe('AuthForm', () => {
     await userEvent.type(screen.getByPlaceholderText('Email'), 'new@example.com')
     await userEvent.type(screen.getByPlaceholderText('Username'), 'hermione')
     await userEvent.click(screen.getByRole('button', { name: 'Send code' }))
-    expect(await screen.findByText(en.auth.usernameTaken)).toBeInTheDocument()
+    expect(await screen.findByText(en.validation.usernameTaken)).toBeInTheDocument()
     expect(sendVerificationOtp).not.toHaveBeenCalled()
   })
 

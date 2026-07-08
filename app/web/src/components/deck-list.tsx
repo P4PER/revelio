@@ -2,7 +2,7 @@
 import { useState, useTransition } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { MoreHorizontal, Pencil, Copy, Trash2, Eye, EyeOff, Check, X } from 'lucide-react'
+import { MoreHorizontal, Pencil, SquarePen, Copy, Trash2, Eye, EyeOff, Check, X } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import type { DeckSummary } from '@revelio/db'
 import { duplicateDeckAction, deleteDeckAction, updateDeckMetaAction } from '@/lib/deck-actions'
@@ -202,7 +202,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href={`/decks/${deck.id}/edit`}>
-                        <Pencil />
+                        <SquarePen />
                         {t('list.actions.edit')}
                       </Link>
                     </DropdownMenuItem>

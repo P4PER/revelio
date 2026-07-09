@@ -5,6 +5,7 @@ export type SearchDocument = {
   id: string
   setCode: string
   number: string
+  numberSort: string
   name: string
   text: string | null
   flavorText: string | null
@@ -24,13 +25,28 @@ export function cardsIndex(lang: string): string {
   return `cards-${lang}`
 }
 
+// Card numbers are strings ("3", "3a", "10b"), which Meilisearch would sort
+// lexicographically ("10" before "2"). Zero-pad the leading numeric part so the
+// lexicographic order of this key matches natural card-number order, keeping any
+// letter suffix to break ties ("3" < "3a" < "3b" < "4" < "10a").
+//
+// A leading class marker keeps the two shapes intentionally ordered: numbered
+// cards ("0:") always sort before any card lacking a numeric prefix ("1:"),
+// rather than colliding by accident of ASCII.
+export function cardNumberSortKey(number: string): string {
+  const m = /^(\d+)(.*)$/.exec(number)
+  if (!m) return `1:${number.toLowerCase()}`
+  const [, digits, rest] = m
+  return `0:${digits.padStart(6, '0')}${rest.toLowerCase()}`
+}
+
 // name is first in searchableAttributes so name matches outrank text/flavor matches.
 export const CARD_INDEX_SETTINGS: Settings = {
   searchableAttributes: ['name', 'text', 'flavorText'],
   filterableAttributes: [
     'setCode', 'types', 'subTypes', 'lesson', 'rarity', 'finish', 'legality', 'cost', 'isOfficial',
   ],
-  sortableAttributes: ['number', 'name', 'cost'],
+  sortableAttributes: ['numberSort', 'name', 'cost'],
   rankingRules: ['words', 'typo', 'proximity', 'attribute', 'sort', 'exactness'],
   typoTolerance: { enabled: true },
 }
@@ -66,6 +82,7 @@ export function buildCardDocument(d: CardIndexData, lang: string): SearchDocumen
     id: d.id,
     setCode: d.setCode,
     number: d.number,
+    numberSort: cardNumberSortKey(d.number),
     name: loc?.name || d.name,
     text: loc?.text ?? null,
     flavorText: loc?.flavorText ?? null,

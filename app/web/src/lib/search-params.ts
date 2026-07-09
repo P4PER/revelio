@@ -19,7 +19,7 @@ export type SearchState = {
 const SORT_KEYS: SortKey[] = ['relevance', 'name', 'number', 'cost']
 const SORT_MEILI: Record<Exclude<SortKey, 'relevance'>, string> = {
   name: 'name:asc',
-  number: 'number:asc',
+  number: 'numberSort:asc',
   cost: 'cost:asc',
 }
 const HITS_PER_PAGE = 24

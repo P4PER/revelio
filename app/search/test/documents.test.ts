@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cardsIndex, CARD_INDEX_SETTINGS } from '../src/documents.js'
+import { cardsIndex, CARD_INDEX_SETTINGS, cardNumberSortKey } from '../src/documents.js'
 
 describe('search documents config', () => {
   it('names the per-language index', () => {
@@ -16,5 +16,35 @@ describe('search documents config', () => {
   it('searches name/text/flavor with name first', () => {
     expect(CARD_INDEX_SETTINGS.searchableAttributes?.[0]).toBe('name')
     expect(CARD_INDEX_SETTINGS.searchableAttributes).toEqual(['name', 'text', 'flavorText'])
+  })
+
+  it('exposes numberSort as sortable so card numbers order numerically', () => {
+    expect(CARD_INDEX_SETTINGS.sortableAttributes).toContain('numberSort')
+  })
+})
+
+describe('cardNumberSortKey', () => {
+  it('orders numeric card numbers numerically, not lexicographically', () => {
+    const numbers = ['10', '2', '1', '100', '20', '3', '11']
+    const sorted = [...numbers].sort((a, b) =>
+      cardNumberSortKey(a) < cardNumberSortKey(b) ? -1 : 1,
+    )
+    expect(sorted).toEqual(['1', '2', '3', '10', '11', '20', '100'])
+  })
+
+  it('orders lettered suffixes after their base number', () => {
+    const numbers = ['10b', '3a', '10a', '3b', '4', '3']
+    const sorted = [...numbers].sort((a, b) =>
+      cardNumberSortKey(a) < cardNumberSortKey(b) ? -1 : 1,
+    )
+    expect(sorted).toEqual(['3', '3a', '3b', '4', '10a', '10b'])
+  })
+
+  it('sorts numbers lacking a numeric prefix after all numbered cards', () => {
+    const numbers = ['P1', '2', '10', 'A']
+    const sorted = [...numbers].sort((a, b) =>
+      cardNumberSortKey(a) < cardNumberSortKey(b) ? -1 : 1,
+    )
+    expect(sorted).toEqual(['2', '10', 'A', 'P1'])
   })
 })

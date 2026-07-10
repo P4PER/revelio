@@ -1,17 +1,19 @@
 'use client'
-import { useLocale, useTranslations } from 'next-intl'
+import { useTranslations } from 'next-intl'
 import { LayoutGrid, List, Eye } from 'lucide-react'
-import { LESSONS } from '@revelio/core'
 import type { PublicDeckEntry, PublicDeckSort } from '@revelio/db'
 import type { DeckFormat } from '@revelio/core'
 import { Link, useRouter } from '@/../i18n/navigation'
 import { type BrowseState, browseToQuery } from '@/lib/browse-params'
-import { attrLabel } from '@/lib/attribute-labels'
 import { DECK_VIEW_COOKIE, type DeckView } from '@/lib/deck-view'
 import { LessonIcons } from '@/components/lesson-icons'
+import { LessonFilterChips } from '@/components/lesson-filter-chips'
 import { DeckLikeButton } from '@/components/deck-like-button'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
 
 const SORTS: PublicDeckSort[] = ['likes', 'views', 'newest', 'updated']
 const FORMATS: DeckFormat[] = ['classic', 'revival']
@@ -27,7 +29,6 @@ export function DeckBrowse({
   initialView?: DeckView
 }) {
   const t = useTranslations('decks')
-  const locale = useLocale()
   const router = useRouter()
   const view = initialView ?? 'gallery' // default Grid for discovery
 
@@ -64,61 +65,36 @@ export function DeckBrowse({
           className="max-w-xs"
           onKeyDown={(e) => { if (e.key === 'Enter') push({ q: (e.target as HTMLInputElement).value }) }}
         />
-        <select
-          className="h-9 rounded-md border border-input bg-background px-2 text-sm"
-          aria-label={t('explore.sort.label')}
-          value={state.sort}
-          onChange={(e) => push({ sort: e.target.value as PublicDeckSort })}
+        <Select value={state.sort} onValueChange={(v) => push({ sort: v as PublicDeckSort })}>
+          <SelectTrigger size="sm" aria-label={t('explore.sort.label')} className="w-auto min-w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SORTS.map((s) => <SelectItem key={s} value={s}>{t(`explore.sort.${s}`)}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select
+          value={state.format ?? 'all'}
+          onValueChange={(v) => push({ format: v === 'all' ? null : (v as DeckFormat) })}
         >
-          {SORTS.map((s) => <option key={s} value={s}>{t(`explore.sort.${s}`)}</option>)}
-        </select>
-        <select
-          className="h-9 rounded-md border border-input bg-background px-2 text-sm"
-          aria-label={t('explore.format.label')}
-          value={state.format ?? ''}
-          onChange={(e) => push({ format: (e.target.value || null) as DeckFormat | null })}
-        >
-          <option value="">{t('explore.format.all')}</option>
-          {FORMATS.map((f) => <option key={f} value={f}>{t(`explore.format.${f}`)}</option>)}
-        </select>
+          <SelectTrigger size="sm" aria-label={t('explore.format.label')} className="w-auto min-w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {/* Radix Select disallows an empty-string item value, so "all" is a
+                sentinel mapped back to null (no format filter). */}
+            <SelectItem value="all">{t('explore.format.all')}</SelectItem>
+            {FORMATS.map((f) => <SelectItem key={f} value={f}>{t(`explore.format.${f}`)}</SelectItem>)}
+          </SelectContent>
+        </Select>
         {hasFilters ? (
           <Button variant="ghost" size="sm" onClick={() => router.push('/decks')}>{t('explore.clear')}</Button>
         ) : null}
       </div>
 
-      {/* Lesson chips — mirrors the search page's QuickFilters design
-          (rounded, lesson-colour-tinted, filled when active) plus the icon. */}
+      {/* Lesson chips — shared with the search page and deck builder. */}
       <div className="flex flex-wrap gap-2" aria-label={t('explore.lessonsLabel')}>
-        {LESSONS.map((l) => {
-          const active = state.lessons.includes(l.code)
-          return (
-            <Button
-              key={l.code}
-              type="button"
-              size="sm"
-              variant="outline"
-              aria-pressed={active}
-              onClick={() => toggleLesson(l.code)}
-              style={{
-                borderColor: l.color,
-                color: active ? '#fff' : l.color,
-                backgroundColor: active ? l.color : 'transparent',
-              }}
-              className="gap-1.5 rounded-full"
-            >
-              {/* SVGs are filled with the lesson colour; on the active
-                  (colour-filled) state, force the icon white so it stays legible. */}
-              <img
-                src={`/lessons/${l.code}.svg`}
-                alt=""
-                width={16}
-                height={16}
-                style={{ width: 16, height: 16, filter: active ? 'brightness(0) invert(1)' : undefined }}
-              />
-              {attrLabel('lessons', l.code, locale)}
-            </Button>
-          )
-        })}
+        <LessonFilterChips selected={state.lessons} onToggle={toggleLesson} />
       </div>
 
       {/* Header row: count + view toggle */}

@@ -1,11 +1,12 @@
 'use client'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { LayoutGrid, List, Eye } from 'lucide-react'
 import { LESSONS } from '@revelio/core'
 import type { PublicDeckEntry, PublicDeckSort } from '@revelio/db'
 import type { DeckFormat } from '@revelio/core'
 import { Link, useRouter } from '@/../i18n/navigation'
 import { type BrowseState, browseToQuery } from '@/lib/browse-params'
+import { attrLabel } from '@/lib/attribute-labels'
 import { DECK_VIEW_COOKIE, type DeckView } from '@/lib/deck-view'
 import { LessonIcons } from '@/components/lesson-icons'
 import { DeckLikeButton } from '@/components/deck-like-button'
@@ -27,6 +28,7 @@ export function DeckBrowse({
   initialView?: DeckView
 }) {
   const t = useTranslations('decks')
+  const locale = useLocale()
   const router = useRouter()
   const view = initialView ?? 'gallery' // default Grid for discovery
 
@@ -85,23 +87,38 @@ export function DeckBrowse({
         ) : null}
       </div>
 
-      {/* Lesson chips */}
-      <div className="flex flex-wrap items-center gap-2" aria-label={t('explore.lessonsLabel')}>
+      {/* Lesson chips — mirrors the search page's QuickFilters design
+          (rounded, lesson-colour-tinted, filled when active) plus the icon. */}
+      <div className="flex flex-wrap gap-2" aria-label={t('explore.lessonsLabel')}>
         {LESSONS.map((l) => {
           const active = state.lessons.includes(l.code)
           return (
-            <button
+            <Button
               key={l.code}
               type="button"
-              onClick={() => toggleLesson(l.code)}
+              size="sm"
+              variant="outline"
               aria-pressed={active}
-              aria-label={l.code}
-              className={cn('flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors',
-                active ? 'border-primary bg-primary/10' : 'border-border hover:bg-muted')}
+              onClick={() => toggleLesson(l.code)}
+              style={{
+                borderColor: l.color,
+                color: active ? '#fff' : l.color,
+                backgroundColor: active ? l.color : 'transparent',
+              }}
+              className="gap-1.5 rounded-full"
             >
-              <span className="inline-block size-3 rounded-full" style={{ backgroundColor: l.color }} />
-              <img src={`/lessons/${l.code}.svg`} alt="" width={16} height={16} />
-            </button>
+              {/* SVGs are filled with the lesson colour, so on the active
+                  (colour-filled) state give the icon a white chip to stay legible. */}
+              <img
+                src={`/lessons/${l.code}.svg`}
+                alt=""
+                width={16}
+                height={16}
+                className={cn('rounded-full', active && 'bg-white p-px')}
+                style={{ width: 16, height: 16 }}
+              />
+              {attrLabel('lessons', l.code, locale)}
+            </Button>
           )
         })}
       </div>

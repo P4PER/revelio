@@ -6,7 +6,7 @@ import type { CardDetailDTO, DeckCardView } from '@revelio/core'
 import type { SearchResult } from '@revelio/search'
 import { getSession } from '@/lib/session'
 import { getDb } from '@/lib/db'
-import { createDeck, updateDeck, updateDeckMeta, deleteDeck, getDeck, getCardById, getCardViews, resolveCardsByName } from '@revelio/db'
+import { createDeck, updateDeck, updateDeckMeta, deleteDeck, getDeck, getDeckForViewer, getCardById, getCardViews, resolveCardsByName, toggleLike, recordView } from '@revelio/db'
 import { getSearchClient, runSearch } from '@/lib/search-client'
 import type { SearchState } from '@/lib/search-params'
 
@@ -161,4 +161,30 @@ export async function duplicateDeckAction(id: string): Promise<DeckActionResult>
   })
   revalidatePath('/decks')
   return { ok: true, id: newId }
+}
+
+export type LikeActionResult = { ok: true; liked: boolean; likeCount: number } | { ok: false; error: string }
+
+export async function toggleLikeAction(deckId: string): Promise<LikeActionResult> {
+  const userId = await requireUserId()
+  if (!userId) return { ok: false, error: 'auth' }
+  // Only likeable if the viewer can see the deck (own or public); this also
+  // 404-guards against liking arbitrary/private deck ids.
+  const existing = await getDeckForViewer(getDb(), deckId, userId)
+  if (!existing) return { ok: false, error: 'invalid' }
+  const res = await toggleLike(getDb(), deckId, userId)
+  revalidatePath('/decks')
+  return { ok: true, ...res }
+}
+
+// Best-effort, logged-in-only view record. Fired from the overview page on
+// mount; failures are swallowed (a missed view must never break the page).
+export async function recordViewAction(deckId: string): Promise<void> {
+  const userId = await requireUserId()
+  if (!userId) return
+  try {
+    await recordView(getDb(), deckId, userId)
+  } catch {
+    // ignore — vanity counter, not worth surfacing
+  }
 }

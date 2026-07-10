@@ -34,7 +34,7 @@ export async function createDeckAction(input: unknown): Promise<DeckActionResult
   const parsed = writeSchema.safeParse(input)
   if (!parsed.success) return { ok: false, error: 'invalid' }
   const id = await createDeck(getDb(), userId, parsed.data)
-  revalidatePath('/decks')
+  revalidatePath('/decks/mine')
   return { ok: true, id }
 }
 
@@ -47,7 +47,8 @@ export async function updateDeckAction(id: string, input: unknown): Promise<Deck
   if (!existing) return { ok: false, error: 'invalid' }
   if (existing.userId !== userId) return { ok: false, error: 'forbidden' }
   await updateDeck(getDb(), id, parsed.data)
-  revalidatePath('/decks')
+  revalidatePath('/decks/mine')
+  revalidatePath('/decks') // public browse (content/visibility may have changed)
   revalidatePath(`/decks/${id}`)
   return { ok: true, id }
 }
@@ -70,7 +71,8 @@ export async function updateDeckMetaAction(id: string, input: unknown): Promise<
   if (!existing) return { ok: false, error: 'invalid' }
   if (existing.userId !== userId) return { ok: false, error: 'forbidden' }
   await updateDeckMeta(getDb(), id, parsed.data)
-  revalidatePath('/decks')
+  revalidatePath('/decks/mine')
+  revalidatePath('/decks') // public browse (visibility toggle add/removes it)
   revalidatePath(`/decks/${id}`)
   return { ok: true, id }
 }
@@ -82,7 +84,8 @@ export async function deleteDeckAction(id: string): Promise<DeckActionResult> {
   if (!existing) return { ok: false, error: 'invalid' }
   if (existing.userId !== userId) return { ok: false, error: 'forbidden' }
   await deleteDeck(getDb(), id)
-  revalidatePath('/decks')
+  revalidatePath('/decks/mine')
+  revalidatePath('/decks') // public browse (deck may have been public)
   return { ok: true, id }
 }
 
@@ -159,7 +162,7 @@ export async function duplicateDeckAction(id: string): Promise<DeckActionResult>
   const newId = await createDeck(getDb(), userId, {
     name: `${deck.name} (copy)`, format: deck.format, visibility: 'private', cards: deck.cards,
   })
-  revalidatePath('/decks')
+  revalidatePath('/decks/mine')
   return { ok: true, id: newId }
 }
 

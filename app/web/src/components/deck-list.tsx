@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 // Row actions (rename/duplicate/delete/visibility) run through server actions
-// wrapped in a React transition. Next.js resolves the `revalidatePath('/decks')`
+// wrapped in a React transition. Next.js resolves the `revalidatePath('/decks/mine')`
 // each action issues into an automatic router refresh as long as the action is
 // invoked inside a transition — no manual router.refresh() needed.
 export function DeckList({ decks }: { decks: DeckSummary[] }) {

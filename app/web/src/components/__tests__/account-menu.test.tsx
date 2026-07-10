@@ -45,7 +45,7 @@ describe('AccountMenu', () => {
     renderMenu(false)
     await userEvent.click(screen.getByRole('button', { name: /reader/ }))
     const item = await screen.findByText('My Decks')
-    expect(item.closest('a')).toHaveAttribute('href', '/decks')
+    expect(item.closest('a')).toHaveAttribute('href', '/decks/mine')
   })
 
   it('shows an Admin item linking to /admin for an editor', async () => {

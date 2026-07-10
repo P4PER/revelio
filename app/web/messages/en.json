@@ -24,7 +24,7 @@
     "admin": "Admin",
     "deckBuilder": "Deck Builder",
     "myDecks": "My Decks",
-    "browse": "Browse decks"
+    "browse": "Discover decks"
   },
   "search": {
     "title": "Search",
@@ -217,7 +217,7 @@
   },
   "decks": {
     "explore": {
-      "title": "Browse decks",
+      "title": "Discover decks",
       "subtitle": "Discover public decks from the community",
       "searchPlaceholder": "Search decks or @author…",
       "sort": {
@@ -239,11 +239,13 @@
       "empty": "No decks match your filters.",
       "by": "by @{author}",
       "cards": "{count} cards",
-      "likeLabel": "Like this deck",
-      "likeError": "Could not update your like. Please try again.",
       "prev": "Previous",
       "next": "Next",
       "pageOf": "Page {page} of {total}"
+    },
+    "like": {
+      "label": "Like this deck",
+      "error": "Could not update your like. Please try again."
     },
     "title": "New deck",
     "namePlaceholder": "Untitled deck",

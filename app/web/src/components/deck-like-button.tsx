@@ -40,7 +40,7 @@ export function DeckLikeButton({
       if (!res.ok) {
         setLiked(!nextLiked)
         setCount((c) => c + (nextLiked ? -1 : 1))
-        toast.error(t('explore.likeError'))
+        toast.error(t('like.error'))
       } else {
         setLiked(res.liked)
         setCount(res.likeCount)
@@ -54,7 +54,7 @@ export function DeckLikeButton({
       onClick={onClick}
       disabled={pending}
       aria-pressed={liked}
-      aria-label={t('explore.likeLabel')}
+      aria-label={t('like.label')}
       className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground disabled:opacity-60"
     >
       <Heart className={cn('size-4', liked && 'fill-current text-primary')} />

@@ -239,11 +239,13 @@
       "empty": "Keine Decks entsprechen deinen Filtern.",
       "by": "von @{author}",
       "cards": "{count} Karten",
-      "likeLabel": "Dieses Deck liken",
-      "likeError": "Like konnte nicht gespeichert werden. Bitte versuche es erneut.",
       "prev": "Zurück",
       "next": "Weiter",
       "pageOf": "Seite {page} von {total}"
+    },
+    "like": {
+      "label": "Dieses Deck liken",
+      "error": "Like konnte nicht gespeichert werden. Bitte versuche es erneut."
     },
     "title": "Neues Deck",
     "namePlaceholder": "Unbenanntes Deck",

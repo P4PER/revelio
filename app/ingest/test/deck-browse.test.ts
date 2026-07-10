@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { withMigratedDb } from './helpers.js'
 import { eq } from 'drizzle-orm'
-import { createDeck, updateDeck, toggleLike, decks, user, sets, cards, lessons } from '@revelio/db'
+import { createDeck, updateDeck, toggleLike, recordView, decks, user, sets, cards, lessons } from '@revelio/db'
 
 let ctx: Awaited<ReturnType<typeof withMigratedDb>>
 
@@ -71,5 +71,17 @@ describe('toggleLike', () => {
     await toggleLike(ctx.db, id, 'u1')
     const second = await toggleLike(ctx.db, id, 'u2')
     expect(second).toEqual({ liked: true, likeCount: 2 })
+  })
+})
+
+describe('recordView', () => {
+  it('increments once per user and dedupes repeats', async () => {
+    const id = await createDeck(ctx.db, 'u1', {
+      name: 'V', format: 'revival', visibility: 'public',
+      cards: [{ cardId: 'c-charms', zone: 'main', quantity: 1 }],
+    })
+    expect(await recordView(ctx.db, id, 'u2')).toEqual({ viewCount: 1 })
+    expect(await recordView(ctx.db, id, 'u2')).toEqual({ viewCount: 1 }) // dedupe
+    expect(await recordView(ctx.db, id, 'u1')).toEqual({ viewCount: 2 }) // distinct user
   })
 })

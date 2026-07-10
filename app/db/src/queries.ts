@@ -583,3 +583,15 @@ export async function toggleLike(db: DB, deckId: string, userId: string): Promis
     return { liked, likeCount: row?.likeCount ?? 0 }
   })
 }
+
+export async function recordView(db: DB, deckId: string, userId: string): Promise<{ viewCount: number }> {
+  return db.transaction(async (tx) => {
+    const inserted = await tx.insert(deckViews).values({ deckId, userId })
+      .onConflictDoNothing().returning({ deckId: deckViews.deckId })
+    if (inserted.length) {
+      await tx.update(decks).set({ viewCount: sql`${decks.viewCount} + 1` }).where(eq(decks.id, deckId))
+    }
+    const [row] = await tx.select({ viewCount: decks.viewCount }).from(decks).where(eq(decks.id, deckId)).limit(1)
+    return { viewCount: row?.viewCount ?? 0 }
+  })
+}

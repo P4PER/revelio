@@ -12,7 +12,6 @@ import { LessonIcons } from '@/components/lesson-icons'
 import { DeckLikeButton } from '@/components/deck-like-button'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { cn } from '@/lib/utils'
 
 const SORTS: PublicDeckSort[] = ['likes', 'views', 'newest', 'updated']
 const FORMATS: DeckFormat[] = ['classic', 'revival']
@@ -107,15 +106,14 @@ export function DeckBrowse({
               }}
               className="gap-1.5 rounded-full"
             >
-              {/* SVGs are filled with the lesson colour, so on the active
-                  (colour-filled) state give the icon a white chip to stay legible. */}
+              {/* SVGs are filled with the lesson colour; on the active
+                  (colour-filled) state, force the icon white so it stays legible. */}
               <img
                 src={`/lessons/${l.code}.svg`}
                 alt=""
                 width={16}
                 height={16}
-                className={cn('rounded-full', active && 'bg-white p-px')}
-                style={{ width: 16, height: 16 }}
+                style={{ width: 16, height: 16, filter: active ? 'brightness(0) invert(1)' : undefined }}
               />
               {attrLabel('lessons', l.code, locale)}
             </Button>

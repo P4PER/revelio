@@ -26,6 +26,8 @@ export type DeckOverviewProps = {
   isOwner: boolean
   loggedIn: boolean
   imageBase: string
+  likeCount: number
+  liked: boolean
   // Persisted view preference, read from a cookie on the server so the correct
   // view renders on first paint (no list→gallery flash on reload).
   initialView?: View
@@ -90,6 +92,8 @@ export function DeckOverview(props: DeckOverviewProps) {
           views={views}
           isOwner={isOwner}
           loggedIn={loggedIn}
+          likeCount={props.likeCount}
+          liked={props.liked}
         />
         <div className="inline-flex rounded-md border border-border p-0.5">
           <Button size="sm" variant={view === 'list' ? 'secondary' : 'ghost'} onClick={() => changeView('list')}>

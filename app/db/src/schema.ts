@@ -2,6 +2,7 @@ import {
   pgTable, text, integer, real, boolean, jsonb, timestamp, primaryKey, index,
   date,
 } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 import { user } from './auth-schema'
 
 const editable = {
@@ -148,8 +149,17 @@ export const decks = pgTable('decks', {
   name: text('name').notNull(),
   format: text('format').notNull(),
   visibility: text('visibility').notNull().default('private'),
+  likeCount: integer('like_count').notNull().default(0),
+  viewCount: integer('view_count').notNull().default(0),
+  lessons: text('lessons').array().notNull().default(sql`'{}'::text[]`),
   ...editable,
-}, (t) => ({ byUser: index('decks_user_id_idx').on(t.userId) }))
+}, (t) => ({
+  byUser: index('decks_user_id_idx').on(t.userId),
+  byVisibility: index('decks_visibility_idx').on(t.visibility),
+  byLikeCount: index('decks_like_count_idx').on(t.likeCount),
+  byViewCount: index('decks_view_count_idx').on(t.viewCount),
+  byLessons: index('decks_lessons_gin_idx').using('gin', t.lessons),
+}))
 
 export const deckCards = pgTable('deck_cards', {
   deckId: text('deck_id').notNull().references(() => decks.id, { onDelete: 'cascade' }),
@@ -157,6 +167,23 @@ export const deckCards = pgTable('deck_cards', {
   zone: text('zone').notNull(),
   quantity: integer('quantity').notNull(),
 }, (t) => ({ pk: primaryKey({ columns: [t.deckId, t.cardId, t.zone] }) }))
+
+export const deckLikes = pgTable('deck_likes', {
+  deckId: text('deck_id').notNull().references(() => decks.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.deckId, t.userId] }),
+  byUser: index('deck_likes_user_id_idx').on(t.userId),
+}))
+
+export const deckViews = pgTable('deck_views', {
+  deckId: text('deck_id').notNull().references(() => decks.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.deckId, t.userId] }),
+}))
 
 // Better Auth tables (generated via @better-auth/cli).
 export * from './auth-schema'

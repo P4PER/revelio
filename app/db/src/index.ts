@@ -2,7 +2,7 @@ export * as schema from './schema'
 export {
   types, subTypes, lessons, rarities, finishes, legalities,
   sets, cards, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, cardLocalizations,
-  subTypeLocalizations, setLocalizations, decks, deckCards,
+  subTypeLocalizations, setLocalizations, decks, deckCards, deckLikes, deckViews,
 } from './schema'
 export { user, session, account, verification } from './auth-schema'
 export { createClient } from './client'

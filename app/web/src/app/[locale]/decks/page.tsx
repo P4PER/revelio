@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations('decks')
-  return { title: t('browse.title') }
+  return { title: t('explore.title') }
 }
 
 export default async function DecksBrowsePage({

@@ -216,7 +216,7 @@
     }
   },
   "decks": {
-    "browse": {
+    "explore": {
       "title": "Decks entdecken",
       "subtitle": "Entdecke öffentliche Decks der Community",
       "searchPlaceholder": "Decks oder @Autor suchen…",

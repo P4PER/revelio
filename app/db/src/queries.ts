@@ -1,7 +1,8 @@
 import { eq, asc, desc, sql, inArray, and, isNotNull } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import type { DB } from './client'
-import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations, setLocalizations, decks, deckCards } from './schema'
+import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations, setLocalizations, decks, deckCards, deckLikes, deckViews } from './schema'
+import { user } from './auth-schema'
 import type { SetDTO, CardLocalizationDTO, CardDetailDTO, AdventureData, MatchData, DeckDTO, DeckCardView, DeckFormat, DeckVisibility } from '@revelio/core'
 import { deckCardMeta } from '@revelio/core'
 import type { CardIndexData } from '@revelio/search'
@@ -560,4 +561,25 @@ export async function resolveCardsByName(
     out[key] = rows.length === 1 ? rows[0].id : null // ambiguous (>1) or missing (0) → null
   }
   return out
+}
+
+// --- public deck browse: likes, views, and the browse query ---
+
+export async function toggleLike(db: DB, deckId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
+  return db.transaction(async (tx) => {
+    const existing = await tx.select({ deckId: deckLikes.deckId }).from(deckLikes)
+      .where(and(eq(deckLikes.deckId, deckId), eq(deckLikes.userId, userId))).limit(1)
+    let liked: boolean
+    if (existing.length) {
+      await tx.delete(deckLikes).where(and(eq(deckLikes.deckId, deckId), eq(deckLikes.userId, userId)))
+      await tx.update(decks).set({ likeCount: sql`${decks.likeCount} - 1` }).where(eq(decks.id, deckId))
+      liked = false
+    } else {
+      await tx.insert(deckLikes).values({ deckId, userId })
+      await tx.update(decks).set({ likeCount: sql`${decks.likeCount} + 1` }).where(eq(decks.id, deckId))
+      liked = true
+    }
+    const [row] = await tx.select({ likeCount: decks.likeCount }).from(decks).where(eq(decks.id, deckId)).limit(1)
+    return { liked, likeCount: row?.likeCount ?? 0 }
+  })
 }

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { withMigratedDb } from './helpers.js'
 import { eq } from 'drizzle-orm'
-import { createDeck, updateDeck, decks, user, sets, cards, lessons } from '@revelio/db'
+import { createDeck, updateDeck, toggleLike, decks, user, sets, cards, lessons } from '@revelio/db'
 
 let ctx: Awaited<ReturnType<typeof withMigratedDb>>
 
@@ -47,5 +47,29 @@ describe('decks.lessons maintenance', () => {
     })
     const [row] = await ctx.db.select({ lessons: decks.lessons }).from(decks).where(eq(decks.id, id))
     expect(row.lessons).toEqual(['potions'])
+  })
+})
+
+describe('toggleLike', () => {
+  it('inserts a like and increments the counter, toggling off on repeat', async () => {
+    const id = await createDeck(ctx.db, 'u1', {
+      name: 'L', format: 'revival', visibility: 'public',
+      cards: [{ cardId: 'c-charms', zone: 'main', quantity: 1 }],
+    })
+    const on = await toggleLike(ctx.db, id, 'u2')
+    expect(on).toEqual({ liked: true, likeCount: 1 })
+
+    const off = await toggleLike(ctx.db, id, 'u2')
+    expect(off).toEqual({ liked: false, likeCount: 0 })
+  })
+
+  it('counts distinct users independently', async () => {
+    const id = await createDeck(ctx.db, 'u1', {
+      name: 'L2', format: 'revival', visibility: 'public',
+      cards: [{ cardId: 'c-charms', zone: 'main', quantity: 1 }],
+    })
+    await toggleLike(ctx.db, id, 'u1')
+    const second = await toggleLike(ctx.db, id, 'u2')
+    expect(second).toEqual({ liked: true, likeCount: 2 })
   })
 })

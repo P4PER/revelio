@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { withMigratedDb } from './helpers.js'
 import { eq } from 'drizzle-orm'
-import { createDeck, updateDeck, toggleLike, recordView, listPublicDecks, decks, user, sets, cards, lessons } from '@revelio/db'
+import { createDeck, updateDeck, toggleLike, recordView, listPublicDecks, getDeckLikeState, decks, user, sets, cards, lessons } from '@revelio/db'
 
 let ctx: Awaited<ReturnType<typeof withMigratedDb>>
 
@@ -140,5 +140,18 @@ describe('listPublicDecks', () => {
     const res = await listPublicDecks(ctx.db, {})
     expect(res.entries.find((e) => e.id === withStarter)!.starterCardId).toBe('c-charms')
     expect(res.entries.find((e) => e.id === noStarter)!.starterCardId).toBeNull()
+  })
+})
+
+describe('getDeckLikeState', () => {
+  it('reports count and whether the viewer liked it', async () => {
+    const id = await createDeck(ctx.db, 'u1', {
+      name: 'S', format: 'revival', visibility: 'public',
+      cards: [{ cardId: 'c-charms', zone: 'main', quantity: 1 }],
+    })
+    await toggleLike(ctx.db, id, 'u2')
+    expect(await getDeckLikeState(ctx.db, id, 'u2')).toEqual({ likeCount: 1, liked: true })
+    expect(await getDeckLikeState(ctx.db, id, 'u1')).toEqual({ likeCount: 1, liked: false })
+    expect(await getDeckLikeState(ctx.db, id, null)).toEqual({ likeCount: 1, liked: false })
   })
 })

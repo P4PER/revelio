@@ -584,6 +584,15 @@ export async function toggleLike(db: DB, deckId: string, userId: string): Promis
   })
 }
 
+export async function getDeckLikeState(db: DB, deckId: string, viewerId: string | null): Promise<{ likeCount: number; liked: boolean }> {
+  const [row] = await db.select({ likeCount: decks.likeCount }).from(decks).where(eq(decks.id, deckId)).limit(1)
+  const likeCount = row?.likeCount ?? 0
+  if (!viewerId) return { likeCount, liked: false }
+  const [mine] = await db.select({ deckId: deckLikes.deckId }).from(deckLikes)
+    .where(and(eq(deckLikes.deckId, deckId), eq(deckLikes.userId, viewerId))).limit(1)
+  return { likeCount, liked: Boolean(mine) }
+}
+
 export async function recordView(db: DB, deckId: string, userId: string): Promise<{ viewCount: number }> {
   return db.transaction(async (tx) => {
     const inserted = await tx.insert(deckViews).values({ deckId, userId })

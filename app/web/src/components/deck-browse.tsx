@@ -1,14 +1,15 @@
 'use client'
+import { useRef } from 'react'
 import { useTranslations } from 'next-intl'
-import { LayoutGrid, List, Eye } from 'lucide-react'
+import { LayoutGrid, List } from 'lucide-react'
 import type { PublicDeckEntry, PublicDeckSort } from '@revelio/db'
 import type { DeckFormat } from '@revelio/core'
-import { Link, useRouter } from '@/../i18n/navigation'
+import { useRouter } from '@/../i18n/navigation'
 import { type BrowseState, browseToQuery } from '@/lib/browse-params'
 import { DECK_VIEW_COOKIE, type DeckView } from '@/lib/deck-view'
-import { LessonIcons } from '@/components/lesson-icons'
 import { LessonFilterChips } from '@/components/lesson-filter-chips'
-import { DeckLikeButton } from '@/components/deck-like-button'
+import { DeckHeroCard } from '@/components/deck-hero-card'
+import { DeckDiscoverRow } from '@/components/deck-discover-row'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -19,14 +20,14 @@ const SORTS: PublicDeckSort[] = ['likes', 'views', 'newest', 'updated']
 const FORMATS: DeckFormat[] = ['classic', 'revival']
 
 export function DeckBrowse({
-  state, entries, total, pageCount, loggedIn, initialView,
+  state, entries, total, pageCount, initialView, imageBase,
 }: {
   state: BrowseState
   entries: PublicDeckEntry[]
   total: number
   pageCount: number
-  loggedIn: boolean
   initialView?: DeckView
+  imageBase: string
 }) {
   const t = useTranslations('decks')
   const router = useRouter()
@@ -36,6 +37,12 @@ export function DeckBrowse({
     const merged = { ...state, ...next, page: next.page ?? 1 }
     const q = new URLSearchParams(browseToQuery(merged)).toString()
     router.push(`/decks${q ? `?${q}` : ''}`)
+  }
+
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  function onSearchChange(value: string) {
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+    searchTimer.current = setTimeout(() => push({ q: value }), 300)
   }
 
   function setView(next: DeckView) {
@@ -60,13 +67,14 @@ export function DeckBrowse({
       {/* Controls */}
       <div className="flex flex-wrap items-center gap-3">
         <Input
+          type="search"
           defaultValue={state.q}
           placeholder={t('explore.searchPlaceholder')}
-          className="max-w-xs"
-          onKeyDown={(e) => { if (e.key === 'Enter') push({ q: (e.target as HTMLInputElement).value }) }}
+          className="h-9 min-w-56 flex-1"
+          onChange={(e) => onSearchChange(e.target.value)}
         />
         <Select value={state.sort} onValueChange={(v) => push({ sort: v as PublicDeckSort })}>
-          <SelectTrigger size="sm" aria-label={t('explore.sort.label')} className="w-auto min-w-36">
+          <SelectTrigger aria-label={t('explore.sort.label')} className="h-9 w-auto min-w-36">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -77,7 +85,7 @@ export function DeckBrowse({
           value={state.format ?? 'all'}
           onValueChange={(v) => push({ format: v === 'all' ? null : (v as DeckFormat) })}
         >
-          <SelectTrigger size="sm" aria-label={t('explore.format.label')} className="w-auto min-w-36">
+          <SelectTrigger aria-label={t('explore.format.label')} className="h-9 w-auto min-w-36">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -116,40 +124,13 @@ export function DeckBrowse({
       ) : view === 'list' ? (
         <ul className="space-y-2">
           {entries.map((d) => (
-            <li key={d.id}>
-              <Link href={`/decks/${d.id}`} className="flex items-center gap-4 rounded-lg border border-border p-3 transition-colors hover:bg-muted/50">
-                <LessonIcons codes={d.lessons} size={18} />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate font-medium">{d.name}</div>
-                  <div className="truncate text-xs text-muted-foreground">
-                    {t('explore.by', { author: d.author })} · {t(`explore.format.${d.format}`)} · {t('explore.cards', { count: d.cardCount })}
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <DeckLikeButton deckId={d.id} initialLiked={d.likedByViewer} initialCount={d.likeCount} loggedIn={loggedIn} />
-                  <span className="inline-flex items-center gap-1 text-sm text-muted-foreground"><Eye className="size-4" />{d.viewCount}</span>
-                </div>
-              </Link>
-            </li>
+            <li key={d.id}><DeckDiscoverRow deck={d} imageBase={imageBase} /></li>
           ))}
         </ul>
       ) : (
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {entries.map((d) => (
-            <li key={d.id}>
-              <Link href={`/decks/${d.id}`} className="flex h-full flex-col gap-3 rounded-lg border border-border p-4 transition-colors hover:bg-muted/50">
-                <div>
-                  <div className="truncate font-medium">{d.name}</div>
-                  <div className="truncate text-xs text-muted-foreground">{t('explore.by', { author: d.author })}</div>
-                </div>
-                <LessonIcons codes={d.lessons} size={20} />
-                <div className="text-xs text-muted-foreground">{t(`explore.format.${d.format}`)} · {t('explore.cards', { count: d.cardCount })}</div>
-                <div className="mt-auto flex items-center justify-between border-t border-border/60 pt-3">
-                  <DeckLikeButton deckId={d.id} initialLiked={d.likedByViewer} initialCount={d.likeCount} loggedIn={loggedIn} />
-                  <span className="inline-flex items-center gap-1 text-sm text-muted-foreground"><Eye className="size-4" />{d.viewCount}</span>
-                </div>
-              </Link>
-            </li>
+            <li key={d.id}><DeckHeroCard deck={d} imageBase={imageBase} /></li>
           ))}
         </ul>
       )}

@@ -10,6 +10,8 @@ import { DECK_VIEW_COOKIE } from '@/lib/deck-view'
 
 export const dynamic = 'force-dynamic'
 
+const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
+
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
   setRequestLocale(locale)
@@ -51,8 +53,8 @@ export default async function DecksBrowsePage({
         entries={result.entries}
         total={result.total}
         pageCount={result.pageCount}
-        loggedIn={!!session?.user}
         initialView={initialView}
+        imageBase={IMAGE_BASE}
       />
     </main>
   )

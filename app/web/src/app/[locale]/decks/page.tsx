@@ -1,67 +1,59 @@
 import type { Metadata } from 'next'
+import { cookies } from 'next/headers'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { Plus } from 'lucide-react'
-import { Link } from '@/../i18n/navigation'
 import { getDb } from '@/lib/db'
 import { getSession } from '@/lib/session'
-import { listDecksByUser } from '@revelio/db'
-import { DeckList } from '@/components/deck-list'
-import { Button } from '@/components/ui/button'
+import { listPublicDecks } from '@revelio/db'
+import { parseBrowseParams } from '@/lib/browse-params'
+import { DeckBrowse } from '@/components/deck-browse'
+import { DECK_VIEW_COOKIE } from '@/lib/deck-view'
 
 export const dynamic = 'force-dynamic'
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations('decks')
-  return { title: t('list.title') }
+  return { title: t('browse.title') }
 }
 
-export default async function DecksPage({
+export default async function DecksBrowsePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const { locale } = await params
   setRequestLocale(locale)
-  const session = await getSession()
-  const t = await getTranslations('decks')
-
-  if (!session?.user) {
-    return (
-      <main className="mx-auto max-w-2xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-semibold text-primary">{t('list.loggedOut.title')}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t('list.loggedOut.desc')}</p>
-        <div className="mt-6 flex items-center justify-center gap-3">
-          <Button asChild>
-            <Link href="/login">{t('list.loggedOut.signIn')}</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/decks/new">{t('list.loggedOut.tryBuilder')}</Link>
-          </Button>
-        </div>
-      </main>
-    )
+  const sp = await searchParams
+  const usp = new URLSearchParams()
+  for (const [k, v] of Object.entries(sp)) {
+    if (Array.isArray(v)) v.forEach((x) => usp.append(k, x))
+    else if (v != null) usp.set(k, v)
   }
+  const state = parseBrowseParams(usp)
 
-  const decks = await listDecksByUser(getDb(), session.user.id)
+  const [session, cookieStore] = await Promise.all([getSession(), cookies()])
+  const viewerId = session?.user?.id ?? null
+  const result = await listPublicDecks(getDb(), {
+    search: state.q, lessons: state.lessons, format: state.format,
+    sort: state.sort, page: state.page, viewerId,
+  })
+
+  const savedView = cookieStore.get(DECK_VIEW_COOKIE)?.value
+  const initialView = savedView === 'gallery' || savedView === 'list' ? savedView : undefined
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-8">
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-primary">{t('list.title')}</h1>
-        <Button asChild>
-          <Link href="/decks/new" className="gap-1.5">
-            <Plus className="size-4" />
-            {t('list.newDeck')}
-          </Link>
-        </Button>
-      </div>
-      <DeckList decks={decks} />
+      <DeckBrowse
+        state={state}
+        entries={result.entries}
+        total={result.total}
+        pageCount={result.pageCount}
+        loggedIn={!!session?.user}
+        initialView={initialView}
+      />
     </main>
   )
 }

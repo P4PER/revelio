@@ -507,6 +507,15 @@ async function replaceDeckCards(tx: Tx, id: string, cardsIn: DeckWriteInput['car
   if (cardsIn.length) {
     await tx.insert(deckCards).values(cardsIn.map((c) => ({ deckId: id, cardId: c.cardId, zone: c.zone, quantity: c.quantity })))
   }
+  // Cache the deck's distinct lesson codes for the public browse filter (GIN),
+  // recomputed on every save so decks.lessons is always derived from the cards.
+  const cardIds = [...new Set(cardsIn.map((c) => c.cardId))]
+  const lessonRows = cardIds.length
+    ? await tx.selectDistinct({ lesson: cards.lesson }).from(cards)
+        .where(and(inArray(cards.id, cardIds), isNotNull(cards.lesson)))
+    : []
+  const deckLessons = lessonRows.map((r) => r.lesson!).filter(Boolean)
+  await tx.update(decks).set({ lessons: deckLessons }).where(eq(decks.id, id))
 }
 
 export async function createDeck(db: DB, userId: string, input: DeckWriteInput): Promise<string> {

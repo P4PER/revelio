@@ -124,4 +124,21 @@ describe('listPublicDecks', () => {
     expect(res.pageCount).toBe(Math.max(1, Math.ceil(res.total / 24)))
     expect(res.entries.length).toBeLessThanOrEqual(24)
   })
+
+  it('returns the starting-character card id (null when the deck has none)', async () => {
+    const withStarter = await createDeck(ctx.db, 'u1', {
+      name: 'Has Starter', format: 'revival', visibility: 'public',
+      cards: [
+        { cardId: 'c-charms', zone: 'character', quantity: 1 },
+        { cardId: 'c-potions', zone: 'main', quantity: 1 },
+      ],
+    })
+    const noStarter = await createDeck(ctx.db, 'u1', {
+      name: 'No Starter', format: 'revival', visibility: 'public',
+      cards: [{ cardId: 'c-potions', zone: 'main', quantity: 1 }],
+    })
+    const res = await listPublicDecks(ctx.db, {})
+    expect(res.entries.find((e) => e.id === withStarter)!.starterCardId).toBe('c-charms')
+    expect(res.entries.find((e) => e.id === noStarter)!.starterCardId).toBeNull()
+  })
 })

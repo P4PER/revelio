@@ -601,6 +601,7 @@ export type PublicDeckEntry = {
   id: string; name: string; format: DeckFormat; author: string
   lessons: string[]; likeCount: number; viewCount: number
   cardCount: number; updatedAt: string; likedByViewer: boolean
+  starterCardId: string | null
 }
 export type ListPublicDecksInput = {
   search?: string; lessons?: string[]; format?: DeckFormat | null
@@ -659,6 +660,12 @@ export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Prom
     : []
   const byDeck = new Map(counts.map((c) => [c.deckId, c.total]))
 
+  const starters = ids.length
+    ? await db.select({ deckId: deckCards.deckId, cardId: deckCards.cardId })
+        .from(deckCards).where(and(inArray(deckCards.deckId, ids), eq(deckCards.zone, 'character')))
+    : []
+  const starterByDeck = new Map(starters.map((s) => [s.deckId, s.cardId]))
+
   const entries: PublicDeckEntry[] = rows.map((r) => ({
     id: r.id, name: r.name, format: r.format as DeckFormat,
     // Prefer the cased display handle; fall back to the lowercase login
@@ -667,6 +674,7 @@ export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Prom
     lessons: r.lessons, likeCount: r.likeCount, viewCount: r.viewCount,
     cardCount: byDeck.get(r.id) ?? 0, updatedAt: r.updatedAt.toISOString(),
     likedByViewer: Boolean(r.likedByViewer),
+    starterCardId: starterByDeck.get(r.id) ?? null,
   }))
   return { entries, total, page, pageCount }
 }

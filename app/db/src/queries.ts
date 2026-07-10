@@ -643,7 +643,8 @@ export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Prom
   const rows = await db.select({
     id: decks.id, name: decks.name, format: decks.format,
     lessons: decks.lessons, likeCount: decks.likeCount, viewCount: decks.viewCount,
-    updatedAt: decks.updatedAt, username: user.username, displayName: user.name,
+    updatedAt: decks.updatedAt,
+    displayUsername: user.displayUsername, username: user.username, displayName: user.name,
     likedByViewer: viewerId
       ? sql<boolean>`EXISTS (SELECT 1 FROM ${deckLikes} WHERE ${deckLikes.deckId} = ${decks.id} AND ${deckLikes.userId} = ${viewerId})`
       : sql<boolean>`false`,
@@ -660,7 +661,9 @@ export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Prom
 
   const entries: PublicDeckEntry[] = rows.map((r) => ({
     id: r.id, name: r.name, format: r.format as DeckFormat,
-    author: r.username ?? r.displayName ?? '—',
+    // Prefer the cased display handle; fall back to the lowercase login
+    // username, then the account name.
+    author: r.displayUsername ?? r.username ?? r.displayName ?? '—',
     lessons: r.lessons, likeCount: r.likeCount, viewCount: r.viewCount,
     cardCount: byDeck.get(r.id) ?? 0, updatedAt: r.updatedAt.toISOString(),
     likedByViewer: Boolean(r.likedByViewer),

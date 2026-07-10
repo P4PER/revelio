@@ -8,7 +8,7 @@ let ctx: Awaited<ReturnType<typeof withMigratedDb>>
 beforeAll(async () => {
   ctx = await withMigratedDb()
   await ctx.db.insert(user).values([
-    { id: 'u1', name: 'Alice', username: 'alice', email: 'a@e.com', emailVerified: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'u1', name: 'Alice', username: 'alice', displayUsername: 'Alice_HP', email: 'a@e.com', emailVerified: true, createdAt: new Date(), updatedAt: new Date() },
     { id: 'u2', name: 'Bob', username: 'bob', email: 'b@e.com', emailVerified: true, createdAt: new Date(), updatedAt: new Date() },
   ])
   await ctx.db.insert(lessons).values([{ code: 'charms' }, { code: 'potions' }])
@@ -100,7 +100,7 @@ describe('listPublicDecks', () => {
 
     const res = await listPublicDecks(ctx.db, { viewerId: 'u2' })
     const found = res.entries.find((e) => e.id === pub)!
-    expect(found.author).toBe('alice')
+    expect(found.author).toBe('Alice_HP') // cased displayUsername, not lowercase login handle
     expect(found.lessons).toEqual(['charms'])
     expect(found.likeCount).toBe(1)
     expect(found.likedByViewer).toBe(true)
@@ -111,8 +111,10 @@ describe('listPublicDecks', () => {
     const byLesson = await listPublicDecks(ctx.db, { lessons: ['charms'] })
     expect(byLesson.entries.every((e) => e.lessons.includes('charms'))).toBe(true)
 
+    // Search still matches on the lowercase login handle, but the displayed
+    // author is the cased displayUsername.
     const byAuthor = await listPublicDecks(ctx.db, { search: '@alice' })
-    expect(byAuthor.entries.every((e) => e.author === 'alice')).toBe(true)
+    expect(byAuthor.entries.every((e) => e.author === 'Alice_HP')).toBe(true)
     expect(byAuthor.total).toBeGreaterThan(0)
   })
 

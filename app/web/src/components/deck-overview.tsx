@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { ChevronLeft, LayoutGrid, List } from 'lucide-react'
 import type { DeckCardView, DeckFormat } from '@revelio/core'
@@ -8,6 +8,7 @@ import { deckStats } from '@/lib/deck-stats'
 import { DeckPanel } from '@/components/deck-panel'
 import { DeckGallery } from '@/components/deck-gallery'
 import { DeckOverviewActions } from '@/components/deck-overview-actions'
+import { recordViewAction } from '@/lib/deck-actions'
 import { LegalitySeal } from '@/components/legality-seal'
 import { LessonCurve } from '@/components/lesson-curve'
 import { Badge } from '@/components/ui/badge'
@@ -43,6 +44,14 @@ export function DeckOverview(props: DeckOverviewProps) {
     document.cookie = `${DECK_VIEW_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`
   }
 
+  useEffect(() => {
+    // Record a unique view (logged-in-only, deduped server-side). Fired here on
+    // mount rather than in the page's server render, which Next may run/prefetch
+    // repeatedly. deckId is stable for a mounted overview, so this fires once.
+    if (loggedIn) void recordViewAction(deckId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deckId])
+
   const { status, violations, mainEntries, mainCount } = deckStats(views, format)
   const totalCards = views.reduce((n, e) => n + e.quantity, 0)
   const updated = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(updatedAt))
@@ -51,7 +60,7 @@ export function DeckOverview(props: DeckOverviewProps) {
     <div className="space-y-4">
       {loggedIn && (
         <Link
-          href="/decks"
+          href="/decks/mine"
           className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronLeft className="size-4" />

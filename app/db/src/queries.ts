@@ -1,4 +1,4 @@
-import { eq, asc, desc, sql, inArray, and, isNotNull } from 'drizzle-orm'
+import { eq, asc, desc, sql, inArray, and, or, isNotNull, ilike, count, arrayOverlaps } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import type { DB } from './client'
 import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations, setLocalizations, decks, deckCards, deckLikes, deckViews } from './schema'
@@ -594,4 +594,76 @@ export async function recordView(db: DB, deckId: string, userId: string): Promis
     const [row] = await tx.select({ viewCount: decks.viewCount }).from(decks).where(eq(decks.id, deckId)).limit(1)
     return { viewCount: row?.viewCount ?? 0 }
   })
+}
+
+export type PublicDeckSort = 'likes' | 'views' | 'newest' | 'updated'
+export type PublicDeckEntry = {
+  id: string; name: string; format: DeckFormat; author: string
+  lessons: string[]; likeCount: number; viewCount: number
+  cardCount: number; updatedAt: string; likedByViewer: boolean
+}
+export type ListPublicDecksInput = {
+  search?: string; lessons?: string[]; format?: DeckFormat | null
+  sort?: PublicDeckSort; page?: number; viewerId?: string | null
+}
+
+const PUBLIC_PAGE_SIZE = 24
+
+export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Promise<{
+  entries: PublicDeckEntry[]; total: number; page: number; pageCount: number
+}> {
+  const page = input.page && input.page >= 1 ? Math.floor(input.page) : 1
+  const conds = [eq(decks.visibility, 'public')]
+
+  const search = input.search?.trim()
+  if (search) {
+    if (search.startsWith('@')) {
+      const handle = `%${search.slice(1)}%`
+      conds.push(ilike(user.username, handle))
+    } else {
+      const q = `%${search}%`
+      conds.push(or(ilike(decks.name, q), ilike(user.username, q))!)
+    }
+  }
+  if (input.lessons?.length) conds.push(arrayOverlaps(decks.lessons, input.lessons))
+  if (input.format) conds.push(eq(decks.format, input.format))
+  const where = and(...conds)
+
+  const [{ total }] = await db.select({ total: count() }).from(decks)
+    .innerJoin(user, eq(user.id, decks.userId)).where(where)
+  const pageCount = Math.max(1, Math.ceil(total / PUBLIC_PAGE_SIZE))
+
+  const order =
+    input.sort === 'views' ? [desc(decks.viewCount), desc(decks.createdAt)]
+    : input.sort === 'newest' ? [desc(decks.createdAt)]
+    : input.sort === 'updated' ? [desc(decks.updatedAt)]
+    : [desc(decks.likeCount), desc(decks.createdAt)] // default: likes
+
+  const viewerId = input.viewerId
+  const rows = await db.select({
+    id: decks.id, name: decks.name, format: decks.format,
+    lessons: decks.lessons, likeCount: decks.likeCount, viewCount: decks.viewCount,
+    updatedAt: decks.updatedAt, username: user.username, displayName: user.name,
+    likedByViewer: viewerId
+      ? sql<boolean>`EXISTS (SELECT 1 FROM ${deckLikes} WHERE ${deckLikes.deckId} = ${decks.id} AND ${deckLikes.userId} = ${viewerId})`
+      : sql<boolean>`false`,
+  }).from(decks).innerJoin(user, eq(user.id, decks.userId))
+    .where(where).orderBy(...order)
+    .limit(PUBLIC_PAGE_SIZE).offset((page - 1) * PUBLIC_PAGE_SIZE)
+
+  const ids = rows.map((r) => r.id)
+  const counts = ids.length
+    ? await db.select({ deckId: deckCards.deckId, total: sql<number>`sum(${deckCards.quantity})::int` })
+        .from(deckCards).where(inArray(deckCards.deckId, ids)).groupBy(deckCards.deckId)
+    : []
+  const byDeck = new Map(counts.map((c) => [c.deckId, c.total]))
+
+  const entries: PublicDeckEntry[] = rows.map((r) => ({
+    id: r.id, name: r.name, format: r.format as DeckFormat,
+    author: r.username ?? r.displayName ?? '—',
+    lessons: r.lessons, likeCount: r.likeCount, viewCount: r.viewCount,
+    cardCount: byDeck.get(r.id) ?? 0, updatedAt: r.updatedAt.toISOString(),
+    likedByViewer: Boolean(r.likedByViewer),
+  }))
+  return { entries, total, page, pageCount }
 }

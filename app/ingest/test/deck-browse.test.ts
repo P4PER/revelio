@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { withMigratedDb } from './helpers.js'
 import { eq } from 'drizzle-orm'
-import { createDeck, updateDeck, toggleLike, recordView, decks, user, sets, cards, lessons } from '@revelio/db'
+import { createDeck, updateDeck, toggleLike, recordView, listPublicDecks, decks, user, sets, cards, lessons } from '@revelio/db'
 
 let ctx: Awaited<ReturnType<typeof withMigratedDb>>
 
@@ -83,5 +83,43 @@ describe('recordView', () => {
     expect(await recordView(ctx.db, id, 'u2')).toEqual({ viewCount: 1 })
     expect(await recordView(ctx.db, id, 'u2')).toEqual({ viewCount: 1 }) // dedupe
     expect(await recordView(ctx.db, id, 'u1')).toEqual({ viewCount: 2 }) // distinct user
+  })
+})
+
+describe('listPublicDecks', () => {
+  it('returns only public decks with author, counts, lessons, and liked flag', async () => {
+    const pub = await createDeck(ctx.db, 'u1', {
+      name: 'Charms Aggro', format: 'revival', visibility: 'public',
+      cards: [{ cardId: 'c-charms', zone: 'main', quantity: 1 }],
+    })
+    await createDeck(ctx.db, 'u1', {
+      name: 'Secret', format: 'revival', visibility: 'private',
+      cards: [{ cardId: 'c-potions', zone: 'main', quantity: 1 }],
+    })
+    await toggleLike(ctx.db, pub, 'u2')
+
+    const res = await listPublicDecks(ctx.db, { viewerId: 'u2' })
+    const found = res.entries.find((e) => e.id === pub)!
+    expect(found.author).toBe('alice')
+    expect(found.lessons).toEqual(['charms'])
+    expect(found.likeCount).toBe(1)
+    expect(found.likedByViewer).toBe(true)
+    expect(res.entries.some((e) => e.name === 'Secret')).toBe(false)
+  })
+
+  it('filters by lesson (array overlap) and by author search (@handle)', async () => {
+    const byLesson = await listPublicDecks(ctx.db, { lessons: ['charms'] })
+    expect(byLesson.entries.every((e) => e.lessons.includes('charms'))).toBe(true)
+
+    const byAuthor = await listPublicDecks(ctx.db, { search: '@alice' })
+    expect(byAuthor.entries.every((e) => e.author === 'alice')).toBe(true)
+    expect(byAuthor.total).toBeGreaterThan(0)
+  })
+
+  it('paginates with a stable page count', async () => {
+    const res = await listPublicDecks(ctx.db, { page: 1 })
+    expect(res.page).toBe(1)
+    expect(res.pageCount).toBe(Math.max(1, Math.ceil(res.total / 24)))
+    expect(res.entries.length).toBeLessThanOrEqual(24)
   })
 })

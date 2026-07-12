@@ -23,7 +23,8 @@
     "sets": "Editionen",
     "admin": "Admin",
     "deckBuilder": "Deck-Builder",
-    "myDecks": "Meine Decks"
+    "myDecks": "Meine Decks",
+    "browse": "Decks entdecken"
   },
   "search": {
     "title": "Suche",
@@ -215,6 +216,37 @@
     }
   },
   "decks": {
+    "explore": {
+      "title": "Decks entdecken",
+      "subtitle": "Entdecke öffentliche Decks der Community",
+      "searchPlaceholder": "Decks oder @Autor suchen…",
+      "sort": {
+        "label": "Sortieren",
+        "likes": "Beliebteste",
+        "views": "Meistgesehen",
+        "newest": "Neueste",
+        "updated": "Kürzlich aktualisiert"
+      },
+      "format": {
+        "label": "Format",
+        "all": "Alle Formate",
+        "classic": "Classic",
+        "revival": "Revival"
+      },
+      "lessonsLabel": "Lektionen",
+      "clear": "Filter zurücksetzen",
+      "count": "{count} Decks",
+      "empty": "Keine Decks entsprechen deinen Filtern.",
+      "by": "von @{author}",
+      "cards": "{count} Karten",
+      "prev": "Zurück",
+      "next": "Weiter",
+      "pageOf": "Seite {page} von {total}"
+    },
+    "like": {
+      "label": "Dieses Deck liken",
+      "error": "Like konnte nicht gespeichert werden. Bitte versuche es erneut."
+    },
     "title": "Neues Deck",
     "namePlaceholder": "Unbenanntes Deck",
     "save": "Deck speichern",

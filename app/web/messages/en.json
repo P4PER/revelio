@@ -23,7 +23,8 @@
     "sets": "Sets",
     "admin": "Admin",
     "deckBuilder": "Deck Builder",
-    "myDecks": "My Decks"
+    "myDecks": "My Decks",
+    "browse": "Discover decks"
   },
   "search": {
     "title": "Search",
@@ -215,6 +216,37 @@
     }
   },
   "decks": {
+    "explore": {
+      "title": "Discover decks",
+      "subtitle": "Discover public decks from the community",
+      "searchPlaceholder": "Search decks or @author…",
+      "sort": {
+        "label": "Sort",
+        "likes": "Most liked",
+        "views": "Most viewed",
+        "newest": "Newest",
+        "updated": "Recently updated"
+      },
+      "format": {
+        "label": "Format",
+        "all": "All formats",
+        "classic": "Classic",
+        "revival": "Revival"
+      },
+      "lessonsLabel": "Lessons",
+      "clear": "Clear filters",
+      "count": "{count} decks",
+      "empty": "No decks match your filters.",
+      "by": "by @{author}",
+      "cards": "{count} cards",
+      "prev": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {total}"
+    },
+    "like": {
+      "label": "Like this deck",
+      "error": "Could not update your like. Please try again."
+    },
     "title": "New deck",
     "namePlaceholder": "Untitled deck",
     "save": "Save deck",

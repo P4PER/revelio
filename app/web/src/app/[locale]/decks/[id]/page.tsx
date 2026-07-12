@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { getDeckForViewer } from '@revelio/db'
+import { getDeckForViewer, getDeckLikeState } from '@revelio/db'
 import { getDb } from '@/lib/db'
 import { getSession } from '@/lib/session'
 import { DeckOverview } from '@/components/deck-overview'
@@ -36,6 +36,8 @@ export default async function DeckOverviewPage({
   const existing = await getDeckForViewer(getDb(), id, viewerId)
   if (!existing) notFound()
 
+  const likeState = await getDeckLikeState(getDb(), id, viewerId)
+
   const savedView = cookieStore.get(DECK_VIEW_COOKIE)?.value
   const initialView = savedView === 'gallery' || savedView === 'list' ? savedView : undefined
 
@@ -53,6 +55,8 @@ export default async function DeckOverviewPage({
         loggedIn={!!session?.user}
         imageBase={IMAGE_BASE}
         initialView={initialView}
+        likeCount={likeState.likeCount}
+        liked={likeState.liked}
       />
     </main>
   )

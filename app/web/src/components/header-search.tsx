@@ -16,15 +16,16 @@ export function HeaderSearch({ placeholder }: { placeholder: string }) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const internal = useRef(false)
 
-  // Sync the field to the URL query whenever the route/query changes. Off the
-  // search page urlQ is empty, so this also clears the field when navigating
-  // away (e.g. to /sets or /admin). Skip the sync caused by our own typing.
+  // Sync the field to the URL query whenever the route/query changes. Only the
+  // search page's `q` belongs in this box; other pages (e.g. /decks browse) also
+  // use `q` for their own search, so off the search page we clear the field
+  // instead of mirroring an unrelated query. Skip the sync caused by our typing.
   useEffect(() => {
     if (internal.current) {
       internal.current = false
       return
     }
-    setQ(urlQ)
+    setQ(onSearchPage ? urlQ : '')
   }, [urlQ, onSearchPage])
 
   // Home has its own hero search.

@@ -7,6 +7,9 @@ const m = vi.hoisted(() => ({
   updateDeckMeta: vi.fn(async () => {}),
   deleteDeck: vi.fn(async () => {}),
   getDeck: vi.fn(async () => ({ userId: 'u1', deck: { name: 'D', format: 'revival', visibility: 'private', cards: [] } })),
+  getDeckForViewer: vi.fn(async () => ({ userId: 'u2', deck: { visibility: 'public' } })),
+  toggleLike: vi.fn(async () => ({ liked: true, likeCount: 5 })),
+  recordView: vi.fn(async () => ({ viewCount: 3 })),
   revalidatePath: vi.fn(),
   getSearchClient: vi.fn(() => 'client'),
   runSearch: vi.fn(async () => ({ hits: [], total: 0, page: 1, hitsPerPage: 24 })),
@@ -19,11 +22,14 @@ vi.mock('@revelio/db', () => ({
   updateDeckMeta: m.updateDeckMeta,
   deleteDeck: m.deleteDeck,
   getDeck: m.getDeck,
+  getDeckForViewer: m.getDeckForViewer,
+  toggleLike: m.toggleLike,
+  recordView: m.recordView,
 }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
 vi.mock('@/lib/search-client', () => ({ getSearchClient: m.getSearchClient, runSearch: m.runSearch }))
 
-import { createDeckAction, updateDeckAction, updateDeckMetaAction, deleteDeckAction, duplicateDeckAction, searchDeckCards } from '../deck-actions'
+import { createDeckAction, updateDeckAction, updateDeckMetaAction, deleteDeckAction, duplicateDeckAction, searchDeckCards, toggleLikeAction, recordViewAction } from '../deck-actions'
 
 const validInput = { name: 'D', format: 'revival', visibility: 'private', cards: [{ cardId: 'x', zone: 'main', quantity: 4 }] }
 
@@ -161,4 +167,32 @@ it('searchDeckCards forwards the advanced filters (types/rarities/finishes/legal
 
 it('searchDeckCards rejects an invalid shape', async () => {
   await expect(searchDeckCards('en', { format: 'not-a-format' })).rejects.toThrow()
+})
+
+it('toggleLikeAction rejects when logged out', async () => {
+  m.getSession.mockResolvedValueOnce(null as never)
+  expect(await toggleLikeAction('d1')).toEqual({ ok: false, error: 'auth' })
+  expect(m.toggleLike).not.toHaveBeenCalled()
+})
+
+it('toggleLikeAction rejects a deck the viewer cannot see', async () => {
+  m.getDeckForViewer.mockResolvedValueOnce(null as never)
+  expect(await toggleLikeAction('d1')).toEqual({ ok: false, error: 'invalid' })
+  expect(m.toggleLike).not.toHaveBeenCalled()
+})
+
+it('toggleLikeAction toggles a like for a visible deck', async () => {
+  expect(await toggleLikeAction('d1')).toEqual({ ok: true, liked: true, likeCount: 5 })
+  expect(m.toggleLike).toHaveBeenCalledWith(expect.anything(), 'd1', 'u1')
+})
+
+it('recordViewAction is a no-op when logged out', async () => {
+  m.getSession.mockResolvedValueOnce(null as never)
+  await recordViewAction('d1')
+  expect(m.recordView).not.toHaveBeenCalled()
+})
+
+it('recordViewAction records for a logged-in viewer', async () => {
+  await recordViewAction('d1')
+  expect(m.recordView).toHaveBeenCalledWith(expect.anything(), 'd1', 'u1')
 })

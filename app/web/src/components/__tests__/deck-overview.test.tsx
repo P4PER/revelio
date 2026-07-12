@@ -13,6 +13,9 @@ vi.mock('@/components/deck-overview-actions', () => ({
 }))
 vi.mock('@/components/deck-panel', () => ({ DeckPanel: () => <div data-testid="list-view" /> }))
 vi.mock('@/components/deck-gallery', () => ({ DeckGallery: () => <div data-testid="gallery-view" /> }))
+// The mount effect fires the recordView server action; stub it so tests don't
+// invoke real server code (which calls headers() outside a request scope).
+vi.mock('@/lib/deck-actions', () => ({ recordViewAction: vi.fn(() => Promise.resolve({ viewCount: 1 })) }))
 
 const views: DeckCardView[] = [
   { cardId: 'harry', zone: 'character', quantity: 1, name: 'Harry', cost: null, setCode: 'BS', number: '1', lesson: null, isOfficial: true, legality: null, isLesson: false, isStartingCharacter: true },

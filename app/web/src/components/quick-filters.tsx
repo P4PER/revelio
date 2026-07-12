@@ -1,10 +1,11 @@
 'use client'
 import { useSearchParams } from 'next/navigation'
 import { useRouter, usePathname } from '@/../i18n/navigation'
-import { TYPES, LESSONS } from '@revelio/core'
+import { TYPES } from '@revelio/core'
 import { withParams, parseSearchParams } from '@/lib/search-params'
 import { attrLabel } from '@/lib/attribute-labels'
 import { Button } from '@/components/ui/button'
+import { LessonFilterChips } from '@/components/lesson-filter-chips'
 
 export function QuickFilters({ locale }: { locale: string }) {
   const router = useRouter()
@@ -40,27 +41,10 @@ export function QuickFilters({ locale }: { locale: string }) {
           </Button>
         )
       })}
-      {LESSONS.map((l) => {
-        const active = state.lessons.includes(l.code)
-        return (
-          <Button
-            key={l.code}
-            type="button"
-            size="sm"
-            variant="outline"
-            aria-pressed={active}
-            onClick={() => toggle('lesson', state.lessons, l.code)}
-            style={{
-              borderColor: l.color,
-              color: active ? '#fff' : l.color,
-              backgroundColor: active ? l.color : 'transparent',
-            }}
-            className="rounded-full"
-          >
-            {attrLabel('lessons', l.code, locale)}
-          </Button>
-        )
-      })}
+      <LessonFilterChips
+        selected={state.lessons}
+        onToggle={(code) => toggle('lesson', state.lessons, code)}
+      />
     </div>
   )
 }

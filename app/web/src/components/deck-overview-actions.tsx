@@ -8,6 +8,7 @@ import { Link, useRouter } from '@/../i18n/navigation'
 import { duplicateDeckAction, updateDeckMetaAction } from '@/lib/deck-actions'
 import { saveDraft, type BuilderState } from '@/lib/deck-model'
 import { DeckExportMenu } from '@/components/deck-export-menu'
+import { DeckLikeButton } from '@/components/deck-like-button'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -35,6 +36,8 @@ export function DeckOverviewActions({
   views,
   isOwner,
   loggedIn,
+  likeCount,
+  liked,
 }: {
   deckId: string
   name: string
@@ -43,6 +46,8 @@ export function DeckOverviewActions({
   views: DeckCardView[]
   isOwner: boolean
   loggedIn: boolean
+  likeCount: number
+  liked: boolean
 }) {
   const t = useTranslations('decks')
   const router = useRouter()
@@ -80,6 +85,8 @@ export function DeckOverviewActions({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      <DeckLikeButton deckId={deckId} initialLiked={liked} initialCount={likeCount} loggedIn={loggedIn} />
+
       {isOwner && (
         <Button asChild>
           <Link href={`/decks/${deckId}/edit`}>

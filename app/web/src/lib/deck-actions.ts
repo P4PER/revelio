@@ -6,7 +6,7 @@ import type { CardDetailDTO, DeckCardView } from '@revelio/core'
 import type { SearchResult } from '@revelio/search'
 import { getSession } from '@/lib/session'
 import { getDb } from '@/lib/db'
-import { createDeck, updateDeck, updateDeckMeta, deleteDeck, getDeck, getCardById, getCardViews, resolveCardsByName } from '@revelio/db'
+import { createDeck, updateDeck, updateDeckMeta, deleteDeck, getDeck, getDeckForViewer, getCardById, getCardViews, resolveCardsByName, toggleLike, recordView } from '@revelio/db'
 import { getSearchClient, runSearch } from '@/lib/search-client'
 import type { SearchState } from '@/lib/search-params'
 
@@ -34,7 +34,7 @@ export async function createDeckAction(input: unknown): Promise<DeckActionResult
   const parsed = writeSchema.safeParse(input)
   if (!parsed.success) return { ok: false, error: 'invalid' }
   const id = await createDeck(getDb(), userId, parsed.data)
-  revalidatePath('/decks')
+  revalidatePath('/decks/mine')
   return { ok: true, id }
 }
 
@@ -47,7 +47,8 @@ export async function updateDeckAction(id: string, input: unknown): Promise<Deck
   if (!existing) return { ok: false, error: 'invalid' }
   if (existing.userId !== userId) return { ok: false, error: 'forbidden' }
   await updateDeck(getDb(), id, parsed.data)
-  revalidatePath('/decks')
+  revalidatePath('/decks/mine')
+  revalidatePath('/decks') // public browse (content/visibility may have changed)
   revalidatePath(`/decks/${id}`)
   return { ok: true, id }
 }
@@ -70,7 +71,8 @@ export async function updateDeckMetaAction(id: string, input: unknown): Promise<
   if (!existing) return { ok: false, error: 'invalid' }
   if (existing.userId !== userId) return { ok: false, error: 'forbidden' }
   await updateDeckMeta(getDb(), id, parsed.data)
-  revalidatePath('/decks')
+  revalidatePath('/decks/mine')
+  revalidatePath('/decks') // public browse (visibility toggle add/removes it)
   revalidatePath(`/decks/${id}`)
   return { ok: true, id }
 }
@@ -82,7 +84,8 @@ export async function deleteDeckAction(id: string): Promise<DeckActionResult> {
   if (!existing) return { ok: false, error: 'invalid' }
   if (existing.userId !== userId) return { ok: false, error: 'forbidden' }
   await deleteDeck(getDb(), id)
-  revalidatePath('/decks')
+  revalidatePath('/decks/mine')
+  revalidatePath('/decks') // public browse (deck may have been public)
   return { ok: true, id }
 }
 
@@ -159,6 +162,32 @@ export async function duplicateDeckAction(id: string): Promise<DeckActionResult>
   const newId = await createDeck(getDb(), userId, {
     name: `${deck.name} (copy)`, format: deck.format, visibility: 'private', cards: deck.cards,
   })
-  revalidatePath('/decks')
+  revalidatePath('/decks/mine')
   return { ok: true, id: newId }
+}
+
+export type LikeActionResult = { ok: true; liked: boolean; likeCount: number } | { ok: false; error: string }
+
+export async function toggleLikeAction(deckId: string): Promise<LikeActionResult> {
+  const userId = await requireUserId()
+  if (!userId) return { ok: false, error: 'auth' }
+  // Only likeable if the viewer can see the deck (own or public); this also
+  // 404-guards against liking arbitrary/private deck ids.
+  const existing = await getDeckForViewer(getDb(), deckId, userId)
+  if (!existing) return { ok: false, error: 'invalid' }
+  const res = await toggleLike(getDb(), deckId, userId)
+  revalidatePath('/decks')
+  return { ok: true, ...res }
+}
+
+// Best-effort, logged-in-only view record. Fired from the overview page on
+// mount; failures are swallowed (a missed view must never break the page).
+export async function recordViewAction(deckId: string): Promise<void> {
+  const userId = await requireUserId()
+  if (!userId) return
+  try {
+    await recordView(getDb(), deckId, userId)
+  } catch {
+    // ignore — vanity counter, not worth surfacing
+  }
 }

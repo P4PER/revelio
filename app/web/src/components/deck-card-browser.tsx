@@ -3,11 +3,11 @@ import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useLocale, useTranslations } from 'next-intl'
 import { Info, Search } from 'lucide-react'
-import { LESSONS, deckCardMeta, imageUrl, thumbKey } from '@revelio/core'
+import { deckCardMeta, imageUrl, thumbKey } from '@revelio/core'
 import type { DeckCardView, DeckFormat, DeckZone, SetDTO } from '@revelio/core'
 import type { SearchDocument, SearchResult } from '@revelio/search'
 import { searchDeckCards } from '@/lib/deck-actions'
-import { attrLabel } from '@/lib/attribute-labels'
+import { LessonFilterChips } from '@/components/lesson-filter-chips'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -126,24 +126,7 @@ export function DeckCardBrowser({
           />
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
-          {LESSONS.map((l) => {
-            const active = lessons.includes(l.code)
-            return (
-              <button
-                key={l.code}
-                type="button"
-                aria-pressed={active}
-                onClick={() => toggleLesson(l.code)}
-                className={cn(
-                  'inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs',
-                  active ? 'border-accent bg-accent/20 text-foreground' : 'border-border text-muted-foreground hover:text-foreground',
-                )}
-              >
-                <span className="size-2 rounded-sm" style={{ backgroundColor: l.color }} aria-hidden />
-                {attrLabel('lessons', l.code, locale)}
-              </button>
-            )
-          })}
+          <LessonFilterChips selected={lessons} onToggle={toggleLesson} size="sm" />
           <div className="ml-auto">
             <DeckFilterDrawer sets={sets} value={filters} onApply={setFilters} />
           </div>

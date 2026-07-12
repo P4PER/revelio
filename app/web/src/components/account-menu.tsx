@@ -40,7 +40,7 @@ export function AccountMenu({ isEditor }: { isEditor: boolean }) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/decks"><Library />{tNav('myDecks')}</Link>
+          <Link href="/decks/mine"><Library />{tNav('myDecks')}</Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         {isEditor && (

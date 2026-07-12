@@ -8,6 +8,12 @@ export function thumbKey(id: string, lang?: string, defaultLang?: string): strin
     : `cards/thumb/${id}.webp`
 }
 
+// Deck-hero art crop: a pre-cropped, upright character image baked at ingest time.
+// Default-language only (no lang suffix) — the deck hero always shows the en art.
+export function artCropKey(id: string): string {
+  return `cards/art-crop/${id}.webp`
+}
+
 export function symbolKey(code: string): string {
   return `symbols/${code}.webp`
 }

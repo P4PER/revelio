@@ -4,7 +4,7 @@ import {
   S3Client, HeadBucketCommand, CreateBucketCommand, PutBucketPolicyCommand,
   HeadObjectCommand, PutObjectCommand,
 } from '@aws-sdk/client-s3'
-import { imageKey, thumbKey, symbolKey } from '@revelio/core'
+import { imageKey, thumbKey, symbolKey, artCropKey } from '@revelio/core'
 
 export type S3Config = {
   endpoint: string
@@ -93,6 +93,11 @@ async function collectUploads(assetsDir: string): Promise<Upload[]> {
   for (const f of await readdirSafe(thumbDir)) {
     const c = classify(f)
     if (c) uploads.push({ file: join(thumbDir, f), key: thumbKey(c.id), contentType: c.contentType })
+  }
+  const artCropDir = resolve(cardsDir, 'art-crop')
+  for (const f of await readdirSafe(artCropDir)) {
+    const c = classify(f)
+    if (c) uploads.push({ file: join(artCropDir, f), key: artCropKey(c.id), contentType: c.contentType })
   }
   const symbolsDir = resolve(assetsDir, 'symbols')
   for (const f of await readdirSafe(symbolsDir)) {

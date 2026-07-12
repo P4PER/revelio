@@ -50,7 +50,9 @@ export function DeckOverview(props: DeckOverviewProps) {
     // Record a unique view (logged-in-only, deduped server-side). Fired here on
     // mount rather than in the page's server render, which Next may run/prefetch
     // repeatedly. deckId is stable for a mounted overview, so this fires once.
-    if (loggedIn) void recordViewAction(deckId)
+    // Best-effort: a failed view record (auth expiry, network blip) must not
+    // surface as an unhandled promise rejection.
+    if (loggedIn) void recordViewAction(deckId).catch(() => {})
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deckId])
 

@@ -27,7 +27,7 @@ describe('DeckHeroCard', () => {
     const { container } = renderCard()
     expect(screen.getByText('Lara but Fast')).toBeInTheDocument()
     expect(screen.getByText(/Revival · 60 cards/)).toBeInTheDocument()
-    expect(screen.getByText('Abls')).toBeInTheDocument()
+    expect(screen.getByText('@Abls')).toBeInTheDocument()
     expect(screen.getByText('3')).toBeInTheDocument()  // likes
     expect(screen.getByText('10')).toBeInTheDocument() // views
     // lesson icons + starter art present, but NO interactive like button

@@ -27,13 +27,23 @@ export function DeckArt({
   const [errored, setErrored] = useState(false)
   const showImage = Boolean(cardId && imageBase) && !errored
   return (
-    <div className={cn('relative overflow-hidden bg-muted', className)}>
+    <div className={cn('relative overflow-hidden bg-muted', className)} style={{ containerType: 'size' }}>
       {showImage ? (
+        // Character (starter) cards are landscape cards stored sideways in a
+        // portrait canvas. We rotate 90° clockwise to stand them upright and
+        // zoom onto the character's face (upper-right of the corrected card).
+        // The img is sized/translated in container-query-width units so the
+        // rotated crop is anchored on the face for a 16:10 container.
         <img
           src={imageUrl(imageBase, imageKey(cardId as string))}
           alt={alt}
-          className="absolute inset-0 h-full w-full object-cover"
-          style={{ objectPosition: 'center 22%' }}
+          className="absolute left-0 top-0 max-w-none object-cover"
+          style={{
+            width: '143.3cqw',
+            height: '200.0cqw',
+            transformOrigin: '0 0',
+            transform: 'translate(110.0cqw, -37.5cqw) rotate(90deg)',
+          }}
           onError={() => setErrored(true)}
         />
       ) : (

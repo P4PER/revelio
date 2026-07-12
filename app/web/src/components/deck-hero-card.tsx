@@ -18,9 +18,12 @@ export function DeckHeroCard({ deck, imageBase }: { deck: PublicDeckEntry; image
       <div className="relative aspect-[16/10]">
         <DeckArt cardId={deck.starterCardId} lessons={deck.lessons} imageBase={imageBase} alt={deck.name} className="h-full w-full" />
         {/* top scrim + name/meta */}
-        <div className="absolute inset-x-0 top-0 bg-gradient-to-b from-black/70 to-transparent p-3">
+        <div
+          className="absolute inset-x-0 top-0 bg-gradient-to-b from-black/85 via-black/45 to-transparent p-3 pb-8"
+          style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}
+        >
           <div className="line-clamp-1 font-semibold text-white">{deck.name}</div>
-          <div className="text-xs text-white/80">
+          <div className="text-xs text-white/90">
             {t(`explore.format.${deck.format}`)} · {t('explore.cards', { count: deck.cardCount })}
           </div>
         </div>
@@ -35,12 +38,7 @@ export function DeckHeroCard({ deck, imageBase }: { deck: PublicDeckEntry; image
       </div>
       {/* footer bar */}
       <div className="flex items-center justify-between gap-2 px-3 py-2 text-xs text-muted-foreground">
-        <span className="inline-flex min-w-0 items-center gap-1.5">
-          <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-medium uppercase text-foreground">
-            {deck.author.charAt(0)}
-          </span>
-          <span className="truncate">{deck.author}</span>
-        </span>
+        <span className="min-w-0 truncate">@{deck.author}</span>
         <span className="shrink-0">{formatRelativeTime(deck.updatedAt, locale)}</span>
       </div>
     </Link>

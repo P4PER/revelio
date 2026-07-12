@@ -34,4 +34,10 @@ describe('DeckHeroCard', () => {
     expect(container.querySelector('[aria-pressed]')).toBeNull()
     expect(container.querySelector('a')).toHaveAttribute('href', '/decks/d1')
   })
+
+  it('renders the baked art-crop for the starter card', () => {
+    const { container } = renderCard()
+    const img = container.querySelector('img')
+    expect(img).toHaveAttribute('src', 'https://img.test/cards/art-crop/c-1.webp')
+  })
 })

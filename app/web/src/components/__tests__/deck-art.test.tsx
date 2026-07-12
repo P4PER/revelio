@@ -11,6 +11,14 @@ describe('DeckArt', () => {
     expect(img).toHaveAttribute('alt', 'Deck')
   })
 
+  it('renders the baked art-crop image (no transform) when crop is set', () => {
+    const { container } = render(<DeckArt crop cardId="c-1" lessons={['charms']} imageBase="https://img.test" alt="Deck" />)
+    const img = container.querySelector('img')
+    expect(img).toHaveAttribute('src', 'https://img.test/cards/art-crop/c-1.webp')
+    expect(img).toHaveClass('object-cover')
+    expect(img?.getAttribute('style') ?? '').not.toContain('rotate')
+  })
+
   it('renders no image (gradient fallback) when there is no card id', () => {
     const { container } = render(<DeckArt cardId={null} lessons={['charms', 'potions']} imageBase="https://img.test" alt="Deck" />)
     expect(container.querySelector('img')).toBeNull()

@@ -17,16 +17,14 @@ asset instead.
 
 ## Goals
 
-- Serve `DeckHeroCard` a small, correctly-framed character crop rather than a
-  full card.
-- Keep framing cheap to iterate (no per-tweak re-ingest of the full dataset).
+- Serve `DeckHeroCard` a small, correctly-framed, upright character crop rather
+  than a full card.
+- Keep the framing logic out of the browser (no per-tile CSS transform).
 - Change nothing about the secondary `DeckDiscoverRow` list view.
 
 ## Non-goals
 
-- Cropping non-character card types. The rotate-to-upright + face-zoom recipe is
-  meaningless for them, and only a deck's starter card (always a Character) is
-  ever rendered by `DeckArt`.
+- Cropping non-Wizard/Witch card types. See Scope.
 - Per-language crops. `DeckArt` already renders the default-language (en) image;
   crops are default-language only. (YAGNI.)
 - Changing `DeckDiscoverRow`. It keeps the current full-image CSS crop into its
@@ -34,10 +32,20 @@ asset instead.
 
 ## Scope
 
-- **Character cards only** — 109 of 1035 cards. Confirmed all 109 are
-  `orientation: horizontal` (landscape art stored sideways in the portrait
-  canvas), so the 90° rotation is uniformly valid with no per-card branching.
+- **Wizard/Witch characters only** — 91 cards. Filter: `types` includes
+  `Character` **and** `subTypes` includes `Wizard` or `Witch`. (Of 109 total
+  Character cards, 18 are non-Wizard/Witch — e.g. Filch, a Squib — and are
+  excluded.)
 - **`DeckHeroCard` only** consumes the baked crop.
+
+## Key finding: orientation is uniform
+
+Every Character card is a **landscape card scanned into a portrait canvas** (the
+name banner runs vertically up the left edge; `orientation: horizontal` in the
+dataset for all 109). Rotating the source **90° clockwise** stands every card
+upright with a readable title — verified across Harry, Hermione, Snape,
+Dumbledore, Filch, and a 20-card montage. There is **no per-card variation**, so
+a single rotation + single crop box works for all 91.
 
 ## Architecture & data flow
 
@@ -45,7 +53,7 @@ Mirrors the existing thumbnail pipeline at every layer.
 
 ### 1. `card-data/accio_images.py --download` (Pillow)
 
-In `_process_one`, for cards whose `types` include `Character`, emit a third
+In `_process_one`, for cards matching the Wizard/Witch filter, emit a third
 output alongside the full card and thumb:
 
 ```
@@ -54,18 +62,17 @@ assets/cards/art-crop/<id>.webp
 
 Recipe on the 745×1040 source:
 
-1. **Crop** the character-art band. Box (left, upper, right, lower) derived by
-   reversing the known-good `DeckArt` CSS transform (see "Crop geometry"):
-   approximately `(195, 52, 520, 572)` → a 325×520 portrait region. Widen by a
-   small safety margin (~6% each edge) so `object-position` can still nudge.
-2. **Rotate 90° clockwise** to stand the art upright
-   (`transpose(ROTATE_270)` / `rotate(-90, expand=True)`), yielding a landscape
-   ~16:10 region.
-3. **Resize** to ~500px wide, save WebP `quality=85, method=6` (same settings as
-   thumbs).
+1. **Rotate 90° clockwise** — `img.transpose(Image.ROTATE_270)` → a 1040×745
+   landscape image, upright, title readable.
+2. **Crop** the character-art diamond: box `(470, 175, 990, 500)`
+   (left, upper, right, lower) → a 520×325 region, exactly 16:10.
+3. **Save** WebP `quality=85, method=6` (same settings as thumbs). The box is
+   already 520px wide, so there is no resampling/upscaling.
 
 Generation is idempotent: skip when the target file already exists (matches the
-existing full/thumb skip logic).
+existing full/thumb skip logic). The card-type/subtype filter needs the card's
+`types`/`subTypes`, which `_process_one` already has access to via the card
+object `c`.
 
 ### 2. `@revelio/core/images.ts`
 
@@ -91,8 +98,8 @@ inherited unchanged.
 Add a `crop?: boolean` prop (default `false`):
 
 - `crop === true` → `src = imageUrl(imageBase, artCropKey(cardId))`, rendered as
-  a plain `object-cover` image with a per-container `object-position` (no rotate
-  transform). `DeckHeroCard` passes `crop`.
+  a plain `object-cover` image (no rotate/translate transform). `DeckHeroCard`
+  passes `crop`.
 - `crop === false` (default) → **unchanged** current behavior: full-image
   `imageKey` + the rotate/translate `cqw` transform. `DeckDiscoverRow` is
   untouched.
@@ -107,19 +114,16 @@ branches.
          imageBase={imageBase} alt={deck.name} className="h-full w-full" />
 ```
 
-## Crop geometry (derivation)
+## Crop geometry (final)
 
-Reversing the current `DeckArt` transform (`img` at `143.3cqw × 200.0cqw`,
-`transformOrigin 0 0`, `translate(110cqw, -37.5cqw) rotate(90deg)`) against a
-16:10 container (`x ∈ [0,100]cqw`, `y ∈ [0,62.5]cqw`) maps the visible window
-back to source pixels:
-
-- source-x ∈ [195, 520] (325px)
-- source-y ∈ [52, 572] (520px)
-
-Rotating that 325×520 region 90° CW gives 520×325 → exactly 16:10, matching the
-hero container. These numbers are the starting point; final values are
-confirmed by visual check (below), not asserted blind.
+- Source: 745×1040 portrait scan of a landscape card.
+- Rotate 90° CW → 1040×745 upright landscape.
+- Crop box `(470, 175, 990, 500)` → 520×325, 16:10 ("Box C": frames the
+  character-art diamond with a little surrounding context; chosen over the
+  tighter Box A in review).
+- The 16:10 crop matches `DeckHeroCard`'s `aspect-[16/10]` container, so
+  `object-cover` shows the whole crop with no trimming; `object-position`
+  remains available for fine nudging.
 
 ## Verification
 
@@ -127,26 +131,29 @@ confirmed by visual check (below), not asserted blind.
 - **`@revelio/ingest`**: extend the `collectUploads` test — an `art-crop/` file
   produces an upload keyed by `artCropKey`.
 - **`@revelio/web`**: update the `DeckArt` test — `crop` renders an `img` whose
-  `src` is the art-crop URL and no rotate transform; the default branch and the
+  `src` is the art-crop URL with no rotate transform; the default branch and the
   gradient fallback remain covered.
-- **Visual**: reuse the existing Playwright card-crop harness to eyeball a real
-  baked crop framed in the hero tile; adjust the crop box / margin if the face
-  is mis-anchored.
+- **Visual**: the framing was validated during design against Harry, Hermione,
+  Snape, Dumbledore, and Filch (rotated + Box C). Re-check with the Playwright
+  card harness after wiring `DeckHeroCard`.
 
 ## Idempotency & rollout
 
 - Pillow skips existing files; upload skips existing keys. A one-off
-  `accio_images.py --download` re-run backfills the 109 crops and re-uploads
-  only those; nothing else changes.
+  `accio_images.py --download` re-run backfills the 91 crops and re-uploads only
+  those; nothing else changes.
 - Until crops exist in the bucket, a `crop` `DeckArt` with a missing asset falls
   through its `onError` to the lesson gradient — safe partial-deploy behavior.
+  (Every deck's starter is a Character; the 18 non-Wizard/Witch starters would
+  fall back to the gradient. If that is undesirable, widen the filter to all
+  Character cards later — the recipe is identical, only the filter changes.)
 
 ## Risks
 
-- **Crop box accuracy**: the derived box assumes the current CSS framing is
-  correct for all 109 characters. The Playwright visual check gates this; a
-  single global box (plus the object-position margin) is expected to suffice
-  since the source layout is uniform.
+- **Non-Wizard/Witch starters** (e.g. a Squib/Creature-less deck whose starter
+  is one of the 18 excluded Characters) show the lesson-gradient fallback in the
+  hero tile rather than art. Accepted for now; trivially widened by relaxing the
+  subtype filter.
 - **Two code paths in `DeckArt`**: the `crop` prop keeps the legacy rotate path
   alive for the row. Acceptable — the row explicitly stays unchanged, and both
   paths share the fallback logic.

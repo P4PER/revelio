@@ -54,7 +54,7 @@ export function CardRotate({
         aria-pressed={open}
         onClick={toggle}
         data-open={open}
-        className="absolute top-2 left-2 z-20 cursor-pointer rounded-full border border-border bg-background/80 p-2.5 text-foreground opacity-0 shadow transition-opacity hover:bg-background focus-visible:opacity-100 group-hover:opacity-100 data-[open=true]:opacity-100"
+        className="absolute top-2 left-2 z-20 cursor-pointer rounded-full border-2 border-foreground/60 bg-background/90 p-2.5 text-foreground opacity-0 shadow-md transition-opacity hover:bg-background focus-visible:opacity-100 group-hover:opacity-100 data-[open=true]:opacity-100"
       >
         <RotateCw className="size-5" />
       </button>
@@ -73,8 +73,10 @@ export function CardRotate({
             style={{
               left: rect.left + rect.width / 2,
               top: rect.top + rect.height / 2,
-              // Upright landscape card ≈ twice the tile width, centred on the tile.
-              width: Math.max(rect.width * 2, 320),
+              // Same physical card, just rotated: the landscape card's long edge
+              // equals the portrait tile's height, so it's never larger than the
+              // normal card — width = tile height, height (via aspect-[7/5]) = tile width.
+              width: rect.height,
               transform: 'translate(-50%, -50%)',
             }}
           >

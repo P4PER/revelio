@@ -1,10 +1,10 @@
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { Pencil } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import { Button } from '@/components/ui/button'
 import type { CardDetailDTO } from '@revelio/core'
 import { effectiveImageLang, imageKey, imageUrl } from '@revelio/core'
+import { CardImage } from '@/components/card-image'
 import { attrLabel } from '@/lib/attribute-labels'
 import { pickLocalization } from '@/lib/card-view'
 import { Badge } from '@/components/ui/badge'
@@ -35,22 +35,21 @@ export function CardDetail({
 
   return (
     <article className="mx-auto grid max-w-[76rem] gap-8 px-6 py-8 md:grid-cols-[minmax(0,340px)_1fr]">
-      <div className="relative aspect-[5/7] overflow-hidden rounded-xl border border-border/60 bg-card">
-        {imgLang ? (
-          <Image
-            src={imageUrl(imageBase, imageKey(card.id, imgLang, card.defaultLanguage))}
-            alt={loc.name}
-            fill
-            sizes="340px"
-            className="object-cover"
-            priority
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted-foreground">
-            {loc.name}
-          </div>
-        )}
-      </div>
+      {imgLang ? (
+        <CardImage
+          src={imageUrl(imageBase, imageKey(card.id, imgLang, card.defaultLanguage))}
+          alt={loc.name}
+          orientation={card.orientation}
+          upright
+          sizes="340px"
+          priority
+          frameClassName="rounded-xl border border-border/60 bg-card"
+        />
+      ) : (
+        <div className="relative flex aspect-[5/7] items-center justify-center rounded-xl border border-border/60 bg-card p-4 text-center text-sm text-muted-foreground">
+          {loc.name}
+        </div>
+      )}
       <div>
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">

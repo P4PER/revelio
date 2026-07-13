@@ -31,6 +31,24 @@ const card: CardDetailDTO = {
 }
 
 describe('CardDetail', () => {
+  it('renders a horizontal card upright (landscape frame)', () => {
+    const horizontal = { ...card, orientation: 'horizontal' as const,
+      localizations: { ...card.localizations,
+        en: { ...card.localizations.en, imageFile: 'bs-1-fluffy.webp' } } }
+    const { container } = render(<CardDetail card={horizontal} locale="en" imageBase="http://img" />, { wrapper: Wrapper })
+    expect(container.querySelector('.aspect-\\[7\\/5\\]')).not.toBeNull()
+    expect(container.querySelector('.rotate-90')).not.toBeNull()
+  })
+
+  it('renders a vertical card in a portrait frame', () => {
+    const vertical = { ...card,
+      localizations: { ...card.localizations,
+        en: { ...card.localizations.en, imageFile: 'bs-1-fluffy.webp' } } }
+    const { container } = render(<CardDetail card={vertical} locale="en" imageBase="http://img" />, { wrapper: Wrapper })
+    expect(container.querySelector('.aspect-\\[5\\/7\\]')).not.toBeNull()
+    expect(container.querySelector('.rotate-90')).toBeNull()
+  })
+
   it('renders the localized card with rules text, rulings and artist', () => {
     render(<CardDetail card={card} locale="en" imageBase="http://img" />, { wrapper: Wrapper })
     expect(screen.getByRole('heading', { name: 'Fluffy' })).toBeInTheDocument()

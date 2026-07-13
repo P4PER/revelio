@@ -72,19 +72,27 @@ the duplication currently spread across `card-tile.tsx`, `card-detail.tsx`,
 - Rotation direction (clockwise vs counter-clockwise) is verified visually against a real
   horizontal card during implementation; all horizontal cards use the same direction.
 
-### 3. Lists — hover rotate button + upright overlay
+### 3. Lists — hover rotate button, card rotates in place over its neighbors
 
 For **horizontal cards only**, list tiles gain a small rotate button revealed on hover
 (positioned in a corner). Requirements:
 
 - The button **stops click propagation** so it never triggers the tile's own action
   (navigate to detail, or add-to-deck in the deck builder).
-- Clicking opens a lightweight **overlay preview** (Radix Popover or Dialog) showing the
-  card **upright and enlarged**, floating above the grid. The tile underneath is untouched
-  and the grid **never reflows**.
-- The overlay dismisses on outside-click and Esc. Rotation state is **ephemeral** — it
-  closes on navigation and is not persisted.
+- Clicking rotates the **card itself in place** — the tile's image animates 90° from its
+  stored sideways orientation to upright. Because upright it becomes a larger **landscape**
+  shape, the rotated card is **lifted above its neighbors** (elevated `z-index`, positioned/
+  transformed out of visual flow) so it **floats over the adjacent cards**. The card's grid
+  slot stays put, so the grid **never reflows**; only the visual overlap changes.
+- The rotation is **animated** (CSS transition) for a smooth flip.
+- Clicking the button again (or clicking elsewhere / pressing Esc) rotates the card back
+  down and drops it back among its neighbors. Rotation state is **ephemeral** — it resets on
+  navigation and is not persisted.
 - Vertical cards show **no** rotate button.
+
+Implementation note: the elevated/overlapping element must escape any `overflow-hidden`
+ancestor (or that ancestor must allow overflow while a card is rotated) so the landscape
+card is not clipped by its own tile or the grid container.
 
 Applied to all list surfaces:
 
@@ -114,8 +122,8 @@ the same behavior. Vertical cards are unchanged.
   `orientation === 'horizontal'`; renders the normal portrait markup otherwise (including
   `upright` on a vertical card).
 - List tile: the rotate button is present for a horizontal card and **absent** for a vertical
-  card; clicking the button does **not** trigger the tile's navigate/add action; the overlay
-  opens and dismisses (outside-click / Esc).
+  card; clicking the button does **not** trigger the tile's navigate/add action; clicking
+  toggles the rotated/elevated state and clicking again (or Esc) resets it.
 - `buildCardDocument` includes `orientation` in its output.
 
 ## Affected files (indicative)
@@ -126,6 +134,7 @@ the same behavior. Vertical cards are unchanged.
 - `app/web/src/components/card-detail.tsx` — use `CardImage upright`
 - `app/web/src/components/deck-card-browser.tsx` — use `CardImage`, add hover-rotate + overlay
 - `app/web/src/components/deck-gallery.tsx` — use `CardImage`, add hover-rotate + overlay
-- possibly a shared hover-rotate/overlay component (e.g. `rotated-card-preview.tsx`)
+- a shared hover-rotate component that wraps the image area (e.g. `card-rotate.tsx`),
+  owning the button, the animated in-place rotation, and the elevate-over-neighbors behavior
 - `app/core/src/domain.ts` — only if base `CardDTO` needs `orientation`
 - Re-index step (ingest) after the search-document change

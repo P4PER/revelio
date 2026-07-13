@@ -54,15 +54,21 @@ export function CardRotate({
         aria-pressed={open}
         onClick={toggle}
         data-open={open}
-        className="absolute top-1.5 left-1.5 z-20 rounded-full bg-background/80 p-1.5 text-foreground opacity-0 shadow transition-opacity focus-visible:opacity-100 group-hover:opacity-100 data-[open=true]:opacity-100"
+        className="absolute top-2 left-2 z-20 rounded-full bg-background/80 p-2.5 text-foreground opacity-0 shadow transition-opacity focus-visible:opacity-100 group-hover:opacity-100 data-[open=true]:opacity-100"
       >
-        <RotateCw className="size-3.5" />
+        <RotateCw className="size-5" />
       </button>
 
       {open && rect && createPortal(
         <>
-          <div className="fixed inset-0 z-40" aria-hidden onClick={() => setRect(null)} />
           <div
+            data-testid="card-rotate-backdrop"
+            className="fixed inset-0 z-40"
+            aria-hidden
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRect(null) }}
+          />
+          <div
+            onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
             className="fixed z-50 aspect-[7/5] overflow-hidden rounded-xl border border-border bg-card shadow-2xl"
             style={{
               left: rect.left + rect.width / 2,

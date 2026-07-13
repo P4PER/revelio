@@ -39,4 +39,14 @@ describe('CardRotate', () => {
     fireEvent.click(screen.getByRole('button', { name: /rotate upright/i }))
     expect(parentClick).not.toHaveBeenCalled()
   })
+
+  it('closes on backdrop click without bubbling to the parent (portal event gotcha)', () => {
+    const parentClick = vi.fn()
+    mount('horizontal', parentClick)
+    fireEvent.click(screen.getByRole('button', { name: /rotate upright/i }))
+    parentClick.mockClear()
+    fireEvent.click(screen.getByTestId('card-rotate-backdrop'))
+    expect(screen.queryByRole('button', { name: /close rotated view/i })).toBeNull()
+    expect(parentClick).not.toHaveBeenCalled()
+  })
 })

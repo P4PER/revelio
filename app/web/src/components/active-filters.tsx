@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from '@/../i18n/navigation'
 import type { SetDTO } from '@revelio/core'
@@ -11,8 +12,9 @@ type Chip = { key: string; label: string; remove: Record<string, string | string
 export function ActiveFilters({ sets, locale }: { sets: SetDTO[]; locale: string }) {
   const router = useRouter()
   const params = useSearchParams()
+  const t = useTranslations('filters')
 
-  // Advanced-only chips; Type/Lesson/Official are shown by their quick-filter badges.
+  // Advanced-only chips; Type/Lesson are shown by their quick-filter badges.
   const multi: { param: string; scope: 'rarities' | 'finishes' | 'legalities' }[] = [
     { param: 'rarity', scope: 'rarities' },
     { param: 'finish', scope: 'finishes' },
@@ -34,6 +36,10 @@ export function ActiveFilters({ sets, locale }: { sets: SetDTO[]; locale: string
   const min = params.get('costMin')
   const max = params.get('costMax')
   if (min || max) chips.push({ key: 'cost', label: `${min ?? '0'}–${max ?? '∞'}`, remove: { costMin: null, costMax: null } })
+  const official = params.get('official')
+  if (official === 'official' || official === 'fan') {
+    chips.push({ key: `official:${official}`, label: t(official), remove: { official: null } })
+  }
 
   if (chips.length === 0) return null
 

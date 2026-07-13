@@ -24,4 +24,14 @@ describe('DeckDiscoverRow', () => {
     expect(container.querySelector('[aria-pressed]')).toBeNull() // no like button
     expect(container.querySelector('a')).toHaveAttribute('href', '/decks/d1')
   })
+
+  it('renders the baked art-crop thumbnail for the starter card', () => {
+    const { container } = render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        <DeckDiscoverRow deck={{ ...deck, starterCardId: 'c-1' }} imageBase="https://img.test" />
+      </NextIntlClientProvider>,
+    )
+    const img = container.querySelector('img')
+    expect(img).toHaveAttribute('src', 'https://img.test/cards/art-crop/c-1.webp')
+  })
 })

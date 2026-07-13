@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { imageKey, thumbKey, symbolKey, imageUrl } from '../src/images.js'
+import { imageKey, thumbKey, symbolKey, imageUrl, artCropKey } from '../src/images.js'
 import { effectiveImageLang } from '../src/images.js'
 
 describe('image keys and urls', () => {
@@ -7,6 +7,7 @@ describe('image keys and urls', () => {
     expect(imageKey('bs-1-dean-thomas')).toBe('cards/bs-1-dean-thomas.webp')
     expect(thumbKey('bs-1-dean-thomas')).toBe('cards/thumb/bs-1-dean-thomas.webp')
     expect(symbolKey('BS')).toBe('symbols/BS.webp')
+    expect(artCropKey('bs-1-dean-thomas')).toBe('cards/art-crop/bs-1-dean-thomas.webp')
   })
 
   it('joins base and key with a single slash', () => {

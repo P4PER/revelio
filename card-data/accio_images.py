@@ -34,6 +34,13 @@ FULL_W, THUMB_W = 745, 300   # THUMB_W = max thumbnail width (grid tile)
 # card corners) is preserved. Needs Pillow.
 WEBP_FULL_Q, WEBP_THUMB_Q, WEBP_METHOD = 100, 85, 6
 
+# Deck-hero art crop (Wizard/Witch characters only). The source is a landscape card
+# scanned into a portrait canvas, so rotate 90 CW to stand it upright, then crop the
+# character-art diamond to 16:10. Box is expressed as fractions of the rotated
+# (1040x745) image so it survives any uniform source-resolution change.
+ART_CROP_W, ART_CROP_H = 520, 325
+ART_BOX_FRAC = (470 / 1040, 175 / 745, 990 / 1040, 500 / 745)
+
 def _arg_workers(default=8):
     """Parse `--workers N` / `--workers=N` from argv (parallel download threads)."""
     for i, a in enumerate(sys.argv):
@@ -188,11 +195,54 @@ def download_symbols():
     json.dump(sets, open(sets_path, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
     print(f"  symbols: saved {n}, failed {failed}")
 
+def is_wizard_witch(c):
+    """True for Character cards whose subtypes include Wizard or Witch."""
+    return "Character" in c.get("types", []) and any(
+        s in ("Wizard", "Witch") for s in c.get("subTypes", []))
+
+
+def crop_art(im):
+    """Rotate the full card 90 CW and crop the character-art diamond to 520x325 (16:10)."""
+    from PIL import Image
+    r = im.convert("RGB").transpose(Image.ROTATE_270)  # 90 clockwise -> upright landscape
+    w, h = r.size
+    l, u, ri, lo = ART_BOX_FRAC
+    box = (round(l * w), round(u * h), round(ri * w), round(lo * h))
+    return r.crop(box).resize((ART_CROP_W, ART_CROP_H), Image.LANCZOS)
+
+
+def generate_art_crops(cards):
+    """Bake art-crop/<id>.webp for Wizard/Witch characters from the local full images.
+    Idempotent: skips crops that already exist. Returns (made, skipped)."""
+    try:
+        from PIL import Image
+    except ImportError:
+        return (0, 0)
+    out_dir = os.path.join(ASSETS, "cards", "art-crop")
+    os.makedirs(out_dir, exist_ok=True)
+    made = skipped = 0
+    for c in cards:
+        if not is_wizard_witch(c):
+            continue
+        src = os.path.join(ASSETS, "cards", f"{c['id']}.webp")
+        dst = os.path.join(out_dir, f"{c['id']}.webp")
+        if not os.path.exists(src):
+            continue
+        if os.path.exists(dst):
+            skipped += 1
+            continue
+        crop_art(Image.open(src)).save(dst, "WEBP", quality=WEBP_THUMB_Q, method=WEBP_METHOD)
+        made += 1
+    return (made, skipped)
+
+
 def main():
     cards = json.load(open(os.path.join(DIST, "cards.json"), encoding="utf-8"))
     n = download_mode(cards) if DOWNLOAD else link_mode(cards)
     if DOWNLOAD:
         download_symbols()
+        made, skipped = generate_art_crops(cards)
+        print(f"art crops: {made} made, {skipped} skipped")
     json.dump(cards, open(os.path.join(DIST, "cards.json"), "w", encoding="utf-8"), indent=2, ensure_ascii=False)
     # refresh per-language slim files' image url (en image is the shared art)
     langs = sorted({l for c in cards for l in c["languages"]})

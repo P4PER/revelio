@@ -23,13 +23,19 @@ export function CardRotate({
 }) {
   const t = useTranslations('card')
   const wrapRef = useRef<HTMLDivElement>(null)
+  // `rect` marks the image as elevated (fixed + z, escaping the tile clip); it
+  // stays set through the whole rotate. `rotated` drives the 90° transform.
+  // On close we drop `rotated` (animating back) but keep `rect` until the
+  // transition ends, then clear it — so the z-index is removed at the END of
+  // the rotate, not the start (which would clip the closing animation).
   const [rect, setRect] = useState<DOMRect | null>(null)
-  const open = rect !== null
+  const [rotated, setRotated] = useState(false)
+  const elevated = rect !== null
   const rotatable = isHorizontal(orientation)
 
   useEffect(() => {
-    if (!open) return
-    const close = () => setRect(null)
+    if (!rotated) return
+    const close = () => setRotated(false)
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
     window.addEventListener('keydown', onKey)
     window.addEventListener('scroll', close, true)
@@ -39,33 +45,35 @@ export function CardRotate({
       window.removeEventListener('scroll', close, true)
       window.removeEventListener('resize', close)
     }
-  }, [open])
+  }, [rotated])
 
   function toggle(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
-    if (open) return setRect(null)
+    if (rotated) return setRotated(false)
     const el = wrapRef.current
     setRect(el ? el.getBoundingClientRect() : new DOMRect())
+    setRotated(true)
   }
 
   return (
     <>
       {/* Catches clicks outside the rotated card; sits below the lifted image. */}
-      {open && (
+      {rotated && (
         <div
           data-testid="card-rotate-backdrop"
-          className="fixed inset-0 z-40"
+          className="fixed inset-0 z-40 cursor-default"
           aria-hidden
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRect(null) }}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRotated(false) }}
         />
       )}
 
       <div
         ref={wrapRef}
-        onClick={open ? (e) => { e.preventDefault(); e.stopPropagation(); setRect(null) } : undefined}
-        className={cn('transition-transform duration-300', open ? 'z-50 rotate-90' : 'absolute inset-0')}
-        style={open && rect ? { position: 'fixed', left: rect.left, top: rect.top, width: rect.width, height: rect.height } : undefined}
+        onClick={rotated ? (e) => { e.preventDefault(); e.stopPropagation(); setRotated(false) } : undefined}
+        onTransitionEnd={() => { if (!rotated) setRect(null) }}
+        className={cn('transition-transform duration-300', elevated ? 'z-50' : 'absolute inset-0', rotated && 'rotate-90')}
+        style={elevated && rect ? { position: 'fixed', left: rect.left, top: rect.top, width: rect.width, height: rect.height } : undefined}
       >
         <Image src={src} alt={alt} fill sizes={sizes} onError={onError} className={cn('object-cover', className)} />
       </div>
@@ -73,8 +81,8 @@ export function CardRotate({
       {rotatable && (
         <button
           type="button"
-          aria-label={open ? t('rotateBack') : t('rotate')}
-          aria-pressed={open}
+          aria-label={rotated ? t('rotateBack') : t('rotate')}
+          aria-pressed={rotated}
           onClick={toggle}
           className="absolute top-2 left-2 z-30 cursor-pointer rounded-full border border-white/40 bg-black/60 p-2.5 text-white opacity-0 shadow-md backdrop-blur-sm transition hover:bg-black/75 focus-visible:opacity-100 group-hover:opacity-100"
         >

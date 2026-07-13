@@ -4,7 +4,8 @@ import { Link } from '@/../i18n/navigation'
 import { Button } from '@/components/ui/button'
 import type { CardDetailDTO } from '@revelio/core'
 import { effectiveImageLang, imageKey, imageUrl } from '@revelio/core'
-import { CardImage } from '@/components/card-image'
+import { CardImage, isHorizontal } from '@/components/card-image'
+import { cn } from '@/lib/utils'
 import { attrLabel } from '@/lib/attribute-labels'
 import { pickLocalization } from '@/lib/card-view'
 import { Badge } from '@/components/ui/badge'
@@ -33,23 +34,30 @@ export function CardDetail({
     card.defaultLanguage,
   )
 
+  // A vertical card fills a 340px-wide portrait frame (340×476). A horizontal card
+  // shown upright is that same card turned on its side, so it gets the rotated size:
+  // 476 wide × 340 tall. The image column widens to fit it.
+  const horizontal = isHorizontal(card.orientation)
+
   return (
-    <article className="mx-auto grid max-w-[76rem] gap-8 px-6 py-8 md:grid-cols-[minmax(0,340px)_1fr]">
-      {imgLang ? (
-        <CardImage
-          src={imageUrl(imageBase, imageKey(card.id, imgLang, card.defaultLanguage))}
-          alt={loc.name}
-          orientation={card.orientation}
-          upright
-          sizes="340px"
-          priority
-          frameClassName="rounded-xl border border-border/60 bg-card"
-        />
-      ) : (
-        <div className="relative flex aspect-[5/7] items-center justify-center rounded-xl border border-border/60 bg-card p-4 text-center text-sm text-muted-foreground">
-          {loc.name}
-        </div>
-      )}
+    <article className="mx-auto grid max-w-[76rem] gap-8 px-6 py-8 md:grid-cols-[auto_1fr]">
+      <div className={cn('w-full', horizontal ? 'md:w-[476px]' : 'md:w-[340px]')}>
+        {imgLang ? (
+          <CardImage
+            src={imageUrl(imageBase, imageKey(card.id, imgLang, card.defaultLanguage))}
+            alt={loc.name}
+            orientation={card.orientation}
+            upright
+            sizes="(min-width: 768px) 476px, 100vw"
+            priority
+            frameClassName="rounded-xl border border-border/60 bg-card"
+          />
+        ) : (
+          <div className={cn('relative flex items-center justify-center rounded-xl border border-border/60 bg-card p-4 text-center text-sm text-muted-foreground', horizontal ? 'aspect-[7/5]' : 'aspect-[5/7]')}>
+            {loc.name}
+          </div>
+        )}
+      </div>
       <div>
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">

@@ -32,13 +32,15 @@ export async function listSets(db: DB, locale?: string): Promise<SetDTO[]> {
 }
 
 export async function getSetByCode(db: DB, code: string, locale?: string): Promise<SetDTO | null> {
-  const [row] = await db.select().from(sets).where(eq(sets.code, code)).limit(1)
+  // Set codes are stored uppercase; match case-insensitively so lowercase URL
+  // codes (e.g. /sets/bs) resolve rather than 404.
+  const [row] = await db.select().from(sets).where(sql`upper(${sets.code}) = upper(${code})`).limit(1)
   if (!row) return null
   if (!locale) return toSetDTO(row)
   const [loc] = await db
     .select()
     .from(setLocalizations)
-    .where(and(eq(setLocalizations.setCode, code), eq(setLocalizations.lang, locale)))
+    .where(and(eq(setLocalizations.setCode, row.code), eq(setLocalizations.lang, locale)))
     .limit(1)
   return toSetDTO(row, loc?.name ?? row.name)
 }

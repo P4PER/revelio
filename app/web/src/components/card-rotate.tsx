@@ -1,26 +1,31 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { RotateCw } from 'lucide-react'
 import { isHorizontal } from '@/components/card-image'
+import { cn } from '@/lib/utils'
 
-// For horizontal cards, adds a hover rotate button to the enclosing
-// `[data-card-frame]` tile. Clicking floats an upright (landscape) copy of the
-// card over the grid via a portal, so it escapes the tile's `overflow-hidden`
-// and paints above neighbouring cards without reflowing the grid.
+// Renders a card's single tile image and, for horizontal cards, a hover rotate
+// button. Clicking rotates THIS image in place (no duplicate): while rotated the
+// image element switches to `position: fixed` at the tile's current rect and spins
+// 90° — so it stands upright at its real size, floats over neighbouring cards
+// (escaping the tile's overflow-hidden), and the grid never reflows.
 export function CardRotate({
-  src, alt, orientation, sizes,
+  src, alt, orientation, sizes, className, onError,
 }: {
   src: string
   alt: string
   orientation?: string | null
   sizes?: string
+  className?: string
+  onError?: () => void
 }) {
   const t = useTranslations('card')
+  const wrapRef = useRef<HTMLDivElement>(null)
   const [rect, setRect] = useState<DOMRect | null>(null)
   const open = rect !== null
+  const rotatable = isHorizontal(orientation)
 
   useEffect(() => {
     if (!open) return
@@ -36,56 +41,45 @@ export function CardRotate({
     }
   }, [open])
 
-  if (!isHorizontal(orientation)) return null
-
-  function toggle(e: React.MouseEvent<HTMLButtonElement>) {
+  function toggle(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
     if (open) return setRect(null)
-    const frame = (e.currentTarget as HTMLElement).closest('[data-card-frame]')
-    setRect(frame ? frame.getBoundingClientRect() : new DOMRect(0, 0, 0, 0))
+    const el = wrapRef.current
+    setRect(el ? el.getBoundingClientRect() : new DOMRect())
   }
 
   return (
     <>
-      <button
-        type="button"
-        aria-label={open ? t('rotateBack') : t('rotate')}
-        aria-pressed={open}
-        onClick={toggle}
-        data-open={open}
-        className="absolute top-2 left-2 z-20 cursor-pointer rounded-full border border-white/40 bg-black/60 p-2.5 text-white opacity-0 shadow-md backdrop-blur-sm transition hover:bg-black/75 focus-visible:opacity-100 group-hover:opacity-100 data-[open=true]:opacity-100"
-      >
-        <RotateCw className="size-5" />
-      </button>
+      {/* Catches clicks outside the rotated card; sits below the lifted image. */}
+      {open && (
+        <div
+          data-testid="card-rotate-backdrop"
+          className="fixed inset-0 z-40"
+          aria-hidden
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRect(null) }}
+        />
+      )}
 
-      {open && rect && createPortal(
-        <>
-          <div
-            data-testid="card-rotate-backdrop"
-            className="fixed inset-0 z-40"
-            aria-hidden
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRect(null) }}
-          />
-          <div
-            onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
-            className="fixed z-50 aspect-[7/5] overflow-hidden rounded-xl border border-border bg-card shadow-2xl"
-            style={{
-              left: rect.left + rect.width / 2,
-              top: rect.top + rect.height / 2,
-              // Same physical card, just rotated: the landscape card's long edge
-              // equals the portrait tile's height, so it's never larger than the
-              // normal card — width = tile height, height (via aspect-[7/5]) = tile width.
-              width: rect.height,
-              transform: 'translate(-50%, -50%)',
-            }}
-          >
-            <div className="absolute top-1/2 left-1/2 h-[140%] w-[71.4286%] -translate-x-1/2 -translate-y-1/2 rotate-90 transition-transform duration-200">
-              <Image src={src} alt={alt} fill sizes={sizes} className="object-cover" />
-            </div>
-          </div>
-        </>,
-        document.body,
+      <div
+        ref={wrapRef}
+        onClick={open ? (e) => { e.preventDefault(); e.stopPropagation(); setRect(null) } : undefined}
+        className={cn('transition-transform duration-300', open ? 'z-50 rotate-90' : 'absolute inset-0')}
+        style={open && rect ? { position: 'fixed', left: rect.left, top: rect.top, width: rect.width, height: rect.height } : undefined}
+      >
+        <Image src={src} alt={alt} fill sizes={sizes} onError={onError} className={cn('object-cover', className)} />
+      </div>
+
+      {rotatable && (
+        <button
+          type="button"
+          aria-label={open ? t('rotateBack') : t('rotate')}
+          aria-pressed={open}
+          onClick={toggle}
+          className="absolute top-2 left-2 z-30 cursor-pointer rounded-full border border-white/40 bg-black/60 p-2.5 text-white opacity-0 shadow-md backdrop-blur-sm transition hover:bg-black/75 focus-visible:opacity-100 group-hover:opacity-100"
+        >
+          <RotateCw className="size-5" />
+        </button>
       )}
     </>
   )

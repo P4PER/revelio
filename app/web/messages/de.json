@@ -41,7 +41,9 @@
     "damage": "Schaden/Zug",
     "legality": "Legalität",
     "artist": "Illustriert von",
-    "rulings": "Regelungen"
+    "rulings": "Regelungen",
+    "rotate": "Aufrecht drehen",
+    "rotateBack": "Gedrehte Ansicht schließen"
   },
   "sets": {
     "title": "Editionen",

@@ -1,20 +1,18 @@
 'use client'
-import { useTranslations } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
 import { useRouter, usePathname } from '@/../i18n/navigation'
 import { parseSearchParams, withParams } from '@/lib/search-params'
-import { Button } from '@/components/ui/button'
+import { ClearFiltersButton } from './clear-filters-button'
 
-// Clears every narrowing filter (type/lesson/rarity/finish/legality/set/cost/
-// official) in one click while preserving the search query and sort order.
-// Rendered only when at least one filter is active.
+// URL adapter for the search page: clears every narrowing filter (type/lesson/
+// rarity/finish/legality/set/cost/official) in one click while preserving the
+// search query and sort order.
 const CLEARED: Record<string, null> = {
   type: null, lesson: null, rarity: null, finish: null,
   legality: null, set: null, costMin: null, costMax: null, official: null,
 }
 
 export function ClearFilters() {
-  const t = useTranslations('filters')
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -30,14 +28,11 @@ export function ClearFilters() {
     s.costMin != null ||
     s.costMax != null ||
     s.official !== null
-  if (!hasFilters) return null
 
   function clear() {
     const next = withParams(new URLSearchParams(params.toString()), CLEARED)
     router.push(`${pathname}?${next.toString()}`)
   }
 
-  return (
-    <Button variant="ghost" size="sm" onClick={clear}>{t('clearFilters')}</Button>
-  )
+  return <ClearFiltersButton active={hasFilters} onClear={clear} />
 }

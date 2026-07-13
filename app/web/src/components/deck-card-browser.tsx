@@ -8,6 +8,7 @@ import type { DeckCardView, DeckFormat, DeckZone, SetDTO } from '@revelio/core'
 import type { SearchDocument, SearchResult } from '@revelio/search'
 import { searchDeckCards } from '@/lib/deck-actions'
 import { LessonFilterChips } from '@/components/lesson-filter-chips'
+import { ClearFiltersButton } from '@/components/clear-filters-button'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -63,7 +64,6 @@ export function DeckCardBrowser({
   onAdd: (view: Omit<DeckCardView, 'zone' | 'quantity'>, zone: DeckZone) => void
 }) {
   const t = useTranslations('decks')
-  const tf = useTranslations('filters')
   const locale = useLocale()
   const [query, setQuery] = useState('')
   const [lessons, setLessons] = useState<string[]>([])
@@ -146,9 +146,7 @@ export function DeckCardBrowser({
         <div className="flex flex-wrap items-center gap-1.5">
           <LessonFilterChips selected={lessons} onToggle={toggleLesson} size="sm" />
           <div className="ml-auto flex items-center gap-1.5">
-            {filtersActive ? (
-              <Button variant="ghost" size="sm" onClick={clearFilters}>{tf('clearFilters')}</Button>
-            ) : null}
+            <ClearFiltersButton active={filtersActive} onClear={clearFilters} />
             <DeckFilterDrawer sets={sets} value={filters} onApply={setFilters} />
           </div>
         </div>

@@ -8,6 +8,7 @@ import { useRouter } from '@/../i18n/navigation'
 import { type BrowseState, browseToQuery } from '@/lib/browse-params'
 import { DECK_VIEW_COOKIE, type DeckView } from '@/lib/deck-view'
 import { LessonFilterChips } from '@/components/lesson-filter-chips'
+import { ClearFiltersButton } from '@/components/clear-filters-button'
 import { DeckHeroCard } from '@/components/deck-hero-card'
 import { DeckDiscoverRow } from '@/components/deck-discover-row'
 import { Button } from '@/components/ui/button'
@@ -97,9 +98,7 @@ export function DeckBrowse({
             {FORMATS.map((f) => <SelectItem key={f} value={f}>{t(`explore.format.${f}`)}</SelectItem>)}
           </SelectContent>
         </Select>
-        {hasFilters ? (
-          <Button variant="ghost" size="sm" onClick={() => push({ lessons: [], format: null })}>{t('explore.clear')}</Button>
-        ) : null}
+        <ClearFiltersButton active={Boolean(hasFilters)} onClear={() => push({ lessons: [], format: null })} />
       </div>
 
       {/* Lesson chips — shared with the search page and deck builder. */}

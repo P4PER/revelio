@@ -446,6 +446,7 @@ async function cardViewMetaByIds(db: DB, ids: string[]): Promise<Map<string, Omi
       cardId: c.id, name: c.name, cost: c.cost ?? null, setCode: c.setCode, number: c.number,
       lesson: c.lesson ?? null, isOfficial: m.isOfficial, legality: m.legality,
       isLesson: m.isLesson, isStartingCharacter: m.isStartingCharacter,
+      orientation: c.orientation ?? null,
     })
   }
   return out
@@ -472,6 +473,7 @@ export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; user
       number: meta?.number ?? '',
       lesson: meta?.lesson ?? null, isOfficial: meta?.isOfficial ?? false, legality: meta?.legality ?? null,
       isLesson: meta?.isLesson ?? false, isStartingCharacter: meta?.isStartingCharacter ?? false,
+      orientation: meta?.orientation ?? null,
     }
   })
   const deck: DeckDTO = {

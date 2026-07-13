@@ -84,4 +84,5 @@ export type DeckCardView = DeckCardDTO & {
   legality: string | null
   isLesson: boolean
   isStartingCharacter: boolean
+  orientation?: string | null
 }

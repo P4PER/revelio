@@ -55,7 +55,9 @@ export function DeckBrowse({
     push({ lessons: has ? state.lessons.filter((l) => l !== code) : [...state.lessons, code] })
   }
 
-  const hasFilters = state.q || state.lessons.length || state.format || state.sort !== 'likes'
+  // "Clear filters" resets the narrowing filters (lessons + format) but keeps
+  // the search text and sort order, matching the search and deck-builder pages.
+  const hasFilters = state.lessons.length || state.format
 
   return (
     <div className="space-y-6">
@@ -96,7 +98,7 @@ export function DeckBrowse({
           </SelectContent>
         </Select>
         {hasFilters ? (
-          <Button variant="ghost" size="sm" onClick={() => router.push('/decks')}>{t('explore.clear')}</Button>
+          <Button variant="ghost" size="sm" onClick={() => push({ lessons: [], format: null })}>{t('explore.clear')}</Button>
         ) : null}
       </div>
 

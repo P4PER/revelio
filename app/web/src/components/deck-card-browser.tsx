@@ -63,6 +63,7 @@ export function DeckCardBrowser({
   onAdd: (view: Omit<DeckCardView, 'zone' | 'quantity'>, zone: DeckZone) => void
 }) {
   const t = useTranslations('decks')
+  const tf = useTranslations('filters')
   const locale = useLocale()
   const [query, setQuery] = useState('')
   const [lessons, setLessons] = useState<string[]>([])
@@ -112,6 +113,23 @@ export function DeckCardBrowser({
     setLessons((ls) => (ls.includes(code) ? ls.filter((c) => c !== code) : [...ls, code]))
   }
 
+  // "Clear filters" resets the lessons and advanced filters but keeps the
+  // search text, matching the search and discover pages.
+  const filtersActive =
+    lessons.length > 0 ||
+    Boolean(filters.set) ||
+    filters.types.length > 0 ||
+    filters.rarities.length > 0 ||
+    filters.finishes.length > 0 ||
+    filters.legalities.length > 0 ||
+    filters.costMin != null ||
+    filters.costMax != null
+
+  function clearFilters() {
+    setLessons([])
+    setFilters(EMPTY_DECK_FILTERS)
+  }
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-col gap-2.5 border-b border-border/60 p-3">
@@ -127,7 +145,10 @@ export function DeckCardBrowser({
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
           <LessonFilterChips selected={lessons} onToggle={toggleLesson} size="sm" />
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-1.5">
+            {filtersActive ? (
+              <Button variant="ghost" size="sm" onClick={clearFilters}>{tf('clearFilters')}</Button>
+            ) : null}
             <DeckFilterDrawer sets={sets} value={filters} onApply={setFilters} />
           </div>
         </div>

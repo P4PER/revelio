@@ -3,6 +3,7 @@ import { SortSelect } from './sort-select'
 import { FilterDrawer } from './filter-drawer'
 import { QuickFilters } from './quick-filters'
 import { ActiveFilters } from './active-filters'
+import { ClearFilters } from './clear-filters'
 
 export function SearchControls({ locale, sets }: { locale: string; sets: SetDTO[] }) {
   return (
@@ -11,6 +12,7 @@ export function SearchControls({ locale, sets }: { locale: string; sets: SetDTO[
         <div className="flex items-center gap-3">
           <FilterDrawer sets={sets} locale={locale} />
           <SortSelect />
+          <ClearFilters />
         </div>
         <div className="h-px w-full bg-border/60" aria-hidden />
       </div>

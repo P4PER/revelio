@@ -46,7 +46,7 @@ export default async function SetsPage({ params }: { params: Promise<{ locale: s
   const fan = sets.filter((s) => !s.isOfficial).sort(byReleaseDate)
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-8">
+    <main className="mx-auto max-w-[76rem] px-6 py-8">
       <h1 className="mb-6 text-2xl font-semibold text-primary">{t('title')}</h1>
       <SetSection title={t('original')} sets={official} />
       <SetSection title={t('fanMade')} sets={fan} />

@@ -7,6 +7,7 @@ import { Layers } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BrandMark } from './brand-mark'
 import { DecksMenu } from './decks-menu'
+import { RandomNavButton } from './random-nav-button'
 import { LanguageSwitcher } from './language-switcher'
 import { AccountMenu } from './account-menu'
 import { getSession } from '@/lib/session'
@@ -29,6 +30,7 @@ export async function SiteHeader() {
             <Link href="/sets"><Layers className="size-4 opacity-70" />{t('sets')}</Link>
           </Button>
           <DecksMenu isLoggedIn={!!session?.user} />
+          <RandomNavButton />
           <span className="h-5 w-px bg-foreground/20" aria-hidden />
           <LanguageSwitcher />
           <span className="h-5 w-px bg-foreground/20" aria-hidden />

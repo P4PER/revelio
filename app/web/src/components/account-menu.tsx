@@ -32,7 +32,7 @@ export function AccountMenu({ isEditor }: { isEditor: boolean }) {
           <CircleUser className="size-5 opacity-70" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DropdownMenuLabel className="font-normal text-muted-foreground">
           {data.user.email}
         </DropdownMenuLabel>

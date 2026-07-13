@@ -24,7 +24,7 @@ export function DecksMenu({ isLoggedIn }: { isLoggedIn: boolean }) {
           <ChevronDown className="size-4 opacity-60" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
+      <DropdownMenuContent align="start" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DropdownMenuItem asChild>
           <Link href="/decks"><Compass />{t('browse')}</Link>
         </DropdownMenuItem>

@@ -55,7 +55,7 @@ export default async function SetPage({
   const results = await runSearch(getSearchClient(), locale, state)
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-8">
+    <main className="mx-auto max-w-[76rem] px-6 py-8">
       <header className="mb-6">
         <h1 className="text-2xl font-semibold text-primary">{set.name}</h1>
         <p className="text-sm text-muted-foreground">

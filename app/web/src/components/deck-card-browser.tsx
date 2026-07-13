@@ -8,6 +8,7 @@ import type { DeckCardView, DeckFormat, DeckZone, SetDTO } from '@revelio/core'
 import type { SearchDocument, SearchResult } from '@revelio/search'
 import { searchDeckCards } from '@/lib/deck-actions'
 import { LessonFilterChips } from '@/components/lesson-filter-chips'
+import { ClearFiltersButton } from '@/components/clear-filters-button'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -112,6 +113,23 @@ export function DeckCardBrowser({
     setLessons((ls) => (ls.includes(code) ? ls.filter((c) => c !== code) : [...ls, code]))
   }
 
+  // "Clear filters" resets the lessons and advanced filters but keeps the
+  // search text, matching the search and discover pages.
+  const filtersActive =
+    lessons.length > 0 ||
+    Boolean(filters.set) ||
+    filters.types.length > 0 ||
+    filters.rarities.length > 0 ||
+    filters.finishes.length > 0 ||
+    filters.legalities.length > 0 ||
+    filters.costMin != null ||
+    filters.costMax != null
+
+  function clearFilters() {
+    setLessons([])
+    setFilters(EMPTY_DECK_FILTERS)
+  }
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-col gap-2.5 border-b border-border/60 p-3">
@@ -127,7 +145,8 @@ export function DeckCardBrowser({
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
           <LessonFilterChips selected={lessons} onToggle={toggleLesson} size="sm" />
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-1.5">
+            <ClearFiltersButton active={filtersActive} onClear={clearFilters} />
             <DeckFilterDrawer sets={sets} value={filters} onApply={setFilters} />
           </div>
         </div>

@@ -55,7 +55,7 @@ export function HeaderSearch({ placeholder }: { placeholder: string }) {
         e.preventDefault()
         submit(q)
       }}
-      className="relative mx-auto w-full max-w-md"
+      className="relative w-full max-w-md"
     >
       <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
       <Input

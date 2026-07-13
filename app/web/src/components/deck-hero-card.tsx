@@ -15,16 +15,18 @@ export function DeckHeroCard({ deck, imageBase }: { deck: PublicDeckEntry; image
       href={`/decks/${deck.id}`}
       className="group block overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-primary/40"
     >
-      <div className="relative aspect-[16/10]">
+      <div className="relative aspect-[7/5]">
         <DeckArt cardId={deck.starterCardId} lessons={deck.lessons} imageBase={imageBase} alt={deck.name} className="h-full w-full" />
+        {/* radial vignette */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_65%,rgba(0,0,0,0.35))]" />
         {/* top scrim + name/meta */}
         <div
           className="absolute inset-x-0 top-0 bg-gradient-to-b from-black/85 via-black/45 to-transparent p-3 pb-8"
           style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}
         >
-          <div className="line-clamp-1 font-semibold text-white">{deck.name}</div>
-          <div className="text-xs text-white/90">
-            {t(`explore.format.${deck.format}`)} · {t('explore.cards', { count: deck.cardCount })}
+          <div className="line-clamp-2 text-lg font-semibold text-white">{deck.name}</div>
+          <div className="text-sm text-white/90">
+            {t(`explore.format.${deck.format}`)}
           </div>
         </div>
         {/* bottom scrim + lessons/stats */}
@@ -38,8 +40,8 @@ export function DeckHeroCard({ deck, imageBase }: { deck: PublicDeckEntry; image
       </div>
       {/* footer bar */}
       <div className="flex items-center justify-between gap-2 px-3 py-2 text-xs text-muted-foreground">
-        <span className="min-w-0 truncate">@{deck.author}</span>
-        <span className="shrink-0">{formatRelativeTime(deck.updatedAt, locale)}</span>
+        <span className="min-w-0 truncate text-sm">@{deck.author}</span>
+        <span className="shrink-0 italic">{formatRelativeTime(deck.updatedAt, locale)}</span>
       </div>
     </Link>
   )

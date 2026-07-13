@@ -24,6 +24,8 @@
     "admin": "Admin",
     "deckBuilder": "Deck Builder",
     "myDecks": "My Decks",
+    "decks": "Decks",
+    "random": "Random",
     "browse": "Discover decks"
   },
   "search": {
@@ -52,6 +54,7 @@
     "title": "Advanced filters",
     "apply": "Apply",
     "clear": "Clear all",
+    "clearFilters": "Clear filters",
     "set": "Set",
     "type": "Type",
     "lesson": "Lesson",
@@ -234,11 +237,8 @@
         "revival": "Revival"
       },
       "lessonsLabel": "Lessons",
-      "clear": "Clear filters",
       "count": "{count} decks",
       "empty": "No decks match your filters.",
-      "by": "by @{author}",
-      "cards": "{count} cards",
       "prev": "Previous",
       "next": "Next",
       "pageOf": "Page {page} of {total}"

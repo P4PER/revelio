@@ -8,6 +8,7 @@ import { useRouter } from '@/../i18n/navigation'
 import { type BrowseState, browseToQuery } from '@/lib/browse-params'
 import { DECK_VIEW_COOKIE, type DeckView } from '@/lib/deck-view'
 import { LessonFilterChips } from '@/components/lesson-filter-chips'
+import { ClearFiltersButton } from '@/components/clear-filters-button'
 import { DeckHeroCard } from '@/components/deck-hero-card'
 import { DeckDiscoverRow } from '@/components/deck-discover-row'
 import { Button } from '@/components/ui/button'
@@ -55,7 +56,9 @@ export function DeckBrowse({
     push({ lessons: has ? state.lessons.filter((l) => l !== code) : [...state.lessons, code] })
   }
 
-  const hasFilters = state.q || state.lessons.length || state.format || state.sort !== 'likes'
+  // "Clear filters" resets the narrowing filters (lessons + format) but keeps
+  // the search text and sort order, matching the search and deck-builder pages.
+  const hasFilters = state.lessons.length || state.format
 
   return (
     <div className="space-y-6">
@@ -95,9 +98,7 @@ export function DeckBrowse({
             {FORMATS.map((f) => <SelectItem key={f} value={f}>{t(`explore.format.${f}`)}</SelectItem>)}
           </SelectContent>
         </Select>
-        {hasFilters ? (
-          <Button variant="ghost" size="sm" onClick={() => router.push('/decks')}>{t('explore.clear')}</Button>
-        ) : null}
+        <ClearFiltersButton active={Boolean(hasFilters)} onClear={() => push({ lessons: [], format: null })} />
       </div>
 
       {/* Lesson chips — shared with the search page and deck builder. */}
@@ -128,7 +129,7 @@ export function DeckBrowse({
           ))}
         </ul>
       ) : (
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {entries.map((d) => (
             <li key={d.id}><DeckHeroCard deck={d} imageBase={imageBase} /></li>
           ))}

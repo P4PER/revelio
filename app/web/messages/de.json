@@ -24,6 +24,8 @@
     "admin": "Admin",
     "deckBuilder": "Deck-Builder",
     "myDecks": "Meine Decks",
+    "decks": "Decks",
+    "random": "Zufällig",
     "browse": "Decks entdecken"
   },
   "search": {
@@ -52,6 +54,7 @@
     "title": "Erweiterte Filter",
     "apply": "Anwenden",
     "clear": "Alle zurücksetzen",
+    "clearFilters": "Filter zurücksetzen",
     "set": "Edition",
     "type": "Typ",
     "lesson": "Lektion",
@@ -234,11 +237,8 @@
         "revival": "Revival"
       },
       "lessonsLabel": "Lektionen",
-      "clear": "Filter zurücksetzen",
       "count": "{count} Decks",
       "empty": "Keine Decks entsprechen deinen Filtern.",
-      "by": "von @{author}",
-      "cards": "{count} Karten",
       "prev": "Zurück",
       "next": "Weiter",
       "pageOf": "Seite {page} von {total}"

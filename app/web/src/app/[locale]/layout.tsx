@@ -52,11 +52,13 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${poppins.variable} dark`}>
       <body className="min-h-screen bg-background text-foreground font-sans antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
+          {/* Header + content fill at least the viewport, so the footer sits
+              just below the fold and only appears once you scroll down. */}
           <div className="flex min-h-screen flex-col">
             <SiteHeader />
             <div className="flex-1">{children}</div>
-            <SiteFooter />
           </div>
+          <SiteFooter />
           <Toaster />
         </NextIntlClientProvider>
       </body>

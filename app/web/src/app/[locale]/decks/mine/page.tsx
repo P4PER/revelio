@@ -51,7 +51,7 @@ export default async function DecksPage({
   const decks = await listDecksByUser(getDb(), session.user.id)
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-8">
+    <main className="mx-auto max-w-[76rem] px-6 py-8">
       <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold text-primary">{t('list.title')}</h1>
         <Button asChild>

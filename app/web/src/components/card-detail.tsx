@@ -34,7 +34,7 @@ export function CardDetail({
   )
 
   return (
-    <article className="mx-auto grid max-w-5xl gap-8 px-6 py-8 md:grid-cols-[minmax(0,340px)_1fr]">
+    <article className="mx-auto grid max-w-[76rem] gap-8 px-6 py-8 md:grid-cols-[minmax(0,340px)_1fr]">
       <div className="relative aspect-[5/7] overflow-hidden rounded-xl border border-border/60 bg-card">
         {imgLang ? (
           <Image

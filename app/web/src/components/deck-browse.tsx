@@ -129,7 +129,7 @@ export function DeckBrowse({
           ))}
         </ul>
       ) : (
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {entries.map((d) => (
             <li key={d.id}><DeckHeroCard deck={d} imageBase={imageBase} /></li>
           ))}

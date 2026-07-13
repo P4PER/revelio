@@ -31,12 +31,13 @@ const card: CardDetailDTO = {
 }
 
 describe('CardDetail', () => {
-  it('renders a horizontal card upright (landscape frame)', () => {
+  it('renders a horizontal card upright inside the same portrait frame as a vertical card', () => {
     const horizontal = { ...card, orientation: 'horizontal' as const,
       localizations: { ...card.localizations,
         en: { ...card.localizations.en, imageFile: 'bs-1-fluffy.webp' } } }
     const { container } = render(<CardDetail card={horizontal} locale="en" imageBase="http://img" />, { wrapper: Wrapper })
-    expect(container.querySelector('.aspect-\\[7\\/5\\]')).not.toBeNull()
+    expect(container.querySelector('.aspect-\\[5\\/7\\]')).not.toBeNull()
+    expect(container.querySelector('.aspect-\\[7\\/5\\]')).toBeNull()
     expect(container.querySelector('.rotate-90')).not.toBeNull()
   })
 

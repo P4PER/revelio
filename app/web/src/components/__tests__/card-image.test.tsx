@@ -21,9 +21,11 @@ describe('CardImage', () => {
     expect(screen.getByAltText('Fluffy')).toBeInTheDocument()
   })
 
-  it('renders an upright landscape frame for a horizontal card when upright', () => {
+  it('rotates a horizontal card upright inside a portrait frame when upright', () => {
     const { container } = render(<CardImage src="s" alt="Fluffy" orientation="horizontal" upright />)
-    expect(container.querySelector('.aspect-\\[7\\/5\\]')).not.toBeNull()
+    // Same portrait aspect as a vertical card, with the image rotated upright inside it.
+    expect(container.querySelector('.aspect-\\[5\\/7\\]')).not.toBeNull()
+    expect(container.querySelector('.aspect-\\[7\\/5\\]')).toBeNull()
     expect(container.querySelector('.rotate-90')).not.toBeNull()
   })
 

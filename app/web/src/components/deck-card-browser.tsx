@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useLocale, useTranslations } from 'next-intl'
 import { Info, Search } from 'lucide-react'
-import { deckCardMeta, imageUrl, thumbKey } from '@revelio/core'
+import { deckCardMeta, imageKey, imageUrl, thumbKey } from '@revelio/core'
 import type { DeckCardView, DeckFormat, DeckZone, SetDTO } from '@revelio/core'
 import type { SearchDocument, SearchResult } from '@revelio/search'
 import { searchDeckCards } from '@/lib/deck-actions'
@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { CardDetailSheet } from '@/components/card-detail-sheet'
+import { CardRotate } from '@/components/card-rotate'
 import { DeckFilterDrawer, EMPTY_DECK_FILTERS, type DeckFilters } from '@/components/deck-filter-drawer'
 
 const EMPTY_RESULT: SearchResult = { hits: [], total: 0, page: 1, hitsPerPage: 24 }
@@ -167,7 +168,7 @@ export function DeckCardBrowser({
           const zoneBlocked = copyLimitReached(hit.id, view.isLesson)
           return (
             <div key={hit.id} className="group relative overflow-hidden rounded-lg border border-border/60 bg-card">
-              <div className={cn('relative aspect-[5/7] bg-muted', banned && 'grayscale brightness-75')}>
+              <div data-card-frame className={cn('relative aspect-[5/7] bg-muted', banned && 'grayscale brightness-75')}>
                 {hit.imageLang ? (
                   <Image
                     src={imageUrl(imageBase, thumbKey(hit.id, hit.imageLang, hit.defaultLanguage))}
@@ -180,6 +181,14 @@ export function DeckCardBrowser({
                   <div className="flex h-full items-center justify-center p-2 text-center text-xs text-muted-foreground">
                     {hit.name}
                   </div>
+                )}
+                {hit.imageLang && (
+                  <CardRotate
+                    src={imageUrl(imageBase, imageKey(hit.id, hit.imageLang, hit.defaultLanguage))}
+                    alt={hit.name}
+                    orientation={hit.orientation}
+                    sizes="400px"
+                  />
                 )}
                 <div
                   className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/85 via-transparent to-transparent"

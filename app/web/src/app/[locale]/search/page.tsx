@@ -40,7 +40,7 @@ export default async function SearchPage({
   const t = await getTranslations('search')
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-8">
+    <main className="mx-auto max-w-[76rem] px-6 py-8">
       <SearchControls locale={locale} sets={sets} />
       <p className="mb-4 text-sm text-muted-foreground" role="status">
         {t('results', { count: results.total })}

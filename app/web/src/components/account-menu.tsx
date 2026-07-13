@@ -1,5 +1,5 @@
 'use client'
-import { ChevronDown, CircleUser, Library, LogOut, Shield } from 'lucide-react'
+import { CircleUser, Library, LogOut, Shield } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/../i18n/navigation'
 import { useSession, signOut } from '@/lib/auth-client'
@@ -28,10 +28,8 @@ export function AccountMenu({ isEditor }: { isEditor: boolean }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-1.5">
-          <CircleUser className="size-4 opacity-70" />
-          {name}
-          <ChevronDown className="size-4 opacity-60" />
+        <Button variant="ghost" size="icon-sm" aria-label={name} title={name}>
+          <CircleUser className="size-5 opacity-70" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

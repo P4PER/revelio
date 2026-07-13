@@ -237,8 +237,6 @@
       "clear": "Clear filters",
       "count": "{count} decks",
       "empty": "No decks match your filters.",
-      "by": "by @{author}",
-      "cards": "{count} cards",
       "prev": "Previous",
       "next": "Next",
       "pageOf": "Page {page} of {total}"

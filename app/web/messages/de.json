@@ -237,8 +237,6 @@
       "clear": "Filter zurücksetzen",
       "count": "{count} Decks",
       "empty": "Keine Decks entsprechen deinen Filtern.",
-      "by": "von @{author}",
-      "cards": "{count} Karten",
       "prev": "Zurück",
       "next": "Weiter",
       "pageOf": "Seite {page} von {total}"

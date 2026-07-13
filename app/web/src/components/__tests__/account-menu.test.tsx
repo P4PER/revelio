@@ -40,14 +40,6 @@ describe('AccountMenu', () => {
     expect(screen.getByRole('link', { name: 'Sign in' })).toBeInTheDocument()
   })
 
-  it('shows a My Decks item linking to /decks for any signed-in user', async () => {
-    mockState.data = { user: { username: 'reader', email: 'r@x.io' } }
-    renderMenu(false)
-    await userEvent.click(screen.getByRole('button', { name: /reader/ }))
-    const item = await screen.findByText('My Decks')
-    expect(item.closest('a')).toHaveAttribute('href', '/decks/mine')
-  })
-
   it('shows an Admin item linking to /admin for an editor', async () => {
     mockState.data = { user: { username: 'prof', email: 'p@x.io' } }
     renderMenu(true)

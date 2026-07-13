@@ -1,5 +1,5 @@
 'use client'
-import { CircleUser, Library, LogOut, Shield } from 'lucide-react'
+import { CircleUser, LogOut, Shield } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/../i18n/navigation'
 import { useSession, signOut } from '@/lib/auth-client'
@@ -36,10 +36,6 @@ export function AccountMenu({ isEditor }: { isEditor: boolean }) {
         <DropdownMenuLabel className="font-normal text-muted-foreground">
           {data.user.email}
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/decks/mine"><Library />{tNav('myDecks')}</Link>
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         {isEditor && (
           <>

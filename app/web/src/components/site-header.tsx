@@ -3,9 +3,10 @@ import { getTranslations } from 'next-intl/server'
 import { HeaderSearch } from './header-search'
 import { Link } from '@/../i18n/navigation'
 import { BRAND_NAME } from '@/lib/brand'
-import { Layers, LibraryBig, Wand2 } from 'lucide-react'
+import { Layers } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BrandMark } from './brand-mark'
+import { DecksMenu } from './decks-menu'
 import { LanguageSwitcher } from './language-switcher'
 import { AccountMenu } from './account-menu'
 import { getSession } from '@/lib/session'
@@ -27,12 +28,7 @@ export async function SiteHeader() {
           <Button variant="ghost" size="sm" asChild>
             <Link href="/sets"><Layers className="size-4 opacity-70" />{t('sets')}</Link>
           </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/decks"><LibraryBig className="size-4 opacity-70" />{t('browse')}</Link>
-          </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/decks/new"><Wand2 className="size-4 opacity-70" />{t('deckBuilder')}</Link>
-          </Button>
+          <DecksMenu isLoggedIn={!!session?.user} />
           <span className="h-5 w-px bg-foreground/20" aria-hidden />
           <LanguageSwitcher />
           <span className="h-5 w-px bg-foreground/20" aria-hidden />

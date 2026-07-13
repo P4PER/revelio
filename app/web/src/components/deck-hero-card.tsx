@@ -16,7 +16,7 @@ export function DeckHeroCard({ deck, imageBase }: { deck: PublicDeckEntry; image
       className="group block overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-primary/40"
     >
       <div className="relative aspect-[16/10]">
-        <DeckArt crop cardId={deck.starterCardId} lessons={deck.lessons} imageBase={imageBase} alt={deck.name} className="h-full w-full" />
+        <DeckArt cardId={deck.starterCardId} lessons={deck.lessons} imageBase={imageBase} alt={deck.name} className="h-full w-full" />
         {/* top scrim + name/meta */}
         <div
           className="absolute inset-x-0 top-0 bg-gradient-to-b from-black/85 via-black/45 to-transparent p-3 pb-8"

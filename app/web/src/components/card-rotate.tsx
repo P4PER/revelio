@@ -54,7 +54,7 @@ export function CardRotate({
         aria-pressed={open}
         onClick={toggle}
         data-open={open}
-        className="absolute top-2 left-2 z-20 rounded-full bg-background/80 p-2.5 text-foreground opacity-0 shadow transition-opacity focus-visible:opacity-100 group-hover:opacity-100 data-[open=true]:opacity-100"
+        className="absolute top-2 left-2 z-20 cursor-pointer rounded-full border border-border bg-background/80 p-2.5 text-foreground opacity-0 shadow transition-opacity hover:bg-background focus-visible:opacity-100 group-hover:opacity-100 data-[open=true]:opacity-100"
       >
         <RotateCw className="size-5" />
       </button>

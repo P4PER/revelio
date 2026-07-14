@@ -41,10 +41,12 @@ export function UserBanForm({ userId, banned, currentReason, currentExpires, dis
           {t('banned')}{currentReason ? ` — ${currentReason}` : ''}
           {currentExpires ? ` (${currentExpires})` : ''}
         </p>
-        <Button type="button" variant="outline" disabled={disabled || pending} onClick={() => handle(unbanUser(userId))}>
-          {t('unbanAction')}
-        </Button>
-        {disabled && <p className="text-xs text-muted-foreground">{t('cannotSelf')}</p>}
+        <div className="flex items-center gap-3">
+          <Button type="button" variant="outline" disabled={disabled || pending} onClick={() => handle(unbanUser(userId))}>
+            {t('unbanAction')}
+          </Button>
+          {disabled && <span className="text-xs text-muted-foreground">{t('cannotSelf')}</span>}
+        </div>
       </div>
     )
   }
@@ -59,24 +61,26 @@ export function UserBanForm({ userId, banned, currentReason, currentExpires, dis
         <Label htmlFor="ban-expires">{t('banExpires')}</Label>
         <DatePicker id="ban-expires" value={expires} onChange={setExpires} />
       </div>
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button type="button" variant="destructive" disabled={disabled || pending}>{t('banAction')}</Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('banConfirmTitle')}</AlertDialogTitle>
-            <AlertDialogDescription>{t('banConfirmBody')}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={() => handle(banUser(userId, reason, expires || null))}>
-              {t('banAction')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      {disabled && <p className="text-xs text-muted-foreground">{t('cannotSelf')}</p>}
+      <div className="flex items-center gap-3">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button type="button" variant="destructive" disabled={disabled || pending}>{t('banAction')}</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('banConfirmTitle')}</AlertDialogTitle>
+              <AlertDialogDescription>{t('banConfirmBody')}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+              <AlertDialogAction onClick={() => handle(banUser(userId, reason, expires || null))}>
+                {t('banAction')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        {disabled && <span className="text-xs text-muted-foreground">{t('cannotSelf')}</span>}
+      </div>
     </div>
   )
 }

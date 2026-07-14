@@ -1,12 +1,13 @@
 import { notFound } from 'next/navigation'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
+import { ChevronLeft } from 'lucide-react'
+import { Link } from '@/../i18n/navigation'
 import { getDb } from '@/lib/db'
 import { getSession } from '@/lib/session'
 import { hasRequiredRole } from '@/lib/roles'
 import { getUserForAdmin, countUserDecks } from '@revelio/db'
 import { UserRoleForm } from '@/components/user-role-form'
 import { UserBanForm } from '@/components/user-ban-form'
-import { UserPasswordForm } from '@/components/user-password-form'
 import { DeleteUserButton } from '@/components/delete-user-button'
 import { Badge } from '@/components/ui/badge'
 
@@ -31,6 +32,14 @@ export default async function EditUserPage(
 
   return (
     <div className="max-w-2xl space-y-8">
+      <Link
+        href="/admin/users"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ChevronLeft className="size-4" />
+        {t('back')}
+      </Link>
+
       <section className="space-y-1">
         <h2 className="text-sm font-medium text-muted-foreground">{t('identity')}</h2>
         <div className="rounded-lg border p-4">
@@ -58,11 +67,6 @@ export default async function EditUserPage(
           currentExpires={expiresIso}
           disabled={isSelf}
         />
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="text-sm font-medium text-muted-foreground">{t('passwordSection')}</h2>
-        <UserPasswordForm userId={user.id} />
       </section>
 
       <section className="space-y-2">

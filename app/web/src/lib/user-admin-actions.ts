@@ -1,9 +1,7 @@
 'use server'
-import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { requireRole } from '@/lib/session'
 import { getDb } from '@/lib/db'
-import { auth } from '@/lib/auth'
 import {
   getUserForAdmin, countAdmins, updateUserRole, setUserBan, clearUserBan, deleteUserById,
 } from '@revelio/db'
@@ -11,7 +9,6 @@ import {
 export type UserActionResult = { ok: true } | { ok: false; error: string }
 
 const ROLES = ['user', 'editor', 'admin'] as const
-const MIN_PASSWORD = 8
 
 function revalidateUser(userId: string) {
   revalidatePath('/admin/users')
@@ -54,21 +51,6 @@ export async function banUser(
 export async function unbanUser(userId: string): Promise<UserActionResult> {
   await requireRole('admin')
   await clearUserBan(getDb(), userId)
-  revalidateUser(userId)
-  return { ok: true }
-}
-
-export async function setUserPassword(
-  userId: string, newPassword: string,
-): Promise<UserActionResult> {
-  await requireRole('admin')
-  if (typeof newPassword !== 'string' || newPassword.length < MIN_PASSWORD) {
-    return { ok: false, error: 'invalid' }
-  }
-  await auth.api.setUserPassword({
-    body: { userId, newPassword },
-    headers: await headers(),
-  })
   revalidateUser(userId)
   return { ok: true }
 }

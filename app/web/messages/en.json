@@ -240,7 +240,6 @@
       "identity": "Account",
       "roleSection": "Role",
       "banSection": "Ban status",
-      "passwordSection": "Password",
       "dangerSection": "Danger zone",
       "banReason": "Reason",
       "banExpires": "Expires (optional)",
@@ -248,8 +247,6 @@
       "unbanAction": "Unban user",
       "banConfirmTitle": "Ban this user?",
       "banConfirmBody": "They will be unable to sign in until unbanned.",
-      "newPassword": "New password",
-      "setPassword": "Set password",
       "deleteAction": "Delete user",
       "deleteConfirmTitle": "Delete this user permanently?",
       "deleteConfirmBody": "This also permanently deletes their {decks} deck(s) and all related data. This cannot be undone.",
@@ -259,7 +256,8 @@
       "saveError": "Could not save",
       "selfError": "You cannot do this to your own account.",
       "lastAdminError": "You cannot remove the last remaining admin.",
-      "cannotSelf": "Not available on your own account"
+      "cannotSelf": "Not available on your own account",
+      "back": "Back to users"
     }
   },
   "decks": {

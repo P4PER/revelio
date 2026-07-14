@@ -8,7 +8,6 @@ const m = vi.hoisted(() => ({
   deleteUserById: vi.fn(async () => {}),
   getUserForAdmin: vi.fn(async () => ({ id: 'u2', role: 'user' })),
   countAdmins: vi.fn(async () => 2),
-  setUserPassword: vi.fn(async () => ({})),
   revalidatePath: vi.fn(),
 }))
 vi.mock('@/lib/session', () => ({ requireRole: m.requireRole }))
@@ -17,12 +16,10 @@ vi.mock('@revelio/db', () => ({
   updateUserRole: m.updateUserRole, setUserBan: m.setUserBan, clearUserBan: m.clearUserBan,
   deleteUserById: m.deleteUserById, getUserForAdmin: m.getUserForAdmin, countAdmins: m.countAdmins,
 }))
-vi.mock('@/lib/auth', () => ({ auth: { api: { setUserPassword: m.setUserPassword } } }))
-vi.mock('next/headers', () => ({ headers: async () => new Headers() }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
 
 import {
-  setUserRole, banUser, unbanUser, setUserPassword, deleteUser,
+  setUserRole, banUser, unbanUser, deleteUser,
 } from '../user-admin-actions'
 
 beforeEach(() => {
@@ -92,22 +89,6 @@ describe('banUser / unbanUser', () => {
   it('unbans', async () => {
     expect(await unbanUser('u2')).toEqual({ ok: true })
     expect(m.clearUserBan).toHaveBeenCalledWith(expect.anything(), 'u2')
-  })
-})
-
-describe('setUserPassword', () => {
-  it('rejects a too-short password', async () => {
-    const res = await setUserPassword('u2', 'short')
-    expect(res).toEqual({ ok: false, error: 'invalid' })
-    expect(m.setUserPassword).not.toHaveBeenCalled()
-  })
-
-  it('sets a valid password on your own account via better-auth', async () => {
-    const res = await setUserPassword('me', 'longenough1')
-    expect(res).toEqual({ ok: true })
-    expect(m.setUserPassword).toHaveBeenCalledWith(
-      expect.objectContaining({ body: { userId: 'me', newPassword: 'longenough1' } }),
-    )
   })
 })
 

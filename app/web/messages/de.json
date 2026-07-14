@@ -240,7 +240,6 @@
       "identity": "Konto",
       "roleSection": "Rolle",
       "banSection": "Sperrstatus",
-      "passwordSection": "Passwort",
       "dangerSection": "Gefahrenzone",
       "banReason": "Grund",
       "banExpires": "Läuft ab (optional)",
@@ -248,8 +247,6 @@
       "unbanAction": "Sperre aufheben",
       "banConfirmTitle": "Diesen Benutzer sperren?",
       "banConfirmBody": "Er kann sich nicht anmelden, bis die Sperre aufgehoben wird.",
-      "newPassword": "Neues Passwort",
-      "setPassword": "Passwort setzen",
       "deleteAction": "Benutzer löschen",
       "deleteConfirmTitle": "Diesen Benutzer dauerhaft löschen?",
       "deleteConfirmBody": "Dies löscht auch dauerhaft {decks} Deck(s) und alle zugehörigen Daten. Dies kann nicht rückgängig gemacht werden.",
@@ -259,7 +256,8 @@
       "saveError": "Konnte nicht gespeichert werden",
       "selfError": "Das können Sie nicht mit Ihrem eigenen Konto tun.",
       "lastAdminError": "Sie können den letzten verbleibenden Admin nicht entfernen.",
-      "cannotSelf": "Für das eigene Konto nicht verfügbar"
+      "cannotSelf": "Für das eigene Konto nicht verfügbar",
+      "back": "Zurück zu den Benutzern"
     }
   },
   "decks": {

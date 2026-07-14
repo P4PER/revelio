@@ -692,3 +692,85 @@ export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Prom
   }))
   return { entries, total, page, pageCount }
 }
+
+export type UserAdminRow = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image: string | null
+  username: string | null
+  role: string
+  banned: boolean
+  createdAt: Date
+}
+
+export type UserAdminDetail = UserAdminRow & {
+  banReason: string | null
+  banExpires: Date | null
+}
+
+export async function listUsersForAdmin(db: DB): Promise<UserAdminRow[]> {
+  const rows = await db.select().from(user).orderBy(desc(user.createdAt))
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    email: r.email,
+    emailVerified: r.emailVerified,
+    image: r.image,
+    username: r.username,
+    role: r.role ?? 'user',
+    banned: r.banned ?? false,
+    createdAt: r.createdAt,
+  }))
+}
+
+export async function getUserForAdmin(db: DB, id: string): Promise<UserAdminDetail | null> {
+  const [r] = await db.select().from(user).where(eq(user.id, id)).limit(1)
+  if (!r) return null
+  return {
+    id: r.id,
+    name: r.name,
+    email: r.email,
+    emailVerified: r.emailVerified,
+    image: r.image,
+    username: r.username,
+    role: r.role ?? 'user',
+    banned: r.banned ?? false,
+    createdAt: r.createdAt,
+    banReason: r.banReason,
+    banExpires: r.banExpires,
+  }
+}
+
+export async function countAdmins(db: DB): Promise<number> {
+  const [row] = await db.select({ n: count() }).from(user).where(eq(user.role, 'admin'))
+  return Number(row?.n ?? 0)
+}
+
+export async function countUserDecks(db: DB, userId: string): Promise<number> {
+  const [row] = await db.select({ n: count() }).from(decks).where(eq(decks.userId, userId))
+  return Number(row?.n ?? 0)
+}
+
+export async function updateUserRole(db: DB, id: string, role: string): Promise<void> {
+  await db.update(user).set({ role }).where(eq(user.id, id))
+}
+
+export async function setUserBan(
+  db: DB, id: string, reason: string | null, expires: Date | null,
+): Promise<void> {
+  await db.update(user)
+    .set({ banned: true, banReason: reason, banExpires: expires })
+    .where(eq(user.id, id))
+}
+
+export async function clearUserBan(db: DB, id: string): Promise<void> {
+  await db.update(user)
+    .set({ banned: false, banReason: null, banExpires: null })
+    .where(eq(user.id, id))
+}
+
+export async function deleteUserById(db: DB, id: string): Promise<void> {
+  await db.delete(user).where(eq(user.id, id))
+}

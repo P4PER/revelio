@@ -1,7 +1,7 @@
 'use client'
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { ArrowDown, ArrowUp, ChevronsUpDown, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronsUpDown, X } from 'lucide-react'
 import {
   type ColumnDef,
   type SortingState,
@@ -16,6 +16,7 @@ import {
 import { Link } from '@/../i18n/navigation'
 import type { SetDTO } from '@revelio/core'
 import { SetSymbol } from '@/components/set-symbol'
+import { PaginationNav } from '@/components/pagination-nav'
 import { formatReleaseMonth } from '@/lib/set-sort'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -202,19 +203,12 @@ export function AdminSetsTable({ sets, imageBase }: { sets: SetDTO[]; imageBase:
         </Table>
       </div>
 
-      {table.getPageCount() > 1 && (
-        <div className="flex items-center justify-end gap-2">
-          <Button type="button" size="sm" variant="outline" aria-label={t('sets.prevPage')} onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-            <ChevronLeft className="size-4" />
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
-          </span>
-          <Button type="button" size="sm" variant="outline" aria-label={t('sets.nextPage')} onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
-      )}
+      <PaginationNav
+        page={table.getState().pagination.pageIndex + 1}
+        lastPage={table.getPageCount()}
+        onPrev={() => table.previousPage()}
+        onNext={() => table.nextPage()}
+      />
     </div>
   )
 }

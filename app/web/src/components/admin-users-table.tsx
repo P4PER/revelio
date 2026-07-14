@@ -1,7 +1,7 @@
 'use client'
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { ArrowDown, ArrowUp, ChevronsUpDown, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronsUpDown, X } from 'lucide-react'
 import {
   type ColumnDef, type SortingState, type FilterFn,
   flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, getPaginationRowModel,
@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
+import { PaginationNav } from '@/components/pagination-nav'
 
 const usernameOrEmail: FilterFn<UserAdminRow> = (row, _id, value) => {
   const q = String(value).trim().toLowerCase()
@@ -188,14 +189,12 @@ export function AdminUsersTable({ users }: { users: UserAdminRow[] }) {
         </Table>
       </div>
 
-      <div className="flex items-center justify-end gap-2">
-        <Button type="button" size="sm" variant="outline" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-          <ChevronLeft className="size-4" />
-        </Button>
-        <Button type="button" size="sm" variant="outline" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-          <ChevronRight className="size-4" />
-        </Button>
-      </div>
+      <PaginationNav
+        page={table.getState().pagination.pageIndex + 1}
+        lastPage={table.getPageCount()}
+        onPrev={() => table.previousPage()}
+        onNext={() => table.nextPage()}
+      />
     </div>
   )
 }

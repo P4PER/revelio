@@ -466,5 +466,11 @@
     "fileSize": "The image must be 5 MB or smaller.",
     "costRange": "Min cost must not exceed max cost.",
     "saveFailed": "Could not save. Please try again."
+  },
+  "pagination": {
+    "label": "Pagination",
+    "prev": "Previous",
+    "next": "Next",
+    "pageOf": "Page {page} of {total}"
   }
 }

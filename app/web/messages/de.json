@@ -466,5 +466,11 @@
     "fileSize": "Das Bild darf höchstens 5 MB groß sein.",
     "costRange": "Min-Kosten dürfen die Max-Kosten nicht überschreiten.",
     "saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen."
+  },
+  "pagination": {
+    "label": "Seitennavigation",
+    "prev": "Zurück",
+    "next": "Weiter",
+    "pageOf": "Seite {page} von {total}"
   }
 }

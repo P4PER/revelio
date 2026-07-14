@@ -51,4 +51,24 @@ describe('AdminUsersTable', () => {
     fireEvent.click(screen.getByRole('button', { name: en.admin.users.banned }))
     expect(rowNames()).toEqual(['BobBanned'])
   })
+
+  it('hides pagination for a single page', () => {
+    renderTable() // 3 users < pageSize 20
+    expect(screen.queryByText(/Page \d+ of/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: en.pagination.next })).not.toBeInTheDocument()
+  })
+
+  it('shows a page indicator and pages through when rows exceed the page size', () => {
+    const many: UserAdminRow[] = Array.from({ length: 25 }, (_, i) => ({
+      id: `p${i}`, email: `p${i}@x.test`, emailVerified: true, image: null,
+      username: `user${i}`, displayUsername: `User${i}`, role: 'user', banned: false,
+      createdAt: new Date(2024, 0, i + 1),
+    }))
+    renderTable(many)
+    expect(screen.getByText('Page 1 of 2')).toBeInTheDocument()
+    expect(rowNames()).toHaveLength(20)
+    fireEvent.click(screen.getByRole('button', { name: en.pagination.next }))
+    expect(screen.getByText('Page 2 of 2')).toBeInTheDocument()
+    expect(rowNames()).toHaveLength(5)
+  })
 })

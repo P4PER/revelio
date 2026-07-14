@@ -76,6 +76,8 @@ export function DeckCardBrowser({
 
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reqId = useRef(0)
+  const gridRef = useRef<HTMLDivElement>(null)
+  const scrollTopPending = useRef(false)
 
   // Any change to the filters should strand the user back on page 1 rather
   // than leaving them on a page that may no longer exist for the new result set.
@@ -109,6 +111,15 @@ export function DeckCardBrowser({
     }, DEBOUNCE_MS)
     return () => { if (timer.current) clearTimeout(timer.current) }
   }, [query, format, lessons, filters, page, locale])
+
+  // After a page navigation, jump the grid back to the top — but only once the
+  // new results have rendered, so we land on the first card of the new page
+  // rather than scrolling the old page before it swaps out.
+  useEffect(() => {
+    if (!scrollTopPending.current) return
+    scrollTopPending.current = false
+    gridRef.current?.scrollTo({ top: 0 })
+  }, [result])
 
   function toggleLesson(code: string) {
     setLessons((ls) => (ls.includes(code) ? ls.filter((c) => c !== code) : [...ls, code]))
@@ -156,7 +167,7 @@ export function DeckCardBrowser({
         </p>
       </div>
 
-      <div className="grid flex-1 auto-rows-min gap-4 overflow-y-auto px-4 py-3 [grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]">
+      <div ref={gridRef} className="grid flex-1 auto-rows-min gap-4 overflow-y-auto px-4 py-3 [grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]">
         {result.hits.length === 0 && !pending && (
           <p className="col-span-full py-10 text-center text-sm text-muted-foreground" role="status">
             {t('browse.noResults')}
@@ -248,8 +259,8 @@ export function DeckCardBrowser({
         pageSize={result.hitsPerPage}
         total={result.total}
         className="border-t border-border/60 px-4 py-2"
-        onPrev={() => setPage((p) => Math.max(1, p - 1))}
-        onNext={() => setPage((p) => p + 1)}
+        onPrev={() => { setPage((p) => Math.max(1, p - 1)); scrollTopPending.current = true }}
+        onNext={() => { setPage((p) => p + 1); scrollTopPending.current = true }}
       />
 
       <CardDetailSheet

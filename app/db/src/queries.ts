@@ -625,7 +625,7 @@ export type ListPublicDecksInput = {
 const PUBLIC_PAGE_SIZE = 24
 
 export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Promise<{
-  entries: PublicDeckEntry[]; total: number; page: number; pageCount: number
+  entries: PublicDeckEntry[]; total: number; page: number; pageCount: number; pageSize: number
 }> {
   const page = input.page && input.page >= 1 ? Math.floor(input.page) : 1
   const conds = [eq(decks.visibility, 'public')]
@@ -690,7 +690,7 @@ export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Prom
     likedByViewer: Boolean(r.likedByViewer),
     starterCardId: starterByDeck.get(r.id) ?? null,
   }))
-  return { entries, total, page, pageCount }
+  return { entries, total, page, pageCount, pageSize: PUBLIC_PAGE_SIZE }
 }
 
 export type UserAdminRow = {

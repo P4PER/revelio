@@ -7,7 +7,7 @@ export function SetCard({ set, imageBase }: { set: SetDTO; imageBase: string }) 
   return (
     <Link
       href={`/sets/${set.code}`}
-      className="flex items-center gap-4 rounded-lg border border-border/60 bg-card p-4 transition hover:border-primary/60"
+      className="flex items-center gap-4 rounded-lg border border-input bg-card p-4 transition hover:border-primary/60"
     >
       {set.symbol && imageBase ? (
 <SetSymbol code={set.code} base={imageBase} className="h-10 w-10 text-foreground/80" />

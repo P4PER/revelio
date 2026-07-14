@@ -14,7 +14,7 @@ import { DeckBrowse } from '@/components/deck-browse'
 
 const base = {
   state: { q: '', lessons: [], format: null, sort: 'likes' as const, page: 1 },
-  entries: [], total: 0, pageCount: 1, imageBase: 'https://img.test', initialView: 'gallery' as const,
+  entries: [], total: 0, pageSize: 24, imageBase: 'https://img.test', initialView: 'gallery' as const,
 }
 
 function renderBrowse() {

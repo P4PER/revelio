@@ -199,7 +199,8 @@ export function AdminUsersTable({ users }: { users: UserAdminRow[] }) {
 
       <PaginationNav
         page={table.getState().pagination.pageIndex + 1}
-        lastPage={table.getPageCount()}
+        pageSize={table.getState().pagination.pageSize}
+        total={table.getFilteredRowModel().rows.length}
         onPrev={() => table.previousPage()}
         onNext={() => table.nextPage()}
       />

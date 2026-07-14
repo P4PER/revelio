@@ -104,7 +104,7 @@ export function SetSymbolUploader({
           }
         }}
         className={cn(
-          'group relative flex h-28 w-28 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-border/60 bg-card outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          'group relative flex h-28 w-28 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-input bg-card outline-none focus-visible:ring-2 focus-visible:ring-ring',
         )}
       >
         {staged ? (

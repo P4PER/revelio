@@ -42,7 +42,7 @@ export default async function EditUserPage(
 
       <section className="space-y-1">
         <h2 className="text-sm font-medium text-muted-foreground">{t('identity')}</h2>
-        <div className="rounded-lg border p-4">
+        <div className="rounded-lg border border-input p-4">
           <div className="text-lg font-semibold">{user.displayUsername ?? user.username ?? user.email}</div>
           <div className="text-sm text-muted-foreground">
             {user.email}{user.emailVerified && <Badge variant="secondary" className="ml-2">{t('verified')}</Badge>}

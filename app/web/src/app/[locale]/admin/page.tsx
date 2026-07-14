@@ -15,14 +15,14 @@ export default async function AdminIndexPage({ params }: { params: Promise<{ loc
       <div className="space-y-3">
         <Link
           href="/admin/sub-types"
-          className="block rounded-lg border p-4 transition-colors hover:bg-muted/50"
+          className="block rounded-lg border border-input p-4 transition-colors hover:bg-muted/50"
         >
           <div className="font-medium">{t('subTypes')}</div>
           <div className="text-sm text-muted-foreground">{t('subTypesDesc')}</div>
         </Link>
         <Link
           href="/admin/sets"
-          className="block rounded-lg border p-4 transition-colors hover:bg-muted/50"
+          className="block rounded-lg border border-input p-4 transition-colors hover:bg-muted/50"
         >
           <div className="font-medium">{t('sets.title')}</div>
           <div className="text-sm text-muted-foreground">{t('sets.desc')}</div>
@@ -30,7 +30,7 @@ export default async function AdminIndexPage({ params }: { params: Promise<{ loc
         {isAdmin && (
           <Link
             href="/admin/users"
-            className="block rounded-lg border p-4 transition-colors hover:bg-muted/50"
+            className="block rounded-lg border border-input p-4 transition-colors hover:bg-muted/50"
           >
             <div className="font-medium">{t('users.title')}</div>
             <div className="text-sm text-muted-foreground">{t('users.desc')}</div>

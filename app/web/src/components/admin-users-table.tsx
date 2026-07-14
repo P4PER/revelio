@@ -79,8 +79,16 @@ export function AdminUsersTable({ users }: { users: UserAdminRow[] }) {
       enableSorting: false,
       cell: ({ row }) =>
         row.original.banned
-          ? <Badge variant="destructive">{t('banned')}</Badge>
-          : <span className="text-xs text-muted-foreground">{t('active')}</span>,
+          ? (
+            <Badge className="border-red-600/20 bg-red-500/15 text-red-700 dark:border-red-500/25 dark:bg-red-500/10 dark:text-red-400">
+              {t('banned')}
+            </Badge>
+          )
+          : (
+            <Badge className="border-green-600/20 bg-green-500/15 text-green-700 dark:border-green-500/25 dark:bg-green-500/10 dark:text-green-400">
+              {t('active')}
+            </Badge>
+          ),
     },
     {
       accessorKey: 'createdAt',

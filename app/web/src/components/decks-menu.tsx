@@ -21,7 +21,7 @@ export function DecksMenu({ isLoggedIn }: { isLoggedIn: boolean }) {
         <Button variant="ghost" size="sm" className="gap-1.5">
           <LibraryBig className="size-4 opacity-70" />
           {t('decks')}
-          <ChevronDown className="size-4 opacity-60" />
+          <ChevronDown className="size-4 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" onCloseAutoFocus={(e) => e.preventDefault()}>

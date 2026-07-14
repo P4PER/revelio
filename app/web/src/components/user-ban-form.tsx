@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { banUser, unbanUser, type UserActionResult } from '@/lib/user-admin-actions'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { DatePicker } from '@/components/date-picker'
@@ -37,10 +38,13 @@ export function UserBanForm({ userId, banned, currentReason, currentExpires, dis
   if (banned) {
     return (
       <div className="space-y-2">
-        <p className="text-sm text-muted-foreground">
-          {t('banned')}{currentReason ? ` — ${currentReason}` : ''}
-          {currentExpires ? ` (${currentExpires})` : ''}
-        </p>
+        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <Badge className="border-red-600/20 bg-red-500/15 text-red-700 dark:border-red-500/25 dark:bg-red-500/10 dark:text-red-400">
+            {t('banned')}
+          </Badge>
+          {currentReason && <span>{currentReason}</span>}
+          {currentExpires && <span>({currentExpires})</span>}
+        </div>
         <div className="flex items-center gap-3">
           <Button type="button" variant="outline" disabled={disabled || pending} onClick={() => handle(unbanUser(userId))}>
             {t('unbanAction')}

@@ -64,27 +64,27 @@ export function DeckPanel({
 
   function row(e: DeckCardView) {
     return (
-      <div key={`${e.zone}-${e.cardId}`} className="group flex items-center gap-2.5 rounded-lg px-1.5 py-1 hover:bg-muted">
+      <div key={`${e.zone}-${e.cardId}`} className="group flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-muted">
         {readOnly ? (
-          <b className="min-w-8 text-center text-xs tabular-nums text-muted-foreground">{e.quantity}×</b>
+          <b className="min-w-8 text-center text-sm tabular-nums text-muted-foreground">{e.quantity}×</b>
         ) : (
           <span className="inline-flex items-center gap-0.5 rounded-md border border-border bg-background">
             <button
               type="button"
               aria-label={t('panel.decrease', { name: e.name })}
-              className="grid h-6 w-5 cursor-pointer place-items-center text-muted-foreground hover:text-primary"
+              className="grid h-7 w-6 cursor-pointer place-items-center text-muted-foreground hover:text-primary"
               onClick={() => onQuantityChange?.(e.cardId, e.zone, e.quantity - 1)}
             >
-              <Minus className="size-3" />
+              <Minus className="size-3.5" />
             </button>
-            <b className="min-w-4 text-center text-xs tabular-nums">{e.quantity}</b>
+            <b className="min-w-4 text-center text-sm tabular-nums">{e.quantity}</b>
             <button
               type="button"
               aria-label={t('panel.increase', { name: e.name })}
-              className="grid h-6 w-5 cursor-pointer place-items-center text-muted-foreground hover:text-primary"
+              className="grid h-7 w-6 cursor-pointer place-items-center text-muted-foreground hover:text-primary"
               onClick={() => onQuantityChange?.(e.cardId, e.zone, e.quantity + 1)}
             >
-              <Plus className="size-3" />
+              <Plus className="size-3.5" />
             </button>
           </span>
         )}
@@ -93,11 +93,11 @@ export function DeckPanel({
             lesson={e.lesson}
             cost={e.cost}
             label={attrLabel('lessons', e.lesson, locale)}
-            className="size-5 shrink-0"
-            numberClassName="text-[0.62rem]"
+            className="size-6 shrink-0"
+            numberClassName="text-xs"
           />
         ) : e.cost != null ? (
-          <span className="grid size-5 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-[0.62rem] font-bold text-primary-foreground">
+          <span className="grid size-6 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-xs font-bold text-primary-foreground">
             {e.cost}
           </span>
         ) : null}
@@ -111,9 +111,9 @@ export function DeckPanel({
           type="button"
           aria-label={t('browse.infoAria', { name: e.name })}
           onClick={() => setDetailId(e.cardId)}
-          className="-mr-1 grid size-6 shrink-0 cursor-pointer place-items-center rounded-md text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-background hover:text-primary focus-visible:opacity-100"
+          className="-mr-1 grid size-7 shrink-0 cursor-pointer place-items-center rounded-md text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-background hover:text-primary focus-visible:opacity-100"
         >
-          <Info className="size-4" />
+          <Info className="size-5" />
         </button>
       </div>
     )
@@ -125,9 +125,9 @@ export function DeckPanel({
         {t('panel.character')}
       </div>
       {character ? (
-        <div className="mx-4 mb-2 flex items-center gap-3 rounded-lg border border-primary/60 bg-gradient-to-r from-primary/10 to-transparent p-2.5">
-          <div className="grid size-10 shrink-0 place-items-center rounded-md bg-gradient-to-br from-accent to-secondary">
-            <Wand2 className="size-5 text-primary" />
+        <div className="mx-4 mb-2 flex items-center gap-3 rounded-lg border border-primary/60 bg-gradient-to-r from-primary/10 to-transparent p-3">
+          <div className="grid size-11 shrink-0 place-items-center rounded-md bg-gradient-to-br from-accent to-secondary">
+            <Wand2 className="size-6 text-primary" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-semibold">{character.name}</div>
@@ -135,7 +135,7 @@ export function DeckPanel({
               {character.setCode} · #{character.number}
             </div>
           </div>
-          <span className="rounded-full border border-primary/60 px-2 py-0.5 text-[0.62rem] tracking-wide text-primary uppercase">
+          <span className="rounded-full border border-primary/60 px-2 py-0.5 text-xs tracking-wide text-primary uppercase">
             {t('panel.characterBadge')}
           </span>
         </div>
@@ -149,11 +149,11 @@ export function DeckPanel({
       </div>
       {main.length === 0 && <p className="mx-4 text-sm text-muted-foreground">{t('panel.emptyMain')}</p>}
       {[...groups.entries()].map(([key, list]) => (
-        <div key={key} className="mx-2.5 mb-0.5">
-          <div className="flex items-center gap-2 px-1.5 py-1.5 text-sm font-semibold">
-            <span className="h-3.5 w-1 rounded-sm" style={{ backgroundColor: groupColor(key) }} aria-hidden />
+        <div key={key} className="mx-2 mb-0.5">
+          <div className="flex items-center gap-2 px-2 py-1.5 text-sm font-semibold">
+            <span className="h-4 w-1 rounded-sm" style={{ backgroundColor: groupColor(key) }} aria-hidden />
             {groupLabel(key)}
-            <span className="ml-auto text-xs font-medium text-muted-foreground">
+            <span className="ml-auto text-sm font-medium text-muted-foreground">
               {list.reduce((n, e) => n + e.quantity, 0)}
             </span>
           </div>
@@ -168,7 +168,7 @@ export function DeckPanel({
       {sideboard.length === 0 ? (
         <p className="mx-4 text-sm text-muted-foreground">{t('panel.emptySideboard')}</p>
       ) : (
-        <div className="mx-2.5 mb-2">{sideboard.map(row)}</div>
+        <div className="mx-2 mb-2">{sideboard.map(row)}</div>
       )}
 
       <CardDetailSheet

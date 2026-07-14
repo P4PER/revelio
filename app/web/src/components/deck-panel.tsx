@@ -1,12 +1,13 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { Info, Minus, Plus, Wand2 } from 'lucide-react'
+import { Info, Minus, Plus } from 'lucide-react'
 import type { DeckCardView, DeckZone } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
 import { lessonColor } from '@/lib/lesson-colors'
 import { cn } from '@/lib/utils'
 import { LessonCost } from './lesson-cost'
+import { DeckArt } from '@/components/deck-art'
 import { CardDetailSheet } from '@/components/card-detail-sheet'
 
 const LESSON_GROUP = '__lesson__'
@@ -161,9 +162,13 @@ export function DeckPanel({
             flashKey === `character-${character.cardId}` ? 'border-primary ring-1 ring-primary' : 'border-primary/60',
           )}
         >
-          <div className="grid size-11 shrink-0 place-items-center rounded-md bg-gradient-to-br from-accent to-secondary">
-            <Wand2 className="size-6 text-primary" />
-          </div>
+          <DeckArt
+            cardId={character.cardId}
+            lessons={character.lesson ? [character.lesson] : []}
+            imageBase={imageBase}
+            alt={character.name}
+            className="h-11 w-16 shrink-0 rounded-md"
+          />
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-semibold">{character.name}</div>
             <div className="text-xs text-muted-foreground">

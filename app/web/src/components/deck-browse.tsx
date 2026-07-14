@@ -9,6 +9,7 @@ import { type BrowseState, browseToQuery } from '@/lib/browse-params'
 import { DECK_VIEW_COOKIE, type DeckView } from '@/lib/deck-view'
 import { LessonFilterChips } from '@/components/lesson-filter-chips'
 import { ClearFiltersButton } from '@/components/clear-filters-button'
+import { PaginationNav } from '@/components/pagination-nav'
 import { DeckHeroCard } from '@/components/deck-hero-card'
 import { DeckDiscoverRow } from '@/components/deck-discover-row'
 import { Button } from '@/components/ui/button'
@@ -137,13 +138,13 @@ export function DeckBrowse({
       )}
 
       {/* Pagination */}
-      {pageCount > 1 ? (
-        <div className="flex items-center justify-center gap-2 pt-4">
-          <Button variant="outline" size="sm" disabled={state.page <= 1} onClick={() => push({ page: state.page - 1 })}>{t('explore.prev')}</Button>
-          <span className="text-sm text-muted-foreground">{t('explore.pageOf', { page: state.page, total: pageCount })}</span>
-          <Button variant="outline" size="sm" disabled={state.page >= pageCount} onClick={() => push({ page: state.page + 1 })}>{t('explore.next')}</Button>
-        </div>
-      ) : null}
+      <PaginationNav
+        page={state.page}
+        lastPage={pageCount}
+        className="pt-4"
+        onPrev={() => push({ page: state.page - 1 })}
+        onNext={() => push({ page: state.page + 1 })}
+      />
     </div>
   )
 }

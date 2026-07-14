@@ -218,6 +218,46 @@
       "symbolRemoved": "Symbol entfernt",
       "noSymbol": "Kein Symbol",
       "saveError": "Speichern fehlgeschlagen"
+    },
+    "users": {
+      "title": "Benutzer",
+      "desc": "Benutzerrollen, Sperren und Konten verwalten.",
+      "searchPlaceholder": "Name, E-Mail oder Benutzername suchen…",
+      "name": "Name",
+      "email": "E-Mail",
+      "username": "Benutzername",
+      "role": "Rolle",
+      "status": "Status",
+      "joined": "Beigetreten",
+      "active": "Aktiv",
+      "banned": "Gesperrt",
+      "verified": "Verifiziert",
+      "roleUser": "Benutzer",
+      "roleEditor": "Redakteur",
+      "roleAdmin": "Admin",
+      "noResults": "Keine Treffer",
+      "edit": "Bearbeiten",
+      "identity": "Konto",
+      "roleSection": "Rolle",
+      "banSection": "Sperrstatus",
+      "dangerSection": "Gefahrenzone",
+      "banReason": "Grund",
+      "banExpires": "Läuft ab (optional)",
+      "banAction": "Benutzer sperren",
+      "unbanAction": "Sperre aufheben",
+      "banConfirmTitle": "Diesen Benutzer sperren?",
+      "banConfirmBody": "Er kann sich nicht anmelden, bis die Sperre aufgehoben wird.",
+      "deleteAction": "Benutzer löschen",
+      "deleteConfirmTitle": "Diesen Benutzer dauerhaft löschen?",
+      "deleteConfirmBody": "Dies löscht auch dauerhaft {decks} Deck(s) und alle zugehörigen Daten. Dies kann nicht rückgängig gemacht werden.",
+      "cancel": "Abbrechen",
+      "save": "Speichern",
+      "saved": "Gespeichert",
+      "saveError": "Konnte nicht gespeichert werden",
+      "selfError": "Das können Sie nicht mit Ihrem eigenen Konto tun.",
+      "lastAdminError": "Sie können den letzten verbleibenden Admin nicht entfernen.",
+      "cannotSelf": "Für das eigene Konto nicht verfügbar",
+      "back": "Zurück zu den Benutzern"
     }
   },
   "decks": {
@@ -426,5 +466,11 @@
     "fileSize": "Das Bild darf höchstens 5 MB groß sein.",
     "costRange": "Min-Kosten dürfen die Max-Kosten nicht überschreiten.",
     "saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen."
+  },
+  "pagination": {
+    "label": "Seitennavigation",
+    "prev": "Zurück",
+    "next": "Weiter",
+    "pageOf": "Seite {page} von {total}"
   }
 }

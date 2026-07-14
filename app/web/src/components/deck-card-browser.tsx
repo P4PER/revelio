@@ -191,8 +191,8 @@ export function DeckCardBrowser({
                   </span>
                 )}
                 <div className="absolute inset-x-0 bottom-0 px-2 py-1.5">
-                  <div className="line-clamp-2 text-xs font-semibold text-foreground">{hit.name}</div>
-                  <div className="text-[0.62rem] tracking-wide text-muted-foreground uppercase">{hit.setCode}</div>
+                  <div className="line-clamp-2 text-sm font-semibold text-foreground">{hit.name}</div>
+                  <div className="text-xs tracking-wide text-muted-foreground uppercase">{hit.setCode} · #{hit.number}</div>
                 </div>
               </div>
 

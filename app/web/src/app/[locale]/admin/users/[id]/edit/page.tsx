@@ -31,7 +31,7 @@ export default async function EditUserPage(
   const expiresIso = user.banExpires ? user.banExpires.toISOString().slice(0, 10) : null
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="space-y-8">
       <Link
         href="/admin/users"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"

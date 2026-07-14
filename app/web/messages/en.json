@@ -41,7 +41,9 @@
     "damage": "Damage/turn",
     "legality": "Legality",
     "artist": "Illustrated by",
-    "rulings": "Rulings"
+    "rulings": "Rulings",
+    "rotate": "Rotate upright",
+    "rotateBack": "Close rotated view"
   },
   "sets": {
     "title": "Sets",

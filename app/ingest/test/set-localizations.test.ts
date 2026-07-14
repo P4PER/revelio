@@ -33,6 +33,13 @@ describe('locale-aware set reads', () => {
     expect((await getSetByCode(ctx.db, 'BS'))?.name).toBe('Base')
   })
 
+  it('getSetByCode matches the code case-insensitively (lowercase URL codes resolve)', async () => {
+    const s = await getSetByCode(ctx.db, 'bs', 'de')
+    expect(s?.code).toBe('BS') // returns the canonical stored code
+    expect(s?.name).toBe('Grundset') // localization still applied
+    expect(await getSetByCode(ctx.db, 'nope')).toBeNull()
+  })
+
   it('getSetForEdit returns all localizations keyed by lang', async () => {
     const s = await getSetForEdit(ctx.db, 'BS')
     expect(s).toMatchObject({ code: 'BS', name: 'Base', cardCount: 3, localizations: { de: 'Grundset' } })

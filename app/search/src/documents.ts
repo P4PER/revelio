@@ -19,6 +19,7 @@ export type SearchDocument = {
   isOfficial: boolean
   imageLang: string | null
   defaultLanguage: string
+  orientation: string | null
 }
 
 export function cardsIndex(lang: string): string {
@@ -73,6 +74,7 @@ export type CardIndexData = {
   types: string[]
   subTypes: string[]
   defaultLanguage: string
+  orientation: string | null
   localizations: Record<string, LocalizationFields>
 }
 
@@ -96,6 +98,7 @@ export function buildCardDocument(d: CardIndexData, lang: string): SearchDocumen
     isOfficial: d.isOfficial,
     imageLang: effectiveImageLang((l) => !!d.localizations[l]?.imageFile, lang, d.defaultLanguage),
     defaultLanguage: d.defaultLanguage,
+    orientation: d.orientation,
   }
 }
 

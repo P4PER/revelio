@@ -1,25 +1,24 @@
 'use client'
 import { useState } from 'react'
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { imageUrl, thumbKey } from '@revelio/core'
 import type { DeckCardView } from '@revelio/core'
+import { CardRotate } from '@/components/card-rotate'
 
 function GalleryTile({ entry, imageBase }: { entry: DeckCardView; imageBase: string }) {
   const [broken, setBroken] = useState(false)
   return (
-    <div className="relative aspect-[63/88] overflow-hidden rounded-lg border border-border bg-muted">
+    <div className="group relative aspect-[63/88] overflow-hidden rounded-lg border border-border bg-muted">
       {broken ? (
         <div className="flex h-full items-center justify-center p-2 text-center text-xs text-muted-foreground">
           {entry.name}
         </div>
       ) : (
-        <Image
+        <CardRotate
           src={imageUrl(imageBase, thumbKey(entry.cardId))}
           alt={entry.name}
-          fill
+          orientation={entry.orientation}
           sizes="(max-width: 640px) 30vw, 160px"
-          className="object-cover"
           onError={() => setBroken(true)}
         />
       )}

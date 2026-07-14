@@ -32,13 +32,15 @@ export async function listSets(db: DB, locale?: string): Promise<SetDTO[]> {
 }
 
 export async function getSetByCode(db: DB, code: string, locale?: string): Promise<SetDTO | null> {
-  const [row] = await db.select().from(sets).where(eq(sets.code, code)).limit(1)
+  // Set codes are stored uppercase; match case-insensitively so lowercase URL
+  // codes (e.g. /sets/bs) resolve rather than 404.
+  const [row] = await db.select().from(sets).where(sql`upper(${sets.code}) = upper(${code})`).limit(1)
   if (!row) return null
   if (!locale) return toSetDTO(row)
   const [loc] = await db
     .select()
     .from(setLocalizations)
-    .where(and(eq(setLocalizations.setCode, code), eq(setLocalizations.lang, locale)))
+    .where(and(eq(setLocalizations.setCode, row.code), eq(setLocalizations.lang, locale)))
     .limit(1)
   return toSetDTO(row, loc?.name ?? row.name)
 }
@@ -281,6 +283,7 @@ export async function getCardIndexData(db: DB, cardId: string): Promise<CardInde
     types: typeRows.map((t) => t.typeCode),
     subTypes: subTypeRows.map((t) => t.subTypeCode),
     defaultLanguage: card.defaultLanguage,
+    orientation: card.orientation,
     localizations,
   }
 }
@@ -445,6 +448,7 @@ async function cardViewMetaByIds(db: DB, ids: string[]): Promise<Map<string, Omi
       cardId: c.id, name: c.name, cost: c.cost ?? null, setCode: c.setCode, number: c.number,
       lesson: c.lesson ?? null, isOfficial: m.isOfficial, legality: m.legality,
       isLesson: m.isLesson, isStartingCharacter: m.isStartingCharacter,
+      orientation: c.orientation ?? null,
     })
   }
   return out
@@ -471,6 +475,7 @@ export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; user
       number: meta?.number ?? '',
       lesson: meta?.lesson ?? null, isOfficial: meta?.isOfficial ?? false, legality: meta?.legality ?? null,
       isLesson: meta?.isLesson ?? false, isStartingCharacter: meta?.isStartingCharacter ?? false,
+      orientation: meta?.orientation ?? null,
     }
   })
   const deck: DeckDTO = {

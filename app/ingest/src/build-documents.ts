@@ -61,6 +61,7 @@ export async function buildDocuments(db: DB): Promise<Record<string, SearchDocum
       types: typesByCard.get(c.id) ?? [],
       subTypes: subTypesByCard.get(c.id) ?? [],
       defaultLanguage: c.defaultLanguage,
+      orientation: c.orientation,
       localizations,
     }
   })

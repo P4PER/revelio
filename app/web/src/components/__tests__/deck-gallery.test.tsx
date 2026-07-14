@@ -24,4 +24,10 @@ describe('DeckGallery', () => {
     expect(screen.getByText('2×')).toBeInTheDocument()
     expect(screen.getByText('1×')).toBeInTheDocument()
   })
+
+  it('shows a rotate button for a horizontal deck card', () => {
+    const entries: DeckCardView[] = [{ ...view('dean', 'main', 1), orientation: 'horizontal' }]
+    renderWithIntl(<DeckGallery entries={entries} imageBase="https://img.example" />)
+    expect(screen.getByRole('button', { name: /rotate upright/i })).toBeInTheDocument()
+  })
 })

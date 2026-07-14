@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cardsIndex, CARD_INDEX_SETTINGS, cardNumberSortKey } from '../src/documents.js'
+import { cardsIndex, CARD_INDEX_SETTINGS, cardNumberSortKey, buildCardDocument } from '../src/documents.js'
 
 describe('search documents config', () => {
   it('names the per-language index', () => {
@@ -46,5 +46,19 @@ describe('cardNumberSortKey', () => {
       cardNumberSortKey(a) < cardNumberSortKey(b) ? -1 : 1,
     )
     expect(sorted).toEqual(['2', '10', 'A', 'P1'])
+  })
+})
+
+describe('buildCardDocument', () => {
+  it('carries orientation onto the built document', () => {
+    const data = {
+      id: 'bs-1', setCode: 'BS', number: '1', name: 'Harry',
+      lesson: null, rarity: null, finish: null, legality: null, cost: null,
+      isOfficial: true, types: ['character'], subTypes: [], defaultLanguage: 'en',
+      orientation: 'horizontal',
+      localizations: { en: { name: 'Harry', text: null, flavorText: null, imageFile: null } },
+    }
+    const doc = buildCardDocument(data, 'en')
+    expect(doc.orientation).toBe('horizontal')
   })
 })

@@ -1,6 +1,5 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
 import { useLocale, useTranslations } from 'next-intl'
 import { Info, Search } from 'lucide-react'
 import { deckCardMeta, imageUrl, thumbKey } from '@revelio/core'
@@ -19,6 +18,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { CardDetailSheet } from '@/components/card-detail-sheet'
+import { CardRotate } from '@/components/card-rotate'
 import { DeckFilterDrawer, EMPTY_DECK_FILTERS, type DeckFilters } from '@/components/deck-filter-drawer'
 
 const EMPTY_RESULT: SearchResult = { hits: [], total: 0, page: 1, hitsPerPage: 24 }
@@ -169,12 +169,11 @@ export function DeckCardBrowser({
             <div key={hit.id} className="group relative overflow-hidden rounded-lg border border-border/60 bg-card">
               <div className={cn('relative aspect-[5/7] bg-muted', banned && 'grayscale brightness-75')}>
                 {hit.imageLang ? (
-                  <Image
+                  <CardRotate
                     src={imageUrl(imageBase, thumbKey(hit.id, hit.imageLang, hit.defaultLanguage))}
                     alt={hit.name}
-                    fill
+                    orientation={hit.orientation}
                     sizes="(max-width: 640px) 45vw, 160px"
-                    className="object-cover"
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center p-2 text-center text-xs text-muted-foreground">

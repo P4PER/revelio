@@ -24,7 +24,7 @@ export function UserRoleForm(
   }
 
   return (
-    <div className="flex items-end gap-3">
+    <div className="flex items-center gap-3">
       <Select value={value} onValueChange={setValue} disabled={disabled || pending}>
         <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
         <SelectContent>

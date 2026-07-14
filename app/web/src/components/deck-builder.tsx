@@ -16,7 +16,6 @@ import {
   setQuantity,
 } from '@/lib/deck-model'
 import { createDeckAction, updateDeckAction } from '@/lib/deck-actions'
-import { LegalitySeal } from './legality-seal'
 import { LessonCurve } from './lesson-curve'
 import { DeckPanel } from './deck-panel'
 import { DeckCardBrowser } from './deck-card-browser'
@@ -119,7 +118,6 @@ export function DeckBuilder({
     metaMap,
   )
   const mainEntries = state.entries.filter((e) => e.zone === 'main')
-  const mainCount = mainEntries.reduce((n, e) => n + e.quantity, 0)
 
   async function handleSave() {
     setSaving(true)
@@ -190,7 +188,7 @@ export function DeckBuilder({
               aria-pressed={state.format === f}
               onClick={() => setState((s) => setFormat(s, f))}
               className={cn(
-                'cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition',
+                'cursor-pointer rounded-full px-3 py-1.5 text-xs font-medium transition',
                 state.format === f
                   ? 'bg-gradient-to-b from-primary to-primary/80 text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground',
@@ -200,7 +198,6 @@ export function DeckBuilder({
             </button>
           ))}
         </div>
-        <LegalitySeal status={evaluation.status} mainCount={mainCount} violations={evaluation.violations} />
         <DeckImportDialog state={state} onImport={setState} />
         <DeckExportMenu state={state} variant="outline" />
         {loggedIn ? (
@@ -253,7 +250,7 @@ export function DeckBuilder({
             <div className="mb-5 text-xs font-semibold tracking-widest text-foreground/80 uppercase">{t('curve.title')}</div>
             <LessonCurve entries={mainEntries} />
           </div>
-          <DeckPanel entries={state.entries} imageBase={imageBase} highlight={highlight} onQuantityChange={handleQuantityChange} />
+          <DeckPanel entries={state.entries} imageBase={imageBase} status={evaluation.status} highlight={highlight} onQuantityChange={handleQuantityChange} />
         </div>
       </div>
     </div>

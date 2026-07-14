@@ -2,8 +2,7 @@
 import { useTranslations } from 'next-intl'
 import type { DeckStatus, Violation } from '@revelio/core'
 import { cn } from '@/lib/utils'
-
-const MAIN_TARGET = 60
+import { MAIN_TARGET, deckStatusText } from '@/lib/deck-legality'
 
 const STATUS_STYLE: Record<DeckStatus, { ring: string; dot: string; pill: string }> = {
   legal: { ring: 'text-chart-4', dot: 'bg-chart-4', pill: 'bg-chart-4/10 text-chart-4' },
@@ -49,14 +48,8 @@ export function LegalitySeal({
   const t = useTranslations('decks')
   const style = STATUS_STYLE[status]
   const pct = Math.min(100, Math.round((mainCount / MAIN_TARGET) * 100))
-  const statusText =
-    status === 'legal'
-      ? t('status.legal')
-      : status === 'illegal'
-        ? t('status.illegal')
-        : mainCount < MAIN_TARGET
-          ? t('status.incompleteNeeds', { count: MAIN_TARGET - mainCount })
-          : t('status.incomplete')
+  const hasCharacter = !violations.some((v) => v.code === 'no_character')
+  const statusText = deckStatusText(status, mainCount, hasCharacter, t)
   const violationLines = violations.map((v) => violationText(v, t))
 
   return (

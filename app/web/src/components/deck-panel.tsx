@@ -2,10 +2,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Info, Minus, Plus } from 'lucide-react'
-import type { DeckCardView, DeckZone } from '@revelio/core'
+import type { DeckCardView, DeckStatus, DeckZone } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
 import { lessonColor } from '@/lib/lesson-colors'
 import { cn } from '@/lib/utils'
+import { MAIN_TARGET, STATUS_UI, deckStatusText } from '@/lib/deck-legality'
 import { LessonCost } from './lesson-cost'
 import { DeckArt } from '@/components/deck-art'
 import { CardDetailSheet } from '@/components/card-detail-sheet'
@@ -38,12 +39,14 @@ function groupColor(key: string): string {
 export function DeckPanel({
   entries,
   imageBase,
+  status,
   highlight,
   onQuantityChange,
   readOnly = false,
 }: {
   entries: DeckCardView[]
   imageBase: string
+  status?: DeckStatus
   highlight?: { zone: DeckZone; cardId: string; nonce: number } | null
   onQuantityChange?: (cardId: string, zone: DeckZone, qty: number) => void
   readOnly?: boolean
@@ -150,7 +153,21 @@ export function DeckPanel({
   }
 
   return (
-    <div ref={scrollRef} className="flex h-full flex-col overflow-y-auto py-1.5">
+    <div ref={scrollRef} className="flex h-full flex-col overflow-y-auto pb-1.5">
+      {status && (
+        <div className="flex items-center gap-2.5 border-b border-border/60 px-4 py-3">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+            <div
+              className={cn('h-full rounded-full transition-all', STATUS_UI[status].fill)}
+              style={{ width: `${Math.min(100, Math.round((mainCount / MAIN_TARGET) * 100))}%` }}
+            />
+          </div>
+          <span className={cn('flex shrink-0 items-center gap-1.5 text-xs font-medium', STATUS_UI[status].text)}>
+            <span className={cn('size-1.5 rounded-full', STATUS_UI[status].dot)} aria-hidden />
+            {deckStatusText(status, mainCount, Boolean(character), t)}
+          </span>
+        </div>
+      )}
       <div className="px-4 pt-3 pb-1.5 text-xs font-semibold tracking-widest text-primary uppercase">
         {t('panel.character')}
       </div>
@@ -185,7 +202,7 @@ export function DeckPanel({
 
       <div className="flex items-center gap-2 px-4 pt-3 pb-1.5 text-xs font-semibold tracking-widest text-primary uppercase">
         <span>{t('panel.main')}</span>
-        <span className="ml-auto font-semibold text-foreground tabular-nums">{mainCount} / 60</span>
+        <span className="ml-auto font-semibold text-foreground tabular-nums">{mainCount} / {MAIN_TARGET}</span>
       </div>
       {main.length === 0 && <p className="mx-4 text-sm text-muted-foreground">{t('panel.emptyMain')}</p>}
       {[...groups.entries()].map(([key, list]) => (

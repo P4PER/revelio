@@ -356,6 +356,7 @@
       "legal": "Turnierlegal",
       "incomplete": "Unvollständig",
       "incompleteNeeds": "Unvollständig · noch {count} Karten nötig",
+      "needsCharacter": "Startcharakter fehlt",
       "illegal": "Nicht legal"
     },
     "seal": {

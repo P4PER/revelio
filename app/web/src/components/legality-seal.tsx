@@ -70,8 +70,8 @@ export function LegalitySeal({
       >
         <div className="absolute inset-1 rounded-full bg-card" aria-hidden />
         <div className="relative text-center leading-none text-foreground" aria-hidden>
-          <b className="text-sm font-semibold tabular-nums">{mainCount}</b>
-          <small className="mt-0.5 block text-[0.55rem] tracking-widest text-muted-foreground uppercase">
+          <b className="text-base font-bold tabular-nums">{mainCount}</b>
+          <small className="mt-0.5 block text-[0.65rem] font-medium tabular-nums text-muted-foreground">
             /{MAIN_TARGET}
           </small>
         </div>

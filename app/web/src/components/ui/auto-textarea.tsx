@@ -29,7 +29,7 @@ export function AutoTextarea({ className, value, onChange, ...props }: React.Com
         resize()
       }}
       className={cn(
-        'w-full resize-none overflow-hidden rounded-md border border-input bg-transparent px-3 py-2 text-sm',
+        'w-full resize-none overflow-hidden rounded-md border border-input bg-input-fill px-3 py-2 text-sm',
         className,
       )}
       {...props}

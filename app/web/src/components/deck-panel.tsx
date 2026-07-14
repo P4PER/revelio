@@ -1,10 +1,11 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Info, Minus, Plus, Wand2 } from 'lucide-react'
 import type { DeckCardView, DeckZone } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
 import { lessonColor } from '@/lib/lesson-colors'
+import { cn } from '@/lib/utils'
 import { LessonCost } from './lesson-cost'
 import { CardDetailSheet } from '@/components/card-detail-sheet'
 
@@ -36,17 +37,38 @@ function groupColor(key: string): string {
 export function DeckPanel({
   entries,
   imageBase,
+  highlight,
   onQuantityChange,
   readOnly = false,
 }: {
   entries: DeckCardView[]
   imageBase: string
+  highlight?: { zone: DeckZone; cardId: string; nonce: number } | null
   onQuantityChange?: (cardId: string, zone: DeckZone, qty: number) => void
   readOnly?: boolean
 }) {
   const t = useTranslations('decks')
   const locale = useLocale()
   const [detailId, setDetailId] = useState<string | null>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [flashKey, setFlashKey] = useState<string | null>(null)
+
+  // When a card is added upstream, `highlight` arrives with a fresh nonce.
+  // Scroll that row into view within the panel and flash it briefly so the
+  // user sees where the card landed. The nonce makes re-adding the same card
+  // (a new object identity) re-trigger the effect.
+  useEffect(() => {
+    if (!highlight) return
+    const key = `${highlight.zone}-${highlight.cardId}`
+    scrollRef.current
+      ?.querySelector(`[data-row-key="${key}"]`)
+      ?.scrollIntoView({ block: 'nearest' })
+    // Flashing the row is a deliberate response to an external add event.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFlashKey(key)
+    const timer = setTimeout(() => setFlashKey(null), 1200)
+    return () => clearTimeout(timer)
+  }, [highlight])
 
   const character = entries.find((e) => e.zone === 'character')
   const main = entries.filter((e) => e.zone === 'main')
@@ -64,7 +86,14 @@ export function DeckPanel({
 
   function row(e: DeckCardView) {
     return (
-      <div key={`${e.zone}-${e.cardId}`} className="group flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-muted">
+      <div
+        key={`${e.zone}-${e.cardId}`}
+        data-row-key={`${e.zone}-${e.cardId}`}
+        className={cn(
+          'group flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted',
+          flashKey === `${e.zone}-${e.cardId}` && 'bg-primary/15',
+        )}
+      >
         {readOnly ? (
           <b className="min-w-8 text-center text-sm tabular-nums text-muted-foreground">{e.quantity}×</b>
         ) : (
@@ -120,12 +149,18 @@ export function DeckPanel({
   }
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto py-1.5">
+    <div ref={scrollRef} className="flex h-full flex-col overflow-y-auto py-1.5">
       <div className="px-4 pt-3 pb-1.5 text-xs font-semibold tracking-widest text-primary uppercase">
         {t('panel.character')}
       </div>
       {character ? (
-        <div className="mx-4 mb-2 flex items-center gap-3 rounded-lg border border-primary/60 bg-gradient-to-r from-primary/10 to-transparent p-3">
+        <div
+          data-row-key={`character-${character.cardId}`}
+          className={cn(
+            'mx-4 mb-2 flex items-center gap-3 rounded-lg border bg-gradient-to-r from-primary/10 to-transparent p-3 transition-shadow',
+            flashKey === `character-${character.cardId}` ? 'border-primary ring-1 ring-primary' : 'border-primary/60',
+          )}
+        >
           <div className="grid size-11 shrink-0 place-items-center rounded-md bg-gradient-to-br from-accent to-secondary">
             <Wand2 className="size-6 text-primary" />
           </div>

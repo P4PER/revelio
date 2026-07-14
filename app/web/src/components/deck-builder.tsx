@@ -51,7 +51,9 @@ export function DeckBuilder({
   const [saving, setSaving] = useState(false)
   const [savingDraft, setSavingDraft] = useState(false)
   const [showSavePrompt, setShowSavePrompt] = useState(false)
+  const [highlight, setHighlight] = useState<{ zone: DeckZone; cardId: string; nonce: number } | null>(null)
   const isFirstSave = useRef(true)
+  const addNonce = useRef(0)
 
   // Anyone without a deckId (guest or a logged-in user landing on /decks/new)
   // may have a locally-saved draft. Load it after mount (not in the lazy
@@ -102,6 +104,7 @@ export function DeckBuilder({
 
   function handleAdd(view: Omit<DeckCardView, 'zone' | 'quantity'>, zone: DeckZone) {
     setState((s) => addCard(s, view, zone))
+    setHighlight({ zone, cardId: view.cardId, nonce: ++addNonce.current })
   }
 
   const metaMap = Object.fromEntries(
@@ -250,7 +253,7 @@ export function DeckBuilder({
             <div className="mb-5 text-xs font-semibold tracking-widest text-foreground/80 uppercase">{t('curve.title')}</div>
             <LessonCurve entries={mainEntries} />
           </div>
-          <DeckPanel entries={state.entries} imageBase={imageBase} onQuantityChange={handleQuantityChange} />
+          <DeckPanel entries={state.entries} imageBase={imageBase} highlight={highlight} onQuantityChange={handleQuantityChange} />
         </div>
       </div>
     </div>

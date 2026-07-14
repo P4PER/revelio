@@ -69,6 +69,8 @@ export default async function EditUserPage(
         />
       </section>
 
+      <hr className="border-border" />
+
       <section className="space-y-2">
         <h2 className="text-sm font-medium text-destructive">{t('dangerSection')}</h2>
         <DeleteUserButton userId={user.id} deckCount={deckCount} isSelf={isSelf} />

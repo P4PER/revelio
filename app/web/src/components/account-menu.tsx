@@ -47,7 +47,7 @@ export function AccountMenu({ isEditor }: { isEditor: boolean }) {
         )}
         <DropdownMenuItem
           onSelect={() => signOut()}
-          className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+          className="text-destructive focus:bg-destructive/20 focus:text-destructive"
         >
           <LogOut />
           {tAuth('signOut')}

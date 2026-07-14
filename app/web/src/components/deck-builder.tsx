@@ -176,10 +176,10 @@ export function DeckBuilder({
           onChange={(e) => setState((s) => ({ ...s, name: e.target.value }))}
           placeholder={t('namePlaceholder')}
           aria-label={t('namePlaceholder')}
-          className="h-8 w-72 rounded-md border border-border/60 bg-card/50 px-2 text-base font-semibold shadow-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="h-8 w-72 rounded-md px-2 text-base font-semibold shadow-none focus-visible:ring-2 focus-visible:ring-ring"
         />
         <div className="flex-1" />
-        <div role="group" aria-label={t('format.label')} className="inline-flex rounded-full border border-border bg-muted p-0.5">
+        <div role="group" aria-label={t('format.label')} className="inline-flex rounded-full border border-input bg-muted p-0.5">
           {FORMATS.map((f) => (
             <button
               key={f}

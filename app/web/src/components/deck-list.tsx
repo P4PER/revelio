@@ -132,7 +132,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
         return (
           <div
             key={deck.id}
-            className="group relative flex flex-col gap-3 rounded-xl border border-border/60 bg-card/40 p-4 transition-colors hover:border-accent/60 hover:bg-card/70"
+            className="group relative flex flex-col gap-3 rounded-xl border border-input bg-card/40 p-4 transition-colors hover:border-accent/60 hover:bg-card/70"
           >
             <div className="flex items-start justify-between gap-2">
               {isRenaming ? (
@@ -223,7 +223,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onSelect={() => setDeckToDelete(deck)}
-                      className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                      className="text-destructive focus:bg-destructive/20 focus:text-destructive"
                     >
                       <Trash2 />
                       {t('list.actions.delete')}

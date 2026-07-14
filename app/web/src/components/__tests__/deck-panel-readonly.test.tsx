@@ -15,14 +15,14 @@ describe('DeckPanel readOnly', () => {
   const entries = [view('harry', 'character', 1), view('accio', 'main', 4)]
 
   it('renders quantities without stepper buttons when readOnly', () => {
-    renderWithIntl(<DeckPanel entries={entries} readOnly />)
+    renderWithIntl(<DeckPanel entries={entries} imageBase="http://img.test" readOnly />)
     expect(screen.getByText('4×')).toBeInTheDocument()
     expect(screen.queryByLabelText('Increase accio')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Decrease accio')).not.toBeInTheDocument()
   })
 
   it('renders stepper buttons when not readOnly', () => {
-    renderWithIntl(<DeckPanel entries={entries} onQuantityChange={() => {}} />)
+    renderWithIntl(<DeckPanel entries={entries} imageBase="http://img.test" onQuantityChange={() => {}} />)
     expect(screen.getByLabelText('Increase accio')).toBeInTheDocument()
   })
 })

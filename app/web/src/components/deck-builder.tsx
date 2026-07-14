@@ -247,10 +247,10 @@ export function DeckBuilder({
         </div>
         <div className="flex min-h-0 flex-col overflow-hidden bg-gradient-to-b from-card/40 to-transparent">
           <div className="border-b border-border/60 px-4 py-3">
-            <div className="mb-5 text-xs tracking-widest text-muted-foreground uppercase">{t('curve.title')}</div>
+            <div className="mb-5 text-xs font-semibold tracking-widest text-foreground/80 uppercase">{t('curve.title')}</div>
             <LessonCurve entries={mainEntries} />
           </div>
-          <DeckPanel entries={state.entries} onQuantityChange={handleQuantityChange} />
+          <DeckPanel entries={state.entries} imageBase={imageBase} onQuantityChange={handleQuantityChange} />
         </div>
       </div>
     </div>

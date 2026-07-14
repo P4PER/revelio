@@ -118,7 +118,7 @@ export function DeckOverview(props: DeckOverviewProps) {
 
       <div className="rounded-xl border border-border bg-card">
         {view === 'list' ? (
-          <DeckPanel entries={views} readOnly />
+          <DeckPanel entries={views} imageBase={imageBase} readOnly />
         ) : (
           <div className="p-4">
             <DeckGallery entries={views} imageBase={imageBase} />

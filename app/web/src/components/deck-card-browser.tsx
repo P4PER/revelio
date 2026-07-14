@@ -133,7 +133,7 @@ export function DeckCardBrowser({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-col gap-2.5 border-b border-border/60 p-3">
+      <div className="flex flex-col gap-2.5 border-b border-border/60 px-4 py-3">
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <Input
@@ -156,7 +156,7 @@ export function DeckCardBrowser({
         </p>
       </div>
 
-      <div className="grid flex-1 auto-rows-min gap-4 overflow-y-auto p-3 [grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]">
+      <div className="grid flex-1 auto-rows-min gap-4 overflow-y-auto px-4 py-3 [grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]">
         {result.hits.length === 0 && !pending && (
           <p className="col-span-full py-10 text-center text-sm text-muted-foreground" role="status">
             {t('browse.noResults')}
@@ -247,7 +247,7 @@ export function DeckCardBrowser({
         page={result.page}
         pageSize={result.hitsPerPage}
         total={result.total}
-        className="border-t border-border/60 px-3 py-2"
+        className="border-t border-border/60 px-4 py-2"
         onPrev={() => setPage((p) => Math.max(1, p - 1))}
         onNext={() => setPage((p) => p + 1)}
       />

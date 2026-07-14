@@ -695,11 +695,11 @@ export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Prom
 
 export type UserAdminRow = {
   id: string
-  name: string
   email: string
   emailVerified: boolean
   image: string | null
   username: string | null
+  displayUsername: string | null
   role: string
   banned: boolean
   createdAt: Date
@@ -714,11 +714,11 @@ export async function listUsersForAdmin(db: DB): Promise<UserAdminRow[]> {
   const rows = await db.select().from(user).orderBy(desc(user.createdAt))
   return rows.map((r) => ({
     id: r.id,
-    name: r.name,
     email: r.email,
     emailVerified: r.emailVerified,
     image: r.image,
     username: r.username,
+    displayUsername: r.displayUsername,
     role: r.role ?? 'user',
     banned: r.banned ?? false,
     createdAt: r.createdAt,
@@ -730,11 +730,11 @@ export async function getUserForAdmin(db: DB, id: string): Promise<UserAdminDeta
   if (!r) return null
   return {
     id: r.id,
-    name: r.name,
     email: r.email,
     emailVerified: r.emailVerified,
     image: r.image,
     username: r.username,
+    displayUsername: r.displayUsername,
     role: r.role ?? 'user',
     banned: r.banned ?? false,
     createdAt: r.createdAt,

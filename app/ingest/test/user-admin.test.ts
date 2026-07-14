@@ -18,7 +18,7 @@ async function seedUser(id: string, over: Partial<typeof schema.user.$inferInser
 beforeAll(async () => {
   ctx = await withMigratedDb()
   await seedUser('u1', { role: 'admin' })
-  await seedUser('u2', { role: 'editor', username: 'ed' })
+  await seedUser('u2', { role: 'editor', username: 'ed', displayUsername: 'Ed' })
   await seedUser('u3', { role: 'user', banned: true, banReason: 'spam' })
   await ctx.db.insert(schema.decks).values({
     id: 'd1', userId: 'u2', name: 'Deck', format: 'standard',
@@ -32,7 +32,7 @@ describe('user-admin queries', () => {
     const rows = await listUsersForAdmin(ctx.db)
     expect(rows).toHaveLength(3)
     const u2 = rows.find((r) => r.id === 'u2')!
-    expect(u2).toMatchObject({ role: 'editor', username: 'ed', banned: false })
+    expect(u2).toMatchObject({ role: 'editor', username: 'ed', displayUsername: 'Ed', banned: false })
     expect(u2.createdAt).toBeInstanceOf(Date)
   })
 

@@ -16,14 +16,14 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
 
-const nameEmailUser: FilterFn<UserAdminRow> = (row, _id, value) => {
+const usernameOrEmail: FilterFn<UserAdminRow> = (row, _id, value) => {
   const q = String(value).trim().toLowerCase()
   if (!q) return true
   const u = row.original
   return (
-    u.name.toLowerCase().includes(q) ||
     u.email.toLowerCase().includes(q) ||
-    (u.username?.toLowerCase().includes(q) ?? false)
+    (u.username?.toLowerCase().includes(q) ?? false) ||
+    (u.displayUsername?.toLowerCase().includes(q) ?? false)
   )
 }
 
@@ -41,11 +41,12 @@ export function AdminUsersTable({ users }: { users: UserAdminRow[] }) {
 
   const columns = useMemo<ColumnDef<UserAdminRow>[]>(() => [
     {
-      accessorKey: 'name',
-      header: t('name'),
+      id: 'username',
+      accessorFn: (u) => u.displayUsername ?? u.username ?? '',
+      header: t('username'),
       cell: ({ row }) => (
         <Link href={`/admin/users/${row.original.id}/edit`} className="font-medium hover:underline">
-          {row.original.name}
+          {row.original.displayUsername ?? row.original.username ?? '—'}
         </Link>
       ),
     },
@@ -59,13 +60,6 @@ export function AdminUsersTable({ users }: { users: UserAdminRow[] }) {
             <span className="ml-2 text-xs text-primary">{t('verified')}</span>
           )}
         </span>
-      ),
-    },
-    {
-      accessorKey: 'username',
-      header: t('username'),
-      cell: ({ getValue }) => (
-        <span className="font-mono text-xs text-muted-foreground">{String(getValue() ?? '—')}</span>
       ),
     },
     {
@@ -104,7 +98,7 @@ export function AdminUsersTable({ users }: { users: UserAdminRow[] }) {
     state: { sorting, globalFilter },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: nameEmailUser,
+    globalFilterFn: usernameOrEmail,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),

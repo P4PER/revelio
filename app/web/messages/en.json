@@ -392,10 +392,7 @@
       "detailLoading": "Loading…",
       "detailError": "Couldn't load card details.",
       "banned": "Banned",
-      "anySet": "Any set",
-      "prev": "Previous",
-      "next": "Next",
-      "pageStatus": "Showing {from}–{to} of {total}"
+      "anySet": "Any set"
     },
     "violation": {
       "no_character": "No starting character chosen",
@@ -471,6 +468,6 @@
     "label": "Pagination",
     "prev": "Previous",
     "next": "Next",
-    "pageOf": "Page {page} of {total}"
+    "pageStatus": "Showing {from}–{to} of {total}"
   }
 }

@@ -1,24 +1,25 @@
 'use client'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/../i18n/navigation'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 /**
- * The single pagination look for the whole app: chevron controls flanking a
- * "Page X of Y" label, centered, with prev/next hidden (a spacer holds their
- * place) at the first/last page. Renders nothing for a single page.
+ * The single pagination look for the whole app: a "Showing X–Y of Z" record
+ * range on the left and Previous / Next buttons on the right. Buttons disable
+ * (rather than disappear) at the first/last page so the controls stay put.
+ * Renders nothing when everything fits on a single page.
  *
  * Two modes, so it works from both server pages and client tables:
  * - link mode: pass `prevHref`/`nextHref` (server-safe — strings, no closures)
  * - button mode: pass `onPrev`/`onNext` (client callers: tanstack tables, browse)
  */
 export function PaginationNav({
-  page, lastPage, className, prevHref, nextHref, onPrev, onNext,
+  page, pageSize, total, className, prevHref, nextHref, onPrev, onNext,
 }: {
   page: number
-  lastPage: number
+  pageSize: number
+  total: number
   className?: string
   prevHref?: string
   nextHref?: string
@@ -26,37 +27,37 @@ export function PaginationNav({
   onNext?: () => void
 }) {
   const t = useTranslations('pagination')
+  const lastPage = Math.max(1, Math.ceil(total / pageSize))
   if (lastPage <= 1) return null
 
-  const spacer = <span aria-hidden className="inline-block w-9" />
+  const from = (page - 1) * pageSize + 1
+  const to = Math.min(page * pageSize, total)
+  const hasPrev = page > 1
+  const hasNext = page < lastPage
+
+  const arrow = (enabled: boolean, href: string | undefined, onClick: (() => void) | undefined, label: string) =>
+    enabled && href !== undefined ? (
+      <Button variant="outline" size="sm" asChild aria-label={label}>
+        <Link href={href}>{label}</Link>
+      </Button>
+    ) : (
+      <Button variant="outline" size="sm" aria-label={label} disabled={!enabled} onClick={onClick}>
+        {label}
+      </Button>
+    )
 
   return (
-    <nav className={cn('flex items-center justify-center gap-4 text-sm', className)} aria-label={t('label')}>
-      {page > 1 ? (
-        prevHref !== undefined ? (
-          <Button variant="outline" size="sm" asChild aria-label={t('prev')}>
-            <Link href={prevHref}><ChevronLeft className="size-4" /></Link>
-          </Button>
-        ) : (
-          <Button variant="outline" size="sm" aria-label={t('prev')} onClick={onPrev}>
-            <ChevronLeft className="size-4" />
-          </Button>
-        )
-      ) : spacer}
-
-      <span className="text-muted-foreground">{t('pageOf', { page, total: lastPage })}</span>
-
-      {page < lastPage ? (
-        nextHref !== undefined ? (
-          <Button variant="outline" size="sm" asChild aria-label={t('next')}>
-            <Link href={nextHref}><ChevronRight className="size-4" /></Link>
-          </Button>
-        ) : (
-          <Button variant="outline" size="sm" aria-label={t('next')} onClick={onNext}>
-            <ChevronRight className="size-4" />
-          </Button>
-        )
-      ) : spacer}
+    <nav
+      className={cn('flex items-center justify-between gap-4 text-sm', className)}
+      aria-label={t('label')}
+    >
+      <span className="text-muted-foreground" role="status">
+        {t('pageStatus', { from, to, total })}
+      </span>
+      <div className="flex items-center gap-2">
+        {arrow(hasPrev, prevHref, onPrev, t('prev'))}
+        {arrow(hasNext, nextHref, onNext, t('next'))}
+      </div>
     </nav>
   )
 }

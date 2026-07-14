@@ -52,7 +52,7 @@ export default async function DecksBrowsePage({
         state={state}
         entries={result.entries}
         total={result.total}
-        pageCount={result.pageCount}
+        pageSize={result.pageSize}
         initialView={initialView}
         imageBase={IMAGE_BASE}
       />

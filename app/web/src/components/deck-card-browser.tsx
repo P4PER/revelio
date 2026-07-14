@@ -20,6 +20,7 @@ import {
 import { CardDetailSheet } from '@/components/card-detail-sheet'
 import { CardRotate } from '@/components/card-rotate'
 import { DeckFilterDrawer, EMPTY_DECK_FILTERS, type DeckFilters } from '@/components/deck-filter-drawer'
+import { PaginationNav } from '@/components/pagination-nav'
 
 const EMPTY_RESULT: SearchResult = { hits: [], total: 0, page: 1, hitsPerPage: 24 }
 const DEBOUNCE_MS = 300
@@ -242,37 +243,14 @@ export function DeckCardBrowser({
         })}
       </div>
 
-      {result.total > 0 && (
-        <div className="flex items-center justify-between gap-3 border-t border-border/60 px-3 py-2">
-          <p className="text-xs text-muted-foreground" role="status">
-            {t('browse.pageStatus', {
-              from: (result.page - 1) * result.hitsPerPage + 1,
-              to: Math.min(result.page * result.hitsPerPage, result.total),
-              total: result.total,
-            })}
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={result.page <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              {t('browse.prev')}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={result.page >= Math.ceil(result.total / result.hitsPerPage)}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              {t('browse.next')}
-            </Button>
-          </div>
-        </div>
-      )}
+      <PaginationNav
+        page={result.page}
+        pageSize={result.hitsPerPage}
+        total={result.total}
+        className="border-t border-border/60 px-3 py-2"
+        onPrev={() => setPage((p) => Math.max(1, p - 1))}
+        onNext={() => setPage((p) => p + 1)}
+      />
 
       <CardDetailSheet
         cardId={detailId}

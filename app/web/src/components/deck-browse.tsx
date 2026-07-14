@@ -22,12 +22,12 @@ const SORTS: PublicDeckSort[] = ['likes', 'views', 'newest', 'updated']
 const FORMATS: DeckFormat[] = ['classic', 'revival']
 
 export function DeckBrowse({
-  state, entries, total, pageCount, initialView, imageBase,
+  state, entries, total, pageSize, initialView, imageBase,
 }: {
   state: BrowseState
   entries: PublicDeckEntry[]
   total: number
-  pageCount: number
+  pageSize: number
   initialView?: DeckView
   imageBase: string
 }) {
@@ -140,7 +140,8 @@ export function DeckBrowse({
       {/* Pagination */}
       <PaginationNav
         page={state.page}
-        lastPage={pageCount}
+        pageSize={pageSize}
+        total={total}
         className="pt-4"
         onPrev={() => push({ page: state.page - 1 })}
         onNext={() => push({ page: state.page + 1 })}

@@ -53,7 +53,7 @@ describe('buildCardDocument', () => {
   it('carries orientation onto the built document', () => {
     const data = {
       id: 'bs-1', setCode: 'BS', number: '1', name: 'Harry',
-      lesson: null, rarity: null, finish: null, legality: null, cost: null,
+      lesson: null, rarity: null, finish: null, legality: null, cost: null, damage: null,
       isOfficial: true, types: ['character'], subTypes: [], defaultLanguage: 'en',
       orientation: 'horizontal',
       localizations: { en: { name: 'Harry', text: null, flavorText: null, imageFile: null } },

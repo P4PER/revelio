@@ -57,6 +57,7 @@ export default async function DeckOverviewPage({
         initialView={initialView}
         likeCount={likeState.likeCount}
         liked={likeState.liked}
+        viewCount={existing.viewCount}
       />
     </main>
   )

@@ -16,8 +16,7 @@ import {
   setQuantity,
 } from '@/lib/deck-model'
 import { createDeckAction, updateDeckAction } from '@/lib/deck-actions'
-import { LegalitySeal } from './legality-seal'
-import { LessonCurve } from './lesson-curve'
+import { DeckStatsPanel } from './deck-stats-panel'
 import { DeckPanel } from './deck-panel'
 import { DeckCardBrowser } from './deck-card-browser'
 import { DeckExportMenu } from './deck-export-menu'
@@ -51,7 +50,9 @@ export function DeckBuilder({
   const [saving, setSaving] = useState(false)
   const [savingDraft, setSavingDraft] = useState(false)
   const [showSavePrompt, setShowSavePrompt] = useState(false)
+  const [highlight, setHighlight] = useState<{ zone: DeckZone; cardId: string; nonce: number } | null>(null)
   const isFirstSave = useRef(true)
+  const addNonce = useRef(0)
 
   // Anyone without a deckId (guest or a logged-in user landing on /decks/new)
   // may have a locally-saved draft. Load it after mount (not in the lazy
@@ -102,6 +103,7 @@ export function DeckBuilder({
 
   function handleAdd(view: Omit<DeckCardView, 'zone' | 'quantity'>, zone: DeckZone) {
     setState((s) => addCard(s, view, zone))
+    setHighlight({ zone, cardId: view.cardId, nonce: ++addNonce.current })
   }
 
   const metaMap = Object.fromEntries(
@@ -115,8 +117,6 @@ export function DeckBuilder({
     state.format,
     metaMap,
   )
-  const mainEntries = state.entries.filter((e) => e.zone === 'main')
-  const mainCount = mainEntries.reduce((n, e) => n + e.quantity, 0)
 
   async function handleSave() {
     setSaving(true)
@@ -170,13 +170,13 @@ export function DeckBuilder({
 
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-border/60">
-      <div className="flex flex-wrap items-center gap-3 border-b border-border/60 bg-card/60 px-4 py-2.5">
+      <div className="flex flex-wrap items-center gap-3 border-b border-border/60 bg-card/60 px-4 py-3">
         <Input
           value={state.name}
           onChange={(e) => setState((s) => ({ ...s, name: e.target.value }))}
           placeholder={t('namePlaceholder')}
           aria-label={t('namePlaceholder')}
-          className="h-8 w-72 rounded-md px-2 text-base font-semibold shadow-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="h-9 w-[40rem] max-w-full rounded-md px-3 text-lg font-semibold shadow-none md:text-lg"
         />
         <div className="flex-1" />
         <div role="group" aria-label={t('format.label')} className="inline-flex rounded-full border border-input bg-muted p-0.5">
@@ -187,7 +187,7 @@ export function DeckBuilder({
               aria-pressed={state.format === f}
               onClick={() => setState((s) => setFormat(s, f))}
               className={cn(
-                'cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition',
+                'cursor-pointer rounded-full px-3 py-1.5 text-xs font-medium transition',
                 state.format === f
                   ? 'bg-gradient-to-b from-primary to-primary/80 text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground',
@@ -197,7 +197,6 @@ export function DeckBuilder({
             </button>
           ))}
         </div>
-        <LegalitySeal status={evaluation.status} mainCount={mainCount} violations={evaluation.violations} />
         <DeckImportDialog state={state} onImport={setState} />
         <DeckExportMenu state={state} variant="outline" />
         {loggedIn ? (
@@ -246,11 +245,8 @@ export function DeckBuilder({
           />
         </div>
         <div className="flex min-h-0 flex-col overflow-hidden bg-gradient-to-b from-card/40 to-transparent">
-          <div className="border-b border-border/60 px-4 py-3">
-            <div className="mb-5 text-xs tracking-widest text-muted-foreground uppercase">{t('curve.title')}</div>
-            <LessonCurve entries={mainEntries} />
-          </div>
-          <DeckPanel entries={state.entries} onQuantityChange={handleQuantityChange} />
+          <DeckStatsPanel entries={state.entries} />
+          <DeckPanel entries={state.entries} imageBase={imageBase} status={evaluation.status} highlight={highlight} onQuantityChange={handleQuantityChange} />
         </div>
       </div>
     </div>

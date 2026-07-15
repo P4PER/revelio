@@ -23,7 +23,7 @@ vi.mock('@/../i18n/navigation', () => ({
 const decks: DeckSummary[] = [
   {
     id: 'd1', name: 'My Revival Deck', format: 'revival', visibility: 'private',
-    cardCount: 42, updatedAt: '2026-07-01T12:00:00.000Z',
+    cardCount: 61, mainCount: 60, hasCharacter: true, characterName: 'Draco Malfoy', updatedAt: '2026-07-01T12:00:00.000Z',
   },
 ]
 
@@ -54,7 +54,7 @@ describe('DeckList', () => {
     expect(screen.getByRole('link', { name: 'My Revival Deck' })).toHaveAttribute('href', '/decks/d1')
     expect(screen.getByText('Revival')).toBeInTheDocument()
     expect(screen.getByText('Private')).toBeInTheDocument()
-    expect(screen.getByText('42 / 60 cards')).toBeInTheDocument()
+    expect(screen.getByText('60 / 60')).toBeInTheDocument()
   })
 
   it('duplicates a deck from the row menu', async () => {

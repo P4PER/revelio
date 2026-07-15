@@ -313,7 +313,7 @@
       "pngError": "Could not generate the PNG."
     },
     "overview": {
-      "backToDecks": "Back to My Decks",
+      "back": "Back",
       "edit": "Edit",
       "publish": "Publish",
       "published": "Published",
@@ -325,6 +325,7 @@
       "viewGallery": "Gallery",
       "cardCount": "{count} cards",
       "updatedAt": "Updated {date}",
+      "views": "{count} views",
       "publishDialog": {
         "title": "Publish this deck?",
         "description": "Anyone with the link will be able to view it. You can unpublish at any time.",
@@ -356,6 +357,8 @@
       "legal": "Tournament legal",
       "incomplete": "Incomplete",
       "incompleteNeeds": "Incomplete · needs {count} more cards",
+      "needsCharacter": "Needs a starting character",
+      "tooMany": "{count} too many cards",
       "illegal": "Illegal"
     },
     "seal": {
@@ -365,6 +368,19 @@
       "title": "Lesson curve",
       "ariaLabel": "Cards by cost"
     },
+    "stats": {
+      "title": "Statistics",
+      "curve": "Cost curve",
+      "lessons": "Lessons",
+      "overview": "Overview",
+      "show": "Show statistics",
+      "hide": "Hide statistics",
+      "unique": "Unique cards",
+      "avgCost": "Avg. cost",
+      "avgDamage": "Avg. damage",
+      "damageSources": "Damage sources",
+      "lessonCards": "{count} lesson cards"
+    },
     "panel": {
       "character": "Starting Character",
       "characterBadge": "Character",
@@ -373,10 +389,20 @@
       "emptyMain": "No main deck cards yet. Add cards from the browser.",
       "sideboard": "Sideboard",
       "emptySideboard": "No sideboard cards.",
-      "lessons": "Lessons",
-      "items": "Items",
       "increase": "Increase {name}",
       "decrease": "Decrease {name}"
+    },
+    "group": {
+      "creature": "Creatures",
+      "spell": "Spells",
+      "item": "Items",
+      "adventure": "Adventures",
+      "location": "Locations",
+      "event": "Events",
+      "match": "Matches",
+      "character": "Characters",
+      "lesson": "Lessons",
+      "other": "Other"
     },
     "browse": {
       "searchPlaceholder": "Search {format} cards…",
@@ -408,6 +434,8 @@
       "title": "My Decks",
       "newDeck": "New deck",
       "cardCount": "{count} / 60 cards",
+      "mainCountAria": "Main deck: {count} of {target} cards",
+      "startingCharacter": "Starting character: {name}",
       "updatedAt": "Updated {date}",
       "visibility": {
         "private": "Private",

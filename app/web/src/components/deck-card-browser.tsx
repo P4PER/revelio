@@ -37,6 +37,8 @@ function toAddView(hit: SearchDocument): Omit<DeckCardView, 'zone' | 'quantity'>
     cardId: hit.id,
     name: hit.name,
     cost: hit.cost,
+    damage: hit.damage ?? null,
+    types: hit.types,
     setCode: hit.setCode,
     number: hit.number,
     lesson: hit.lesson,
@@ -76,6 +78,8 @@ export function DeckCardBrowser({
 
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reqId = useRef(0)
+  const gridRef = useRef<HTMLDivElement>(null)
+  const scrollTopPending = useRef(false)
 
   // Any change to the filters should strand the user back on page 1 rather
   // than leaving them on a page that may no longer exist for the new result set.
@@ -110,6 +114,15 @@ export function DeckCardBrowser({
     return () => { if (timer.current) clearTimeout(timer.current) }
   }, [query, format, lessons, filters, page, locale])
 
+  // After a page navigation, jump the grid back to the top — but only once the
+  // new results have rendered, so we land on the first card of the new page
+  // rather than scrolling the old page before it swaps out.
+  useEffect(() => {
+    if (!scrollTopPending.current) return
+    scrollTopPending.current = false
+    gridRef.current?.scrollTo({ top: 0 })
+  }, [result])
+
   function toggleLesson(code: string) {
     setLessons((ls) => (ls.includes(code) ? ls.filter((c) => c !== code) : [...ls, code]))
   }
@@ -133,7 +146,7 @@ export function DeckCardBrowser({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-col gap-2.5 border-b border-border/60 p-3">
+      <div className="flex flex-col gap-2.5 border-b border-border/60 px-4 py-3">
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <Input
@@ -156,7 +169,7 @@ export function DeckCardBrowser({
         </p>
       </div>
 
-      <div className="grid flex-1 auto-rows-min gap-4 overflow-y-auto p-3 [grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]">
+      <div ref={gridRef} className="grid flex-1 auto-rows-min gap-4 overflow-y-auto px-4 py-3 [grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]">
         {result.hits.length === 0 && !pending && (
           <p className="col-span-full py-10 text-center text-sm text-muted-foreground" role="status">
             {t('browse.noResults')}
@@ -191,8 +204,8 @@ export function DeckCardBrowser({
                   </span>
                 )}
                 <div className="absolute inset-x-0 bottom-0 px-2 py-1.5">
-                  <div className="line-clamp-2 text-xs font-semibold text-foreground">{hit.name}</div>
-                  <div className="text-[0.62rem] tracking-wide text-muted-foreground uppercase">{hit.setCode}</div>
+                  <div className="line-clamp-2 text-sm font-semibold text-foreground">{hit.name}</div>
+                  <div className="text-xs tracking-wide text-muted-foreground uppercase">{hit.setCode} · #{hit.number}</div>
                 </div>
               </div>
 
@@ -247,9 +260,9 @@ export function DeckCardBrowser({
         page={result.page}
         pageSize={result.hitsPerPage}
         total={result.total}
-        className="border-t border-border/60 px-3 py-2"
-        onPrev={() => setPage((p) => Math.max(1, p - 1))}
-        onNext={() => setPage((p) => p + 1)}
+        className="border-t border-border/60 px-4 py-2"
+        onPrev={() => { setPage((p) => Math.max(1, p - 1)); scrollTopPending.current = true }}
+        onNext={() => { setPage((p) => p + 1); scrollTopPending.current = true }}
       />
 
       <CardDetailSheet

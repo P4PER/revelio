@@ -313,7 +313,7 @@
       "pngError": "PNG konnte nicht erstellt werden."
     },
     "overview": {
-      "backToDecks": "Zurück zu meinen Decks",
+      "back": "Zurück",
       "edit": "Bearbeiten",
       "publish": "Veröffentlichen",
       "published": "Veröffentlicht",
@@ -325,6 +325,7 @@
       "viewGallery": "Galerie",
       "cardCount": "{count} Karten",
       "updatedAt": "Aktualisiert {date}",
+      "views": "{count} Aufrufe",
       "publishDialog": {
         "title": "Dieses Deck veröffentlichen?",
         "description": "Jeder mit dem Link kann es dann ansehen. Du kannst die Veröffentlichung jederzeit zurückziehen.",
@@ -356,6 +357,8 @@
       "legal": "Turnierlegal",
       "incomplete": "Unvollständig",
       "incompleteNeeds": "Unvollständig · noch {count} Karten nötig",
+      "needsCharacter": "Startcharakter fehlt",
+      "tooMany": "{count} Karten zu viel",
       "illegal": "Nicht legal"
     },
     "seal": {
@@ -365,6 +368,19 @@
       "title": "Lektionskurve",
       "ariaLabel": "Karten nach Kosten"
     },
+    "stats": {
+      "title": "Statistik",
+      "curve": "Kostenkurve",
+      "lessons": "Lektionen",
+      "overview": "Übersicht",
+      "show": "Statistik anzeigen",
+      "hide": "Statistik ausblenden",
+      "unique": "Einzigartige Karten",
+      "avgCost": "Ø Kosten",
+      "avgDamage": "Ø Schaden",
+      "damageSources": "Schadensquellen",
+      "lessonCards": "{count} Lektionskarten"
+    },
     "panel": {
       "character": "Startcharakter",
       "characterBadge": "Charakter",
@@ -373,10 +389,20 @@
       "emptyMain": "Noch keine Karten im Hauptdeck. Füge Karten aus dem Browser hinzu.",
       "sideboard": "Sideboard",
       "emptySideboard": "Keine Karten im Sideboard.",
-      "lessons": "Lektionen",
-      "items": "Gegenstände",
       "increase": "{name} erhöhen",
       "decrease": "{name} verringern"
+    },
+    "group": {
+      "creature": "Kreaturen",
+      "spell": "Zauber",
+      "item": "Gegenstände",
+      "adventure": "Abenteuer",
+      "location": "Orte",
+      "event": "Ereignisse",
+      "match": "Spiele",
+      "character": "Charaktere",
+      "lesson": "Lektionen",
+      "other": "Sonstige"
     },
     "browse": {
       "searchPlaceholder": "{format}-Karten durchsuchen…",
@@ -408,6 +434,8 @@
       "title": "Meine Decks",
       "newDeck": "Neues Deck",
       "cardCount": "{count} / 60 Karten",
+      "mainCountAria": "Hauptdeck: {count} von {target} Karten",
+      "startingCharacter": "Startcharakter: {name}",
       "updatedAt": "Aktualisiert am {date}",
       "visibility": {
         "private": "Privat",

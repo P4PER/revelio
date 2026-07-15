@@ -279,6 +279,7 @@ export async function getCardIndexData(db: DB, cardId: string): Promise<CardInde
     finish: card.finish,
     legality: card.legality,
     cost: card.cost,
+    damage: card.damagePerTurn ?? null,
     isOfficial: setRow?.isOfficial ?? false,
     types: typeRows.map((t) => t.typeCode),
     subTypes: subTypeRows.map((t) => t.subTypeCode),
@@ -394,21 +395,42 @@ export type DeckWriteInput = {
 }
 export type DeckSummary = {
   id: string; name: string; format: DeckFormat; visibility: DeckVisibility
-  cardCount: number; updatedAt: string
+  cardCount: number; mainCount: number; hasCharacter: boolean
+  characterName: string | null; updatedAt: string
 }
 
 export async function listDecksByUser(db: DB, userId: string): Promise<DeckSummary[]> {
   const rows = await db.select().from(decks).where(eq(decks.userId, userId)).orderBy(desc(decks.updatedAt))
   if (rows.length === 0) return []
+  const ids = rows.map((r) => r.id)
+  // Per-zone quantity sums, so the summary can show the main-deck count against
+  // the 60 target (rather than a total that includes the starting character and
+  // sideboard) plus whether a starting character is present.
   const counts = await db
-    .select({ deckId: deckCards.deckId, total: sql<number>`sum(${deckCards.quantity})::int` })
+    .select({ deckId: deckCards.deckId, zone: deckCards.zone, total: sql<number>`sum(${deckCards.quantity})::int` })
     .from(deckCards)
-    .where(inArray(deckCards.deckId, rows.map((r) => r.id)))
-    .groupBy(deckCards.deckId)
-  const byDeck = new Map(counts.map((c) => [c.deckId, c.total]))
+    .where(inArray(deckCards.deckId, ids))
+    .groupBy(deckCards.deckId, deckCards.zone)
+  const totalByDeck = new Map<string, number>()
+  const mainByDeck = new Map<string, number>()
+  const hasCharacter = new Set<string>()
+  for (const c of counts) {
+    totalByDeck.set(c.deckId, (totalByDeck.get(c.deckId) ?? 0) + c.total)
+    if (c.zone === 'main') mainByDeck.set(c.deckId, c.total)
+    if (c.zone === 'character' && c.total > 0) hasCharacter.add(c.deckId)
+  }
+  // The starting character's display name for each deck (if one is set).
+  const charRows = await db
+    .select({ deckId: deckCards.deckId, name: cards.name })
+    .from(deckCards)
+    .innerJoin(cards, eq(deckCards.cardId, cards.id))
+    .where(and(inArray(deckCards.deckId, ids), eq(deckCards.zone, 'character')))
+  const charByDeck = new Map(charRows.map((c) => [c.deckId, c.name]))
   return rows.map((r) => ({
     id: r.id, name: r.name, format: r.format as DeckFormat, visibility: r.visibility as DeckVisibility,
-    cardCount: byDeck.get(r.id) ?? 0, updatedAt: r.updatedAt.toISOString(),
+    cardCount: totalByDeck.get(r.id) ?? 0, mainCount: mainByDeck.get(r.id) ?? 0,
+    hasCharacter: hasCharacter.has(r.id), characterName: charByDeck.get(r.id) ?? null,
+    updatedAt: r.updatedAt.toISOString(),
   }))
 }
 
@@ -445,7 +467,9 @@ async function cardViewMetaByIds(db: DB, ids: string[]): Promise<Map<string, Omi
       types: typesById.get(c.id) ?? [], subTypes: subsById.get(c.id) ?? [],
     })
     out.set(c.id, {
-      cardId: c.id, name: c.name, cost: c.cost ?? null, setCode: c.setCode, number: c.number,
+      cardId: c.id, name: c.name, cost: c.cost ?? null, damage: c.damagePerTurn ?? null,
+      types: typesById.get(c.id) ?? [],
+      setCode: c.setCode, number: c.number,
       lesson: c.lesson ?? null, isOfficial: m.isOfficial, legality: m.legality,
       isLesson: m.isLesson, isStartingCharacter: m.isStartingCharacter,
       orientation: c.orientation ?? null,
@@ -461,7 +485,7 @@ export async function getCardViews(db: DB, ids: string[]): Promise<Record<string
   return Object.fromEntries(await cardViewMetaByIds(db, ids))
 }
 
-export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; userId: string; views: DeckCardView[] } | null> {
+export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; userId: string; views: DeckCardView[]; viewCount: number } | null> {
   const [row] = await db.select().from(decks).where(eq(decks.id, id)).limit(1)
   if (!row) return null
   const dcs = await db.select().from(deckCards).where(eq(deckCards.deckId, id))
@@ -471,8 +495,9 @@ export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; user
     const meta = metaById.get(d.cardId)
     return {
       cardId: d.cardId, zone: d.zone as DeckCardView['zone'], quantity: d.quantity,
-      name: meta?.name ?? d.cardId, cost: meta?.cost ?? null, setCode: meta?.setCode ?? '',
-      number: meta?.number ?? '',
+      name: meta?.name ?? d.cardId, cost: meta?.cost ?? null, damage: meta?.damage ?? null,
+      types: meta?.types ?? [],
+      setCode: meta?.setCode ?? '', number: meta?.number ?? '',
       lesson: meta?.lesson ?? null, isOfficial: meta?.isOfficial ?? false, legality: meta?.legality ?? null,
       isLesson: meta?.isLesson ?? false, isStartingCharacter: meta?.isStartingCharacter ?? false,
       orientation: meta?.orientation ?? null,
@@ -484,7 +509,7 @@ export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; user
     cards: dcs.map((d) => ({ cardId: d.cardId, zone: d.zone as DeckCardView['zone'], quantity: d.quantity })),
     createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString(),
   }
-  return { deck, userId: row.userId, views }
+  return { deck, userId: row.userId, views, viewCount: row.viewCount }
 }
 
 // Viewer-aware read for the public overview page: the owner always sees their
@@ -493,7 +518,7 @@ export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; user
 // 404s and can't be used to probe another user's deck IDs.
 export async function getDeckForViewer(
   db: DB, id: string, viewerId: string | null,
-): Promise<{ deck: DeckDTO; userId: string; views: DeckCardView[] } | null> {
+): Promise<{ deck: DeckDTO; userId: string; views: DeckCardView[]; viewCount: number } | null> {
   const res = await getDeck(db, id)
   if (!res) return null
   const isOwner = res.userId === viewerId

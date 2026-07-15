@@ -22,7 +22,7 @@ export function CardDetailSheet({
 }) {
   return (
     <Sheet open={cardId !== null} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="w-full gap-0 overflow-y-auto sm:max-w-2xl">
+      <SheetContent side="left" className="w-full gap-0 overflow-y-auto sm:max-w-4xl">
         {cardId && <CardDetailBody key={cardId} cardId={cardId} imageBase={imageBase} />}
       </SheetContent>
     </Sheet>

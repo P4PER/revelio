@@ -162,22 +162,24 @@ steps).
   filters. This spec only makes the finish model correct so the collection can sit on it.
 - A `finish_overrides.json` curation mechanism (add only if a real exception appears).
 
-### Known follow-up — normal/normal same-number duplicates (tracked, separate spec)
+### Known follow-up — normal/normal same-number collisions (tracked, separate spec)
 
-Independent of finishes, **10** `(setCode, number)` pairs have two `normal` rows. They
-are **not** finish-related and need human judgment, so they get their own small
-data-cleanup spec (before or during the Collection page). Two categories:
+Independent of finishes, **10** `(setCode, number)` pairs have two `normal` rows. Per the
+owner, these are **all** the same kind of problem as EOTP #84 below: **two genuinely
+different cards** that collide because **one has the wrong number** — *not* spelling
+typos of a single card. They are fixed by **correcting the mis-numbered card** against the
+real set checklist, **case by case**, and must **not** be auto-merged (auto-merging would
+destroy a real card). This is its own small data-cleanup spec, done before or during the
+Collection page; the finish work does not touch these rows.
 
-- **8 typo-twins** — same card, misspelled; safe to merge on the correct spelling:
-  AAH #59 (Flavour/Flavor), AAH #65 (Manegro/Manegrow), GOF #19 (Perfurmed/Perfumed),
-  GOF #37 (Fertiliser/Fertilizer), GOF #99 (Thickness on/of), GOF #119
-  (Divination/Divinatino), POA #71 (Lumos!/Lumos), POA #72 (Substitute/Subsitute).
-- **2 genuine number collisions** — two *different* cards sharing a number because one has
-  the **wrong number**; fix by correcting the number (sourced from the real set
-  checklist), **not** by merging:
-  - EOTP #84 — "Sirius's Letter" vs "Wizard's Desk". Per owner: "Wizard's Desk" should be
-    **#85** (example — verify against the checklist).
-  - GOF #56 — "Ron's Jealousy" vs "Skeeter's Scoop" (correct number TBD from checklist).
+The 10 colliding pairs (each needs the correct number sourced from the checklist):
+
+- EOTP #84 — "Sirius's Letter" vs "Wizard's Desk" → "Wizard's Desk" should be ~**#85**
+  (owner example; verify).
+- GOF #56 — "Ron's Jealousy" vs "Skeeter's Scoop".
+- AAH #59, AAH #65, GOF #19, GOF #37, GOF #99, GOF #119, POA #71, POA #72 — resolve each
+  the same way. (Any that turn out to be a true single-card duplicate rather than a
+  numbering error is decided during that manual review, not assumed here.)
 
 ## Testing
 

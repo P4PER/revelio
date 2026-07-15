@@ -387,10 +387,20 @@
       "emptyMain": "No main deck cards yet. Add cards from the browser.",
       "sideboard": "Sideboard",
       "emptySideboard": "No sideboard cards.",
-      "lessons": "Lessons",
-      "items": "Items",
       "increase": "Increase {name}",
       "decrease": "Decrease {name}"
+    },
+    "group": {
+      "creature": "Creatures",
+      "spell": "Spells",
+      "item": "Items",
+      "adventure": "Adventures",
+      "location": "Locations",
+      "event": "Events",
+      "match": "Matches",
+      "character": "Characters",
+      "lesson": "Lessons",
+      "other": "Other"
     },
     "browse": {
       "searchPlaceholder": "Search {format} cards…",

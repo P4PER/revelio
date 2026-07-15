@@ -7,10 +7,10 @@ import { Link } from '@/../i18n/navigation'
 import { deckStats } from '@/lib/deck-stats'
 import { DeckPanel } from '@/components/deck-panel'
 import { DeckGallery } from '@/components/deck-gallery'
+import { DeckStatsPanel } from '@/components/deck-stats-panel'
+import { DeckLegalityBar } from '@/components/deck-legality-bar'
 import { DeckOverviewActions } from '@/components/deck-overview-actions'
 import { recordViewAction } from '@/lib/deck-actions'
-import { LegalitySeal } from '@/components/legality-seal'
-import { LessonCurve } from '@/components/lesson-curve'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DECK_VIEW_COOKIE, type DeckView as View } from '@/lib/deck-view'
@@ -56,7 +56,7 @@ export function DeckOverview(props: DeckOverviewProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deckId])
 
-  const { status, violations, mainEntries, mainCount } = deckStats(views, format)
+  const { status, mainCount } = deckStats(views, format)
   const totalCards = views.reduce((n, e) => n + e.quantity, 0)
   const updated = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(updatedAt))
 
@@ -109,14 +109,14 @@ export function DeckOverview(props: DeckOverviewProps) {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-card p-4">
-        <LegalitySeal status={status} mainCount={mainCount} violations={violations} />
-        <div className="min-w-[220px] flex-1">
-          <LessonCurve entries={mainEntries} />
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-border bg-card">
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <DeckStatsPanel entries={views} />
+        <DeckLegalityBar
+          status={status}
+          mainCount={mainCount}
+          hasCharacter={views.some((e) => e.zone === 'character')}
+          className="border-b border-border/60 px-4 py-3"
+        />
         {view === 'list' ? (
           <DeckPanel entries={views} imageBase={imageBase} readOnly />
         ) : (

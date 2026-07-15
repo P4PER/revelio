@@ -9,7 +9,7 @@ export type DeckStats = {
 }
 
 // Mirrors deck-builder.tsx: build the meta map evaluateDeck needs, then derive
-// the main-zone entries/count used by LessonCurve and LegalitySeal.
+// the main-zone entries/count used by the deck overview's stats + legality bar.
 export function deckStats(views: DeckCardView[], format: DeckFormat): DeckStats {
   const meta = Object.fromEntries(
     views.map((e) => [

@@ -74,7 +74,7 @@ export function DeckStatsPanel({ entries }: { entries: DeckCardView[] }) {
         </button>
       </div>
 
-      <div className="h-32 px-4 pb-3">
+      <div className="h-36 px-4 pb-3">
         <TabsContent value="curve" className="flex h-full flex-col justify-center">
           <LessonCurve entries={mainEntries} />
         </TabsContent>

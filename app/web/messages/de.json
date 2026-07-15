@@ -387,10 +387,20 @@
       "emptyMain": "Noch keine Karten im Hauptdeck. Füge Karten aus dem Browser hinzu.",
       "sideboard": "Sideboard",
       "emptySideboard": "Keine Karten im Sideboard.",
-      "lessons": "Lektionen",
-      "items": "Gegenstände",
       "increase": "{name} erhöhen",
       "decrease": "{name} verringern"
+    },
+    "group": {
+      "creature": "Kreaturen",
+      "spell": "Zauber",
+      "item": "Gegenstände",
+      "adventure": "Abenteuer",
+      "location": "Orte",
+      "event": "Ereignisse",
+      "match": "Spiele",
+      "character": "Charaktere",
+      "lesson": "Lektionen",
+      "other": "Sonstige"
     },
     "browse": {
       "searchPlaceholder": "{format}-Karten durchsuchen…",

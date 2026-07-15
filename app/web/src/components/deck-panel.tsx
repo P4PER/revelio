@@ -4,33 +4,13 @@ import { useLocale, useTranslations } from 'next-intl'
 import { Info, Minus, Plus } from 'lucide-react'
 import type { DeckCardView, DeckStatus, DeckZone } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
-import { lessonColor } from '@/lib/lesson-colors'
 import { cn } from '@/lib/utils'
-import { MAIN_TARGET, STATUS_UI, deckStatusText } from '@/lib/deck-legality'
+import { MAIN_TARGET } from '@/lib/deck-legality'
+import { groupColor, groupLabel, groupMainEntries } from '@/lib/deck-groups'
 import { LessonCost } from './lesson-cost'
 import { DeckArt } from '@/components/deck-art'
+import { DeckLegalityBar } from '@/components/deck-legality-bar'
 import { CardDetailSheet } from '@/components/card-detail-sheet'
-
-const LESSON_GROUP = '__lesson__'
-const ITEM_GROUP = '__item__'
-
-// Main-zone grouping key: real lesson code when present, else a synthetic
-// bucket for lesson cards themselves, else a synthetic bucket for everything
-// else (items, quidditch cards, etc. with no lesson tag).
-function groupKey(e: DeckCardView): string {
-  if (e.isLesson) return LESSON_GROUP
-  if (e.lesson) return e.lesson
-  return ITEM_GROUP
-}
-
-// CSS color for a main-zone group's marker bar. Real lesson groups get their
-// lesson tint from the LESSONS palette; the two synthetic buckets fall back to
-// theme tokens.
-function groupColor(key: string): string {
-  if (key === LESSON_GROUP) return 'var(--primary)'
-  if (key === ITEM_GROUP) return 'var(--muted-foreground)'
-  return lessonColor(key) ?? 'var(--muted-foreground)'
-}
 
 // Takes the deck's full entry list, groups the main zone by lesson (falling
 // back to synthetic "Lessons"/"Items" buckets), and renders the character
@@ -80,13 +60,7 @@ export function DeckPanel({
   const mainCount = main.reduce((n, e) => n + e.quantity, 0)
   const sideCount = sideboard.reduce((n, e) => n + e.quantity, 0)
 
-  const groups = new Map<string, DeckCardView[]>()
-  for (const e of main) {
-    const key = groupKey(e)
-    groups.set(key, [...(groups.get(key) ?? []), e])
-  }
-  const groupLabel = (key: string) =>
-    key === LESSON_GROUP ? t('panel.lessons') : key === ITEM_GROUP ? t('panel.items') : attrLabel('lessons', key, locale)
+  const groups = groupMainEntries(main)
 
   function row(e: DeckCardView) {
     return (
@@ -155,18 +129,12 @@ export function DeckPanel({
   return (
     <div ref={scrollRef} className="flex h-full flex-col overflow-y-auto pb-1.5">
       {status && (
-        <div className="flex items-center gap-2.5 border-b border-border/60 px-4 py-3">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-            <div
-              className={cn('h-full rounded-full transition-all', STATUS_UI[status].fill)}
-              style={{ width: `${Math.min(100, Math.round((mainCount / MAIN_TARGET) * 100))}%` }}
-            />
-          </div>
-          <span className={cn('flex shrink-0 items-center gap-1.5 text-xs font-medium', STATUS_UI[status].text)}>
-            <span className={cn('size-1.5 rounded-full', STATUS_UI[status].dot)} aria-hidden />
-            {deckStatusText(status, mainCount, Boolean(character), t)}
-          </span>
-        </div>
+        <DeckLegalityBar
+          status={status}
+          mainCount={mainCount}
+          hasCharacter={Boolean(character)}
+          className="border-b border-border/60 px-4 py-3"
+        />
       )}
       <div className="px-4 pt-3 pb-1.5 text-xs font-semibold tracking-widest text-primary uppercase">
         {t('panel.character')}
@@ -209,7 +177,7 @@ export function DeckPanel({
         <div key={key} className="mx-2 mb-0.5">
           <div className="flex items-center gap-2 px-2 py-1.5 text-sm font-semibold">
             <span className="h-4 w-1 rounded-sm" style={{ backgroundColor: groupColor(key) }} aria-hidden />
-            {groupLabel(key)}
+            {groupLabel(key, t)}
             <span className="ml-auto text-sm font-medium text-muted-foreground">
               {list.reduce((n, e) => n + e.quantity, 0)}
             </span>

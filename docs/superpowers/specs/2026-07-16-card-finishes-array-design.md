@@ -160,9 +160,24 @@ steps).
 - The **Collection page** feature (its own spec): `userCards(userId, cardId, finish,
   quantity)`, per-finish quantities, the finish selector, sets overview, gray-unowned,
   filters. This spec only makes the finish model correct so the collection can sit on it.
-- The **10** `(normal, normal)` same-number duplicate rows — a separate data-quality
-  question, not finish-related.
 - A `finish_overrides.json` curation mechanism (add only if a real exception appears).
+
+### Known follow-up — normal/normal same-number duplicates (tracked, separate spec)
+
+Independent of finishes, **10** `(setCode, number)` pairs have two `normal` rows. They
+are **not** finish-related and need human judgment, so they get their own small
+data-cleanup spec (before or during the Collection page). Two categories:
+
+- **8 typo-twins** — same card, misspelled; safe to merge on the correct spelling:
+  AAH #59 (Flavour/Flavor), AAH #65 (Manegro/Manegrow), GOF #19 (Perfurmed/Perfumed),
+  GOF #37 (Fertiliser/Fertilizer), GOF #99 (Thickness on/of), GOF #119
+  (Divination/Divinatino), POA #71 (Lumos!/Lumos), POA #72 (Substitute/Subsitute).
+- **2 genuine number collisions** — two *different* cards sharing a number because one has
+  the **wrong number**; fix by correcting the number (sourced from the real set
+  checklist), **not** by merging:
+  - EOTP #84 — "Sirius's Letter" vs "Wizard's Desk". Per owner: "Wizard's Desk" should be
+    **#85** (example — verify against the checklist).
+  - GOF #56 — "Ron's Jealousy" vs "Skeeter's Scoop" (correct number TBD from checklist).
 
 ## Testing
 

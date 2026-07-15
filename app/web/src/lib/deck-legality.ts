@@ -23,6 +23,7 @@ export function deckStatusText(
   if (status === 'legal') return t('status.legal')
   if (status === 'illegal') return t('status.illegal')
   if (mainCount < MAIN_TARGET) return t('status.incompleteNeeds', { count: MAIN_TARGET - mainCount })
+  if (mainCount > MAIN_TARGET) return t('status.tooMany', { count: mainCount - MAIN_TARGET })
   if (!hasCharacter) return t('status.needsCharacter')
   return t('status.incomplete')
 }

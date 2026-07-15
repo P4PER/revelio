@@ -358,6 +358,7 @@
       "incomplete": "Incomplete",
       "incompleteNeeds": "Incomplete · needs {count} more cards",
       "needsCharacter": "Needs a starting character",
+      "tooMany": "{count} too many cards",
       "illegal": "Illegal"
     },
     "seal": {

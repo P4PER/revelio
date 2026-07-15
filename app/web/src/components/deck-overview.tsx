@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { ChevronLeft, LayoutGrid, List } from 'lucide-react'
+import { ChevronLeft, Eye, LayoutGrid, List } from 'lucide-react'
 import type { DeckCardView, DeckFormat } from '@revelio/core'
 import { Link } from '@/../i18n/navigation'
 import { deckStats } from '@/lib/deck-stats'
@@ -9,6 +9,7 @@ import { DeckPanel } from '@/components/deck-panel'
 import { DeckGallery } from '@/components/deck-gallery'
 import { DeckStatsPanel } from '@/components/deck-stats-panel'
 import { DeckLegalityBar } from '@/components/deck-legality-bar'
+import { DeckLikeButton } from '@/components/deck-like-button'
 import { DeckOverviewActions } from '@/components/deck-overview-actions'
 import { recordViewAction } from '@/lib/deck-actions'
 import { Badge } from '@/components/ui/badge'
@@ -28,6 +29,7 @@ export type DeckOverviewProps = {
   imageBase: string
   likeCount: number
   liked: boolean
+  viewCount: number
   // Persisted view preference, read from a cookie on the server so the correct
   // view renders on first paint (no list→gallery flash on reload).
   initialView?: View
@@ -57,7 +59,6 @@ export function DeckOverview(props: DeckOverviewProps) {
   }, [deckId])
 
   const { status, mainCount } = deckStats(views, format)
-  const totalCards = views.reduce((n, e) => n + e.quantity, 0)
   const updated = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(updatedAt))
 
   return (
@@ -74,11 +75,17 @@ export function DeckOverview(props: DeckOverviewProps) {
 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">{name}</h1>
-          <p className="text-sm text-muted-foreground">
-            {t(`format.${format}`)} · {t('overview.cardCount', { count: totalCards })} ·{' '}
-            {t('overview.updatedAt', { date: updated })}
-          </p>
+          <h1 className="text-4xl font-bold">{name}</h1>
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-base text-muted-foreground">
+            <span>
+              {t(`format.${format}`)} · {t('overview.updatedAt', { date: updated })}
+            </span>
+            <span className="ml-3 inline-flex items-center gap-1" aria-label={t('overview.views', { count: props.viewCount })}>
+              <Eye className="size-5" />
+              {props.viewCount}
+            </span>
+            <DeckLikeButton deckId={deckId} initialLiked={props.liked} initialCount={props.likeCount} loggedIn={loggedIn} />
+          </div>
         </div>
         <Badge variant={visibility === 'public' ? 'default' : 'secondary'}>
           {t(`list.visibility.${visibility}`)}
@@ -94,8 +101,6 @@ export function DeckOverview(props: DeckOverviewProps) {
           views={views}
           isOwner={isOwner}
           loggedIn={loggedIn}
-          likeCount={props.likeCount}
-          liked={props.liked}
         />
         <div className="inline-flex rounded-md border border-border p-0.5">
           <Button size="sm" variant={view === 'list' ? 'secondary' : 'ghost'} onClick={() => changeView('list')}>

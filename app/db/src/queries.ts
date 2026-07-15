@@ -464,7 +464,7 @@ export async function getCardViews(db: DB, ids: string[]): Promise<Record<string
   return Object.fromEntries(await cardViewMetaByIds(db, ids))
 }
 
-export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; userId: string; views: DeckCardView[] } | null> {
+export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; userId: string; views: DeckCardView[]; viewCount: number } | null> {
   const [row] = await db.select().from(decks).where(eq(decks.id, id)).limit(1)
   if (!row) return null
   const dcs = await db.select().from(deckCards).where(eq(deckCards.deckId, id))
@@ -488,7 +488,7 @@ export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; user
     cards: dcs.map((d) => ({ cardId: d.cardId, zone: d.zone as DeckCardView['zone'], quantity: d.quantity })),
     createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString(),
   }
-  return { deck, userId: row.userId, views }
+  return { deck, userId: row.userId, views, viewCount: row.viewCount }
 }
 
 // Viewer-aware read for the public overview page: the owner always sees their
@@ -497,7 +497,7 @@ export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; user
 // 404s and can't be used to probe another user's deck IDs.
 export async function getDeckForViewer(
   db: DB, id: string, viewerId: string | null,
-): Promise<{ deck: DeckDTO; userId: string; views: DeckCardView[] } | null> {
+): Promise<{ deck: DeckDTO; userId: string; views: DeckCardView[]; viewCount: number } | null> {
   const res = await getDeck(db, id)
   if (!res) return null
   const isOwner = res.userId === viewerId

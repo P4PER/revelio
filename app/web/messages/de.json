@@ -325,6 +325,7 @@
       "viewGallery": "Galerie",
       "cardCount": "{count} Karten",
       "updatedAt": "Aktualisiert {date}",
+      "views": "{count} Aufrufe",
       "publishDialog": {
         "title": "Dieses Deck veröffentlichen?",
         "description": "Jeder mit dem Link kann es dann ansehen. Du kannst die Veröffentlichung jederzeit zurückziehen.",

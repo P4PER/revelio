@@ -25,6 +25,7 @@ const props = {
   deckId: 'd1', name: 'My Deck', format: 'revival' as const, visibility: 'private' as const,
   createdAt: '2026-06-30T00:00:00.000Z', updatedAt: '2026-07-01T00:00:00.000Z',
   views, isOwner: true, loggedIn: true, imageBase: 'https://img.example',
+  likeCount: 3, liked: false, viewCount: 12,
 }
 
 beforeEach(() => {

@@ -279,6 +279,7 @@ export async function getCardIndexData(db: DB, cardId: string): Promise<CardInde
     finish: card.finish,
     legality: card.legality,
     cost: card.cost,
+    damage: card.damagePerTurn ?? null,
     isOfficial: setRow?.isOfficial ?? false,
     types: typeRows.map((t) => t.typeCode),
     subTypes: subTypeRows.map((t) => t.subTypeCode),
@@ -445,7 +446,8 @@ async function cardViewMetaByIds(db: DB, ids: string[]): Promise<Map<string, Omi
       types: typesById.get(c.id) ?? [], subTypes: subsById.get(c.id) ?? [],
     })
     out.set(c.id, {
-      cardId: c.id, name: c.name, cost: c.cost ?? null, setCode: c.setCode, number: c.number,
+      cardId: c.id, name: c.name, cost: c.cost ?? null, damage: c.damagePerTurn ?? null,
+      setCode: c.setCode, number: c.number,
       lesson: c.lesson ?? null, isOfficial: m.isOfficial, legality: m.legality,
       isLesson: m.isLesson, isStartingCharacter: m.isStartingCharacter,
       orientation: c.orientation ?? null,
@@ -471,8 +473,8 @@ export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; user
     const meta = metaById.get(d.cardId)
     return {
       cardId: d.cardId, zone: d.zone as DeckCardView['zone'], quantity: d.quantity,
-      name: meta?.name ?? d.cardId, cost: meta?.cost ?? null, setCode: meta?.setCode ?? '',
-      number: meta?.number ?? '',
+      name: meta?.name ?? d.cardId, cost: meta?.cost ?? null, damage: meta?.damage ?? null,
+      setCode: meta?.setCode ?? '', number: meta?.number ?? '',
       lesson: meta?.lesson ?? null, isOfficial: meta?.isOfficial ?? false, legality: meta?.legality ?? null,
       isLesson: meta?.isLesson ?? false, isStartingCharacter: meta?.isStartingCharacter ?? false,
       orientation: meta?.orientation ?? null,

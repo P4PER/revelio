@@ -16,7 +16,7 @@ import {
   setQuantity,
 } from '@/lib/deck-model'
 import { createDeckAction, updateDeckAction } from '@/lib/deck-actions'
-import { LessonCurve } from './lesson-curve'
+import { DeckStatsPanel } from './deck-stats-panel'
 import { DeckPanel } from './deck-panel'
 import { DeckCardBrowser } from './deck-card-browser'
 import { DeckExportMenu } from './deck-export-menu'
@@ -117,7 +117,6 @@ export function DeckBuilder({
     state.format,
     metaMap,
   )
-  const mainEntries = state.entries.filter((e) => e.zone === 'main')
 
   async function handleSave() {
     setSaving(true)
@@ -246,10 +245,7 @@ export function DeckBuilder({
           />
         </div>
         <div className="flex min-h-0 flex-col overflow-hidden bg-gradient-to-b from-card/40 to-transparent">
-          <div className="border-b border-border/60 px-4 py-3">
-            <div className="mb-5 text-xs font-semibold tracking-widest text-foreground/80 uppercase">{t('curve.title')}</div>
-            <LessonCurve entries={mainEntries} />
-          </div>
+          <DeckStatsPanel entries={state.entries} />
           <DeckPanel entries={state.entries} imageBase={imageBase} status={evaluation.status} highlight={highlight} onQuantityChange={handleQuantityChange} />
         </div>
       </div>

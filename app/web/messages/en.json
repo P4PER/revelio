@@ -366,6 +366,19 @@
       "title": "Lesson curve",
       "ariaLabel": "Cards by cost"
     },
+    "stats": {
+      "title": "Statistics",
+      "curve": "Cost curve",
+      "lessons": "Lessons",
+      "overview": "Overview",
+      "show": "Show statistics",
+      "hide": "Hide statistics",
+      "unique": "Unique cards",
+      "avgCost": "Avg. cost",
+      "avgDamage": "Avg. damage",
+      "damageSources": "Damage sources",
+      "lessonCards": "{count} lesson cards"
+    },
     "panel": {
       "character": "Starting Character",
       "characterBadge": "Character",

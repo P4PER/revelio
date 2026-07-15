@@ -57,6 +57,7 @@ export async function buildDocuments(db: DB): Promise<Record<string, SearchDocum
       finish: c.finish,
       legality: c.legality,
       cost: c.cost,
+      damage: c.damagePerTurn ?? null,
       isOfficial: set?.isOfficial ?? false,
       types: typesByCard.get(c.id) ?? [],
       subTypes: subTypesByCard.get(c.id) ?? [],

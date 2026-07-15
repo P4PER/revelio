@@ -366,6 +366,19 @@
       "title": "Lektionskurve",
       "ariaLabel": "Karten nach Kosten"
     },
+    "stats": {
+      "title": "Statistik",
+      "curve": "Kostenkurve",
+      "lessons": "Lektionen",
+      "overview": "Übersicht",
+      "show": "Statistik anzeigen",
+      "hide": "Statistik ausblenden",
+      "unique": "Einzigartige Karten",
+      "avgCost": "Ø Kosten",
+      "avgDamage": "Ø Schaden",
+      "damageSources": "Schadensquellen",
+      "lessonCards": "{count} Lektionskarten"
+    },
     "panel": {
       "character": "Startcharakter",
       "characterBadge": "Charakter",

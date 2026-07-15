@@ -16,6 +16,7 @@ export type SearchDocument = {
   finish: string | null
   legality: string | null
   cost: number | null
+  damage: number | null
   isOfficial: boolean
   imageLang: string | null
   defaultLanguage: string
@@ -70,6 +71,7 @@ export type CardIndexData = {
   finish: string | null
   legality: string | null
   cost: number | null
+  damage: number | null
   isOfficial: boolean
   types: string[]
   subTypes: string[]
@@ -95,6 +97,7 @@ export function buildCardDocument(d: CardIndexData, lang: string): SearchDocumen
     finish: d.finish,
     legality: d.legality,
     cost: d.cost,
+    damage: d.damage,
     isOfficial: d.isOfficial,
     imageLang: effectiveImageLang((l) => !!d.localizations[l]?.imageFile, lang, d.defaultLanguage),
     defaultLanguage: d.defaultLanguage,

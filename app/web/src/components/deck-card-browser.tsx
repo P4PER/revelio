@@ -37,6 +37,7 @@ function toAddView(hit: SearchDocument): Omit<DeckCardView, 'zone' | 'quantity'>
     cardId: hit.id,
     name: hit.name,
     cost: hit.cost,
+    damage: hit.damage ?? null,
     setCode: hit.setCode,
     number: hit.number,
     lesson: hit.lesson,

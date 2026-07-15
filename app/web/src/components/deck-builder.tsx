@@ -176,7 +176,7 @@ export function DeckBuilder({
           onChange={(e) => setState((s) => ({ ...s, name: e.target.value }))}
           placeholder={t('namePlaceholder')}
           aria-label={t('namePlaceholder')}
-          className="h-11 w-[40rem] max-w-full rounded-md px-3.5 text-xl font-semibold shadow-none md:text-xl"
+          className="h-9 w-[40rem] max-w-full rounded-md px-3 text-lg font-semibold shadow-none md:text-lg"
         />
         <div className="flex-1" />
         <div role="group" aria-label={t('format.label')} className="inline-flex rounded-full border border-input bg-muted p-0.5">

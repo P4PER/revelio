@@ -313,7 +313,7 @@
       "pngError": "Could not generate the PNG."
     },
     "overview": {
-      "backToDecks": "Back to My Decks",
+      "back": "Back",
       "edit": "Edit",
       "publish": "Publish",
       "published": "Published",

@@ -313,7 +313,7 @@
       "pngError": "PNG konnte nicht erstellt werden."
     },
     "overview": {
-      "backToDecks": "Zurück zu meinen Decks",
+      "back": "Zurück",
       "edit": "Bearbeiten",
       "publish": "Veröffentlichen",
       "published": "Veröffentlicht",

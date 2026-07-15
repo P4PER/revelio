@@ -6,7 +6,7 @@ import { DeckOverview } from '@/components/deck-overview'
 
 vi.mock('@/../i18n/navigation', () => ({
   Link: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a>,
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
 }))
 vi.mock('@/components/deck-overview-actions', () => ({
   DeckOverviewActions: () => <div data-testid="actions" />,
@@ -55,9 +55,9 @@ describe('DeckOverview', () => {
 
   it('shows the back link only to logged-in viewers', () => {
     const { unmount } = renderWithIntl(<DeckOverview {...props} loggedIn />)
-    expect(screen.getByText('Back to My Decks')).toBeInTheDocument()
+    expect(screen.getByText('Back')).toBeInTheDocument()
     unmount()
     renderWithIntl(<DeckOverview {...props} loggedIn={false} />)
-    expect(screen.queryByText('Back to My Decks')).not.toBeInTheDocument()
+    expect(screen.queryByText('Back')).not.toBeInTheDocument()
   })
 })

@@ -395,21 +395,42 @@ export type DeckWriteInput = {
 }
 export type DeckSummary = {
   id: string; name: string; format: DeckFormat; visibility: DeckVisibility
-  cardCount: number; updatedAt: string
+  cardCount: number; mainCount: number; hasCharacter: boolean
+  characterName: string | null; updatedAt: string
 }
 
 export async function listDecksByUser(db: DB, userId: string): Promise<DeckSummary[]> {
   const rows = await db.select().from(decks).where(eq(decks.userId, userId)).orderBy(desc(decks.updatedAt))
   if (rows.length === 0) return []
+  const ids = rows.map((r) => r.id)
+  // Per-zone quantity sums, so the summary can show the main-deck count against
+  // the 60 target (rather than a total that includes the starting character and
+  // sideboard) plus whether a starting character is present.
   const counts = await db
-    .select({ deckId: deckCards.deckId, total: sql<number>`sum(${deckCards.quantity})::int` })
+    .select({ deckId: deckCards.deckId, zone: deckCards.zone, total: sql<number>`sum(${deckCards.quantity})::int` })
     .from(deckCards)
-    .where(inArray(deckCards.deckId, rows.map((r) => r.id)))
-    .groupBy(deckCards.deckId)
-  const byDeck = new Map(counts.map((c) => [c.deckId, c.total]))
+    .where(inArray(deckCards.deckId, ids))
+    .groupBy(deckCards.deckId, deckCards.zone)
+  const totalByDeck = new Map<string, number>()
+  const mainByDeck = new Map<string, number>()
+  const hasCharacter = new Set<string>()
+  for (const c of counts) {
+    totalByDeck.set(c.deckId, (totalByDeck.get(c.deckId) ?? 0) + c.total)
+    if (c.zone === 'main') mainByDeck.set(c.deckId, c.total)
+    if (c.zone === 'character' && c.total > 0) hasCharacter.add(c.deckId)
+  }
+  // The starting character's display name for each deck (if one is set).
+  const charRows = await db
+    .select({ deckId: deckCards.deckId, name: cards.name })
+    .from(deckCards)
+    .innerJoin(cards, eq(deckCards.cardId, cards.id))
+    .where(and(inArray(deckCards.deckId, ids), eq(deckCards.zone, 'character')))
+  const charByDeck = new Map(charRows.map((c) => [c.deckId, c.name]))
   return rows.map((r) => ({
     id: r.id, name: r.name, format: r.format as DeckFormat, visibility: r.visibility as DeckVisibility,
-    cardCount: byDeck.get(r.id) ?? 0, updatedAt: r.updatedAt.toISOString(),
+    cardCount: totalByDeck.get(r.id) ?? 0, mainCount: mainByDeck.get(r.id) ?? 0,
+    hasCharacter: hasCharacter.has(r.id), characterName: charByDeck.get(r.id) ?? null,
+    updatedAt: r.updatedAt.toISOString(),
   }))
 }
 

@@ -2,10 +2,12 @@
 import { useState, useTransition } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { MoreHorizontal, Pencil, SquarePen, Copy, Trash2, Eye, EyeOff, Check, X } from 'lucide-react'
+import { MoreHorizontal, Pencil, SquarePen, Copy, Trash2, Eye, EyeOff, Check, X, Star } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import type { DeckSummary } from '@revelio/db'
 import { duplicateDeckAction, deleteDeckAction, updateDeckMetaAction } from '@/lib/deck-actions'
+import { cn } from '@/lib/utils'
+import { MAIN_TARGET } from '@/lib/deck-legality'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -134,7 +136,8 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
             key={deck.id}
             className="group relative flex flex-col gap-3 rounded-xl border border-input bg-card/40 p-4 transition-colors hover:border-accent/60 hover:bg-card/70"
           >
-            <div className="flex items-start justify-between gap-2">
+            <div>
+              <div className="flex items-center justify-between gap-2">
               {isRenaming ? (
                 <div className="flex flex-1 flex-col gap-1">
                   <div className="flex items-center gap-1.5">
@@ -231,6 +234,16 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
+              </div>
+              {!isRenaming && deck.characterName && (
+                <p
+                  className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"
+                  aria-label={t('list.startingCharacter', { name: deck.characterName })}
+                >
+                  <Star className="size-3.5 shrink-0 text-primary/70" aria-hidden />
+                  <span className="truncate">{deck.characterName}</span>
+                </p>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-1.5">
@@ -241,7 +254,21 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
             </div>
 
             <div className="mt-auto flex items-center justify-between text-xs text-muted-foreground">
-              <span>{t('list.cardCount', { count: deck.cardCount })}</span>
+              {(() => {
+                const over = deck.mainCount > MAIN_TARGET
+                const complete = deck.mainCount === MAIN_TARGET && deck.hasCharacter
+                const tone = over ? 'text-destructive' : complete ? 'text-chart-4' : 'text-muted-foreground'
+                const dot = over ? 'bg-destructive' : complete ? 'bg-chart-4' : 'bg-muted-foreground'
+                return (
+                  <span
+                    className={cn('inline-flex items-center gap-1.5 font-medium tabular-nums', tone)}
+                    aria-label={t('list.mainCountAria', { count: deck.mainCount, target: MAIN_TARGET })}
+                  >
+                    <span className={cn('size-1.5 rounded-full', dot)} aria-hidden />
+                    {deck.mainCount} / {MAIN_TARGET}
+                  </span>
+                )
+              })()}
               <span>{t('list.updatedAt', { date: dateFormatter.format(new Date(deck.updatedAt)) })}</span>
             </div>
           </div>

@@ -434,6 +434,8 @@
       "title": "My Decks",
       "newDeck": "New deck",
       "cardCount": "{count} / 60 cards",
+      "mainCountAria": "Main deck: {count} of {target} cards",
+      "startingCharacter": "Starting character: {name}",
       "updatedAt": "Updated {date}",
       "visibility": {
         "private": "Private",

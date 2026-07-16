@@ -58,16 +58,21 @@ const ALL_GROUPS: Grp[] = [
 // local state (DeckFilterDrawer). `show` toggles the sections only some callers
 // need (lessons group; official/fan split).
 export function FilterSheet({
-  sets, value, locale, onApply, show = {},
+  sets, value, locale, onApply, show = {}, ownership,
 }: {
   sets: SetDTO[]
   value: FilterSelection
   locale: string
   onApply: (next: FilterSelection) => void
   show?: { lessons?: boolean; official?: boolean }
+  ownership?: {
+    value: '' | 'owned' | 'missing' | 'dupes'
+    onChange: (v: '' | 'owned' | 'missing' | 'dupes') => void
+  }
 }) {
   const t = useTranslations('filters')
   const tv = useTranslations('validation')
+  const tc = useTranslations('collection')
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState<FilterSelection>(value)
 
@@ -184,6 +189,21 @@ export function FilterSheet({
               </div>
             </fieldset>
           ))}
+
+          {ownership && (
+            <fieldset>
+              <legend className="mb-2 text-sm font-medium">{tc('ownership')}</legend>
+              <div className="flex flex-wrap gap-2">
+                {(['owned', 'missing', 'dupes'] as const).map((v) => (
+                  <Button key={v} type="button" size="sm"
+                    variant={ownership.value === v ? 'default' : 'outline'}
+                    onClick={() => ownership.onChange(ownership.value === v ? '' : v)}>
+                    {tc(v === 'owned' ? 'filterOwned' : v === 'missing' ? 'filterMissing' : 'filterDupes')}
+                  </Button>
+                ))}
+              </div>
+            </fieldset>
+          )}
 
           <div>
             <Label className="mb-2 block text-sm font-medium">{t('cost')}</Label>

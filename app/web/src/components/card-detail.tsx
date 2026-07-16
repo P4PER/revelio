@@ -61,6 +61,11 @@ export function CardDetail({
             {loc.name}
           </div>
         )}
+        {canCollect && (
+          <AddToCollectionPopover cardId={card.id} finishes={card.finishes}
+            quantities={ownedQuantities} locale={locale}
+            size="default" align="start" className="mt-3 w-full justify-center" />
+        )}
       </div>
       <div>
         <div className="flex items-start justify-between gap-4">
@@ -74,20 +79,16 @@ export function CardDetail({
               />
             )}
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            {canCollect && (
-              <AddToCollectionPopover cardId={card.id} finishes={card.finishes}
-                quantities={ownedQuantities} locale={locale} />
-            )}
-            {canEdit && (
+          {canEdit && (
+            <div className="flex shrink-0 items-center gap-2">
               <Button asChild variant="outline" size="sm" className="gap-1.5">
                 <Link href={`/card/${card.id}/edit`}>
                   <Pencil className="size-3.5" />
                   {tEdit('button')}
                 </Link>
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
           {card.set.name} · {t('number', { number: card.number })}

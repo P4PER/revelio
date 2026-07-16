@@ -5,26 +5,30 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button'
 import { CardFinishStepper } from '@/components/card-finish-stepper'
 import { attrLabel } from '@/lib/attribute-labels'
+import { cn } from '@/lib/utils'
 
 export function AddToCollectionPopover({
-  cardId, finishes, quantities, locale,
+  cardId, finishes, quantities, locale, className, size = 'sm', align = 'end',
 }: {
   cardId: string
   finishes: string[]
   quantities: Record<string, number>
   locale: string
+  className?: string
+  size?: 'sm' | 'default'
+  align?: 'start' | 'center' | 'end'
 }) {
   const t = useTranslations('collection')
   const total = Object.values(quantities).reduce((a, b) => a + b, 0)
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant={total > 0 ? 'secondary' : 'default'} size="sm" className="gap-1.5">
+        <Button variant={total > 0 ? 'secondary' : 'default'} size={size} className={cn('gap-1.5', className)}>
           <Library className="size-3.5" />
           {total > 0 ? `${t('inCollection')} · ${total}` : t('addToCollection')}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-56 space-y-2">
+      <PopoverContent align={align} className="w-56 space-y-2">
         {finishes.map((f) => (
           <CardFinishStepper key={f} cardId={cardId} finish={f}
             label={attrLabel('finishes', f, locale)} quantity={quantities[f] ?? 0} />

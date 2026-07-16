@@ -27,10 +27,13 @@ describe('CardRotate', () => {
     mount('horizontal')
     const btn = screen.getByRole('button', { name: /rotate upright/i })
     fireEvent.click(btn)
-    expect(screen.getAllByAltText('Dean Thomas').length).toBeGreaterThan(0)
-    expect(screen.getByRole('button', { name: /close rotated view/i })).toBeInTheDocument()
+    // Rotated: the backdrop is shown and the rotate button hides itself.
+    expect(screen.getByTestId('card-rotate-backdrop')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /rotate upright/i })).toBeNull()
     fireEvent.keyDown(window, { key: 'Escape' })
-    expect(screen.queryByRole('button', { name: /close rotated view/i })).toBeNull()
+    // Back at rest: backdrop gone, rotate button visible again.
+    expect(screen.queryByTestId('card-rotate-backdrop')).toBeNull()
+    expect(screen.getByRole('button', { name: /rotate upright/i })).toBeInTheDocument()
   })
 
   it('does not trigger the parent click when the button is pressed', () => {
@@ -46,7 +49,7 @@ describe('CardRotate', () => {
     fireEvent.click(screen.getByRole('button', { name: /rotate upright/i }))
     parentClick.mockClear()
     fireEvent.click(screen.getByTestId('card-rotate-backdrop'))
-    expect(screen.queryByRole('button', { name: /close rotated view/i })).toBeNull()
+    expect(screen.queryByTestId('card-rotate-backdrop')).toBeNull()
     expect(parentClick).not.toHaveBeenCalled()
   })
 })

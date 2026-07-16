@@ -82,11 +82,12 @@ export function CardRotate({
         <Image src={src} alt={alt} fill sizes={sizes} onError={onError} className={cn('object-cover transition-[filter,opacity]', className, !rotated && idleClassName)} />
       </div>
 
-      {rotatable && (
+      {/* Only shown at rest — once rotated, the button is hidden and the card is
+          dismissed by clicking it, the backdrop, scrolling, or Escape. */}
+      {rotatable && !rotated && (
         <button
           type="button"
-          aria-label={rotated ? t('rotateBack') : t('rotate')}
-          aria-pressed={rotated}
+          aria-label={t('rotate')}
           onClick={toggle}
           className="absolute top-2 left-2 z-30 cursor-pointer rounded-full border border-white/40 bg-black/60 p-2.5 text-white opacity-0 shadow-md backdrop-blur-sm transition hover:bg-black/75 focus-visible:opacity-100 group-hover:opacity-100"
         >

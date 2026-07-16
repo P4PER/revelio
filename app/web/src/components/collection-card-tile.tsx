@@ -29,12 +29,17 @@ export function CollectionCardTile({
     <div data-testid={`card-tile-${card.id}`} data-owned={owned} className="group relative">
       <Link href={`/card/${card.id}`} className="block">
         <figure className="rounded-lg border border-border/60 bg-card">
-          <div className={cn('relative aspect-[5/7] overflow-hidden rounded-t-lg bg-muted', !owned && 'opacity-45 grayscale')}>
+          {/* The gray-out for unowned cards lives on the image (via CardRotate's
+              className), NOT this container: a filter/opacity ancestor becomes the
+              containing block for position:fixed, which would trap and clip
+              CardRotate's rotated (fixed) image inside this overflow-hidden box. */}
+          <div className="relative aspect-[5/7] overflow-hidden rounded-t-lg bg-muted">
             {card.src ? (
               <CardRotate src={card.src} alt={card.name} orientation={card.orientation}
-                sizes="(max-width: 640px) 45vw, 200px" />
+                sizes="(max-width: 640px) 45vw, 200px"
+                className={cn(!owned && 'opacity-45 grayscale')} />
             ) : (
-              <div className="flex h-full items-center justify-center px-2 text-center text-xs text-muted-foreground">
+              <div className={cn('flex h-full items-center justify-center px-2 text-center text-xs text-muted-foreground', !owned && 'opacity-60')}>
                 {card.name}
               </div>
             )}

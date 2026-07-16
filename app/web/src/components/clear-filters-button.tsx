@@ -6,10 +6,16 @@ import { Button } from '@/components/ui/button'
 // discover pages. Renders only when a filter is active; each page owns its own
 // active-check and reset handler since their filter state models differ (URL
 // params vs local state).
-export function ClearFiltersButton({ active, onClear }: { active: boolean; onClear: () => void }) {
+export function ClearFiltersButton({
+  active, onClear, size = 'sm',
+}: {
+  active: boolean
+  onClear: () => void
+  size?: 'sm' | 'default'
+}) {
   const t = useTranslations('filters')
   if (!active) return null
   return (
-    <Button variant="ghost" size="sm" onClick={onClear}>{t('clearFilters')}</Button>
+    <Button variant="ghost" size={size} onClick={onClear}>{t('clearFilters')}</Button>
   )
 }

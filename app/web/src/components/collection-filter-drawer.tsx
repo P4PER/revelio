@@ -1,19 +1,17 @@
 'use client'
-import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { useRouter } from '@/../i18n/navigation'
+import { useRouter, usePathname } from '@/../i18n/navigation'
 import type { SetDTO } from '@revelio/core'
-import { FilterSheet, type FilterSelection } from './filter-sheet'
-
-type Owned = '' | 'owned' | 'missing' | 'dupes'
+import { FilterSheet, type FilterSelection, type OwnershipValue } from './filter-sheet'
 
 // URL adapter for FilterSheet on the collection "Browse all" tab: like
 // FilterDrawer, but also carries the ownership facet (?owned=) and keeps the
-// tab param so applying filters stays on the browse view.
+// tab param so applying filters stays on the browse view. Ownership is drafted
+// inside the sheet and handed back via onApply, so Clear-all resets it too.
 export function CollectionFilterDrawer({ sets, locale }: { sets: SetDTO[]; locale: string }) {
   const router = useRouter()
+  const pathname = usePathname()
   const params = useSearchParams()
-  const [owned, setOwned] = useState<Owned>((params.get('owned') as Owned) ?? '')
 
   const value: FilterSelection = {
     types: params.getAll('type'),
@@ -25,6 +23,7 @@ export function CollectionFilterDrawer({ sets, locale }: { sets: SetDTO[]; local
     costMin: params.get('costMin') ?? '',
     costMax: params.get('costMax') ?? '',
     official: params.get('official') ?? '',
+    owned: (params.get('owned') as OwnershipValue) ?? '',
   }
 
   function handleApply(next: FilterSelection) {
@@ -41,8 +40,8 @@ export function CollectionFilterDrawer({ sets, locale }: { sets: SetDTO[]; local
     if (next.costMin) p.set('costMin', next.costMin)
     if (next.costMax) p.set('costMax', next.costMax)
     if (next.official) p.set('official', next.official)
-    if (owned) p.set('owned', owned)
-    router.push(`/collection?${p.toString()}`)
+    if (next.owned) p.set('owned', next.owned)
+    router.push(`${pathname}?${p.toString()}`)
   }
 
   return (
@@ -50,8 +49,8 @@ export function CollectionFilterDrawer({ sets, locale }: { sets: SetDTO[]; local
       sets={sets}
       value={value}
       locale={locale}
-      show={{ lessons: true, official: true }}
-      ownership={{ value: owned, onChange: setOwned }}
+      show={{ lessons: true, official: true, ownership: true }}
+      size="default"
       onApply={handleApply}
     />
   )

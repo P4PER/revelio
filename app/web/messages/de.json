@@ -497,5 +497,25 @@
     "prev": "Zurück",
     "next": "Weiter",
     "pageStatus": "Zeige {from}–{to} von {total}"
+  },
+  "collection": {
+    "title": "Meine Sammlung",
+    "owned": "{count} im Besitz",
+    "ofTotal": "{owned} / {total}",
+    "copies": "{count} Exemplare",
+    "distinct": "{owned} / {total} Karten",
+    "browseAll": "Alle durchsuchen",
+    "bySets": "Nach Set",
+    "addToCollection": "Zur Sammlung hinzufügen",
+    "inCollection": "In Sammlung",
+    "ownership": "Besitz",
+    "filterOwned": "Im Besitz",
+    "filterMissing": "Fehlt",
+    "filterDupes": "Duplikate",
+    "visibility": "Sichtbarkeit der Sammlung",
+    "private": "Privat",
+    "public": "Öffentlich",
+    "shareLink": "Freigabelink kopieren",
+    "empty": "Du besitzt noch keine Karten."
   }
 }

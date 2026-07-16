@@ -497,5 +497,25 @@
     "prev": "Previous",
     "next": "Next",
     "pageStatus": "Showing {from}–{to} of {total}"
+  },
+  "collection": {
+    "title": "My Collection",
+    "owned": "{count} owned",
+    "ofTotal": "{owned} / {total}",
+    "copies": "{count} copies",
+    "distinct": "{owned} / {total} cards",
+    "browseAll": "Browse all",
+    "bySets": "By set",
+    "addToCollection": "Add to collection",
+    "inCollection": "In collection",
+    "ownership": "Ownership",
+    "filterOwned": "Owned",
+    "filterMissing": "Missing",
+    "filterDupes": "Duplicates",
+    "visibility": "Collection visibility",
+    "private": "Private",
+    "public": "Public",
+    "shareLink": "Copy share link",
+    "empty": "You don't own any cards yet."
   }
 }

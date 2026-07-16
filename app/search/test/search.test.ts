@@ -69,6 +69,18 @@ describe('searchCards', () => {
   })
 })
 
+describe('buildFilter id ownership clauses', () => {
+  it('emits an IN clause for ids', () => {
+    expect(buildFilter({ ids: ['a', 'b'] })).toContain('id IN ["a","b"]')
+  })
+  it('emits a NOT IN clause for excludeIds', () => {
+    expect(buildFilter({ excludeIds: ['a'] })).toContain('id NOT IN ["a"]')
+  })
+  it('emits nothing for empty id arrays', () => {
+    expect(buildFilter({ ids: [], excludeIds: [] })).toEqual([])
+  })
+})
+
 describe('sorting by card number', () => {
   const sortLang = uniqueLang()
   const sortUid = cardsIndex(sortLang)

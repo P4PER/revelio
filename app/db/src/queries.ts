@@ -1,9 +1,9 @@
 import { eq, asc, desc, sql, inArray, and, or, isNotNull, ilike, count, arrayOverlaps } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import type { DB } from './client'
-import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations, setLocalizations, decks, deckCards, deckLikes, deckViews } from './schema'
+import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations, setLocalizations, decks, deckCards, deckLikes, deckViews, collections, userCards } from './schema'
 import { user } from './auth-schema'
-import type { SetDTO, CardLocalizationDTO, CardDetailDTO, AdventureData, MatchData, DeckDTO, DeckCardView, DeckFormat, DeckVisibility } from '@revelio/core'
+import type { SetDTO, CardLocalizationDTO, CardDetailDTO, AdventureData, MatchData, DeckDTO, DeckCardView, DeckFormat, DeckVisibility, CollectionVisibility, OwnedQuantities, SetProgress, CollectionSummary } from '@revelio/core'
 import { deckCardMeta } from '@revelio/core'
 import type { CardIndexData } from '@revelio/search'
 
@@ -798,4 +798,64 @@ export async function clearUserBan(db: DB, id: string): Promise<void> {
 
 export async function deleteUserById(db: DB, id: string): Promise<void> {
   await db.delete(user).where(eq(user.id, id))
+}
+
+// --- collection: write path ---
+
+// Ensure the per-user collection row exists (holds the visibility flag).
+async function ensureCollection(tx: Tx | DB, userId: string): Promise<void> {
+  await tx.insert(collections).values({ userId }).onConflictDoNothing()
+}
+
+export async function setCardQuantity(
+  db: DB, userId: string, cardId: string, finish: string, quantity: number,
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    await ensureCollection(tx, userId)
+    if (quantity <= 0) {
+      await tx.delete(userCards).where(and(
+        eq(userCards.userId, userId), eq(userCards.cardId, cardId), eq(userCards.finish, finish),
+      ))
+      return
+    }
+    await tx.insert(userCards)
+      .values({ userId, cardId, finish, quantity })
+      .onConflictDoUpdate({
+        target: [userCards.userId, userCards.cardId, userCards.finish],
+        set: { quantity },
+      })
+  })
+}
+
+export async function setCollectionVisibility(
+  db: DB, userId: string, visibility: CollectionVisibility,
+): Promise<void> {
+  await db.insert(collections)
+    .values({ userId, visibility })
+    .onConflictDoUpdate({ target: collections.userId, set: { visibility, updatedAt: new Date() } })
+}
+
+export async function getCardFinishes(db: DB, cardId: string): Promise<string[] | null> {
+  const [row] = await db.select({ finishes: cards.finishes }).from(cards).where(eq(cards.id, cardId)).limit(1)
+  return row ? row.finishes : null
+}
+
+export async function getOwnedQuantities(
+  db: DB, userId: string, cardIds: string[],
+): Promise<OwnedQuantities> {
+  if (cardIds.length === 0) return {}
+  const rows = await db.select({ cardId: userCards.cardId, finish: userCards.finish, quantity: userCards.quantity })
+    .from(userCards)
+    .where(and(eq(userCards.userId, userId), inArray(userCards.cardId, cardIds)))
+  const out: OwnedQuantities = {}
+  for (const r of rows) {
+    ;(out[r.cardId] ??= {})[r.finish] = r.quantity
+  }
+  return out
+}
+
+export async function getCollectionVisibility(db: DB, userId: string): Promise<CollectionVisibility> {
+  const [row] = await db.select({ visibility: collections.visibility })
+    .from(collections).where(eq(collections.userId, userId)).limit(1)
+  return (row?.visibility as CollectionVisibility) ?? 'private'
 }

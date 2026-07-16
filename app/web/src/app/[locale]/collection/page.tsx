@@ -38,7 +38,9 @@ export default async function CollectionPage({
 
   const t = await getTranslations({ locale, namespace: 'collection' })
   const path = session.user.username ? `/collection/${session.user.username}` : `/collection/u/${userId}`
-  const shareUrl = `${BASE_URL}/${locale}${path}`
+  // No locale prefix: with localePrefix 'as-needed' the prefix-less URL is the
+  // canonical (default-locale) link.
+  const shareUrl = `${BASE_URL}${path}`
 
   return (
     <main className="mx-auto max-w-[76rem] px-6 py-8">
@@ -52,6 +54,7 @@ export default async function CollectionPage({
       <CollectionView
         sets={data.sets} progress={data.progress} selectedSet={data.selectedSet}
         cards={data.setCards} browseCards={data.browseCards}
+        browseTotal={data.browseTotal} browsePage={data.browsePage} browsePageSize={data.browsePageSize}
         quantities={data.quantities} editable locale={locale} mode={data.tab}
       />
     </main>

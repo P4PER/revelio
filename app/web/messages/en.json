@@ -516,7 +516,20 @@
     "visibility": "Collection visibility",
     "private": "Private",
     "public": "Public",
-    "shareLink": "Copy share link",
+    "publish": "Publish",
+    "published": "Published",
+    "unpublish": "Unpublish",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied to clipboard.",
+    "copyError": "Could not copy to clipboard.",
+    "visibilityError": "Could not update visibility.",
+    "publishDialog": {
+      "title": "Publish this collection?",
+      "description": "Anyone with the link will be able to view your collection. You can unpublish at any time.",
+      "confirm": "Publish",
+      "cancel": "Cancel"
+    },
+    "searchPlaceholder": "Search collection…",
     "empty": "You don't own any cards yet."
   }
 }

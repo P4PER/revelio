@@ -516,7 +516,20 @@
     "visibility": "Sichtbarkeit der Sammlung",
     "private": "Privat",
     "public": "Öffentlich",
-    "shareLink": "Freigabelink kopieren",
+    "publish": "Veröffentlichen",
+    "published": "Veröffentlicht",
+    "unpublish": "Zurückziehen",
+    "copyLink": "Link kopieren",
+    "linkCopied": "Link in die Zwischenablage kopiert.",
+    "copyError": "Kopieren in die Zwischenablage fehlgeschlagen.",
+    "visibilityError": "Sichtbarkeit konnte nicht aktualisiert werden.",
+    "publishDialog": {
+      "title": "Diese Sammlung veröffentlichen?",
+      "description": "Jeder mit dem Link kann deine Sammlung dann ansehen. Du kannst die Veröffentlichung jederzeit zurückziehen.",
+      "confirm": "Veröffentlichen",
+      "cancel": "Abbrechen"
+    },
+    "searchPlaceholder": "Sammlung durchsuchen",
     "empty": "Du besitzt noch keine Karten."
   }
 }

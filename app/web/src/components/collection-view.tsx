@@ -1,13 +1,20 @@
 'use client'
 import { useTranslations } from 'next-intl'
+import { useSearchParams } from 'next/navigation'
+import { useRouter, usePathname } from '@/../i18n/navigation'
+import { parseSearchParams, withParams } from '@/lib/search-params'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { CollectionSidebar } from '@/components/collection-sidebar'
 import { CollectionCardTile, type CollectionCard } from '@/components/collection-card-tile'
 import { CollectionFilterDrawer } from '@/components/collection-filter-drawer'
+import { ClearFiltersButton } from '@/components/clear-filters-button'
+import { SearchBox } from '@/components/search-box'
+import { Pagination } from '@/components/pagination'
 import type { SetDTO, SetProgress, OwnedQuantities } from '@revelio/core'
 
 export function CollectionView({
   sets, progress, selectedSet, cards, browseCards, quantities, editable, locale, mode,
+  browseTotal, browsePage, browsePageSize,
 }: {
   sets: SetDTO[]
   progress: SetProgress[]
@@ -18,10 +25,53 @@ export function CollectionView({
   editable: boolean
   locale: string
   mode: 'sets' | 'browse'
+  browseTotal: number
+  browsePage: number
+  browsePageSize: number
 }) {
   const t = useTranslations('collection')
+  const tSearch = useTranslations('search')
+  const router = useRouter()
+  const pathname = usePathname()
+  const params = useSearchParams()
+
+  // Tabs are URL-driven so the search box and pagination (which write to the
+  // URL) keep the browse tab active instead of snapping back to the default.
+  // `set` is the By-set sidebar selection and must not leak into Browse (which
+  // has its own Set filter), so drop it when entering Browse.
+  function onTab(value: string) {
+    const patch: Record<string, string | null> = { tab: value }
+    if (value === 'browse') patch.set = null
+    const next = withParams(new URLSearchParams(params.toString()), patch)
+    router.push(`${pathname}?${next.toString()}`)
+  }
+
+  // Browse-tab filter state: the shared advanced filters plus the collection's
+  // own ownership facet. Clearing drops them all in one navigation while keeping
+  // the search query, sort and the browse tab.
+  const browseState = parseSearchParams(new URLSearchParams(params.toString()))
+  const hasFilters =
+    browseState.types.length > 0 ||
+    browseState.lessons.length > 0 ||
+    browseState.rarities.length > 0 ||
+    browseState.finishes.length > 0 ||
+    browseState.legalities.length > 0 ||
+    Boolean(browseState.set) ||
+    browseState.costMin != null ||
+    browseState.costMax != null ||
+    browseState.official !== null ||
+    params.get('owned') != null
+
+  function clearFilters() {
+    const next = withParams(new URLSearchParams(params.toString()), {
+      type: null, lesson: null, rarity: null, finish: null, legality: null,
+      set: null, costMin: null, costMax: null, official: null, owned: null,
+    })
+    router.push(`${pathname}?${next.toString()}`)
+  }
+
   const grid = (list: CollectionCard[]) => (
-    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
       {list.map((c) => (
         <li key={c.id}>
           <CollectionCardTile card={c} quantities={quantities[c.id] ?? {}} editable={editable} locale={locale} />
@@ -30,15 +80,15 @@ export function CollectionView({
     </ul>
   )
   return (
-    <Tabs defaultValue={mode}>
-      <TabsList className="mb-4">
-        <TabsTrigger value="sets">{t('bySets')}</TabsTrigger>
-        <TabsTrigger value="browse">{t('browseAll')}</TabsTrigger>
+    <Tabs value={mode} onValueChange={onTab}>
+      <TabsList className="mb-4 h-9 p-0.5">
+        <TabsTrigger value="sets" className="px-5 text-sm">{t('bySets')}</TabsTrigger>
+        <TabsTrigger value="browse" className="px-5 text-sm">{t('browseAll')}</TabsTrigger>
       </TabsList>
 
       <TabsContent value="sets">
         <div className="grid gap-6 md:grid-cols-[16rem_1fr]">
-          <aside>
+          <aside className="md:sticky md:top-6 md:self-start md:max-h-[calc(100vh-3rem)] md:overflow-y-auto">
             <CollectionSidebar sets={sets} progress={progress} selected={selectedSet}
               hrefFor={(c) => `?tab=sets&set=${c}`} />
           </aside>
@@ -49,8 +99,24 @@ export function CollectionView({
       </TabsContent>
 
       <TabsContent value="browse">
-        <div className="mb-4"><CollectionFilterDrawer sets={sets} locale={locale} /></div>
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <SearchBox placeholder={t('searchPlaceholder')} className="h-9 w-full sm:w-1/2" />
+          <div className="ml-auto flex items-center gap-2">
+            <ClearFiltersButton active={hasFilters} onClear={clearFilters} size="default" />
+            <CollectionFilterDrawer sets={sets} locale={locale} />
+          </div>
+        </div>
+        <p className="mb-4 text-sm text-muted-foreground" role="status">
+          {tSearch('results', { count: browseTotal })}
+        </p>
         {browseCards.length ? grid(browseCards) : <p className="text-muted-foreground">{t('empty')}</p>}
+        <Pagination
+          page={browsePage}
+          total={browseTotal}
+          hitsPerPage={browsePageSize}
+          current={new URLSearchParams(params.toString())}
+          basePath={pathname}
+        />
       </TabsContent>
     </Tabs>
   )

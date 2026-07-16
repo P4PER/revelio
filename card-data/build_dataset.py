@@ -18,9 +18,11 @@ If the hpjson path doesn't exist, it is cloned automatically from GitHub.
 """
 import json, os, sys, glob, re, unicodedata, subprocess, shutil
 from collections import defaultdict
-from transform_hpjson import transform, SET_CODES, OFFICIAL
+from transform_hpjson import transform, SET_CODES, OFFICIAL, slug
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+_OV_PATH = os.path.join(HERE, "card_overrides.json")
+CARD_OVERRIDES = json.load(open(_OV_PATH, encoding="utf-8")) if os.path.exists(_OV_PATH) else {}
 DIST = os.path.join(HERE, "dist")
 HPJSON_REPO = "https://github.com/Tressley/hpjson.git"
 TRANSLATIONS = os.path.join(HERE, "translations")
@@ -57,6 +59,21 @@ def drop_premium_duplicates(cards):
         kept.append(c)
     return kept
 
+def apply_card_overrides(cards):
+    """Curated fixes keyed by the built card id: drop a misspelled duplicate, or
+    override a wrong collector number (re-deriving the id from the new number)."""
+    kept = []
+    for c in cards:
+        ov = CARD_OVERRIDES.get(c["id"])
+        if ov:
+            if ov.get("drop"):
+                continue
+            if "number" in ov:
+                c["number"] = str(ov["number"])
+                c["id"] = "-".join(filter(None, [slug(c["setCode"]), c["number"], slug(c["name"])]))
+        kept.append(c)
+    return kept
+
 def build_cards(hp_cards):
     cards = drop_premium_duplicates([transform(c) for c in hp_cards])
     for c in cards:
@@ -68,7 +85,7 @@ def build_cards(hp_cards):
             c["id"] = f"{c['id']}-{seen[c['id']]}"
         else:
             seen[c["id"]] = 1
-    return cards
+    return apply_card_overrides(cards)
 
 def merge_overlays(cards):
     by_id = {c["id"]: c for c in cards}
@@ -144,6 +161,18 @@ def search_index(cards, lang):
         })
     return out
 
+def assert_unique_numbers(cards):
+    by_key = {}
+    for c in cards:
+        by_key.setdefault((c["setCode"], c["number"]), []).append(c["id"])
+    dups = {k: v for k, v in by_key.items() if len(v) > 1}
+    if dups:
+        lines = "\n".join(f"  {sc} #{n}: {ids}" for (sc, n), ids in sorted(dups.items()))
+        sys.exit(f"duplicate (setCode, number) after overrides:\n{lines}")
+    ids = [c["id"] for c in cards]
+    if len(ids) != len(set(ids)):
+        sys.exit("duplicate card ids after overrides")
+
 def validate(cards, sets):
     try:
         import jsonschema
@@ -186,6 +215,7 @@ def main():
     os.makedirs(DIST, exist_ok=True)
 
     cards = merge_overlays(build_cards(hp_cards))
+    assert_unique_numbers(cards)
     sets = build_sets(hp_cards, cards)
     langs = sorted({l for c in cards for l in c["languages"]})
 

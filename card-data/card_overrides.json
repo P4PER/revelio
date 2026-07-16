@@ -1,0 +1,13 @@
+{
+  "eotp-84-wizard-s-desk":  { "number": "85" },
+  "gof-56-skeeter-s-scoop": { "number": "57" },
+
+  "aah-59-every-flavor-beans":           { "drop": true },
+  "aah-65-manegrow-potion":              { "drop": true },
+  "gof-19-perfumed-fire":                { "drop": true },
+  "gof-37-fertilizer-from-norway":       { "drop": true },
+  "gof-99-report-of-cauldron-thickness": { "drop": true },
+  "gof-119-divinatino-third-year":       { "drop": true },
+  "poa-71-lumos-2":                      { "drop": true },
+  "poa-72-malicious-subsitute":          { "drop": true }
+}

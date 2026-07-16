@@ -2678,13 +2678,6 @@
     "text": "Decke die obersten 2 Karten deines Decks auf. Bringe alle aufgedeckten Lektion-Karten ins Spiel. Lege alle aufgedeckten Nicht-Lektion-Karten auf deinen Ablagestapel. Ziehe dann eine Karte.",
     "flavorText": "'When they say every flavour, they mean every flavour - ...'  - Ron Weasley"
   },
-  "aah-59-every-flavor-beans": {
-    "name": "Bohnen jeder Geschmacksrichtung",
-    "status": "machine",
-    "source": "Claude (machine)",
-    "text": "Decke die obersten 2 Karten deines Decks auf. Bringe alle aufgedeckten Lektion-Karten ins Spiel. Lege alle aufgedeckten Nicht-Lektion-Karten auf deinen Ablagestapel. Ziehe dann eine Karte.",
-    "flavorText": "When they say every flavour, they mean every flavour - ...' - Ron Weasley"
-  },
   "aah-60-fire-protection-potion": {
     "name": "Feuerschutz-Trank",
     "status": "machine",
@@ -2725,13 +2718,6 @@
     "status": "machine",
     "source": "Claude (machine)",
     "text": "Zähle die Anzahl der Zaubertränke-Lektionen, die du im Spiel hast. Füge deinem Gegner so viel Schaden zu. Wähle dann 1 deiner Zaubertränke-Lektionen im Spiel und lege sie ab.",
-    "flavorText": null
-  },
-  "aah-65-manegrow-potion": {
-    "name": "Manegrow-Trank",
-    "status": "machine",
-    "source": "Claude (machine)",
-    "text": "Zähle die Anzahl der P-Lektionen, die du im Spiel hast. Füge deinem Gegner so viel Schaden zu. Wähle dann 1 deiner P-Lektionen im Spiel und lege sie ab.",
     "flavorText": null
   },
   "aah-66-muffling-draught": {
@@ -3360,26 +3346,12 @@
     "text": "Wähle 2, dann mische diese Karte in dein Deck: Füge einem Gegner 1 Schaden zu. Sieh dir die Hand eines Gegners an. Ziehe eine Karte.",
     "flavorText": null
   },
-  "poa-71-lumos-2": {
-    "name": "Lumos",
-    "status": "machine",
-    "source": "Claude (machine)",
-    "text": "Wähle zwei, dann mische diese Karte in dein Deck: Füge einem Gegner 1 Schaden zu. Sieh dir die Hand eines Gegners an. Ziehe eine Karte.",
-    "flavorText": null
-  },
   "poa-72-malicious-substitute": {
     "name": "Bösartiger Ersatz",
     "status": "machine",
     "source": "Claude (machine)",
     "text": "Füge einem Gegner oder einer Kreatur deiner Wahl 5 Schaden zu. Dein Gegner kann diesen Schaden verhindern, indem er eine Kreatur von seiner Hand aufdeckt.",
     "flavorText": "But it wasn’t Professor Lupin who looked up at him from the teacher’s desk; it was Snape."
-  },
-  "poa-72-malicious-subsitute": {
-    "name": "Bösartiger Ersatz",
-    "status": "machine",
-    "source": "Claude (machine)",
-    "text": "Füge einem Gegner oder einer Kreatur deiner Wahl 5 Schaden zu. Dein Gegner kann diesen Schaden verhindern, indem er eine Kreatur von seiner Hand aufdeckt.",
-    "flavorText": "‘But it wasn’t Professor Lupin who looked up at him from the teacher’s desk; it was Snape.’"
   },
   "poa-73-mischief-managed": {
     "name": "Unfug erledigt",
@@ -5894,13 +5866,6 @@
     "text": "Wann immer du dein Deck durchsuchst, darfst du eine Karte ziehen.",
     "flavorText": null
   },
-  "eotp-84-wizard-s-desk": {
-    "name": "Wizard's Desk",
-    "status": "machine",
-    "source": "Claude (machine)",
-    "text": "Während deines Zugs darfst du diese Karte aus dem Spiel ablegen. Wenn du das tust, ziehe Karten gleich der Anzahl der Karten, die du in diesem Zug oder im letzten Zug eines Gegners aus deiner Hand abgelegt hast.",
-    "flavorText": null
-  },
   "eotp-86-ancient-runes-third-year": {
     "name": "Ancient Runes, Third Year",
     "status": "machine",
@@ -6228,13 +6193,6 @@
     "text": "Jeder Spieler wählt 3 seiner Karten (keine Heilung) im Spiel und legt sie in beliebiger Reihenfolge oben auf das Deck ihres Besitzers. (Hat er weniger als 3 Karten im Spiel, legt er alle oben auf sein Deck.)",
     "flavorText": "Er setzte sich gerade hin; er war fast eingenickt, verloren in der Hitze und seinen Gedanken."
   },
-  "gof-19-perfumed-fire": {
-    "name": "Parfümiertes Feuer",
-    "status": "machine",
-    "source": "Claude (machine)",
-    "text": "Jeder Spieler wählt 3 seiner Karten (keine Heilung) im Spiel und legt sie in beliebiger Reihenfolge oben auf das Deck ihres Besitzers. (Hat er weniger als 3 Karten im Spiel, legt er alle oben auf sein Deck.)",
-    "flavorText": "‘Er setzte sich gerade hin; er war fast eingenickt, verloren in der Hitze und seinen Gedanken.’"
-  },
   "gof-20-poliakoff": {
     "name": "Poliakoff",
     "status": "machine",
@@ -6355,13 +6313,6 @@
     "flavorText": "‘„Ja, ich bleibe nur das eine Jahr ... und dann zurück in meinen geruhsamen Ruhestand.“’ — Professor Alastor Moody"
   },
   "gof-37-fertiliser-from-norway": {
-    "name": "Dünger aus Norwegen",
-    "status": "machine",
-    "source": "Claude (machine)",
-    "text": "Deine [F]-Lektionen liefern [F][F] statt [F]. Am Ende jedes deiner Züge lege diese Karte oder 1 deiner [F]-Lektionen aus dem Spiel ab, wenn du eine weitere Nicht-Lektionskarte ausgespielt hast.",
-    "flavorText": null
-  },
-  "gof-37-fertilizer-from-norway": {
     "name": "Dünger aus Norwegen",
     "status": "machine",
     "source": "Claude (machine)",
@@ -6515,13 +6466,6 @@
     "source": "Claude (machine)",
     "text": "Wenn du diese Karte ausspielst oder ein Gegner während seines Zuges außerhalb seines Ziehschritts 1 oder mehr Karten ausspielt, darfst du eine Karte ziehen.",
     "flavorText": "‘Ron bewegte lautlos die Lippen wie ein Goldfisch außerhalb des Wassers ...’"
-  },
-  "gof-56-skeeter-s-scoop": {
-    "name": "Kimmkorns Knüller",
-    "status": "machine",
-    "source": "Claude (machine)",
-    "text": "Wenn du diese Karte ausspielst, notiere geheim den Namen einer Nicht-Lektionskarte. Wenn ein Gegner diese Karte ausspielt, darfst du aufdecken, was du notiert hast. Wenn du das tust, darfst du dein Deck durchsuchen, eine beliebige Karte daraus nehmen und auf deine Hand nehmen, dann dein Deck mischen.",
-    "flavorText": null
   },
   "gof-58-slanderous-article": {
     "name": "Verleumderischer Artikel",
@@ -6821,13 +6765,6 @@
     "text": "Füge einem Gegner 4 Schaden zu. In seinem nächsten Zug darf dieser Gegner keine Aktionen verwenden, um Gegenstandskarten auszuspielen.",
     "flavorText": "Er freute sich nicht darauf, beim Abendessen über Kesselböden belehrt zu werden."
   },
-  "gof-99-report-of-cauldron-thickness": {
-    "name": "Bericht über Kesseldicke",
-    "status": "machine",
-    "source": "Claude (machine)",
-    "text": "Füge einem Gegner 4 Schaden zu. In seinem nächsten Zug darf dieser Gegner keine Aktionen verwenden, um Gegenstandskarten auszuspielen.",
-    "flavorText": "‘Er freute sich nicht darauf, beim Abendessen über Kesselböden belehrt zu werden.’"
-  },
   "gof-100-resentful-goodbye": {
     "name": "Verbitterter Abschied",
     "status": "machine",
@@ -6962,13 +6899,6 @@
     "flavorText": null
   },
   "gof-119-divination-third-year": {
-    "name": "Wahrsagen, Drittes Jahr",
-    "status": "machine",
-    "source": "Claude (machine)",
-    "text": "Lege diese Karte vor deinem Zug aus dem Spiel ab. Wenn du das tust, darfst du dein Deck nach einer [C]- oder [P]-Lektion durchsuchen und sie ins Spiel bringen. Mische danach dein Deck.",
-    "flavorText": null
-  },
-  "gof-119-divinatino-third-year": {
     "name": "Wahrsagen, Drittes Jahr",
     "status": "machine",
     "source": "Claude (machine)",
@@ -7634,6 +7564,20 @@
     "status": "machine",
     "source": "Claude (machine)",
     "text": "Einmal pro Zug darfst du eine Aktion verwenden, um die Anzahl der Karten auf deiner Hand zu zählen. Füge einem Gegner halb so viel Schaden (aufgerundet) zu.",
+    "flavorText": null
+  },
+  "eotp-85-wizard-s-desk": {
+    "name": "Wizard's Desk",
+    "status": "machine",
+    "source": "Claude (machine)",
+    "text": "Während deines Zugs darfst du diese Karte aus dem Spiel ablegen. Wenn du das tust, ziehe Karten gleich der Anzahl der Karten, die du in diesem Zug oder im letzten Zug eines Gegners aus deiner Hand abgelegt hast.",
+    "flavorText": null
+  },
+  "gof-57-skeeter-s-scoop": {
+    "name": "Kimmkorns Knüller",
+    "status": "machine",
+    "source": "Claude (machine)",
+    "text": "Wenn du diese Karte ausspielst, notiere geheim den Namen einer Nicht-Lektionskarte. Wenn ein Gegner diese Karte ausspielt, darfst du aufdecken, was du notiert hast. Wenn du das tust, darfst du dein Deck durchsuchen, eine beliebige Karte daraus nehmen und auf deine Hand nehmen, dann dein Deck mischen.",
     "flavorText": null
   }
 }

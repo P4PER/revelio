@@ -8,7 +8,7 @@ const client = createMeiliClient(
 
 const data: CardIndexData = {
   id: 'zz-reindex-1', setCode: 'ZZ', number: '1', name: 'Card',
-  lesson: null, rarity: null, finish: null, legality: null, cost: null,
+  lesson: null, rarity: null, finishes: [], legality: null, cost: null,
   isOfficial: false, types: [], subTypes: [], defaultLanguage: 'zz',
   localizations: { zz: { name: 'Zonko Zephyr', text: 'wind', flavorText: null, imageFile: null } },
 }

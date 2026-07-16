@@ -15,7 +15,7 @@ export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
     cost: c.cost,
     provides: c.provides ?? null,
     rarity: c.rarity ? slugify(c.rarity) : null,
-    finish: c.finish ? slugify(c.finish) : null,
+    finishes: (c.finishes ?? ['normal']).map(slugify),
     artist: c.artist,
     health: c.stats?.health ?? null,
     damagePerTurn: c.stats?.damagePerTurn ?? null,

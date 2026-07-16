@@ -25,7 +25,7 @@ function hit(overrides: Partial<SearchDocument>): SearchDocument {
     subTypes: [],
     lesson: 'charms',
     rarity: null,
-    finish: null,
+    finishes: [],
     legality: 'legal',
     cost: 2,
     isOfficial: true,

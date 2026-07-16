@@ -2,7 +2,7 @@
   {
     "id": "bs-1-dean-thomas", "name": "Dean Thomas", "setCode": "BS", "number": "1",
     "types": ["Character"], "subTypes": ["Wizard", "Gryffindor"], "lesson": null, "cost": null,
-    "provides": null, "rarity": "Rare", "finish": "holo", "artist": ["Jon Foster"],
+    "provides": null, "rarity": "Rare", "finishes": ["normal", "holo"], "artist": ["Jon Foster"],
     "stats": null, "orientation": "horizontal", "legality": "unknown", "draftValue": null,
     "rulings": [], "defaultLanguage": "en", "languages": ["en", "de"],
     "localizations": {
@@ -13,7 +13,7 @@
   {
     "id": "bs-2-flobberworm", "name": "Flobberworm", "setCode": "BS", "number": "2",
     "types": ["Creature"], "subTypes": [], "lesson": null, "cost": 2,
-    "provides": [{ "lesson": "Charms", "amount": 1 }], "rarity": "Common", "finish": "normal", "artist": ["Artist A"],
+    "provides": [{ "lesson": "Charms", "amount": 1 }], "rarity": "Common", "finishes": ["normal"], "artist": ["Artist A"],
     "stats": { "health": 6, "damagePerTurn": null }, "orientation": "vertical", "legality": "legal", "draftValue": 3,
     "rulings": [{ "date": "2001-08-31", "source": "POJO", "ruling": "A ruling." }],
     "defaultLanguage": "en", "languages": ["en"],
@@ -24,7 +24,7 @@
   {
     "id": "qc-1-the-snitch", "name": "The Snitch", "setCode": "QC", "number": "1",
     "types": ["Match"], "subTypes": [], "lesson": null, "cost": null,
-    "provides": null, "rarity": "Uncommon", "finish": "normal", "artist": [],
+    "provides": null, "rarity": "Uncommon", "finishes": ["normal"], "artist": [],
     "stats": null, "orientation": "horizontal", "legality": "legal", "draftValue": null,
     "rulings": [], "defaultLanguage": "en", "languages": ["en"],
     "localizations": {

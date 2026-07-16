@@ -1,6 +1,6 @@
 export * as schema from './schema'
 export {
-  types, subTypes, lessons, rarities, finishes, legalities,
+  types, subTypes, lessons, rarities, legalities,
   sets, cards, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, cardLocalizations,
   subTypeLocalizations, setLocalizations, decks, deckCards, deckLikes, deckViews,
 } from './schema'

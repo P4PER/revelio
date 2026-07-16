@@ -4,7 +4,7 @@
   "title": "revelio.cards Card",
   "description": "Normalized, multilingual card schema for revelio.cards, derived from Tressley/hpjson. Gameplay fields are language-independent; printed text and the card image live per language under 'localizations'. Set metadata is referenced via setCode (see sets.schema.json).",
   "type": "object",
-  "required": ["id", "setCode", "number", "types", "rarity", "finish", "name", "defaultLanguage", "languages", "localizations"],
+  "required": ["id", "setCode", "number", "types", "rarity", "finishes", "name", "defaultLanguage", "languages", "localizations"],
   "additionalProperties": false,
   "properties": {
     "id": {
@@ -38,8 +38,8 @@
         }
       }
     },
-    "rarity": { "type": "string", "enum": ["Common", "Uncommon", "Rare", "Lesson"], "description": "Base rarity (UI translates). Premium printings carry the base rarity here; their foil/holo treatment is in 'finish'. NB: base rarity of premium-only cards isn't in the source data and defaults to 'Rare'." },
-    "finish": { "type": "string", "enum": ["normal", "foil", "holo"], "description": "Print finish: normal, foil (Foil Premium) or holo (Holo Portrait Premium)." },
+    "rarity": { "type": "string", "enum": ["Common", "Uncommon", "Rare", "Lesson"], "description": "Base rarity (UI translates). Available finishes are derived from rarity + type (see 'finishes'). NB: base rarity of premium-only cards isn't in the source and defaults to 'Rare'." },
+    "finishes": { "type": "array", "items": { "type": "string", "enum": ["normal", "foil", "holo"] }, "minItems": 1, "description": "Available print finishes (availability, not identity). Always includes 'normal'; rare characters add 'holo', other rares add 'foil'." },
     "artist": { "type": "array", "items": { "type": "string" } },
     "stats": {
       "type": ["object", "null"],

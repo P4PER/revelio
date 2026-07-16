@@ -84,10 +84,18 @@ def split_rarity(raw):
         return RARITY_FINISH[raw]
     return raw, "normal"
 
+def derive_finishes(rarity, types):
+    """A finish is an availability property derived from rarity + type.
+    Rare characters can be holo; other rares can be foil; everything else is normal-only."""
+    if rarity == "Rare":
+        return ["normal", "holo"] if "Character" in (types or []) else ["normal", "foil"]
+    return ["normal"]
+
 def transform(c, lang="en"):
     name, setName, number = c.get("name"), c.get("setName"), str(c.get("number", ""))
     types = as_list(c.get("type"))
-    rarity, finish = split_rarity(c.get("rarity"))
+    rarity, _src_finish = split_rarity(c.get("rarity"))
+    premium_source = c.get("rarity") in RARITY_FINISH
 
     # Language-specific printed face
     loc = {
@@ -120,7 +128,8 @@ def transform(c, lang="en"):
         "cost": to_int(c.get("cost")),
         "provides": norm_provides(c.get("provides")),
         "rarity": rarity,
-        "finish": finish,
+        "finishes": derive_finishes(rarity, types),
+        "_premiumSource": premium_source,
         "artist": [a for a in (clean_str(x) for x in as_list(c.get("artist"))) if a and a != "NaN"],
         "stats": None,
         "orientation": "horizontal" if c.get("horizontal") else "vertical",

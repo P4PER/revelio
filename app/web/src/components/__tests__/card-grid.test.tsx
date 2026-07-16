@@ -14,7 +14,7 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 
 const hit = (id: string, name: string): SearchDocument => ({
   id, setCode: 'BS', number: '1', name, text: null, flavorText: null,
-  types: [], subTypes: [], lesson: null, rarity: null, finish: null,
+  types: [], subTypes: [], lesson: null, rarity: null, finishes: [],
   legality: null, cost: null, isOfficial: true, imageLang: 'en', defaultLanguage: 'en',
   orientation: null,
 })

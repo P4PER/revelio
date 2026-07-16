@@ -54,7 +54,7 @@ export async function buildDocuments(db: DB): Promise<Record<string, SearchDocum
       name: c.name,
       lesson: c.lesson,
       rarity: c.rarity,
-      finish: c.finish,
+      finishes: c.finishes,
       legality: c.legality,
       cost: c.cost,
       damage: c.damagePerTurn ?? null,

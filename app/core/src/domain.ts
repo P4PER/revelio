@@ -38,7 +38,7 @@ export type CardDTO = {
   lesson: string | null
   cost: number | null
   rarity: string | null
-  finish: string | null
+  finishes: string[]
   legality: string | null
   localizations: Record<string, CardLocalizationDTO>
 }

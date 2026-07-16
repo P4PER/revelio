@@ -1,5 +1,5 @@
 import type { DB } from '@revelio/db'
-import { types, subTypes, subTypeLocalizations, lessons, rarities, finishes, legalities } from '@revelio/db'
+import { types, subTypes, subTypeLocalizations, lessons, rarities, legalities } from '@revelio/db'
 import { ATTRIBUTES, slugify } from '@revelio/core'
 import type { DistCard } from './types.js'
 
@@ -11,7 +11,6 @@ function distinctAttributes(cards: DistCard[]) {
     subTypes: new Set<string>(),
     lessons: new Set<string>(),
     rarities: new Set<string>(),
-    finishes: new Set<string>(),
     legalities: new Set<string>(),
   }
   // slug -> first-seen source label for sub-types. The source strings are the
@@ -26,7 +25,6 @@ function distinctAttributes(cards: DistCard[]) {
     })
     if (c.lesson) acc.lessons.add(slugify(c.lesson))
     if (c.rarity) acc.rarities.add(slugify(c.rarity))
-    if (c.finish) acc.finishes.add(slugify(c.finish))
     if (c.legality) acc.legalities.add(slugify(c.legality))
     for (const p of Array.isArray(c.provides) ? (c.provides as Provide[]) : []) {
       if (p?.lesson) acc.lessons.add(slugify(p.lesson))
@@ -57,9 +55,6 @@ export async function loadAttributes(db: DB, cards: DistCard[]): Promise<void> {
 
   const rarityRows = orderedRows(d.rarities, ATTRIBUTES.rarities)
   if (rarityRows.length) await db.insert(rarities).values(rarityRows).onConflictDoNothing()
-
-  const finishRows = orderedRows(d.finishes, ATTRIBUTES.finishes)
-  if (finishRows.length) await db.insert(finishes).values(finishRows).onConflictDoNothing()
 
   const lessonRows = codeRows(d.lessons)
   if (lessonRows.length) await db.insert(lessons).values(lessonRows).onConflictDoNothing()

@@ -17,6 +17,7 @@ Usage:
 If the hpjson path doesn't exist, it is cloned automatically from GitHub.
 """
 import json, os, sys, glob, re, unicodedata, subprocess, shutil
+from collections import defaultdict
 from transform_hpjson import transform, SET_CODES, OFFICIAL
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -40,8 +41,26 @@ def fold(s):
     s = "".join(ch for ch in s if not unicodedata.combining(ch))
     return s.lower().strip()
 
+def drop_premium_duplicates(cards):
+    """Drop a premium-sourced row when a normal-sourced row shares its (setCode, number):
+    the premium is now expressed via the surviving row's derived finishes[]. Premium-only
+    rows (no normal sibling) are kept as ordinary cards."""
+    groups = defaultdict(list)
+    for c in cards:
+        groups[(c["setCode"], c["number"])].append(c)
+    kept = []
+    for c in cards:
+        siblings = groups[(c["setCode"], c["number"])]
+        has_normal = any(not s.get("_premiumSource") for s in siblings)
+        if c.get("_premiumSource") and has_normal:
+            continue  # redundant premium duplicate
+        kept.append(c)
+    return kept
+
 def build_cards(hp_cards):
-    cards = [transform(c) for c in hp_cards]
+    cards = drop_premium_duplicates([transform(c) for c in hp_cards])
+    for c in cards:
+        c.pop("_premiumSource", None)  # transient; never written to dist
     seen = {}
     for c in cards:
         if c["id"] in seen:
@@ -103,7 +122,7 @@ def slim(card, lang):
     return {
         "id": card["id"], "setCode": card["setCode"], "number": card["number"],
         "types": card["types"], "subTypes": card["subTypes"], "lesson": card["lesson"],
-        "cost": card["cost"], "provides": card["provides"], "rarity": card["rarity"], "finish": card["finish"],
+        "cost": card["cost"], "provides": card["provides"], "rarity": card["rarity"], "finishes": card["finishes"],
         "artist": card["artist"], "stats": card["stats"], "orientation": card["orientation"],
         "legality": card["legality"], "draftValue": card["draftValue"], "rulings": card["rulings"],
         "lang": used, "translationStatus": loc["status"],

@@ -9,7 +9,7 @@ vi.mock('@/../i18n/navigation', () => ({ Link: (p: { href: string; children: Rea
 
 const base: SearchDocument = {
   id: 'bs-1', setCode: 'BS', number: '1', name: 'Dean Thomas', text: null, flavorText: null,
-  types: ['character'], subTypes: [], lesson: null, rarity: null, finish: null,
+  types: ['character'], subTypes: [], lesson: null, rarity: null, finishes: [],
   legality: null, cost: null, isOfficial: true, imageLang: 'en', defaultLanguage: 'en',
   orientation: 'horizontal',
 }

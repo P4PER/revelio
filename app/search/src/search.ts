@@ -7,7 +7,7 @@ export type CardFilters = {
   subTypes?: string[]
   lesson?: string[]
   rarity?: string[]
-  finish?: string[]
+  finishes?: string[]
   legality?: string[]
   isOfficial?: boolean
   costMin?: number
@@ -29,7 +29,7 @@ export type SearchResult = {
 }
 
 const ARRAY_FACETS: (keyof CardFilters)[] = [
-  'setCode', 'types', 'subTypes', 'lesson', 'rarity', 'finish', 'legality',
+  'setCode', 'types', 'subTypes', 'lesson', 'rarity', 'finishes', 'legality',
 ]
 
 // Each returned string is AND-ed by Meilisearch; values within a facet are OR-ed.

@@ -859,3 +859,64 @@ export async function getCollectionVisibility(db: DB, userId: string): Promise<C
     .from(collections).where(eq(collections.userId, userId)).limit(1)
   return (row?.visibility as CollectionVisibility) ?? 'private'
 }
+
+// --- collection: read path ---
+
+export async function getOwnedCardIds(db: DB, userId: string): Promise<string[]> {
+  const rows = await db.selectDistinct({ cardId: userCards.cardId })
+    .from(userCards).where(eq(userCards.userId, userId))
+  return rows.map((r) => r.cardId)
+}
+
+export async function getDuplicateCardIds(db: DB, userId: string): Promise<string[]> {
+  const rows = await db.selectDistinct({ cardId: userCards.cardId })
+    .from(userCards)
+    .where(and(eq(userCards.userId, userId), sql`${userCards.quantity} > 1`))
+  return rows.map((r) => r.cardId)
+}
+
+export async function getCollectionSetProgress(db: DB, userId: string): Promise<SetProgress[]> {
+  // For every set, count distinct owned cards (left join so empty sets show 0),
+  // against the set's cardCount. `count(distinct uc.card_id)` ignores the finish
+  // dimension → completion is finish-agnostic.
+  const rows = await db
+    .select({
+      setCode: sets.code,
+      total: sets.cardCount,
+      owned: sql<number>`count(distinct ${userCards.cardId})`,
+    })
+    .from(sets)
+    .leftJoin(cards, eq(cards.setCode, sets.code))
+    .leftJoin(
+      userCards,
+      and(eq(userCards.cardId, cards.id), eq(userCards.userId, userId)),
+    )
+    .groupBy(sets.code, sets.cardCount, sets.releaseDate)
+    .orderBy(asc(sets.releaseDate), asc(sets.code))
+  return rows.map((r) => ({ setCode: r.setCode, owned: Number(r.owned), total: r.total }))
+}
+
+export async function getCollectionSummary(db: DB, userId: string): Promise<CollectionSummary> {
+  const [distinct] = await db.select({ n: sql<number>`count(distinct ${userCards.cardId})` })
+    .from(userCards).where(eq(userCards.userId, userId))
+  const [copies] = await db.select({ n: sql<number>`coalesce(sum(${userCards.quantity}), 0)` })
+    .from(userCards).where(eq(userCards.userId, userId))
+  const [total] = await db.select({ n: count(cards.id) }).from(cards)
+  return {
+    distinctOwned: Number(distinct?.n ?? 0),
+    totalCards: Number(total?.n ?? 0),
+    totalCopies: Number(copies?.n ?? 0),
+  }
+}
+
+export async function resolveCollectionOwner(
+  db: DB, key: string,
+): Promise<{ userId: string; username: string | null } | null> {
+  // Prefer username (case-insensitive), fall back to a raw user id.
+  const [byName] = await db.select({ userId: user.id, username: user.username })
+    .from(user).where(sql`lower(${user.username}) = lower(${key})`).limit(1)
+  if (byName) return { userId: byName.userId, username: byName.username }
+  const [byId] = await db.select({ userId: user.id, username: user.username })
+    .from(user).where(eq(user.id, key)).limit(1)
+  return byId ? { userId: byId.userId, username: byId.username } : null
+}

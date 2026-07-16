@@ -179,7 +179,20 @@ All ownership mutation is **Postgres only** — no Meilisearch write, so no rein
 
 ## 9. Components (`app/web/src/components/`)
 
-Reuse existing primitives; add collection-specific pieces:
+Build on **shadcn + Radix** primitives from `src/components/ui/` wherever one
+fits — do not hand-roll what shadcn already provides. Expected reuse:
+
+- `ui/popover` → the detail-page "Add to collection" popover.
+- `ui/progress` → per-set completion bars (add via shadcn if not already present).
+- `ui/sheet` / existing `FilterSheet` (already Radix-backed) → the flat-view
+  filter drawer and the mobile set list.
+- `ui/tabs` (already added in PR #18) → the sidebar / "Browse all" view toggle.
+- `ui/badge` → the owned-count badge on card art.
+- `ui/button`, `ui/select`, `ui/tooltip` → steppers and controls.
+
+Any genuinely new primitive is added through the shadcn CLI into
+`src/components/ui/`, not written from scratch. Add collection-specific pieces on
+top:
 
 - `collection-sidebar.tsx` — set list with progress bars (desktop) / set tile list
   (mobile).

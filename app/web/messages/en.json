@@ -26,7 +26,8 @@
     "myDecks": "My Decks",
     "decks": "Decks",
     "random": "Random",
-    "browse": "Discover decks"
+    "browse": "Discover decks",
+    "collection": "Collection"
   },
   "search": {
     "title": "Search",

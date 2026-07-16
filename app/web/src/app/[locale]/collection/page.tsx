@@ -1,16 +1,10 @@
 import { redirect } from 'next/navigation'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { searchCards } from '@revelio/search'
-import {
-  listSets, getCollectionSetProgress, getCollectionSummary, getOwnedQuantities,
-  getOwnedCardIds, getDuplicateCardIds, getCollectionVisibility,
-} from '@revelio/db'
+import { getCollectionVisibility } from '@revelio/db'
 import { getSession } from '@/lib/session'
 import { getDb } from '@/lib/db'
-import { getSearchClient, runSearch } from '@/lib/search-client'
-import { parseSearchParams, toSearchOptions } from '@/lib/search-params'
-import { parseOwnership, applyOwnership } from '@/lib/collection-search'
-import { toCollectionCards } from '@/lib/collection-cards'
+import { getSearchClient } from '@/lib/search-client'
+import { loadCollectionPage } from '@/lib/collection-page-data'
 import { CollectionView } from '@/components/collection-view'
 import { CollectionSummary } from '@/components/collection-summary'
 import { CollectionVisibilityToggle } from '@/components/collection-visibility-toggle'
@@ -36,34 +30,11 @@ export default async function CollectionPage({
     if (Array.isArray(v)) v.forEach((x) => sp.append(k, x))
     else if (v != null) sp.set(k, v)
   }
-  const tab = sp.get('tab') === 'browse' ? 'browse' : 'sets'
 
-  const [sets, progress, summary, visibility, ownedIds, dupeIds] = await Promise.all([
-    listSets(db, locale),
-    getCollectionSetProgress(db, userId),
-    getCollectionSummary(db, userId),
+  const [data, visibility] = await Promise.all([
+    loadCollectionPage(db, getSearchClient(), locale, userId, sp, IMAGE_BASE),
     getCollectionVisibility(db, userId),
-    getOwnedCardIds(db, userId),
-    getDuplicateCardIds(db, userId),
   ])
-
-  const selectedSet = sp.get('set') ?? sets[0]?.code ?? ''
-  const client = getSearchClient()
-
-  // By-set grid: the selected set's cards.
-  const setRes = selectedSet
-    ? await runSearch(client, locale, parseSearchParams(new URLSearchParams(`set=${selectedSet}`)))
-    : { hits: [], total: 0, page: 1, hitsPerPage: 24 }
-
-  // Browse grid: full search + ownership filter (Postgres ownership → Meili id filter).
-  const state = parseSearchParams(sp)
-  const ownership = parseOwnership(sp)
-  const { query, options } = toSearchOptions(state)
-  const browseRes = await searchCards(client, locale, query, applyOwnership(options, ownership, ownedIds, dupeIds))
-
-  const quantities = await getOwnedQuantities(
-    db, userId, [...setRes.hits, ...browseRes.hits].map((h) => h.id),
-  )
 
   const t = await getTranslations({ locale, namespace: 'collection' })
   const path = session.user.username ? `/collection/${session.user.username}` : `/collection/u/${userId}`
@@ -74,15 +45,14 @@ export default async function CollectionPage({
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-primary">{t('title')}</h1>
-          <CollectionSummary summary={summary} />
+          <CollectionSummary summary={data.summary} />
         </div>
         <CollectionVisibilityToggle initial={visibility} shareUrl={shareUrl} />
       </div>
       <CollectionView
-        sets={sets} progress={progress} selectedSet={selectedSet}
-        cards={toCollectionCards(setRes.hits, IMAGE_BASE)}
-        browseCards={toCollectionCards(browseRes.hits, IMAGE_BASE)}
-        quantities={quantities} editable locale={locale} mode={tab}
+        sets={data.sets} progress={data.progress} selectedSet={data.selectedSet}
+        cards={data.setCards} browseCards={data.browseCards}
+        quantities={data.quantities} editable locale={locale} mode={data.tab}
       />
     </main>
   )

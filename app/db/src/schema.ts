@@ -14,8 +14,10 @@ const editable = {
 // --- reference (vocabulary) tables ---
 // Codes are FK anchors for cards. Labels live in the next-intl message catalog
 // (app/web/messages/*.json), never here. sort_order is only kept where the
-// vocabulary has an inherent rank (rarities, finishes); types/lessons are
+// vocabulary has an inherent rank (rarities); types/lessons are
 // unordered sets whose display order lives in app/core/src/attributes.ts.
+// (Finishes have no table: cards.finishes is a text[] that can't carry an
+// element FK, and finish order lives in app/core/src/attributes.ts.)
 export const types = pgTable('types', {
   code: text('code').primaryKey(),
 })
@@ -29,11 +31,6 @@ export const lessons = pgTable('lessons', {
 })
 
 export const rarities = pgTable('rarities', {
-  code: text('code').primaryKey(),
-  sortOrder: integer('sort_order').notNull().default(0),
-})
-
-export const finishes = pgTable('finishes', {
   code: text('code').primaryKey(),
   sortOrder: integer('sort_order').notNull().default(0),
 })

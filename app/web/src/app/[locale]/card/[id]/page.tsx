@@ -6,7 +6,7 @@ import { effectiveImageLang, imageKey, imageUrl } from '@revelio/core'
 import { routing } from '@/../i18n/routing'
 import { getPathname } from '@/../i18n/navigation'
 import { getDb } from '@/lib/db'
-import { getCardById } from '@revelio/db'
+import { getCardById, getOwnedQuantities } from '@revelio/db'
 import { pickLocalization } from '@/lib/card-view'
 import { CardDetail } from '@/components/card-detail'
 import { getSession } from '@/lib/session'
@@ -58,6 +58,10 @@ export default async function CardPage({
   const session = await getSession()
   const canEdit = hasRequiredRole(session?.user?.role, 'editor')
   const subTypeLabels = await getSubTypeLabelMap(locale)
+  const userId = session?.user?.id
+  const ownedQuantities = userId
+    ? (await getOwnedQuantities(getDb(), userId, [card.id]))[card.id] ?? {}
+    : {}
   return (
     <CardDetail
       card={card}
@@ -65,6 +69,8 @@ export default async function CardPage({
       imageBase={IMAGE_BASE}
       canEdit={canEdit}
       subTypeLabels={subTypeLabels}
+      canCollect={!!userId}
+      ownedQuantities={ownedQuantities}
     />
   )
 }

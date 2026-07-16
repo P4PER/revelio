@@ -35,13 +35,13 @@ export function CardFinishStepper({
         <span className="flex items-center gap-1.5">
           <button type="button" aria-label={`decrement ${label}`} disabled={pending || qty === 0}
             onClick={() => commit(qty - 1)}
-            className="grid size-5 place-items-center rounded border border-input disabled:opacity-40">
+            className="grid size-5 cursor-pointer place-items-center rounded border border-input disabled:cursor-default disabled:opacity-40">
             <Minus className="size-3" />
           </button>
           <span className="min-w-4 text-center text-sm font-semibold tabular-nums">{qty}</span>
           <button type="button" aria-label={`increment ${label}`} disabled={pending}
             onClick={() => commit(qty + 1)}
-            className="grid size-5 place-items-center rounded bg-primary text-primary-foreground">
+            className="grid size-5 cursor-pointer place-items-center rounded bg-primary text-primary-foreground disabled:cursor-default">
             <Plus className="size-3" />
           </button>
         </span>

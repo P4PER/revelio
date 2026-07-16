@@ -48,7 +48,7 @@ export function CollectionCardTile({
         </Badge>
       )}
       {editable && (
-        <div className="absolute inset-x-1 bottom-8 flex flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+        <div className="pointer-events-none absolute inset-x-1 bottom-8 flex flex-col gap-1 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
           {card.finishes.map((f) => (
             <CardFinishStepper key={f} cardId={card.id} finish={f}
               label={attrLabel('finishes', f, locale)} quantity={quantities[f] ?? 0} />

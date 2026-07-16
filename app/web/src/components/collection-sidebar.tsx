@@ -28,7 +28,11 @@ export function CollectionSidebar({
             data-testid={`set-row-${s.code}`} data-active={active}
             className={cn('rounded-lg px-3 py-2 transition-colors hover:bg-accent/50', active && 'bg-accent')}>
             <div className="flex items-center gap-2">
-              <SetSymbol code={s.code} base={IMAGE_BASE} className="size-4 shrink-0 text-primary" />
+              <span className="flex size-4 shrink-0 items-center justify-center text-primary">
+                {s.symbol && IMAGE_BASE
+                  ? <SetSymbol code={s.code} base={IMAGE_BASE} className="size-4" />
+                  : null}
+              </span>
               <span className="flex-1 truncate text-sm font-medium">{s.name}</span>
               <span className="text-xs tabular-nums text-muted-foreground">
                 {t('ofTotal', { owned: p.owned, total: p.total })}

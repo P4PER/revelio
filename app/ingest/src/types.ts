@@ -29,7 +29,7 @@ export type DistCard = {
   cost: number | null
   provides: unknown | null
   rarity: string | null
-  finish: string | null
+  finishes: string[]
   artist: string[]
   stats: { health: number | null; damagePerTurn: number | null } | null
   orientation: string | null

@@ -3,7 +3,7 @@ import { buildCardDocument, type CardIndexData } from '@revelio/search'
 
 const base: CardIndexData = {
   id: 'x-1', setCode: 'X', number: '1', name: 'Fallback',
-  lesson: 'creatures', rarity: 'common', finish: null,
+  lesson: 'creatures', rarity: 'common', finishes: [],
   legality: null, cost: 2, isOfficial: true, types: ['spell'], subTypes: [],
   defaultLanguage: 'en',
   localizations: {
@@ -33,7 +33,7 @@ describe('buildCardDocument', () => {
   it('resolves imageLang with fallback and carries defaultLanguage', () => {
     const base = {
       id: 'x-1', setCode: 'X', number: '1', name: 'N',
-      lesson: null, rarity: null, finish: null, legality: null,
+      lesson: null, rarity: null, finishes: [], legality: null,
       cost: null, isOfficial: true, types: [], subTypes: [], defaultLanguage: 'en',
     }
     // en has an image, de does not

@@ -57,6 +57,13 @@
       "when": 1783683172246,
       "tag": "0007_dizzy_mindworm",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784161839236,
+      "tag": "0008_romantic_hellfire_club",
+      "breakpoints": true
     }
   ]
 }

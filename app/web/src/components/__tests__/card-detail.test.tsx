@@ -20,7 +20,7 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 
 const card: CardDetailDTO = {
   id: 'bs-1-fluffy', setCode: 'BS', number: '1', name: 'Fluffy', types: ['creature'], subTypes: ['beast'],
-  lesson: 'charms', cost: 3, rarity: 'rare', finish: null, legality: 'legal', artist: ['An Artist'],
+  lesson: 'charms', cost: 3, rarity: 'rare', finishes: [], legality: 'legal', artist: ['An Artist'],
   health: 5, damagePerTurn: 2, orientation: 'vertical', defaultLanguage: 'en',
   localizations: {
     en: { lang: 'en', name: 'Fluffy', status: 'official', source: null, text: 'Guards it.', flavorText: 'Woof.', imageFile: null, imageUrl: null },

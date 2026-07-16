@@ -13,7 +13,7 @@ export type SearchDocument = {
   subTypes: string[]
   lesson: string | null
   rarity: string | null
-  finish: string | null
+  finishes: string[]
   legality: string | null
   cost: number | null
   damage: number | null
@@ -46,7 +46,7 @@ export function cardNumberSortKey(number: string): string {
 export const CARD_INDEX_SETTINGS: Settings = {
   searchableAttributes: ['name', 'text', 'flavorText'],
   filterableAttributes: [
-    'setCode', 'types', 'subTypes', 'lesson', 'rarity', 'finish', 'legality', 'cost', 'isOfficial',
+    'setCode', 'types', 'subTypes', 'lesson', 'rarity', 'finishes', 'legality', 'cost', 'isOfficial',
   ],
   sortableAttributes: ['numberSort', 'name', 'cost'],
   rankingRules: ['words', 'typo', 'proximity', 'attribute', 'sort', 'exactness'],
@@ -68,7 +68,7 @@ export type CardIndexData = {
   name: string // card-level fallback name
   lesson: string | null
   rarity: string | null
-  finish: string | null
+  finishes: string[]
   legality: string | null
   cost: number | null
   damage: number | null
@@ -94,7 +94,7 @@ export function buildCardDocument(d: CardIndexData, lang: string): SearchDocumen
     subTypes: d.subTypes,
     lesson: d.lesson,
     rarity: d.rarity,
-    finish: d.finish,
+    finishes: d.finishes,
     legality: d.legality,
     cost: d.cost,
     damage: d.damage,

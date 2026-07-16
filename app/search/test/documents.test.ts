@@ -8,7 +8,7 @@ describe('search documents config', () => {
   })
 
   it('exposes the required facets as filterable', () => {
-    for (const f of ['setCode', 'types', 'subTypes', 'lesson', 'rarity', 'finish', 'legality', 'cost', 'isOfficial']) {
+    for (const f of ['setCode', 'types', 'subTypes', 'lesson', 'rarity', 'finishes', 'legality', 'cost', 'isOfficial']) {
       expect(CARD_INDEX_SETTINGS.filterableAttributes).toContain(f)
     }
   })
@@ -53,7 +53,7 @@ describe('buildCardDocument', () => {
   it('carries orientation onto the built document', () => {
     const data = {
       id: 'bs-1', setCode: 'BS', number: '1', name: 'Harry',
-      lesson: null, rarity: null, finish: null, legality: null, cost: null, damage: null,
+      lesson: null, rarity: null, finishes: [], legality: null, cost: null, damage: null,
       isOfficial: true, types: ['character'], subTypes: [], defaultLanguage: 'en',
       orientation: 'horizontal',
       localizations: { en: { name: 'Harry', text: null, flavorText: null, imageFile: null } },

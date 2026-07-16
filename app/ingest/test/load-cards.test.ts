@@ -30,7 +30,7 @@ describe('loadCards', () => {
     expect(flobber.damagePerTurn).toBeNull()
     expect(flobber.cost).toBe(2)
     expect(flobber.rarity).toBe('common')
-    expect(flobber.finish).toBe('normal')
+    expect(flobber.finishes).toEqual(['normal'])
     expect(flobber.origin).toBe('import')
   })
 

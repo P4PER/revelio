@@ -69,7 +69,7 @@ export function toSearchOptions(state: SearchState): { query: string; options: S
   if (state.official !== null) filters.isOfficial = state.official
   if (state.set) filters.setCode = [state.set]
   if (state.rarities.length) filters.rarity = state.rarities
-  if (state.finishes.length) filters.finish = state.finishes
+  if (state.finishes.length) filters.finishes = state.finishes
   if (state.legalities.length) filters.legality = state.legalities
   if (state.costMin != null) filters.costMin = state.costMin
   if (state.costMax != null) filters.costMax = state.costMax

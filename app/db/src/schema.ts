@@ -78,7 +78,7 @@ export const cards = pgTable('cards', {
   cost: integer('cost'),
   provides: jsonb('provides'),
   rarity: text('rarity').references(() => rarities.code),
-  finish: text('finish').references(() => finishes.code),
+  finishes: text('finishes').array().notNull().default(['normal']),
   artist: text('artist').array().notNull().default([]),
   health: integer('health'),
   damagePerTurn: integer('damage_per_turn'),

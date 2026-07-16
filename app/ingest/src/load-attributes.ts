@@ -26,7 +26,7 @@ function distinctAttributes(cards: DistCard[]) {
     })
     if (c.lesson) acc.lessons.add(slugify(c.lesson))
     if (c.rarity) acc.rarities.add(slugify(c.rarity))
-    if (c.finish) acc.finishes.add(slugify(c.finish))
+    for (const f of c.finishes ?? []) acc.finishes.add(slugify(f))
     if (c.legality) acc.legalities.add(slugify(c.legality))
     for (const p of Array.isArray(c.provides) ? (c.provides as Provide[]) : []) {
       if (p?.lesson) acc.lessons.add(slugify(p.lesson))

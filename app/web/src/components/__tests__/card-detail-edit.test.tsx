@@ -11,7 +11,7 @@ import en from '@/../messages/en.json'
 
 const card = {
   id: 'x-1', setCode: 'X', number: '1', name: 'Card', types: [], subTypes: [],
-  lesson: null, cost: null, rarity: null, finish: null, legality: null, artist: [],
+  lesson: null, cost: null, rarity: null, finishes: [], legality: null, artist: [],
   health: null, damagePerTurn: null, orientation: null, defaultLanguage: 'en',
   localizations: { en: { lang: 'en', name: 'Card', status: 'official', source: null, text: null, flavorText: null, imageFile: 'art.png', imageUrl: null } },
   rulings: [],

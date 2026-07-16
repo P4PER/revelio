@@ -37,7 +37,7 @@ export function CollectionCardTile({
             {card.src ? (
               <CardRotate src={card.src} alt={card.name} orientation={card.orientation}
                 sizes="(max-width: 640px) 45vw, 200px"
-                className={cn(!owned && 'opacity-45 grayscale')} />
+                idleClassName={cn(!owned && 'opacity-45 grayscale')} />
             ) : (
               <div className={cn('flex h-full items-center justify-center px-2 text-center text-xs text-muted-foreground', !owned && 'opacity-60')}>
                 {card.name}

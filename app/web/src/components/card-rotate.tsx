@@ -12,13 +12,17 @@ import { cn } from '@/lib/utils'
 // 90° — so it stands upright at its real size, floats over neighbouring cards
 // (escaping the tile's overflow-hidden), and the grid never reflows.
 export function CardRotate({
-  src, alt, orientation, sizes, className, onError,
+  src, alt, orientation, sizes, className, idleClassName, onError,
 }: {
   src: string
   alt: string
   orientation?: string | null
   sizes?: string
   className?: string
+  // Applied to the image only in the resting (non-rotated) state — e.g. the
+  // collection's gray-out for unowned cards, which should clear to full color
+  // once the card is rotated up for a proper look.
+  idleClassName?: string
   onError?: () => void
 }) {
   const t = useTranslations('card')
@@ -75,7 +79,7 @@ export function CardRotate({
         className={cn('transition-transform duration-300', elevated ? 'z-50' : 'absolute inset-0', rotated && 'rotate-90')}
         style={elevated && rect ? { position: 'fixed', left: rect.left, top: rect.top, width: rect.width, height: rect.height } : undefined}
       >
-        <Image src={src} alt={alt} fill sizes={sizes} onError={onError} className={cn('object-cover', className)} />
+        <Image src={src} alt={alt} fill sizes={sizes} onError={onError} className={cn('object-cover transition-[filter,opacity]', className, !rotated && idleClassName)} />
       </div>
 
       {rotatable && (

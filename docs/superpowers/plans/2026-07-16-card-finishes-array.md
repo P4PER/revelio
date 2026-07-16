@@ -8,6 +8,11 @@
 
 **Tech Stack:** Python 3 (build pipeline), TypeScript, Drizzle ORM + Postgres, Meilisearch, Next.js 16 + next-intl, Vitest.
 
+## Execution deviations (recorded during inline execution)
+
+- **No Python unit test.** `card-data/` has no test infrastructure and CI doesn't run Python; per user decision the `test_finishes.py` idea was dropped. The pipeline guard is instead `python3 build_dataset.py` → `card errors=0` plus the real-dataset assertions in Task 2 (count 1,031, every card's `finishes` contains `normal`, the 4 typo-twin numbers collapsed to one row each).
+- **`translations/de.json` cleanup (Task 2).** Dropping the 4 premium rows orphaned 4 machine-translation keys in the German overlay (the dropped premium ids: `qc-6-gaze-into-the-mirror-2`, `qc-7-gold-cauldron`, `da-27-the-leaky-cauldron`, `aah-3-crabbe-and-goyle`). Each surviving sibling keeps its own `de` entry, so no German text is lost; the 4 dead keys are removed so the build is warning-free (de.json 1,035 → 1,031 entries).
+
 ## Global Constraints
 
 - **The rule (authoritative, no overrides):** `Rare` + Character → `["normal","holo"]`; `Rare` + non-Character → `["normal","foil"]`; everything else → `["normal"]`. Array order: `normal` first.

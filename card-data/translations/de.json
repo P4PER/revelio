@@ -932,25 +932,6 @@
       "reward": "Dein Gegner erhält 1 zusätzliche Aktion (in dem Zug, in dem dieses Abenteuer gelöst wird)."
     }
   },
-  "qc-6-gaze-into-the-mirror-2": {
-    "name": "Blick in den Spiegel",
-    "status": "machine",
-    "source": "Claude (machine)",
-    "text": null,
-    "flavorText": "Harry war dem Spiegel nun so nah, dass seine Nase fast die seines Spiegelbilds berührte. ‚Mum?‘ flüsterte er. ‚Dad?‘'",
-    "adventure": {
-      "effect": "Verhindere während der Züge deines Gegners allen Zauber-Schaden, der dir durch Zauber-Karten zugefügt wird.",
-      "toSolve": "Dein Gegner wählt 5 Zauber-Karten auf seiner Hand und legt sie ab.",
-      "reward": "Dein Gegner erhält 1 zusätzliche Aktion (in dem Zug, in dem dieses Abenteuer gelöst wird)."
-    }
-  },
-  "qc-7-gold-cauldron": {
-    "name": "Goldkessel",
-    "status": "machine",
-    "source": "Claude (machine)",
-    "text": "Um diese Karte auszuspielen, nimm 2 deiner Zaubertränke-Lektionen aus dem Spiel auf deine Hand zurück.",
-    "flavorText": null
-  },
   "qc-7-golden-cauldron": {
     "name": "Goldener Kessel",
     "status": "machine",
@@ -1711,13 +1692,6 @@
     "text": "Vor jedem deiner Züge, wenn 4 oder weniger Karten auf deiner Hand sind, darfst du eine Karte ziehen.",
     "flavorText": "Ich bin berühmt und kann mich nicht einmal daran erinnern, wofür ich berühmt bin.‘ — Harry Potter"
   },
-  "da-27-the-leaky-cauldron": {
-    "name": "Der Tropfende Kessel",
-    "status": "machine",
-    "source": "Claude (machine)",
-    "text": "Immer wenn ein Spieler eine Charakter-Karte ausspielt, verbraucht er dafür 1 Aktion statt 2.",
-    "flavorText": "'Da ist es‘, sagte Hagrid und blieb stehen, ‚der Tropfende Kessel. Das ist ein berühmter Ort.‘"
-  },
   "da-27-the-leakey-cauldron": {
     "name": "Der Tropfende Kessel",
     "status": "machine",
@@ -2230,13 +2204,6 @@
     "source": "Claude (machine)",
     "text": "Du kannst eine Aktion einsetzen, um ein Abenteuer aus dem Spiel abzulegen (deins oder das deines Gegners). (Du erhältst die Belohnung nicht.)",
     "flavorText": "Filch knew the secret passageways of the school better than anyone... and could pop up as suddenly as any of the ghosts.'"
-  },
-  "aah-3-crabbe-and-goyle": {
-    "name": "Crabbe and Goyle",
-    "status": "machine",
-    "source": "Claude (machine)",
-    "text": "Du kannst eine Aktion einsetzen und 2 Karten von deiner Hand ablegen, um deinem Gegner 3 Schaden zuzufügen.",
-    "flavorText": "'Both of them were thickest and looked extremely mean.'"
   },
   "aah-3-crabbe-goyle": {
     "name": "Crabbe & Goyle",

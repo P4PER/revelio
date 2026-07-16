@@ -4,7 +4,7 @@
 
 **Goal:** Replace the per-row scalar `cards.finish` with a derived `cards.finishes` string array, and drop the 4 duplicate premium rows the old model created — so a card's finish is an availability property, not an identity.
 
-**Architecture:** Fix at the source: the `card-data` Python pipeline derives `finishes` from a `rarity`+`types` rule and drops premium-sourced rows that duplicate a normal row. The array is then threaded through `@revelio/core` (DTO), `@revelio/db` (schema + migration + queries), `@revelio/search` (Meilisearch document + filter), `@revelio/ingest` (loaders + document builder), and `@revelio/web` (search mapping + card-detail display). The DB column becomes `text[]`; Meilisearch treats array members as facet values so "contains" filtering works unchanged.
+**Architecture:** Fix at the source: the `card-data` Python pipeline derives `finishes` from a `rarity`+`types` rule and drops premium-sourced rows that duplicate a normal row. The array is then threaded through `@revelio/core` (DTO), `@revelio/db` (schema + migration + queries), `@revelio/search` (Meilisearch document + filter), `@revelio/ingest` (loaders + document builder), and `@revelio/web` (search filter mapping). A read-only card-detail "available finishes" display is intentionally deferred (belongs with the Collection page). The DB column becomes `text[]`; Meilisearch treats array members as facet values so "contains" filtering works unchanged.
 
 **Tech Stack:** Python 3 (build pipeline), TypeScript, Drizzle ORM + Postgres, Meilisearch, Next.js 16 + next-intl, Vitest.
 
@@ -35,7 +35,7 @@
 
 **@revelio/ingest:** `app/ingest/src/types.ts`, `load-cards.ts`, `load-attributes.ts`, `build-documents.ts`.
 
-**@revelio/web:** `app/web/src/lib/search-params.ts`, `app/web/src/components/card-detail.tsx`, `app/web/messages/en.json`, `app/web/messages/de.json`, plus test-fixture updates.
+**@revelio/web:** `app/web/src/lib/search-params.ts`, plus test-fixture updates.
 
 ---
 
@@ -409,81 +409,7 @@ git commit -m "feat: thread finishes[] through db, search, and ingest"
 
 ---
 
-## Task 4: Web — show available finishes on the card detail page
-
-**Files:**
-- Modify: `app/web/src/components/card-detail.tsx` (~line 85, after the rarity line)
-- Modify: `app/web/messages/en.json`, `app/web/messages/de.json` (`card` namespace)
-- Test: `app/web/src/components/__tests__/card-detail.test.tsx`
-
-**Interfaces:**
-- Consumes: `CardDetailDTO.finishes: string[]` (from Task 3) and `attrLabel('finishes', code, locale)`.
-
-- [ ] **Step 1: Write the failing test**
-
-Add to `app/web/src/components/__tests__/card-detail.test.tsx` (a card with a premium finish shows it; a normal-only card does not render the line). Set `finishes: ['normal', 'foil']` on the existing test card, and add:
-
-```tsx
-it('lists available finishes when the card has a premium finish', () => {
-  render(<CardDetail card={{ ...card, finishes: ['normal', 'foil'] }} locale="en" imageBase="" />)
-  expect(screen.getByText(/Available finishes/i)).toBeInTheDocument()
-  expect(screen.getByText(/Foil/)).toBeInTheDocument()
-})
-
-it('omits the finishes line for normal-only cards', () => {
-  render(<CardDetail card={{ ...card, finishes: ['normal'] }} locale="en" imageBase="" />)
-  expect(screen.queryByText(/Available finishes/i)).not.toBeInTheDocument()
-})
-```
-
-(Match the existing `render(...)` prop signature used elsewhere in this test file.)
-
-- [ ] **Step 2: Run it to verify it fails**
-
-Run: `cd app && npm test -w web -- src/components/__tests__/card-detail.test.tsx`
-Expected: FAIL — "Available finishes" text not found.
-
-- [ ] **Step 3: Add the i18n keys**
-
-In `app/web/messages/en.json`, inside the `card` object (near `"number"`), add:
-```json
-    "availableFinishes": "Available finishes",
-```
-In `app/web/messages/de.json`, inside the `card` object, add:
-```json
-    "availableFinishes": "Verfügbare Ausführungen",
-```
-
-- [ ] **Step 4: Render the finishes line**
-
-In `app/web/src/components/card-detail.tsx`, immediately after the closing `</p>` of the set/number/rarity block (~line 85), add:
-
-```tsx
-        {card.finishes.some((f) => f !== 'normal') && (
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t('availableFinishes')}:{' '}
-            {card.finishes.map((f) => attrLabel('finishes', f, locale)).join(', ')}
-          </p>
-        )}
-```
-
-- [ ] **Step 5: Run the test + typecheck**
-
-Run: `cd app && npm test -w web -- src/components/__tests__/card-detail.test.tsx`
-Expected: PASS.
-Run: `cd app && npm run typecheck`
-Expected: PASS.
-
-- [ ] **Step 6: Commit**
-
-```bash
-git add app/web/src/components/card-detail.tsx app/web/src/components/__tests__/card-detail.test.tsx app/web/messages/en.json app/web/messages/de.json
-git commit -m "feat(web): show available finishes on the card detail page"
-```
-
----
-
-## Task 5: End-to-end rebuild, migrate, ingest, reindex + manual verification
+## Task 4: End-to-end rebuild, migrate, ingest, reindex + manual verification
 
 **Files:** none (operational). Requires local infra (`docker compose up` from `app/`) or the CI/staging equivalent.
 
@@ -538,8 +464,8 @@ gh pr create --fill --base main
 - `card.schema.json` finish → finishes array → Task 2 Step 5. ✔
 - DB `cards.finishes text[]` + migration + `verify` → Task 3 Step 5. ✔
 - core DTO, db queries, search document + filter (contains facet), ingest loaders/documents → Task 3. ✔
-- web filter mapping + card-detail display + reindex → Task 3 Step 8, Task 4, Task 5 Step 5. ✔
-- Testing (pipeline rule, dedup, 1,031 count, schema validation, db verify, search filter, FINISHES vocab unchanged, card-detail render) → Tasks 1,2,3,4. ✔
+- web filter mapping + reindex → Task 3 Step 8, Task 4 Step 5. ✔ (card-detail display deferred to the Collection page spec, per user.)
+- Testing (pipeline rule, dedup, 1,031 count, schema validation, db verify, search filter, FINISHES vocab unchanged) → Tasks 1,2,3. ✔
 - Rollout (rebuild → migrate → ingest → reindex) → Task 5. ✔
 - Out-of-scope (10 wrong-number collisions, overrides file) → untouched by design. ✔
 

@@ -1,14 +1,13 @@
 {
   "da-27-the-leakey-cauldron": "TheLeakyCauldron.png",
-  "poa-72-malicious-subsitute": "MaliciousSubstitute.png",
-  "gof-119-divinatino-third-year": "DivinationThirdYear.png",
-
   "aah-3-crabbe-goyle": "CrabbeAndGoyle.png",
-  "aah-59-every-flavor-beans": "EveryFlavourBeans.png",
-  "aah-65-manegrow-potion": "ManegroPotion.png",
-  "gof-19-perfumed-fire": "PerfumedSmoke.png",
-  "gof-37-fertilizer-from-norway": "FertiliserFromNorway.png",
-  "gof-99-report-of-cauldron-thickness": "ReportOnCauldronThickness.png",
   "lm1-9-out-of-bounds-3rd-floor": "OutOfBoundsThirdFloor.png",
-  "lm1-15-harry-vs-draco": "HarryVersusDraco.png"
+  "lm1-15-harry-vs-draco": "HarryVersusDraco.png",
+  "aah-59-every-flavour-beans": "EveryFlavourBeans.png",
+  "aah-65-manegro-potion": "ManegroPotion.png",
+  "gof-19-perfurmed-fire": "PerfumedSmoke.png",
+  "gof-37-fertiliser-from-norway": "FertiliserFromNorway.png",
+  "gof-99-report-on-cauldron-thickness": "ReportOnCauldronThickness.png",
+  "gof-119-divination-third-year": "DivinationThirdYear.png",
+  "poa-72-malicious-substitute": "MaliciousSubstitute.png"
 }

@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "workspaces": ["core", "db", "ingest", "search", "web"],
-  "engines": { "node": ">=20" },
+  "engines": { "node": ">=22" },
   "scripts": {
     "test": "npm run test --workspaces --if-present",
     "db:generate": "npm run generate -w @revelio/db",

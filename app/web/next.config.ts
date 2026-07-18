@@ -29,6 +29,11 @@ const imageHostIsLoopback = LOOPBACK.has(imageHost)
 // next is hoisted to app/node_modules — turbopack.root must reach that level.
 // path.resolve('..') from app/web/ gives app/ where node_modules/next lives.
 const nextConfig: NextConfig = {
+  // Standalone bundles the server + traced deps for a lean Docker image.
+  // outputFileTracingRoot must reach the app/ workspace root so tracing
+  // picks up the hoisted node_modules and the raw-TS workspace packages.
+  output: 'standalone',
+  outputFileTracingRoot: resolve('..'),
   turbopack: { root: resolve('..') },
   images: { remotePatterns, unoptimized: imageHostIsLoopback },
   // Our workspace packages ship raw TypeScript (main -> src/*.ts); Next must transpile them.

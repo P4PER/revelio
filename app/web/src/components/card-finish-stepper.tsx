@@ -24,10 +24,11 @@ export function CardFinishStepper({
 
   function commit(next: number) {
     const target = Math.max(0, next)
+    const prev = qty // last-known-good, not the mount-time prop
     setQty(target) // optimistic
     start(async () => {
       const res = await setCardQuantityAction(cardId, finish, target)
-      if (!res.ok) setQty(quantity) // revert on failure
+      if (!res.ok) setQty(prev) // revert on failure
     })
   }
 

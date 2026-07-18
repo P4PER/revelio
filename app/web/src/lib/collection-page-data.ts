@@ -50,16 +50,18 @@ export async function loadCollectionPage(
 
   const selectedSet = sp.get('set') ?? sets[0]?.code ?? ''
 
+  // Only the active tab's grid is mounted, so only run that tab's search.
   // By-set is a completion view: show the whole set on one page (no paging), so
   // the grid isn't truncated at the default 24. The largest set is ~140 cards.
-  const setRes = selectedSet
-    ? await runSearch(client, locale, parseSearchParams(new URLSearchParams(`set=${selectedSet}`)), { hitsPerPage: FULL_SET_LIMIT })
-    : { hits: [], total: 0, page: 1, hitsPerPage: 24 }
+  // `set` is user-controlled, so build the params object-form (no interpolation).
+  const setRes = tab === 'sets' && selectedSet
+    ? await runSearch(client, locale, parseSearchParams(new URLSearchParams({ set: selectedSet })), { hitsPerPage: FULL_SET_LIMIT })
+    : { hits: [], total: 0, page: 1, hitsPerPage: FULL_SET_LIMIT }
 
-  const state = parseSearchParams(sp)
-  const ownership = parseOwnership(sp)
-  const { query, options } = toSearchOptions(state)
-  const browseRes = await searchCards(client, locale, query, applyOwnership(options, ownership, ownedIds, dupeIds))
+  const { query, options } = toSearchOptions(parseSearchParams(sp))
+  const browseRes = tab === 'browse'
+    ? await searchCards(client, locale, query, applyOwnership(options, parseOwnership(sp), ownedIds, dupeIds))
+    : { hits: [], total: 0, page: 1, hitsPerPage: options.hitsPerPage ?? 24 }
 
   const quantities = await getOwnedQuantities(
     db, ownerId, [...setRes.hits, ...browseRes.hits].map((h) => h.id),

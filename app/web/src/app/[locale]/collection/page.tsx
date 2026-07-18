@@ -6,6 +6,7 @@ import { getSession } from '@/lib/session'
 import { getDb } from '@/lib/db'
 import { getSearchClient } from '@/lib/search-client'
 import { loadCollectionPage } from '@/lib/collection-page-data'
+import { toURLSearchParams } from '@/lib/search-params'
 import { STEPPER_LAYOUT_COOKIE, parseStepperLayout } from '@/lib/collection-prefs'
 import { CollectionView } from '@/components/collection-view'
 import { CollectionSummary } from '@/components/collection-summary'
@@ -27,11 +28,7 @@ export default async function CollectionPage({
   if (!userId) redirect(`/${locale}/login`)
 
   const db = getDb()
-  const sp = new URLSearchParams()
-  for (const [k, v] of Object.entries(await searchParams)) {
-    if (Array.isArray(v)) v.forEach((x) => sp.append(k, x))
-    else if (v != null) sp.set(k, v)
-  }
+  const sp = toURLSearchParams(await searchParams)
 
   const [data, visibility, cookieStore] = await Promise.all([
     loadCollectionPage(db, getSearchClient(), locale, userId, sp, IMAGE_BASE),

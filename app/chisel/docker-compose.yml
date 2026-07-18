@@ -1,0 +1,23 @@
+services:
+  chisel:
+    image: jpillora/chisel:1.11.5
+    container_name: chisel-local-client
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    ports:
+      - "5432:5432"  # Postgres
+      - "7700:7700"  # Meilisearch
+      - "9000:9000"  # MinIO S3 API
+      - "9001:9001"  # MinIO console
+    command:
+      - client
+      - --auth=${CHISEL_USER}:${CHISEL_PASSWORD}
+      - ${CHISEL_SERVER}
+      - 5432:${POSTGRES_HOST}:5432
+      - 7700:${MEILISEARCH_HOST}:7700
+      - 9000:${MINIO_HOST}:9000
+      - 9001:${MINIO_HOST}:9001

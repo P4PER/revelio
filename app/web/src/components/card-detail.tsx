@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { LessonCost } from '@/components/lesson-cost'
 import { LightningDivider } from '@/components/lightning-divider'
 import { humanize } from '@/lib/humanize'
-import { AddToCollectionPopover } from '@/components/add-to-collection-popover'
+import { AddToCollection } from '@/components/add-to-collection'
 
 export function CardDetail({
   card, locale, imageBase, canEdit = false, subTypeLabels = {},
@@ -62,9 +62,8 @@ export function CardDetail({
           </div>
         )}
         {canCollect && (
-          <AddToCollectionPopover cardId={card.id} finishes={card.finishes}
-            quantities={ownedQuantities} locale={locale}
-            size="default" align="start" className="mt-3 w-full justify-center" />
+          <AddToCollection cardId={card.id} finishes={card.finishes}
+            quantities={ownedQuantities} locale={locale} className="mt-4" />
         )}
       </div>
       <div>

@@ -26,7 +26,8 @@
     "myDecks": "Meine Decks",
     "decks": "Decks",
     "random": "Zufällig",
-    "browse": "Decks entdecken"
+    "browse": "Decks entdecken",
+    "collection": "Sammlung"
   },
   "search": {
     "title": "Suche",
@@ -497,5 +498,41 @@
     "prev": "Zurück",
     "next": "Weiter",
     "pageStatus": "Zeige {from}–{to} von {total}"
+  },
+  "collection": {
+    "title": "Meine Sammlung",
+    "owned": "{count} im Besitz",
+    "ofTotal": "{owned} / {total}",
+    "copies": "{count} Exemplare",
+    "distinct": "{owned} / {total} Karten",
+    "browseAll": "Alle durchsuchen",
+    "bySets": "Nach Set",
+    "addToCollection": "Zur Sammlung hinzufügen",
+    "inCollection": "In Sammlung",
+    "ownership": "Besitz",
+    "filterOwned": "Im Besitz",
+    "filterMissing": "Fehlt",
+    "filterDupes": "Duplikate",
+    "visibility": "Sichtbarkeit der Sammlung",
+    "private": "Privat",
+    "public": "Öffentlich",
+    "publish": "Veröffentlichen",
+    "published": "Veröffentlicht",
+    "unpublish": "Zurückziehen",
+    "copyLink": "Link kopieren",
+    "linkCopied": "Link in die Zwischenablage kopiert.",
+    "copyError": "Kopieren in die Zwischenablage fehlgeschlagen.",
+    "visibilityError": "Sichtbarkeit konnte nicht aktualisiert werden.",
+    "publishDialog": {
+      "title": "Diese Sammlung veröffentlichen?",
+      "description": "Jeder mit dem Link kann deine Sammlung dann ansehen. Du kannst die Veröffentlichung jederzeit zurückziehen.",
+      "confirm": "Veröffentlichen",
+      "cancel": "Abbrechen"
+    },
+    "searchPlaceholder": "Sammlung durchsuchen",
+    "layoutLabel": "Mengensteuerung",
+    "layoutUnder": "Steuerung unter der Karte",
+    "layoutHover": "Steuerung beim Hover",
+    "empty": "Du besitzt noch keine Karten."
   }
 }

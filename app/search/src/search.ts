@@ -12,6 +12,8 @@ export type CardFilters = {
   isOfficial?: boolean
   costMin?: number
   costMax?: number
+  ids?: string[]        // restrict to these card ids (ownership: owned/dupes)
+  excludeIds?: string[] // exclude these card ids (ownership: missing)
 }
 
 export type SearchOptions = {
@@ -44,6 +46,12 @@ export function buildFilter(f: CardFilters): string[] {
   if (f.isOfficial !== undefined) clauses.push(`isOfficial = ${f.isOfficial}`)
   if (f.costMin != null) clauses.push(`cost >= ${f.costMin}`)
   if (f.costMax != null) clauses.push(`cost <= ${f.costMax}`)
+  if (f.ids && f.ids.length) {
+    clauses.push(`id IN [${f.ids.map((v) => JSON.stringify(v)).join(',')}]`)
+  }
+  if (f.excludeIds && f.excludeIds.length) {
+    clauses.push(`id NOT IN [${f.excludeIds.map((v) => JSON.stringify(v)).join(',')}]`)
+  }
   return clauses
 }
 

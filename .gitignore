@@ -17,3 +17,4 @@ hpjson/
 
 # === Large assets / image data (do not version) ===
 card-data/assets/
+.superpowers/

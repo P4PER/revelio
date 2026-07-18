@@ -12,15 +12,19 @@ import { Badge } from '@/components/ui/badge'
 import { LessonCost } from '@/components/lesson-cost'
 import { LightningDivider } from '@/components/lightning-divider'
 import { humanize } from '@/lib/humanize'
+import { AddToCollection } from '@/components/add-to-collection'
 
 export function CardDetail({
   card, locale, imageBase, canEdit = false, subTypeLabels = {},
+  canCollect = false, ownedQuantities = {},
 }: {
   card: CardDetailDTO
   locale: string
   imageBase: string
   canEdit?: boolean
   subTypeLabels?: Record<string, string>
+  canCollect?: boolean
+  ownedQuantities?: Record<string, number>
 }) {
   const t = useTranslations('card')
   const tEdit = useTranslations('edit')
@@ -57,6 +61,10 @@ export function CardDetail({
             {loc.name}
           </div>
         )}
+        {canCollect && (
+          <AddToCollection cardId={card.id} finishes={card.finishes}
+            quantities={ownedQuantities} locale={locale} className="mt-4" />
+        )}
       </div>
       <div>
         <div className="flex items-start justify-between gap-4">
@@ -71,12 +79,14 @@ export function CardDetail({
             )}
           </div>
           {canEdit && (
-            <Button asChild variant="outline" size="sm" className="shrink-0 gap-1.5">
-              <Link href={`/card/${card.id}/edit`}>
-                <Pencil className="size-3.5" />
-                {tEdit('button')}
-              </Link>
-            </Button>
+            <div className="flex shrink-0 items-center gap-2">
+              <Button asChild variant="outline" size="sm" className="gap-1.5">
+                <Link href={`/card/${card.id}/edit`}>
+                  <Pencil className="size-3.5" />
+                  {tEdit('button')}
+                </Link>
+              </Button>
+            </div>
           )}
         </div>
         <p className="mt-1 text-sm text-muted-foreground">

@@ -71,6 +71,13 @@
       "when": 1784204156316,
       "tag": "0009_youthful_jane_foster",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784213642363,
+      "tag": "0010_fixed_purple_man",
+      "breakpoints": true
     }
   ]
 }

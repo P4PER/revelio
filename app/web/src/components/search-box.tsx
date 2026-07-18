@@ -5,7 +5,7 @@ import { useRouter, usePathname } from '@/../i18n/navigation'
 import { withParams } from '@/lib/search-params'
 import { Input } from '@/components/ui/input'
 
-export function SearchBox({ placeholder }: { placeholder: string }) {
+export function SearchBox({ placeholder, className }: { placeholder: string; className?: string }) {
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -24,6 +24,7 @@ export function SearchBox({ placeholder }: { placeholder: string }) {
       type="search"
       defaultValue={params.get('q') ?? ''}
       placeholder={placeholder}
+      className={className}
       onChange={(e) => onChange(e.target.value)}
     />
   )

@@ -46,7 +46,7 @@ export function cardNumberSortKey(number: string): string {
 export const CARD_INDEX_SETTINGS: Settings = {
   searchableAttributes: ['name', 'text', 'flavorText'],
   filterableAttributes: [
-    'setCode', 'types', 'subTypes', 'lesson', 'rarity', 'finishes', 'legality', 'cost', 'isOfficial',
+    'id', 'setCode', 'types', 'subTypes', 'lesson', 'rarity', 'finishes', 'legality', 'cost', 'isOfficial',
   ],
   sortableAttributes: ['numberSort', 'name', 'cost'],
   rankingRules: ['words', 'typo', 'proximity', 'attribute', 'sort', 'exactness'],

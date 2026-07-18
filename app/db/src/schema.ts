@@ -182,5 +182,29 @@ export const deckViews = pgTable('deck_views', {
   pk: primaryKey({ columns: [t.deckId, t.userId] }),
 }))
 
+// --- collections: one implicit collection per user, plus owned copies ---
+
+// One row per user, created lazily on first write. Holds only the share flag;
+// absence of a row == empty, private collection.
+export const collections = pgTable('collections', {
+  userId: text('user_id').primaryKey().references(() => user.id, { onDelete: 'cascade' }),
+  visibility: text('visibility').notNull().default('private'),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+
+// Owned copies, keyed per (user, card, finish). Rows exist only for quantity >= 1;
+// decrementing to zero deletes the row. `finish` is validated in the write path
+// (no finishes vocab table exists to FK against).
+export const userCards = pgTable('user_cards', {
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  cardId: text('card_id').notNull().references(() => cards.id),
+  finish: text('finish').notNull(),
+  quantity: integer('quantity').notNull(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.cardId, t.finish] }),
+  byUser: index('user_cards_user_id_idx').on(t.userId),
+  byUserCard: index('user_cards_user_card_idx').on(t.userId, t.cardId),
+}))
+
 // Better Auth tables (generated via @better-auth/cli).
 export * from './auth-schema'

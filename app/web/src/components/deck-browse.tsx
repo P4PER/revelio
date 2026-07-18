@@ -99,7 +99,7 @@ export function DeckBrowse({
             {FORMATS.map((f) => <SelectItem key={f} value={f}>{t(`explore.format.${f}`)}</SelectItem>)}
           </SelectContent>
         </Select>
-        <ClearFiltersButton active={Boolean(hasFilters)} onClear={() => push({ lessons: [], format: null })} />
+        <ClearFiltersButton active={Boolean(hasFilters)} onClear={() => push({ lessons: [], format: null })} size="default" />
       </div>
 
       {/* Lesson chips — shared with the search page and deck builder. */}

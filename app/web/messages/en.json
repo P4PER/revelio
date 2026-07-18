@@ -530,6 +530,9 @@
       "cancel": "Cancel"
     },
     "searchPlaceholder": "Search collection…",
+    "layoutLabel": "Quantity controls",
+    "layoutUnder": "Controls under the card",
+    "layoutHover": "Controls on hover",
     "empty": "You don't own any cards yet."
   }
 }

@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getCollectionVisibility } from '@revelio/db'
@@ -5,6 +6,7 @@ import { getSession } from '@/lib/session'
 import { getDb } from '@/lib/db'
 import { getSearchClient } from '@/lib/search-client'
 import { loadCollectionPage } from '@/lib/collection-page-data'
+import { STEPPER_LAYOUT_COOKIE, parseStepperLayout } from '@/lib/collection-prefs'
 import { CollectionView } from '@/components/collection-view'
 import { CollectionSummary } from '@/components/collection-summary'
 import { CollectionVisibilityToggle } from '@/components/collection-visibility-toggle'
@@ -31,10 +33,12 @@ export default async function CollectionPage({
     else if (v != null) sp.set(k, v)
   }
 
-  const [data, visibility] = await Promise.all([
+  const [data, visibility, cookieStore] = await Promise.all([
     loadCollectionPage(db, getSearchClient(), locale, userId, sp, IMAGE_BASE),
     getCollectionVisibility(db, userId),
+    cookies(),
   ])
+  const stepperLayout = parseStepperLayout(cookieStore.get(STEPPER_LAYOUT_COOKIE)?.value)
 
   const t = await getTranslations({ locale, namespace: 'collection' })
   const path = session.user.username ? `/collection/${session.user.username}` : `/collection/u/${userId}`
@@ -56,6 +60,7 @@ export default async function CollectionPage({
         cards={data.setCards} browseCards={data.browseCards}
         browseTotal={data.browseTotal} browsePage={data.browsePage} browsePageSize={data.browsePageSize}
         quantities={data.quantities} editable locale={locale} mode={data.tab}
+        stepperLayout={stepperLayout}
       />
     </main>
   )

@@ -530,6 +530,9 @@
       "cancel": "Abbrechen"
     },
     "searchPlaceholder": "Sammlung durchsuchen",
+    "layoutLabel": "Mengensteuerung",
+    "layoutUnder": "Steuerung unter der Karte",
+    "layoutHover": "Steuerung beim Hover",
     "empty": "Du besitzt noch keine Karten."
   }
 }

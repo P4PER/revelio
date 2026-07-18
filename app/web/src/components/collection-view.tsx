@@ -1,9 +1,13 @@
 'use client'
+import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
+import { PanelBottom, Layers } from 'lucide-react'
 import { useRouter, usePathname } from '@/../i18n/navigation'
 import { parseSearchParams, withParams } from '@/lib/search-params'
+import { STEPPER_LAYOUT_COOKIE, type StepperLayout } from '@/lib/collection-prefs'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
 import { CollectionSidebar } from '@/components/collection-sidebar'
 import { CollectionCardTile, type CollectionCard } from '@/components/collection-card-tile'
 import { CollectionFilterDrawer } from '@/components/collection-filter-drawer'
@@ -14,7 +18,7 @@ import type { SetDTO, SetProgress, OwnedQuantities } from '@revelio/core'
 
 export function CollectionView({
   sets, progress, selectedSet, cards, browseCards, quantities, editable, locale, mode,
-  browseTotal, browsePage, browsePageSize,
+  browseTotal, browsePage, browsePageSize, stepperLayout = 'panel',
 }: {
   sets: SetDTO[]
   progress: SetProgress[]
@@ -28,12 +32,21 @@ export function CollectionView({
   browseTotal: number
   browsePage: number
   browsePageSize: number
+  stepperLayout?: StepperLayout
 }) {
   const t = useTranslations('collection')
   const tSearch = useTranslations('search')
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
+
+  // Stepper layout is a persisted per-user setting: initial value comes from the
+  // cookie (server-read), and the toggle flips it live and rewrites the cookie.
+  const [layout, setLayout] = useState<StepperLayout>(stepperLayout)
+  function setLayoutPref(next: StepperLayout) {
+    setLayout(next)
+    document.cookie = `${STEPPER_LAYOUT_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`
+  }
 
   // Tabs are URL-driven so the search box and pagination (which write to the
   // URL) keep the browse tab active instead of snapping back to the default.
@@ -74,17 +87,31 @@ export function CollectionView({
     <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
       {list.map((c) => (
         <li key={c.id}>
-          <CollectionCardTile card={c} quantities={quantities[c.id] ?? {}} editable={editable} locale={locale} />
+          <CollectionCardTile card={c} quantities={quantities[c.id] ?? {}} editable={editable} locale={locale} stepperLayout={layout} />
         </li>
       ))}
     </ul>
   )
   return (
     <Tabs value={mode} onValueChange={onTab}>
-      <TabsList className="mb-4 h-9 p-0.5">
-        <TabsTrigger value="sets" className="px-5 text-sm">{t('bySets')}</TabsTrigger>
-        <TabsTrigger value="browse" className="px-5 text-sm">{t('browseAll')}</TabsTrigger>
-      </TabsList>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <TabsList className="h-9 p-0.5">
+          <TabsTrigger value="sets" className="px-5 text-sm">{t('bySets')}</TabsTrigger>
+          <TabsTrigger value="browse" className="px-5 text-sm">{t('browseAll')}</TabsTrigger>
+        </TabsList>
+        {editable && (
+          <div className="flex items-center gap-1" role="group" aria-label={t('layoutLabel')}>
+            <Button variant={layout === 'panel' ? 'secondary' : 'ghost'} size="icon-sm"
+              onClick={() => setLayoutPref('panel')} aria-label={t('layoutUnder')} title={t('layoutUnder')}>
+              <PanelBottom className="size-4" />
+            </Button>
+            <Button variant={layout === 'overlay' ? 'secondary' : 'ghost'} size="icon-sm"
+              onClick={() => setLayoutPref('overlay')} aria-label={t('layoutHover')} title={t('layoutHover')}>
+              <Layers className="size-4" />
+            </Button>
+          </div>
+        )}
+      </div>
 
       <TabsContent value="sets">
         <div className="grid gap-6 md:grid-cols-[16rem_1fr]">

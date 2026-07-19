@@ -36,8 +36,8 @@ export function CollectionSidebar({
             )}>
             <div className="flex items-center gap-2">
               <span className="flex h-4 w-8 shrink-0 items-center justify-center text-primary">
-                {s.symbol && IMAGE_BASE
-                  ? <SetSymbol code={s.code} base={IMAGE_BASE} className="size-4" />
+                {s.symbolVersion != null && IMAGE_BASE
+                  ? <SetSymbol code={s.code} version={s.symbolVersion} base={IMAGE_BASE} className="size-4" />
                   : <span className="text-[9px] font-semibold uppercase leading-none">{s.code}</span>}
               </span>
               <span className={cn('flex-1 truncate text-sm', active ? 'font-semibold text-foreground' : 'font-medium')}>{s.name}</span>

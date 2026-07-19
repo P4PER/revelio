@@ -11,7 +11,7 @@ vi.mock('@/../i18n/navigation', () => ({
 const deck = {
   id: 'd1', name: 'Lara but Fast', format: 'revival' as const, author: 'Abls',
   lessons: ['charms', 'potions'], likeCount: 3, viewCount: 10, cardCount: 60,
-  updatedAt: new Date().toISOString(), likedByViewer: false, starterCardId: 'c-1',
+  updatedAt: new Date().toISOString(), likedByViewer: false, starterCardId: 'c-1', starterArtCropVersion: 7,
 }
 
 function renderCard() {
@@ -38,6 +38,6 @@ describe('DeckHeroCard', () => {
   it('renders the baked art-crop for the starter card', () => {
     const { container } = renderCard()
     const img = container.querySelector('img')
-    expect(img).toHaveAttribute('src', 'https://img.test/cards/art-crop/c-1.webp')
+    expect(img).toHaveAttribute('src', 'https://img.test/cards/art-crop/c-1.7.webp')
   })
 })

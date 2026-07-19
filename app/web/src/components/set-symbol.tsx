@@ -5,14 +5,16 @@ import { cn } from '@/lib/utils'
 // so every set logo shares one theme color and adapts to dark/light mode.
 export function SetSymbol({
   code,
+  version,
   base,
   className,
 }: {
   code: string
+  version: number
   base: string
   className?: string
 }) {
-  const url = imageUrl(base, symbolKey(code))
+  const url = imageUrl(base, symbolKey(code, version))
   return (
     <span
       aria-hidden

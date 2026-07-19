@@ -49,7 +49,7 @@ export default async function EditSetPage({
         <div className="space-y-6">
           <div className="space-y-1.5">
             <p className="text-sm font-medium">{t('symbol')}</p>
-            <SetSymbolUploader code={set.code} hasSymbol={!!set.symbol} imageBase={IMAGE_BASE} />
+            <SetSymbolUploader code={set.code} hasSymbol={set.symbolVersion != null} symbolVersion={set.symbolVersion} imageBase={IMAGE_BASE} />
           </div>
           <DeleteSetButton code={set.code} cardCount={set.cardCount} />
         </div>

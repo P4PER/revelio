@@ -4,28 +4,6 @@ import { resolve } from 'node:path'
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
 
-// Derive image remotePatterns from the public image base URL env var.
-const imageBase = process.env.NEXT_PUBLIC_IMAGE_BASE_URL
-const imageHost = imageBase ? new URL(imageBase).hostname : ''
-const remotePatterns = imageBase
-  ? [(() => {
-      const u = new URL(imageBase)
-      return {
-        protocol: u.protocol.replace(':', '') as 'http' | 'https',
-        hostname: u.hostname,
-        port: u.port,
-        pathname: '/**',
-      }
-    })()]
-  : []
-
-// Next's image optimizer refuses to fetch upstreams that resolve to a private/
-// loopback IP (SSRF protection). In dev the images sit on localhost MinIO, so
-// skip optimization there — the browser loads MinIO directly. In prod the base
-// is a real CDN host and optimization stays on.
-const LOOPBACK = new Set(['localhost', '127.0.0.1', '::1', '[::1]'])
-const imageHostIsLoopback = LOOPBACK.has(imageHost)
-
 // next is hoisted to app/node_modules — turbopack.root must reach that level.
 // path.resolve('..') from app/web/ gives app/ where node_modules/next lives.
 const nextConfig: NextConfig = {
@@ -35,7 +13,12 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   outputFileTracingRoot: resolve('..'),
   turbopack: { root: resolve('..') },
-  images: { remotePatterns, unoptimized: imageHostIsLoopback },
+  // Card assets are pre-sized, pre-compressed WebP variants produced at ingest
+  // (full / thumb / art-crop). Next's optimizer would re-fetch and re-encode
+  // WebP->WebP for ~zero byte savings, and its server-side fetch of the public
+  // image host is unreachable from inside the container (hairpin NAT ->
+  // ETIMEDOUT). So skip optimization: the browser loads the variants directly.
+  images: { unoptimized: true },
   // Our workspace packages ship raw TypeScript (main -> src/*.ts); Next must transpile them.
   transpilePackages: ['@revelio/core', '@revelio/search', '@revelio/db'],
 }

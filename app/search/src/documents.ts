@@ -19,6 +19,7 @@ export type SearchDocument = {
   damage: number | null
   isOfficial: boolean
   imageLang: string | null
+  imageVersion: number | null
   defaultLanguage: string
   orientation: string | null
 }
@@ -57,7 +58,7 @@ export type LocalizationFields = {
   name: string
   text: string | null
   flavorText: string | null
-  imageFile: string | null
+  imageVersion: number | null
 }
 
 // Everything needed to build a card's search documents across languages.
@@ -82,6 +83,7 @@ export type CardIndexData = {
 
 export function buildCardDocument(d: CardIndexData, lang: string): SearchDocument {
   const loc = d.localizations[lang] ?? d.localizations[d.defaultLanguage]
+  const imageLang = effectiveImageLang((l) => d.localizations[l]?.imageVersion != null, lang, d.defaultLanguage)
   return {
     id: d.id,
     setCode: d.setCode,
@@ -99,7 +101,8 @@ export function buildCardDocument(d: CardIndexData, lang: string): SearchDocumen
     cost: d.cost,
     damage: d.damage,
     isOfficial: d.isOfficial,
-    imageLang: effectiveImageLang((l) => !!d.localizations[l]?.imageFile, lang, d.defaultLanguage),
+    imageLang,
+    imageVersion: imageLang ? d.localizations[imageLang]!.imageVersion : null,
     defaultLanguage: d.defaultLanguage,
     orientation: d.orientation,
   }

@@ -50,15 +50,30 @@ describe('cardNumberSortKey', () => {
 })
 
 describe('buildCardDocument', () => {
-  it('carries orientation onto the built document', () => {
+  it('carries orientation and image version onto the built document', () => {
     const data = {
       id: 'bs-1', setCode: 'BS', number: '1', name: 'Harry',
       lesson: null, rarity: null, finishes: [], legality: null, cost: null, damage: null,
       isOfficial: true, types: ['character'], subTypes: [], defaultLanguage: 'en',
       orientation: 'horizontal',
-      localizations: { en: { name: 'Harry', text: null, flavorText: null, imageFile: null } },
+      localizations: { en: { name: 'Harry', text: null, flavorText: null, imageVersion: 42 } },
     }
     const doc = buildCardDocument(data, 'en')
     expect(doc.orientation).toBe('horizontal')
+    expect(doc.imageLang).toBe('en')
+    expect(doc.imageVersion).toBe(42)
+  })
+
+  it('reports no image version when the language has none', () => {
+    const data = {
+      id: 'bs-2', setCode: 'BS', number: '2', name: 'Ron',
+      lesson: null, rarity: null, finishes: [], legality: null, cost: null, damage: null,
+      isOfficial: true, types: ['character'], subTypes: [], defaultLanguage: 'en',
+      orientation: null,
+      localizations: { en: { name: 'Ron', text: null, flavorText: null, imageVersion: null } },
+    }
+    const doc = buildCardDocument(data, 'en')
+    expect(doc.imageLang).toBeNull()
+    expect(doc.imageVersion).toBeNull()
   })
 })

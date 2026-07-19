@@ -1,0 +1,15 @@
+name: Setup app
+description: Set up Node 22 with npm cache and install workspace dependencies
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: npm
+        cache-dependency-path: app/package-lock.json
+    # Composite actions do not inherit the workflow's defaults.run.working-directory.
+    - run: npm ci
+      shell: bash
+      working-directory: app

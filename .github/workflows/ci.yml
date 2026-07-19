@@ -1,9 +1,11 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 defaults:
   run:
@@ -12,17 +14,9 @@ defaults:
 jobs:
   check:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: app/package-lock.json
-      - run: npm ci
+      - uses: ./.github/actions/setup-app
       - run: npm run check -w @revelio/db
       - run: npm run verify -w @revelio/db
       - run: npm run lint -w web
@@ -31,9 +25,6 @@ jobs:
   test:
     needs: check
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app
     env:
       TEST_MEILI_HOST: http://localhost:7700
       TEST_MEILI_KEY: masterKey
@@ -43,11 +34,7 @@ jobs:
       TEST_S3_SECRET_KEY: minioadmin
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: app/package-lock.json
+      - uses: ./.github/actions/setup-app
       - name: Start Meilisearch
         run: docker run -d --name meili -p 7700:7700 -e MEILI_MASTER_KEY=masterKey -e MEILI_NO_ANALYTICS=true getmeili/meilisearch:v1.10
       - name: Start MinIO
@@ -58,15 +45,11 @@ jobs:
           curl -fsS http://localhost:7700/health || { echo "Meilisearch never became ready"; exit 1; }
           for i in $(seq 1 30); do curl -fsS http://localhost:9000/minio/health/live && break || sleep 2; done
           curl -fsS http://localhost:9000/minio/health/live || { echo "MinIO never became ready"; exit 1; }
-      - run: npm ci
       - run: npm test
 
   build:
     needs: check
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app
     env:
       DATABASE_URL: postgres://user:pass@localhost:5432/db
       MEILI_HOST: http://localhost:7700
@@ -78,69 +61,5 @@ jobs:
       ADMIN_EMAILS: admin@example.com
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: app/package-lock.json
-      - run: npm ci
+      - uses: ./.github/actions/setup-app
       - run: npm run build -w web
-
-  publish:
-    needs: [check, test, build]
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: docker/setup-buildx-action@v3
-
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - id: meta-web
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository_owner }}/revelio-web
-          tags: |
-            type=raw,value=latest
-            type=sha,prefix=sha-,format=short
-
-      - uses: docker/build-push-action@v6
-        with:
-          context: app
-          file: app/web/Dockerfile
-          push: true
-          tags: ${{ steps.meta-web.outputs.tags }}
-          labels: ${{ steps.meta-web.outputs.labels }}
-          build-args: |
-            NEXT_PUBLIC_BASE_URL=${{ secrets.NEXT_PUBLIC_BASE_URL }}
-            NEXT_PUBLIC_IMAGE_BASE_URL=${{ secrets.NEXT_PUBLIC_IMAGE_BASE_URL }}
-          cache-from: type=gha,scope=web
-          cache-to: type=gha,mode=max,scope=web
-
-      - id: meta-ingest
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository_owner }}/revelio-ingest
-          tags: |
-            type=raw,value=latest
-            type=sha,prefix=sha-,format=short
-
-      - uses: docker/build-push-action@v6
-        with:
-          context: app
-          file: app/ingest/Dockerfile
-          push: true
-          tags: ${{ steps.meta-ingest.outputs.tags }}
-          labels: ${{ steps.meta-ingest.outputs.labels }}
-          cache-from: type=gha,scope=ingest
-          cache-to: type=gha,mode=max,scope=ingest

@@ -4,7 +4,7 @@ import {
   S3Client, HeadBucketCommand, CreateBucketCommand, PutBucketPolicyCommand,
   HeadObjectCommand, PutObjectCommand,
 } from '@aws-sdk/client-s3'
-import { imageKey, thumbKey, symbolKey, artCropKey } from '@revelio/core'
+import { fileVersion } from './image-versions.js'
 
 export type S3Config = {
   endpoint: string
@@ -87,22 +87,38 @@ async function collectUploads(assetsDir: string): Promise<Upload[]> {
   const cardsDir = resolve(assetsDir, 'cards')
   for (const f of await readdirSafe(cardsDir)) {
     const c = classify(f)
-    if (c) uploads.push({ file: join(cardsDir, f), key: imageKey(c.id), contentType: c.contentType })
+    if (!c) continue
+    const full = join(cardsDir, f)
+    const v = fileVersion(full)
+    if (v == null) continue
+    uploads.push({ file: full, key: `cards/${c.id}.${v}.webp`, contentType: c.contentType })
   }
   const thumbDir = resolve(cardsDir, 'thumb')
   for (const f of await readdirSafe(thumbDir)) {
     const c = classify(f)
-    if (c) uploads.push({ file: join(thumbDir, f), key: thumbKey(c.id), contentType: c.contentType })
+    if (!c) continue
+    // Thumb shares the full image's version so both URLs bust together.
+    const v = fileVersion(join(cardsDir, f))
+    if (v == null) continue
+    uploads.push({ file: join(thumbDir, f), key: `cards/thumb/${c.id}.${v}.webp`, contentType: c.contentType })
   }
   const artCropDir = resolve(cardsDir, 'art-crop')
   for (const f of await readdirSafe(artCropDir)) {
     const c = classify(f)
-    if (c) uploads.push({ file: join(artCropDir, f), key: artCropKey(c.id), contentType: c.contentType })
+    if (!c) continue
+    const full = join(artCropDir, f)
+    const v = fileVersion(full)
+    if (v == null) continue
+    uploads.push({ file: full, key: `cards/art-crop/${c.id}.${v}.webp`, contentType: c.contentType })
   }
   const symbolsDir = resolve(assetsDir, 'symbols')
   for (const f of await readdirSafe(symbolsDir)) {
     const c = classify(f)
-    if (c) uploads.push({ file: join(symbolsDir, f), key: symbolKey(c.id), contentType: c.contentType })
+    if (!c) continue
+    const full = join(symbolsDir, f)
+    const v = fileVersion(full)
+    if (v == null) continue
+    uploads.push({ file: full, key: `symbols/${c.id}.${v}.webp`, contentType: c.contentType })
   }
   return uploads
 }
@@ -143,7 +159,10 @@ export async function uploadAssets(
       return
     }
     const body = await readFile(u.file)
-    await s3.send(new PutObjectCommand({ Bucket: bucket, Key: u.key, Body: body, ContentType: u.contentType }))
+    await s3.send(new PutObjectCommand({
+      Bucket: bucket, Key: u.key, Body: body, ContentType: u.contentType,
+      CacheControl: 'public, max-age=31536000, immutable',
+    }))
     uploaded++
   })
   return { uploaded, skipped }

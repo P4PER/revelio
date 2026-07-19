@@ -7,14 +7,14 @@ const base: CardIndexData = {
   legality: null, cost: 2, isOfficial: true, types: ['spell'], subTypes: [],
   defaultLanguage: 'en',
   localizations: {
-    en: { name: 'Wizard Crackers', text: 'Reveal the top card.', flavorText: 'Bang!', imageFile: 'x-1.png' },
+    en: { name: 'Wizard Crackers', text: 'Reveal the top card.', flavorText: 'Bang!', imageVersion: 10 },
   },
 }
 
 describe('buildCardDocument', () => {
   it('falls back to the card name when a localization has an empty (image-only) name', () => {
     const data = { ...base, localizations: { ...base.localizations,
-      de: { name: '', text: null, flavorText: null, imageFile: 'art.png' } } }
+      de: { name: '', text: null, flavorText: null, imageVersion: 20 } } }
     const doc = buildCardDocument(data as typeof base, 'de')
     expect(doc.name).toBe('Fallback')
     expect(doc.imageLang).toBe('de')
@@ -38,13 +38,13 @@ describe('buildCardDocument', () => {
     }
     // en has an image, de does not
     const data = { ...base, localizations: {
-      en: { name: 'N', text: null, flavorText: null, imageFile: 'art.png' },
-      de: { name: 'N', text: null, flavorText: null, imageFile: null },
+      en: { name: 'N', text: null, flavorText: null, imageVersion: 30 },
+      de: { name: 'N', text: null, flavorText: null, imageVersion: null },
     } }
     expect(buildCardDocument(data, 'en').imageLang).toBe('en')
     expect(buildCardDocument(data, 'de').imageLang).toBe('en') // falls back
     expect(buildCardDocument(data, 'de').defaultLanguage).toBe('en')
-    const noImg = { ...base, localizations: { en: { name: 'N', text: null, flavorText: null, imageFile: null } } }
+    const noImg = { ...base, localizations: { en: { name: 'N', text: null, flavorText: null, imageVersion: null } } }
     expect(buildCardDocument(noImg, 'en').imageLang).toBeNull()
   })
 })

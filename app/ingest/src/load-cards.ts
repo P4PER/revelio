@@ -1,10 +1,18 @@
+import { resolve, join } from 'node:path'
 import type { DB } from '@revelio/db'
 import { cards, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations } from '@revelio/db'
 import { slugify } from '@revelio/core'
 import type { DistCard } from './types.js'
+import { fileVersion } from './image-versions.js'
 
-export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
+export async function loadCards(db: DB, input: DistCard[], assetsDir: string): Promise<void> {
   if (input.length === 0) return
+
+  const cardsDir = resolve(assetsDir, 'cards')
+  const cardImageVersion = (id: string, lang: string, defaultLang: string): number | null =>
+    fileVersion(join(cardsDir, lang === defaultLang ? `${id}.webp` : `${id}.${lang}.webp`))
+  const artCropVersionOf = (id: string): number | null =>
+    fileVersion(join(cardsDir, 'art-crop', `${id}.webp`))
 
   const cardRows = input.map((c) => ({
     id: c.id,
@@ -20,6 +28,7 @@ export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
     health: c.stats?.health ?? null,
     damagePerTurn: c.stats?.damagePerTurn ?? null,
     orientation: c.orientation,
+    artCropVersion: artCropVersionOf(c.id),
     legality: c.legality ? slugify(c.legality) : null,
     draftValue: c.draftValue,
     defaultLanguage: c.defaultLanguage,
@@ -40,8 +49,7 @@ export async function loadCards(db: DB, input: DistCard[]): Promise<void> {
       flavorText: l.flavorText,
       adventure: l.adventure ?? null,
       match: l.match ?? null,
-      imageFile: l.image?.file ?? null,
-      imageUrl: l.image?.url ?? null,
+      imageVersion: cardImageVersion(c.id, lang, c.defaultLanguage),
     })),
   )
   if (locRows.length)

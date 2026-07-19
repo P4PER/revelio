@@ -12,9 +12,12 @@ const sample = [
   { code: 'QC', name: 'Quidditch Cup', releaseDate: '11-2001', isOfficial: true, cardCount: 1, symbol: null },
 ]
 
+// No asset files exist for these codes, so symbolVersion resolves to null.
+const NO_ASSETS = '/tmp/revelio-no-assets'
+
 describe('loadSets', () => {
   it('inserts all sets tagged origin=import', async () => {
-    await loadSets(ctx.db, sample)
+    await loadSets(ctx.db, sample, NO_ASSETS)
     const rows = await ctx.db.select().from(sets)
     expect(rows).toHaveLength(2)
     const bs = rows.find((r) => r.code === 'BS')!
@@ -24,8 +27,8 @@ describe('loadSets', () => {
   })
 
   it('re-run never overwrites existing rows (additive)', async () => {
-    await loadSets(ctx.db, sample) // self-contained: ensure baseline exists regardless of test order
-    await loadSets(ctx.db, [{ ...sample[0], name: 'CHANGED' }, sample[1]])
+    await loadSets(ctx.db, sample, NO_ASSETS) // self-contained: ensure baseline exists regardless of test order
+    await loadSets(ctx.db, [{ ...sample[0], name: 'CHANGED' }, sample[1]], NO_ASSETS)
     const rows = await ctx.db.select().from(sets)
     expect(rows).toHaveLength(2)
     expect(rows.find((r) => r.code === 'BS')?.name).toBe('Base') // preserved, not overwritten

@@ -15,9 +15,9 @@ let ctx: Awaited<ReturnType<typeof withMigratedDb>>
 beforeAll(async () => {
   ctx = await withMigratedDb()
   const { sets, cards: distCards } = await loadDist(fixtureDir)
-  await loadSets(ctx.db, sets)
+  await loadSets(ctx.db, sets, fixtureDir)
   await loadAttributes(ctx.db, distCards)
-  await loadCards(ctx.db, distCards)
+  await loadCards(ctx.db, distCards, fixtureDir)
 }, 120_000)
 afterAll(async () => { await ctx.stop() })
 
@@ -66,7 +66,7 @@ describe('loadCards', () => {
       .set({ text: 'EDITED IN APP' })
       .where(eq(cardLocalizations.cardId, 'bs-1-dean-thomas'))
     const { cards: distCards } = await loadDist(fixtureDir)
-    await loadCards(ctx.db, distCards)
+    await loadCards(ctx.db, distCards, fixtureDir)
     const cardRows = await ctx.db.select().from(cards)
     expect(cardRows).toHaveLength(3)
     const dean = await ctx.db

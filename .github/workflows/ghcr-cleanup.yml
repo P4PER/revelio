@@ -1,0 +1,40 @@
+name: GHCR cleanup
+
+# Retention policy for the published container images. Every publish pushes a
+# new `sha-*` tag, so revelio-web/revelio-ingest versions accumulate in GHCR
+# without bound. This runs on its own schedule (decoupled from the build) and
+# prunes each package down to the 10 most recent tagged versions, dropping
+# untagged manifest leftovers. `latest` is always preserved.
+#
+# Uses the built-in GITHUB_TOKEN — no PAT needed for packages linked to this
+# repo. If deletion 403s, swap in a PAT with `delete:packages`.
+on:
+  schedule:
+    - cron: '0 4 * * 1' # Mondays 04:00 UTC
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Log what would be deleted without deleting'
+        type: boolean
+        default: false
+
+concurrency:
+  group: ghcr-cleanup
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1.2.2
+        with:
+          owner: ${{ github.repository_owner }}
+          packages: revelio-web,revelio-ingest
+          token: ${{ secrets.GITHUB_TOKEN }}
+          exclude-tags: latest
+          keep-n-tagged: 10
+          delete-untagged: true
+          delete-partial-images: true
+          dry-run: ${{ inputs.dry-run || false }}

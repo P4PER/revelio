@@ -119,25 +119,3 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=ingest
           cache-to: type=gha,mode=max,scope=ingest
-
-  # Retention policy: every build pushes a new `sha-*` tag, so old versions
-  # accumulate in GHCR indefinitely. After the builds, prune each package down
-  # to the 10 most recent tagged versions and drop untagged manifest leftovers.
-  # `latest` is always excluded. Uses the built-in GITHUB_TOKEN — no PAT needed
-  # for packages linked to this repo. Runs even if a build was skipped/failed.
-  cleanup:
-    needs: [build-web, build-ingest]
-    if: always()
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
-    steps:
-      - uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1.2.2
-        with:
-          owner: ${{ github.repository_owner }}
-          packages: revelio-web,revelio-ingest
-          token: ${{ secrets.GITHUB_TOKEN }}
-          exclude-tags: latest
-          keep-n-tagged: 10
-          delete-untagged: true
-          delete-partial-images: true

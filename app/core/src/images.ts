@@ -1,21 +1,23 @@
-export function imageKey(id: string, lang?: string, defaultLang?: string): string {
-  return lang && defaultLang && lang !== defaultLang ? `cards/${id}.${lang}.webp` : `cards/${id}.webp`
+function langSuffix(lang?: string, defaultLang?: string): string {
+  return lang && defaultLang && lang !== defaultLang ? `.${lang}` : ''
 }
 
-export function thumbKey(id: string, lang?: string, defaultLang?: string): string {
-  return lang && defaultLang && lang !== defaultLang
-    ? `cards/thumb/${id}.${lang}.webp`
-    : `cards/thumb/${id}.webp`
+export function imageKey(id: string, version: number, lang?: string, defaultLang?: string): string {
+  return `cards/${id}${langSuffix(lang, defaultLang)}.${version}.webp`
+}
+
+export function thumbKey(id: string, version: number, lang?: string, defaultLang?: string): string {
+  return `cards/thumb/${id}${langSuffix(lang, defaultLang)}.${version}.webp`
 }
 
 // Deck-hero art crop: a pre-cropped, upright character image baked at ingest time.
 // Default-language only (no lang suffix) — the deck hero always shows the en art.
-export function artCropKey(id: string): string {
-  return `cards/art-crop/${id}.webp`
+export function artCropKey(id: string, version: number): string {
+  return `cards/art-crop/${id}.${version}.webp`
 }
 
-export function symbolKey(code: string): string {
-  return `symbols/${code}.webp`
+export function symbolKey(code: string, version: number): string {
+  return `symbols/${code}.${version}.webp`
 }
 
 export function imageUrl(base: string, key: string): string {

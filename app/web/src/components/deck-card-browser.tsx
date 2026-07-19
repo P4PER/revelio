@@ -46,7 +46,10 @@ function toAddView(hit: SearchDocument): Omit<DeckCardView, 'zone' | 'quantity'>
     legality: meta.legality,
     isLesson: meta.isLesson,
     isStartingCharacter: meta.isStartingCharacter,
-    imageVersion: hit.imageVersion,
+    // DeckCardView.imageVersion is the *default-language* thumb version (deck-gallery
+    // renders a no-lang thumb key). The hit only carries the effective image lang, so
+    // only adopt its version when that lang is the default; otherwise leave it null.
+    imageVersion: hit.imageLang === hit.defaultLanguage ? hit.imageVersion : null,
     artCropVersion: null,
   }
 }

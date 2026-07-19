@@ -31,7 +31,7 @@
 - `ingest/src/{load-cards,load-sets,build-documents,upload-images,main}.ts` — write versions, upload versioned keys.
 - `web/src/lib/{s3,image-actions,set-actions}.ts` — write paths + cache header.
 - `web/src/components/*` + two `app/[locale]/card/[id]` pages — render sites pass versions.
-- `docs/RUNBOOK-image-versioning-rollout.md` (new) — re-ingest + purge steps.
+- `docs/RUNBOOK-IMAGE-VERSIONING-ROLLOUT.md` (new) — re-ingest + purge steps.
 
 ---
 
@@ -1213,11 +1213,11 @@ git commit -m "feat(web): pass symbol version through set-symbol render sites"
 ## Task 11: Rollout runbook
 
 **Files:**
-- Create: `docs/RUNBOOK-image-versioning-rollout.md`
+- Create: `docs/RUNBOOK-IMAGE-VERSIONING-ROLLOUT.md`
 
 Existing MinIO objects are unversioned (`cards/{id}.webp`, `symbols/{code}.webp`), so after deploy the app requests versioned keys that 404 until ingest re-uploads. This task documents the operational steps; it ships no code.
 
-- [ ] **Step 1: Write `docs/RUNBOOK-image-versioning-rollout.md`**
+- [ ] **Step 1: Write `docs/RUNBOOK-IMAGE-VERSIONING-ROLLOUT.md`**
 
 ```markdown
 # Runbook: image-versioning rollout
@@ -1262,7 +1262,7 @@ before deleting. When in doubt, leave the orphans — they are harmless.
 - [ ] **Step 2: Commit**
 
 ```bash
-git add docs/RUNBOOK-image-versioning-rollout.md
+git add docs/RUNBOOK-IMAGE-VERSIONING-ROLLOUT.md
 git commit -m "docs: rollout runbook for image versioning"
 ```
 

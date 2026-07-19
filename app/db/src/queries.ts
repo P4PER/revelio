@@ -454,7 +454,10 @@ async function cardViewMetaByIds(db: DB, ids: string[]): Promise<Map<string, Omi
   const uniqueIds = [...new Set(ids)]
   const cardRows = uniqueIds.length ? await db.select().from(cards).where(inArray(cards.id, uniqueIds)) : []
   const locRows = uniqueIds.length
-    ? await db.select().from(cardLocalizations).where(inArray(cardLocalizations.cardId, uniqueIds))
+    ? await db
+        .select({ cardId: cardLocalizations.cardId, lang: cardLocalizations.lang, imageVersion: cardLocalizations.imageVersion })
+        .from(cardLocalizations)
+        .where(inArray(cardLocalizations.cardId, uniqueIds))
     : []
   // cardId -> lang -> image_version, so we can read each card's default-language thumb version.
   const imgVerByCardLang = new Map<string, Map<string, number | null>>()

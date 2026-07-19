@@ -149,6 +149,7 @@ export function DeckPanel({
         >
           <DeckArt
             cardId={character.cardId}
+            version={character.artCropVersion}
             lessons={character.lesson ? [character.lesson] : []}
             imageBase={imageBase}
             alt={character.name}

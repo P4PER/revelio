@@ -21,13 +21,13 @@ function GalleryTile({
   const [broken, setBroken] = useState(false)
   return (
     <div className="group relative aspect-[63/88] overflow-hidden rounded-lg border border-border bg-muted">
-      {broken ? (
+      {broken || entry.imageVersion == null ? (
         <div className="flex h-full items-center justify-center p-2 text-center text-xs text-muted-foreground">
           {entry.name}
         </div>
       ) : (
         <CardRotate
-          src={imageUrl(imageBase, thumbKey(entry.cardId))}
+          src={imageUrl(imageBase, thumbKey(entry.cardId, entry.imageVersion))}
           alt={entry.name}
           orientation={entry.orientation}
           sizes="(max-width: 640px) 30vw, 160px"

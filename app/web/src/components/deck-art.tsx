@@ -17,21 +17,22 @@ function lessonGradient(lessons: string[]): string | undefined {
 // cover the container. Falls back to a lesson-colour gradient when there's no
 // starter card, no baked crop for it, or the image fails to load.
 export function DeckArt({
-  cardId, lessons, imageBase, alt, className,
+  cardId, version, lessons, imageBase, alt, className,
 }: {
   cardId: string | null
+  version: number | null
   lessons: string[]
   imageBase: string
   alt: string
   className?: string
 }) {
   const [errored, setErrored] = useState(false)
-  const showImage = Boolean(cardId && imageBase) && !errored
+  const showImage = Boolean(cardId && imageBase && version != null) && !errored
   return (
     <div className={cn('relative overflow-hidden bg-muted', className)}>
       {showImage ? (
         <img
-          src={imageUrl(imageBase, artCropKey(cardId as string))}
+          src={imageUrl(imageBase, artCropKey(cardId as string, version as number))}
           alt={alt}
           className="absolute inset-0 h-full w-full object-cover"
           style={{ objectPosition: 'center' }}

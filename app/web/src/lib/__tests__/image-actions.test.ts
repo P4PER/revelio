@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const m = vi.hoisted(() => ({
   requireRole: vi.fn(async () => ({ user: { role: 'editor' } })),
-  getCardById: vi.fn(async () => ({ id: 'x-1', defaultLanguage: 'en' })),
+  getCardById: vi.fn(async () => ({ id: 'x-1', defaultLanguage: 'en', localizations: {} })),
   setLocalizationImage: vi.fn(async () => {}),
   getCardIndexData: vi.fn(async () => null),
   reindexCard: vi.fn(async () => {}),
@@ -37,7 +37,7 @@ function form(file: File | null, cardId = 'x-1', lang = 'de') {
 beforeEach(() => Object.values(m).forEach((f) => 'mockReset' in f && f.mockReset()))
 beforeEach(() => {
   m.requireRole.mockResolvedValue({ user: { role: 'editor' } })
-  m.getCardById.mockResolvedValue({ id: 'x-1', defaultLanguage: 'en' })
+  m.getCardById.mockResolvedValue({ id: 'x-1', defaultLanguage: 'en', localizations: {} })
 })
 
 describe('uploadCardImage', () => {
@@ -55,22 +55,30 @@ describe('uploadCardImage', () => {
     expect(m.put).not.toHaveBeenCalled()
   })
 
-  it('processes a valid image: writes full+thumb to the de keys and sets image_file', async () => {
+  it('processes a valid image: writes full+thumb to versioned de keys, immutable cache, and stores the version', async () => {
     const res = await uploadCardImage(form(new File(['x'], 'art.png', { type: 'image/png' })))
     expect(res).toEqual({ ok: true })
     expect(m.put).toHaveBeenCalledTimes(2)
     const keys = m.put.mock.calls.map((c) => c[1])
-    expect(keys).toContain('cards/x-1.de.webp')
-    expect(keys).toContain('cards/thumb/x-1.de.webp')
-    expect(m.setLocalizationImage).toHaveBeenCalledWith({}, 'x-1', 'de', 'art.png')
+    expect(keys.some((k) => /^cards\/x-1\.de\.\d+\.webp$/.test(k))).toBe(true)
+    expect(keys.some((k) => /^cards\/thumb\/x-1\.de\.\d+\.webp$/.test(k))).toBe(true)
+    // 5th arg is the immutable cache-control header
+    expect(m.put.mock.calls[0][4]).toBe('public, max-age=31536000, immutable')
+    // no prior version on this card, so nothing was deleted
+    expect(m.del).not.toHaveBeenCalled()
+    expect(m.setLocalizationImage).toHaveBeenCalledWith({}, 'x-1', 'de', expect.any(Number))
   })
 })
 
 describe('removeCardImage', () => {
-  it('deletes both keys and nulls image_file', async () => {
+  it('deletes the prior versioned keys and nulls the image version', async () => {
+    m.getCardById.mockResolvedValueOnce({ id: 'x-1', defaultLanguage: 'en', localizations: { de: { imageVersion: 111 } } })
     const res = await removeCardImage('x-1', 'de')
     expect(res).toEqual({ ok: true })
     expect(m.del).toHaveBeenCalledTimes(2)
+    const delKeys = m.del.mock.calls.map((c) => c[1])
+    expect(delKeys).toContain('cards/x-1.de.111.webp')
+    expect(delKeys).toContain('cards/thumb/x-1.de.111.webp')
     expect(m.setLocalizationImage).toHaveBeenCalledWith({}, 'x-1', 'de', null)
   })
 })

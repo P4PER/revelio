@@ -17,8 +17,8 @@ export function getS3(): S3Client {
 
 const bucket = () => process.env.S3_BUCKET ?? 'images'
 
-export async function putObject(s3: S3Client, key: string, body: Buffer, contentType: string) {
-  await s3.send(new PutObjectCommand({ Bucket: bucket(), Key: key, Body: body, ContentType: contentType }))
+export async function putObject(s3: S3Client, key: string, body: Buffer, contentType: string, cacheControl?: string) {
+  await s3.send(new PutObjectCommand({ Bucket: bucket(), Key: key, Body: body, ContentType: contentType, CacheControl: cacheControl }))
 }
 
 export async function deleteObject(s3: S3Client, key: string) {

@@ -78,6 +78,13 @@
       "when": 1784213642363,
       "tag": "0010_fixed_purple_man",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1784426782483,
+      "tag": "0011_loose_madripoor",
+      "breakpoints": true
     }
   ]
 }

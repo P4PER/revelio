@@ -10,7 +10,7 @@ export function CardTile({ hit, imageBase }: { hit: SearchDocument; imageBase: s
         <div className="relative aspect-[5/7] overflow-hidden rounded-t-lg bg-muted">
           {hit.imageLang ? (
             <CardRotate
-              src={imageUrl(imageBase, thumbKey(hit.id, hit.imageLang, hit.defaultLanguage))}
+              src={imageUrl(imageBase, thumbKey(hit.id, hit.imageVersion!, hit.imageLang, hit.defaultLanguage))}
               alt={hit.name}
               orientation={hit.orientation}
               sizes="(max-width: 640px) 45vw, 200px"

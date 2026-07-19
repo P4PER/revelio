@@ -28,7 +28,7 @@ export async function generateMetadata({
   const card = await loadCard(id, locale)
   if (!card) return {}
   const { loc } = pickLocalization(card, locale)
-  const ogLang = effectiveImageLang((l) => !!card.localizations[l]?.imageFile, locale, card.defaultLanguage)
+  const ogLang = effectiveImageLang((l) => card.localizations[l]?.imageVersion != null, locale, card.defaultLanguage)
   if (!loc) return {}
   const languages = Object.fromEntries(
     routing.locales.map((l) => [l, `${BASE_URL}${getPathname({ href: `/card/${id}`, locale: l })}`]),
@@ -39,7 +39,7 @@ export async function generateMetadata({
     alternates: { canonical: `${BASE_URL}${getPathname({ href: `/card/${id}`, locale })}`, languages },
     openGraph: {
       images:
-        IMAGE_BASE && ogLang ? [imageUrl(IMAGE_BASE, imageKey(id, ogLang, card.defaultLanguage))] : [],
+        IMAGE_BASE && ogLang ? [imageUrl(IMAGE_BASE, imageKey(id, card.localizations[ogLang]!.imageVersion!, ogLang, card.defaultLanguage))] : [],
     },
   }
 }

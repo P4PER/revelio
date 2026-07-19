@@ -15,7 +15,7 @@ export function DeckDiscoverRow({ deck, imageBase }: { deck: PublicDeckEntry; im
       href={`/decks/${deck.id}`}
       className="flex items-center gap-4 rounded-lg border border-input p-3 transition-colors hover:bg-muted/50"
     >
-      <DeckArt cardId={deck.starterCardId} lessons={deck.lessons} imageBase={imageBase} alt={deck.name} className="size-14 shrink-0 rounded" />
+      <DeckArt cardId={deck.starterCardId} version={deck.starterArtCropVersion} lessons={deck.lessons} imageBase={imageBase} alt={deck.name} className="size-14 shrink-0 rounded" />
       <div className="min-w-0 flex-1">
         <div className="truncate text-lg font-medium">{deck.name}</div>
         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">

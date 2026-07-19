@@ -11,7 +11,7 @@ vi.mock('@/../i18n/navigation', () => ({
 const deck = {
   id: 'd1', name: 'Potions Control', format: 'revival' as const, author: 'Herm',
   lessons: ['potions'], likeCount: 1, viewCount: 9, cardCount: 61,
-  updatedAt: new Date().toISOString(), likedByViewer: false, starterCardId: null,
+  updatedAt: new Date().toISOString(), likedByViewer: false, starterCardId: null, starterArtCropVersion: null,
 }
 
 describe('DeckDiscoverRow', () => {
@@ -28,10 +28,10 @@ describe('DeckDiscoverRow', () => {
   it('renders the baked art-crop thumbnail for the starter card', () => {
     const { container } = render(
       <NextIntlClientProvider locale="en" messages={en}>
-        <DeckDiscoverRow deck={{ ...deck, starterCardId: 'c-1' }} imageBase="https://img.test" />
+        <DeckDiscoverRow deck={{ ...deck, starterCardId: 'c-1', starterArtCropVersion: 7 }} imageBase="https://img.test" />
       </NextIntlClientProvider>,
     )
     const img = container.querySelector('img')
-    expect(img).toHaveAttribute('src', 'https://img.test/cards/art-crop/c-1.webp')
+    expect(img).toHaveAttribute('src', 'https://img.test/cards/art-crop/c-1.7.webp')
   })
 })

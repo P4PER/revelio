@@ -8,6 +8,8 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { HeadObjectCommand } from '@aws-sdk/client-s3'
 import { createS3Client } from '../src/upload-images.js'
+import { fileVersion } from '../src/image-versions.js'
+import { imageKey } from '@revelio/core'
 import { testS3Config, uniqueBucket, nukeBucket } from './s3-helpers.js'
 import { mkdtemp, mkdir, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -60,14 +62,15 @@ describe('runIngest', () => {
     const s3cfg = testS3Config(bucket)
     const assetsDir = await mkdtemp(join(tmpdir(), 'revelio-main-assets-'))
     await mkdir(join(assetsDir, 'cards'), { recursive: true })
-    await writeFile(join(assetsDir, 'cards', 'bs-1-dean-thomas.webp'), Buffer.from('IMG'))
+    const cardImg = join(assetsDir, 'cards', 'bs-1-dean-thomas.webp')
+    await writeFile(cardImg, Buffer.from('IMG'))
 
     await runIngest({ databaseUrl: fresh.url, dataDir: fixtureDir, i18nDir, assetsDir, s3: s3cfg })
 
     const s3 = createS3Client(s3cfg)
     try {
       await expect(
-        s3.send(new HeadObjectCommand({ Bucket: bucket, Key: 'cards/bs-1-dean-thomas.webp' })),
+        s3.send(new HeadObjectCommand({ Bucket: bucket, Key: imageKey('bs-1-dean-thomas', fileVersion(cardImg)!) })),
       ).resolves.toBeTruthy()
     } finally {
       await nukeBucket(s3, bucket)

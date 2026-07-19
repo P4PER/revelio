@@ -10,6 +10,6 @@ export function toCollectionCards(hits: SearchDocument[], base: string): Collect
     name: h.name,
     finishes: h.finishes ?? ['normal'],
     orientation: h.orientation,
-    src: h.imageLang ? imageUrl(base, thumbKey(h.id, h.imageLang, h.defaultLanguage)) : undefined,
+    src: h.imageLang ? imageUrl(base, thumbKey(h.id, h.imageVersion!, h.imageLang, h.defaultLanguage)) : undefined,
   }))
 }

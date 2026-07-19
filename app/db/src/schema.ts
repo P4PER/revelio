@@ -54,7 +54,7 @@ export const sets = pgTable('sets', {
   releaseDate: date('release_date'),
   isOfficial: boolean('is_official').notNull().default(false),
   cardCount: integer('card_count').notNull().default(0),
-  symbol: text('symbol'),
+  symbolVersion: integer('symbol_version'),
   ...editable,
 })
 
@@ -80,6 +80,7 @@ export const cards = pgTable('cards', {
   health: integer('health'),
   damagePerTurn: integer('damage_per_turn'),
   orientation: text('orientation'),
+  artCropVersion: integer('art_crop_version'),
   legality: text('legality').references(() => legalities.code),
   draftValue: real('draft_value'),
   defaultLanguage: text('default_language').notNull(),
@@ -133,8 +134,7 @@ export const cardLocalizations = pgTable('card_localizations', {
   flavorText: text('flavor_text'),
   adventure: jsonb('adventure'),
   match: jsonb('match'),
-  imageFile: text('image_file'),
-  imageUrl: text('image_url'),
+  imageVersion: integer('image_version'),
   ...editable,
 }, (t) => ({
   pk: primaryKey({ columns: [t.cardId, t.lang] }),

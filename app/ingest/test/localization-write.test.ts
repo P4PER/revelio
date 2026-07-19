@@ -82,21 +82,21 @@ describe('upsertLocalization adventure/match', () => {
 })
 
 describe('setLocalizationImage', () => {
-  it('sets image_file for a language without touching other fields', async () => {
+  it('sets image_version for a language without touching other fields', async () => {
     await upsertLocalization(ctx.db, {
       cardId: 'x-1', lang: 'en', name: 'Keep', text: 'body', flavorText: null, status: 'official',
     })
-    await setLocalizationImage(ctx.db, 'x-1', 'en', 'art.png')
+    await setLocalizationImage(ctx.db, 'x-1', 'en', 1721380000)
     const rows = await ctx.db.select().from(cardLocalizations)
     const en = rows.find((r) => r.cardId === 'x-1' && r.lang === 'en')!
-    expect(en.imageFile).toBe('art.png')
+    expect(en.imageVersion).toBe(1721380000)
     expect(en.name).toBe('Keep')
     expect(en.text).toBe('body')
     expect(en.origin).toBe('user')
 
     await setLocalizationImage(ctx.db, 'x-1', 'en', null)
     const after = (await ctx.db.select().from(cardLocalizations)).find((r) => r.cardId === 'x-1' && r.lang === 'en')!
-    expect(after.imageFile).toBeNull()
+    expect(after.imageVersion).toBeNull()
     expect(after.name).toBe('Keep')
   })
 })

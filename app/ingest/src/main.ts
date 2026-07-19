@@ -19,10 +19,11 @@ export async function runIngest(opts: {
   const { db, sql } = createClient(opts.databaseUrl)
   try {
     await runMigrations(db)
+    const assetsDir = opts.assetsDir ?? '/assets'
     const { sets, cards } = await loadDist(opts.dataDir)
-    await loadSets(db, sets)
+    await loadSets(db, sets, assetsDir)
     await loadAttributes(db, cards)
-    await loadCards(db, cards)
+    await loadCards(db, cards, assetsDir)
     if (opts.meiliHost) {
       const meili = createMeiliClient(opts.meiliHost, opts.meiliKey ?? '')
       await indexCards(db, meili)
@@ -30,7 +31,7 @@ export async function runIngest(opts: {
     if (opts.s3) {
       const s3 = createS3Client(opts.s3)
       await ensureBucket(s3, opts.s3.bucket)
-      await uploadAssets(s3, opts.s3.bucket, opts.assetsDir ?? '/assets')
+      await uploadAssets(s3, opts.s3.bucket, assetsDir)
     }
     return { sets: sets.length, cards: cards.length }
   } finally {

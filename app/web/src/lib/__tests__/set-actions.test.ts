@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const m = vi.hoisted(() => ({
   requireRole: vi.fn(async () => ({ user: { role: 'editor' } })),
-  getSetByCode: vi.fn(async () => ({ code: 'BS', cardCount: 0 })),
-  setSymbolFile: vi.fn(async () => {}),
+  getSetByCode: vi.fn(async () => ({ code: 'BS', cardCount: 0, symbolVersion: null })),
+  setSetSymbolVersion: vi.fn(async () => {}),
   put: vi.fn(async () => {}),
   del: vi.fn(async () => {}),
   revalidatePath: vi.fn(),
@@ -14,7 +14,7 @@ const m = vi.hoisted(() => ({
 vi.mock('@/lib/session', () => ({ requireRole: m.requireRole }))
 vi.mock('@/lib/db', () => ({ getDb: () => ({}) }))
 vi.mock('@revelio/db', () => ({
-  getSetByCode: m.getSetByCode, setSymbolFile: m.setSymbolFile,
+  getSetByCode: m.getSetByCode, setSetSymbolVersion: m.setSetSymbolVersion,
   createSet: m.createSet, updateSet: m.updateSet, deleteSet: m.deleteSet,
 }))
 vi.mock('@/lib/s3', () => ({ getS3: () => ({}), putObject: m.put, deleteObject: m.del }))
@@ -35,7 +35,7 @@ function form(file: File | null, code = 'BS') {
 beforeEach(() => {
   Object.values(m).forEach((f) => 'mockReset' in f && f.mockReset())
   m.requireRole.mockResolvedValue({ user: { role: 'editor' } })
-  m.getSetByCode.mockResolvedValue({ code: 'BS', cardCount: 0 })
+  m.getSetByCode.mockResolvedValue({ code: 'BS', cardCount: 0, symbolVersion: null })
 })
 
 describe('uploadSetSymbol', () => {
@@ -53,21 +53,23 @@ describe('uploadSetSymbol', () => {
     expect(m.put).not.toHaveBeenCalled()
   })
 
-  it('writes the symbol to symbols/<code>.webp and stores the filename', async () => {
+  it('writes the symbol to a versioned symbols/<code> key with immutable cache and stores the version', async () => {
     const res = await uploadSetSymbol(form(new File(['x'], 'logo.png', { type: 'image/png' })))
     expect(res).toEqual({ ok: true })
     expect(m.put).toHaveBeenCalledTimes(1)
-    expect(m.put.mock.calls[0][1]).toBe('symbols/BS.webp')
-    expect(m.setSymbolFile).toHaveBeenCalledWith({}, 'BS', 'logo.png')
+    expect(m.put.mock.calls[0][1]).toMatch(/^symbols\/BS\.\d+\.webp$/)
+    expect(m.put.mock.calls[0][4]).toBe('public, max-age=31536000, immutable')
+    expect(m.setSetSymbolVersion).toHaveBeenCalledWith({}, 'BS', expect.any(Number))
   })
 })
 
 describe('removeSetSymbol', () => {
-  it('deletes the object and nulls the symbol', async () => {
+  it('deletes the prior versioned object and nulls the symbol version', async () => {
+    m.getSetByCode.mockResolvedValueOnce({ code: 'BS', cardCount: 0, symbolVersion: 222 })
     const res = await removeSetSymbol('BS')
     expect(res).toEqual({ ok: true })
-    expect(m.del.mock.calls[0][1]).toBe('symbols/BS.webp')
-    expect(m.setSymbolFile).toHaveBeenCalledWith({}, 'BS', null)
+    expect(m.del.mock.calls[0][1]).toBe('symbols/BS.222.webp')
+    expect(m.setSetSymbolVersion).toHaveBeenCalledWith({}, 'BS', null)
   })
 })
 
@@ -116,11 +118,11 @@ describe('deleteSetAction', () => {
     expect(m.deleteSet).not.toHaveBeenCalled()
   })
 
-  it('deletes an empty set and removes its symbol object', async () => {
-    m.getSetByCode.mockResolvedValueOnce({ code: 'BS', cardCount: 0 })
+  it('deletes an empty set and removes its versioned symbol object', async () => {
+    m.getSetByCode.mockResolvedValueOnce({ code: 'BS', cardCount: 0, symbolVersion: 222 })
     const res = await deleteSetAction('BS')
     expect(res).toEqual({ ok: true })
-    expect(m.del.mock.calls[0][1]).toBe('symbols/BS.webp')
+    expect(m.del.mock.calls[0][1]).toBe('symbols/BS.222.webp')
     expect(m.deleteSet).toHaveBeenCalledWith({}, 'BS')
   })
 })

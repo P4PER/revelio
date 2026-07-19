@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { sets, setLocalizations, createSet, updateSet, deleteSet, setSymbolFile, getSetForEdit } from '@revelio/db'
+import { sets, setLocalizations, createSet, updateSet, deleteSet, setSetSymbolVersion, getSetForEdit } from '@revelio/db'
 import { eq } from 'drizzle-orm'
 import { withMigratedDb } from './helpers.js'
 
@@ -29,11 +29,11 @@ describe('set write queries', () => {
     expect('de' in (s!.localizations)).toBe(false)
   })
 
-  it('setSymbolFile sets and clears the symbol', async () => {
-    await setSymbolFile(ctx.db, 'BS', 'logo.png')
-    expect((await getSetForEdit(ctx.db, 'BS'))?.symbol).toBe('logo.png')
-    await setSymbolFile(ctx.db, 'BS', null)
-    expect((await getSetForEdit(ctx.db, 'BS'))?.symbol).toBeNull()
+  it('setSetSymbolVersion sets and clears the symbol version', async () => {
+    await setSetSymbolVersion(ctx.db, 'BS', 1721380000)
+    expect((await getSetForEdit(ctx.db, 'BS'))?.symbolVersion).toBe(1721380000)
+    await setSetSymbolVersion(ctx.db, 'BS', null)
+    expect((await getSetForEdit(ctx.db, 'BS'))?.symbolVersion).toBeNull()
   })
 
   it('deleteSet removes the set and cascades its localizations', async () => {

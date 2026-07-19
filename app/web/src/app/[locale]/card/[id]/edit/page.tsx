@@ -74,9 +74,9 @@ export default async function EditCardPage({
   }))
   const sources = await listRulingSources(db)
 
-  const imgLang = effectiveImageLang((l) => !!card.localizations[l]?.imageFile, lang, card.defaultLanguage)
+  const imgLang = effectiveImageLang((l) => card.localizations[l]?.imageVersion != null, lang, card.defaultLanguage)
   const imageBase = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
-  const imageSrc = imgLang && imageBase ? imageUrl(imageBase, imageKey(id, imgLang, card.defaultLanguage)) : null
+  const imageSrc = imgLang && imageBase ? imageUrl(imageBase, imageKey(id, card.localizations[imgLang]!.imageVersion!, imgLang, card.defaultLanguage)) : null
   const fallbackLang = imgLang && imgLang !== lang ? imgLang : null
 
   return (

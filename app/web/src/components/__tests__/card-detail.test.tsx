@@ -23,8 +23,8 @@ const card: CardDetailDTO = {
   lesson: 'charms', cost: 3, rarity: 'rare', finishes: [], legality: 'legal', artist: ['An Artist'],
   health: 5, damagePerTurn: 2, orientation: 'vertical', defaultLanguage: 'en',
   localizations: {
-    en: { lang: 'en', name: 'Fluffy', status: 'official', source: null, text: 'Guards it.', flavorText: 'Woof.', imageFile: null, imageUrl: null },
-    de: { lang: 'de', name: 'Fluffy', status: 'machine', source: null, text: 'Bewacht.', flavorText: null, imageFile: null, imageUrl: null },
+    en: { lang: 'en', name: 'Fluffy', status: 'official', source: null, text: 'Guards it.', flavorText: 'Woof.', imageVersion: null },
+    de: { lang: 'de', name: 'Fluffy', status: 'machine', source: null, text: 'Bewacht.', flavorText: null, imageVersion: null },
   },
   rulings: [{ seq: 1, date: '2001-06-01', source: 'FAQ', text: { en: 'Sleeps to music.' } }],
   set: { code: 'BS', name: 'Base Set', releaseDate: '2001-01-01', isOfficial: true, cardCount: 1, symbol: 'BS' },
@@ -34,7 +34,7 @@ describe('CardDetail', () => {
   it('renders a horizontal card upright at rotated-vertical size (landscape frame)', () => {
     const horizontal = { ...card, orientation: 'horizontal' as const,
       localizations: { ...card.localizations,
-        en: { ...card.localizations.en, imageFile: 'bs-1-fluffy.webp' } } }
+        en: { ...card.localizations.en, imageVersion: 9 } } }
     const { container } = render(<CardDetail card={horizontal} locale="en" imageBase="http://img" />, { wrapper: Wrapper })
     expect(container.querySelector('.aspect-\\[7\\/5\\]')).not.toBeNull()
     expect(container.querySelector('.rotate-90')).not.toBeNull()
@@ -44,7 +44,7 @@ describe('CardDetail', () => {
   it('renders a vertical card in a portrait frame', () => {
     const vertical = { ...card,
       localizations: { ...card.localizations,
-        en: { ...card.localizations.en, imageFile: 'bs-1-fluffy.webp' } } }
+        en: { ...card.localizations.en, imageVersion: 9 } } }
     const { container } = render(<CardDetail card={vertical} locale="en" imageBase="http://img" />, { wrapper: Wrapper })
     expect(container.querySelector('.aspect-\\[5\\/7\\]')).not.toBeNull()
     expect(container.querySelector('.rotate-90')).toBeNull()

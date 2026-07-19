@@ -12,7 +12,7 @@ beforeAll(async () => {
   await db.insert(schema.lessons).values({ code: 'charms', labels: {}, color: '#5B8DEF' })
   await db.insert(schema.rarities).values({ code: 'rare', labels: {} })
   await db.insert(schema.sets).values({
-    code: 'BS', name: 'Base Set', releaseDate: '2001-01-01', isOfficial: true, cardCount: 1, symbol: 'BS',
+    code: 'BS', name: 'Base Set', releaseDate: '2001-01-01', isOfficial: true, cardCount: 1, symbolVersion: 1,
   })
   await db.insert(schema.cards).values({
     id: 'bs-1-fluffy', setCode: 'BS', number: '1', name: 'Fluffy', lesson: 'charms', cost: 3,

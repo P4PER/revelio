@@ -46,6 +46,11 @@ function toAddView(hit: SearchDocument): Omit<DeckCardView, 'zone' | 'quantity'>
     legality: meta.legality,
     isLesson: meta.isLesson,
     isStartingCharacter: meta.isStartingCharacter,
+    // DeckCardView.imageVersion is the *default-language* thumb version (deck-gallery
+    // renders a no-lang thumb key). The hit only carries the effective image lang, so
+    // only adopt its version when that lang is the default; otherwise leave it null.
+    imageVersion: hit.imageLang === hit.defaultLanguage ? hit.imageVersion : null,
+    artCropVersion: null,
   }
 }
 
@@ -184,7 +189,7 @@ export function DeckCardBrowser({
               <div className={cn('relative aspect-[5/7] bg-muted', banned && 'grayscale brightness-75')}>
                 {hit.imageLang ? (
                   <CardRotate
-                    src={imageUrl(imageBase, thumbKey(hit.id, hit.imageLang, hit.defaultLanguage))}
+                    src={imageUrl(imageBase, thumbKey(hit.id, hit.imageVersion!, hit.imageLang, hit.defaultLanguage))}
                     alt={hit.name}
                     orientation={hit.orientation}
                     sizes="(max-width: 640px) 45vw, 160px"

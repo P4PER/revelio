@@ -10,9 +10,9 @@ vi.mock('@/../i18n/navigation', () => ({
 }))
 
 const sets: SetDTO[] = [
-  { code: 'BS', name: 'Base Set', releaseDate: '2001-08-01', isOfficial: true, cardCount: 116, symbol: 'BS' },
-  { code: 'QC', name: 'Quidditch Cup', releaseDate: '2001-11-01', isOfficial: true, cardCount: 80, symbol: null },
-  { code: 'FAN1', name: 'Custom Fan Pack', releaseDate: '2020-01-01', isOfficial: false, cardCount: 12, symbol: null },
+  { code: 'BS', name: 'Base Set', releaseDate: '2001-08-01', isOfficial: true, cardCount: 116, symbolVersion: 5 },
+  { code: 'QC', name: 'Quidditch Cup', releaseDate: '2001-11-01', isOfficial: true, cardCount: 80, symbolVersion: null },
+  { code: 'FAN1', name: 'Custom Fan Pack', releaseDate: '2020-01-01', isOfficial: false, cardCount: 12, symbolVersion: null },
 ]
 
 function renderTable(rows = sets) {
@@ -93,7 +93,7 @@ describe('AdminSetsTable', () => {
 
   it('paginates when there are more than one page of sets', () => {
     const many: SetDTO[] = Array.from({ length: 25 }, (_, i) => ({
-      code: `S${i}`, name: `Set ${String(i).padStart(2, '0')}`, releaseDate: '2001-01-01', isOfficial: true, cardCount: i, symbol: null,
+      code: `S${i}`, name: `Set ${String(i).padStart(2, '0')}`, releaseDate: '2001-01-01', isOfficial: true, cardCount: i, symbolVersion: null,
     }))
     renderTable(many)
     expect(screen.getAllByRole('link')).toHaveLength(20) // pageSize 20

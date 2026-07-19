@@ -8,7 +8,7 @@ export type SetDTO = {
   releaseDate: string | null
   isOfficial: boolean
   cardCount: number
-  symbol: string | null
+  symbolVersion: number | null
 }
 
 export type AdventureData = { effect: string | null; reward: string | null; toSolve: string | null }
@@ -21,8 +21,7 @@ export type CardLocalizationDTO = {
   source: string | null
   text: string | null
   flavorText: string | null
-  imageFile: string | null
-  imageUrl: string | null
+  imageVersion: number | null
   adventure: AdventureData | null
   match: MatchData | null
 }
@@ -58,6 +57,7 @@ export type CardDetailDTO = CardDTO & {
   damagePerTurn: number | null
   orientation: string | null
   defaultLanguage: string
+  artCropVersion: number | null
   rulings: RulingDTO[]
   set: SetDTO
 }
@@ -87,4 +87,6 @@ export type DeckCardView = DeckCardDTO & {
   isLesson: boolean
   isStartingCharacter: boolean
   orientation?: string | null
+  imageVersion: number | null
+  artCropVersion: number | null
 }

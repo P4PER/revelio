@@ -33,7 +33,7 @@ export function CardDetail({
   const rulingText = (r: { text: Record<string, string> }) =>
     r.text[locale] ?? r.text[card.defaultLanguage] ?? Object.values(r.text)[0] ?? ''
   const imgLang = effectiveImageLang(
-    (l) => !!card.localizations[l]?.imageFile,
+    (l) => card.localizations[l]?.imageVersion != null,
     locale,
     card.defaultLanguage,
   )
@@ -48,7 +48,7 @@ export function CardDetail({
       <div className={cn('w-full', horizontal ? 'md:w-[476px]' : 'md:w-[340px]')}>
         {imgLang ? (
           <CardImage
-            src={imageUrl(imageBase, imageKey(card.id, imgLang, card.defaultLanguage))}
+            src={imageUrl(imageBase, imageKey(card.id, card.localizations[imgLang]!.imageVersion!, imgLang, card.defaultLanguage))}
             alt={loc.name}
             orientation={card.orientation}
             upright

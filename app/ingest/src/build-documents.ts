@@ -41,10 +41,10 @@ export async function buildDocuments(db: DB): Promise<Record<string, SearchDocum
   const dataByCard: CardIndexData[] = allCards.map((c) => {
     const perCard = locByCard.get(c.id)
     const set = setByCode.get(c.setCode)
-    const localizations: Record<string, { name: string; text: string | null; flavorText: string | null; imageFile: string | null }> = {}
+    const localizations: Record<string, { name: string; text: string | null; flavorText: string | null; imageVersion: number | null }> = {}
     if (perCard) {
       for (const [lang, loc] of perCard) {
-        localizations[lang] = { name: loc.name, text: loc.text, flavorText: loc.flavorText, imageFile: loc.imageFile }
+        localizations[lang] = { name: loc.name, text: loc.text, flavorText: loc.flavorText, imageVersion: loc.imageVersion }
       }
     }
     return {

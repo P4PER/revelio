@@ -4,13 +4,14 @@ import { revalidatePath } from 'next/cache'
 import { symbolKey } from '@revelio/core'
 import { requireRole } from '@/lib/session'
 import { getDb } from '@/lib/db'
-import { getSetByCode, setSymbolFile, createSet, updateSet, deleteSet } from '@revelio/db'
+import { getSetByCode, setSetSymbolVersion, createSet, updateSet, deleteSet } from '@revelio/db'
 import { getS3, putObject, deleteObject } from '@/lib/s3'
 import { makeSetWriteSchema, makeSetCreateSchema } from '@/lib/schemas/set'
 
 export type SetActionResult = { ok: true } | { ok: false; error: string }
 
 const MAX_BYTES = 5 * 1024 * 1024
+const IMMUTABLE_CACHE = 'public, max-age=31536000, immutable'
 
 function revalidateSetSurfaces(code: string) {
   revalidatePath('/')
@@ -30,13 +31,17 @@ export async function uploadSetSymbol(formData: FormData): Promise<SetActionResu
   if (file.size > MAX_BYTES) return { ok: false, error: 'size' }
 
   const db = getDb()
-  if (!(await getSetByCode(db, code))) return { ok: false, error: 'invalid' }
+  const set = await getSetByCode(db, code)
+  if (!set) return { ok: false, error: 'invalid' }
 
   const input = Buffer.from(await file.arrayBuffer())
   // No flatten: the symbol is rendered as a CSS mask, so its alpha channel must survive.
   const webp = await sharp(input).webp({ quality: 90 }).toBuffer()
-  await putObject(getS3(), symbolKey(code), webp, 'image/webp')
-  await setSymbolFile(db, code, file.name)
+  const s3 = getS3()
+  if (set.symbolVersion != null) await deleteObject(s3, symbolKey(code, set.symbolVersion))
+  const version = Math.floor(Date.now() / 1000)
+  await putObject(s3, symbolKey(code, version), webp, 'image/webp', IMMUTABLE_CACHE)
+  await setSetSymbolVersion(db, code, version)
 
   revalidateSetSurfaces(code)
   return { ok: true }
@@ -46,8 +51,9 @@ export async function removeSetSymbol(code: string): Promise<SetActionResult> {
   await requireRole('editor')
   if (!code) return { ok: false, error: 'invalid' }
   const db = getDb()
-  await deleteObject(getS3(), symbolKey(code))
-  await setSymbolFile(db, code, null)
+  const set = await getSetByCode(db, code)
+  if (set?.symbolVersion != null) await deleteObject(getS3(), symbolKey(code, set.symbolVersion))
+  await setSetSymbolVersion(db, code, null)
   revalidateSetSurfaces(code)
   return { ok: true }
 }
@@ -87,7 +93,7 @@ export async function deleteSetAction(code: string): Promise<SetActionResult> {
   const set = await getSetByCode(db, code)
   if (!set) return { ok: false, error: 'invalid' }
   if (set.cardCount > 0) return { ok: false, error: 'has-cards' }
-  await deleteObject(getS3(), symbolKey(code))
+  if (set.symbolVersion != null) await deleteObject(getS3(), symbolKey(code, set.symbolVersion))
   await deleteSet(db, code)
   revalidateSetSurfaces(code)
   return { ok: true }

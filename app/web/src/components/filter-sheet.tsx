@@ -115,8 +115,8 @@ export function FilterSheet({
   const setItem = (s: SetDTO) => (
     <SelectItem key={s.code} value={s.code}>
       <span className="flex items-center gap-2">
-        {s.symbol && IMAGE_BASE ? (
-          <SetSymbol code={s.code} base={IMAGE_BASE} className="h-4 w-4 shrink-0 text-foreground/80" />
+        {s.symbolVersion != null && IMAGE_BASE ? (
+          <SetSymbol code={s.code} version={s.symbolVersion} base={IMAGE_BASE} className="h-4 w-4 shrink-0 text-foreground/80" />
         ) : null}
         {s.name}
       </span>

@@ -22,9 +22,9 @@ let langs: string[]
 beforeAll(async () => {
   ctx = await withMigratedDb()
   const { sets, cards } = await loadDist(fixtureDir)
-  await loadSets(ctx.db, sets)
+  await loadSets(ctx.db, sets, fixtureDir)
   await loadAttributes(ctx.db, cards)
-  await loadCards(ctx.db, cards)
+  await loadCards(ctx.db, cards, fixtureDir)
   langs = await indexCards(ctx.db, client)
 }, 120_000)
 afterAll(async () => {

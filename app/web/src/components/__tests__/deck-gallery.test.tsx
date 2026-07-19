@@ -6,8 +6,9 @@ import { DeckGallery } from '@/components/deck-gallery'
 
 function view(cardId: string, zone: DeckCardView['zone'], quantity: number): DeckCardView {
   return {
-    cardId, zone, quantity, name: cardId, cost: 1, setCode: 'BS', number: '1',
+    cardId, zone, quantity, name: cardId, cost: 1, damage: null, types: [], setCode: 'BS', number: '1',
     lesson: null, isOfficial: true, legality: null, isLesson: false, isStartingCharacter: zone === 'character',
+    imageVersion: 5, artCropVersion: null,
   }
 }
 

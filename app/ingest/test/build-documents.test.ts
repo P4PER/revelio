@@ -16,9 +16,9 @@ let byLang: Record<string, Awaited<ReturnType<typeof buildDocuments>>[string]>
 beforeAll(async () => {
   ctx = await withMigratedDb()
   const { sets, cards } = await loadDist(fixtureDir)
-  await loadSets(ctx.db, sets)
+  await loadSets(ctx.db, sets, fixtureDir)
   await loadAttributes(ctx.db, cards)
-  await loadCards(ctx.db, cards)
+  await loadCards(ctx.db, cards, fixtureDir)
   byLang = await buildDocuments(ctx.db)
 }, 120_000)
 afterAll(async () => { await ctx.stop() })

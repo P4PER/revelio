@@ -13,6 +13,7 @@ import { routing } from '@/../i18n/routing'
 export type ImageResult = { ok: true; warning?: string } | { ok: false; error: string }
 
 const MAX_BYTES = 5 * 1024 * 1024
+const IMMUTABLE_CACHE = 'public, max-age=31536000, immutable'
 
 async function reindex(cardId: string): Promise<string | undefined> {
   try {
@@ -45,9 +46,15 @@ export async function uploadCardImage(formData: FormData): Promise<ImageResult> 
   const thumb = await sharp(input).webp({ quality: 80 }).resize({ width: 300 }).toBuffer()
 
   const s3 = getS3()
-  await putObject(s3, imageKey(cardId, lang, card.defaultLanguage), full, 'image/webp')
-  await putObject(s3, thumbKey(cardId, lang, card.defaultLanguage), thumb, 'image/webp')
-  await setLocalizationImage(db, cardId, lang, file.name)
+  const prev = card.localizations[lang]?.imageVersion ?? null
+  if (prev != null) {
+    await deleteObject(s3, imageKey(cardId, prev, lang, card.defaultLanguage))
+    await deleteObject(s3, thumbKey(cardId, prev, lang, card.defaultLanguage))
+  }
+  const version = Math.floor(Date.now() / 1000)
+  await putObject(s3, imageKey(cardId, version, lang, card.defaultLanguage), full, 'image/webp', IMMUTABLE_CACHE)
+  await putObject(s3, thumbKey(cardId, version, lang, card.defaultLanguage), thumb, 'image/webp', IMMUTABLE_CACHE)
+  await setLocalizationImage(db, cardId, lang, version)
 
   const warning = await reindex(cardId)
   revalidatePath(`/card/${cardId}`)
@@ -65,8 +72,11 @@ export async function removeCardImage(cardId: string, lang: string): Promise<Ima
   if (!card) return { ok: false, error: 'invalid' }
 
   const s3 = getS3()
-  await deleteObject(s3, imageKey(cardId, lang, card.defaultLanguage))
-  await deleteObject(s3, thumbKey(cardId, lang, card.defaultLanguage))
+  const prev = card.localizations[lang]?.imageVersion ?? null
+  if (prev != null) {
+    await deleteObject(s3, imageKey(cardId, prev, lang, card.defaultLanguage))
+    await deleteObject(s3, thumbKey(cardId, prev, lang, card.defaultLanguage))
+  }
   await setLocalizationImage(db, cardId, lang, null)
 
   const warning = await reindex(cardId)

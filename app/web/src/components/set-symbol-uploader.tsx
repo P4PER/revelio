@@ -14,6 +14,7 @@ const MAX_BYTES = 5 * 1024 * 1024
 export function SetSymbolUploader({
   code,
   hasSymbol,
+  symbolVersion,
   imageBase,
   staged = false,
   stagedFile = null,
@@ -21,6 +22,7 @@ export function SetSymbolUploader({
 }: {
   code?: string
   hasSymbol?: boolean
+  symbolVersion?: number | null
   imageBase?: string
   staged?: boolean
   stagedFile?: File | null
@@ -114,8 +116,8 @@ export function SetSymbolUploader({
           ) : (
             <span className="px-2 text-center text-xs text-muted-foreground">{t('noSymbol')}</span>
           )
-        ) : hasSymbol && imageBase ? (
-          <SetSymbol code={code!} base={imageBase} className="h-12 w-12 text-foreground/80" />
+        ) : hasSymbol && imageBase && symbolVersion != null ? (
+          <SetSymbol code={code!} version={symbolVersion} base={imageBase} className="h-12 w-12 text-foreground/80" />
         ) : (
           <span className="px-2 text-center text-xs text-muted-foreground">{t('noSymbol')}</span>
         )}

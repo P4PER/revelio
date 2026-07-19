@@ -13,7 +13,7 @@ const card = {
   id: 'x-1', setCode: 'X', number: '1', name: 'Card', types: [], subTypes: [],
   lesson: null, cost: null, rarity: null, finishes: [], legality: null, artist: [],
   health: null, damagePerTurn: null, orientation: null, defaultLanguage: 'en',
-  localizations: { en: { lang: 'en', name: 'Card', status: 'official', source: null, text: null, flavorText: null, imageFile: 'art.png', imageUrl: null } },
+  localizations: { en: { lang: 'en', name: 'Card', status: 'official', source: null, text: null, flavorText: null, imageVersion: 9 } },
   rulings: [],
   set: { code: 'X', name: 'Xen', releaseDate: null, isOfficial: true, symbol: null },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -57,8 +57,8 @@ export function AdminSetsTable({ sets, imageBase }: { sets: SetDTO[]; imageBase:
           const s = row.original
           return (
             <span className="flex h-6 w-6 items-center justify-center">
-              {s.symbol && imageBase ? (
-                <SetSymbol code={s.code} base={imageBase} className="h-5 w-5 text-foreground/80" />
+              {s.symbolVersion != null && imageBase ? (
+                <SetSymbol code={s.code} version={s.symbolVersion} base={imageBase} className="h-5 w-5 text-foreground/80" />
               ) : (
                 <span className="text-[10px] text-muted-foreground">{s.code}</span>
               )}

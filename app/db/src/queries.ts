@@ -19,7 +19,7 @@ function toSetDTO(row: SetRow, name: string = row.name): SetDTO {
     releaseDate: row.releaseDate,
     isOfficial: row.isOfficial,
     cardCount: row.cardCount,
-    symbol: row.symbol,
+    symbolVersion: row.symbolVersion,
   }
 }
 
@@ -51,7 +51,7 @@ export type SetForEdit = {
   releaseDate: string | null
   isOfficial: boolean
   cardCount: number
-  symbol: string | null
+  symbolVersion: number | null
   localizations: Record<string, string>
 }
 
@@ -65,7 +65,7 @@ export async function getSetForEdit(db: DB, code: string): Promise<SetForEdit | 
     releaseDate: row.releaseDate,
     isOfficial: row.isOfficial,
     cardCount: row.cardCount,
-    symbol: row.symbol,
+    symbolVersion: row.symbolVersion,
     localizations: Object.fromEntries(locs.map((l) => [l.lang, l.name])),
   }
 }
@@ -128,8 +128,8 @@ export async function deleteSet(db: DB, code: string): Promise<void> {
   await db.delete(sets).where(eq(sets.code, code))
 }
 
-export async function setSymbolFile(db: DB, code: string, symbol: string | null): Promise<void> {
-  await db.update(sets).set({ symbol, updatedAt: new Date() }).where(eq(sets.code, code))
+export async function setSetSymbolVersion(db: DB, code: string, symbolVersion: number | null): Promise<void> {
+  await db.update(sets).set({ symbolVersion, updatedAt: new Date() }).where(eq(sets.code, code))
 }
 
 export async function getCardById(db: DB, id: string, locale?: string): Promise<CardDetailDTO | null> {
@@ -166,7 +166,7 @@ export async function getCardById(db: DB, id: string, locale?: string): Promise<
   for (const l of locRows) {
     localizations[l.lang] = {
       lang: l.lang, name: l.name, status: l.status, source: l.source,
-      text: l.text, flavorText: l.flavorText, imageFile: l.imageFile, imageUrl: l.imageUrl,
+      text: l.text, flavorText: l.flavorText, imageVersion: l.imageVersion,
       adventure: (l.adventure as AdventureData | null) ?? null,
       match: (l.match as MatchData | null) ?? null,
     }
@@ -188,6 +188,7 @@ export async function getCardById(db: DB, id: string, locale?: string): Promise<
     damagePerTurn: card.damagePerTurn,
     orientation: card.orientation,
     defaultLanguage: card.defaultLanguage,
+    artCropVersion: card.artCropVersion,
     localizations,
     rulings: rulingRows.map((r) => ({
       id: r.id,
@@ -244,15 +245,15 @@ export async function setLocalizationImage(
   db: DB,
   cardId: string,
   lang: string,
-  imageFile: string | null,
+  imageVersion: number | null,
 ): Promise<void> {
   const now = new Date()
   await db
     .insert(cardLocalizations)
-    .values({ cardId, lang, name: '', imageFile, origin: 'user', updatedAt: now })
+    .values({ cardId, lang, name: '', imageVersion, origin: 'user', updatedAt: now })
     .onConflictDoUpdate({
       target: [cardLocalizations.cardId, cardLocalizations.lang],
-      set: { imageFile, origin: 'user', updatedAt: now },
+      set: { imageVersion, origin: 'user', updatedAt: now },
     })
 }
 
@@ -267,7 +268,7 @@ export async function getCardIndexData(db: DB, cardId: string): Promise<CardInde
   ])
   const localizations: CardIndexData['localizations'] = {}
   for (const l of locRows) {
-    localizations[l.lang] = { name: l.name, text: l.text, flavorText: l.flavorText, imageFile: l.imageFile }
+    localizations[l.lang] = { name: l.name, text: l.text, flavorText: l.flavorText, imageVersion: l.imageVersion }
   }
   return {
     id: card.id,
@@ -452,6 +453,16 @@ export async function updateDeckMeta(
 async function cardViewMetaByIds(db: DB, ids: string[]): Promise<Map<string, Omit<DeckCardView, 'zone' | 'quantity'>>> {
   const uniqueIds = [...new Set(ids)]
   const cardRows = uniqueIds.length ? await db.select().from(cards).where(inArray(cards.id, uniqueIds)) : []
+  const locRows = uniqueIds.length
+    ? await db.select().from(cardLocalizations).where(inArray(cardLocalizations.cardId, uniqueIds))
+    : []
+  // cardId -> lang -> image_version, so we can read each card's default-language thumb version.
+  const imgVerByCardLang = new Map<string, Map<string, number | null>>()
+  for (const l of locRows) {
+    const m = imgVerByCardLang.get(l.cardId) ?? new Map<string, number | null>()
+    m.set(l.lang, l.imageVersion)
+    imgVerByCardLang.set(l.cardId, m)
+  }
   const typeRows = uniqueIds.length ? await db.select().from(cardTypes).where(inArray(cardTypes.cardId, uniqueIds)) : []
   const subRows = uniqueIds.length ? await db.select().from(cardSubTypes).where(inArray(cardSubTypes.cardId, uniqueIds)) : []
   const setCodes = [...new Set(cardRows.map((c) => c.setCode))]
@@ -473,6 +484,8 @@ async function cardViewMetaByIds(db: DB, ids: string[]): Promise<Map<string, Omi
       lesson: c.lesson ?? null, isOfficial: m.isOfficial, legality: m.legality,
       isLesson: m.isLesson, isStartingCharacter: m.isStartingCharacter,
       orientation: c.orientation ?? null,
+      imageVersion: imgVerByCardLang.get(c.id)?.get(c.defaultLanguage) ?? null,
+      artCropVersion: c.artCropVersion ?? null,
     })
   }
   return out
@@ -501,6 +514,8 @@ export async function getDeck(db: DB, id: string): Promise<{ deck: DeckDTO; user
       lesson: meta?.lesson ?? null, isOfficial: meta?.isOfficial ?? false, legality: meta?.legality ?? null,
       isLesson: meta?.isLesson ?? false, isStartingCharacter: meta?.isStartingCharacter ?? false,
       orientation: meta?.orientation ?? null,
+      imageVersion: meta?.imageVersion ?? null,
+      artCropVersion: meta?.artCropVersion ?? null,
     }
   })
   const deck: DeckDTO = {
@@ -641,6 +656,7 @@ export type PublicDeckEntry = {
   lessons: string[]; likeCount: number; viewCount: number
   cardCount: number; updatedAt: string; likedByViewer: boolean
   starterCardId: string | null
+  starterArtCropVersion: number | null
 }
 export type ListPublicDecksInput = {
   search?: string; lessons?: string[]; format?: DeckFormat | null
@@ -700,10 +716,13 @@ export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Prom
   const byDeck = new Map(counts.map((c) => [c.deckId, c.total]))
 
   const starters = ids.length
-    ? await db.select({ deckId: deckCards.deckId, cardId: deckCards.cardId })
-        .from(deckCards).where(and(inArray(deckCards.deckId, ids), eq(deckCards.zone, 'character')))
+    ? await db.select({ deckId: deckCards.deckId, cardId: deckCards.cardId, artCropVersion: cards.artCropVersion })
+        .from(deckCards)
+        .innerJoin(cards, eq(deckCards.cardId, cards.id))
+        .where(and(inArray(deckCards.deckId, ids), eq(deckCards.zone, 'character')))
     : []
   const starterByDeck = new Map(starters.map((s) => [s.deckId, s.cardId]))
+  const starterCropByDeck = new Map(starters.map((s) => [s.deckId, s.artCropVersion]))
 
   const entries: PublicDeckEntry[] = rows.map((r) => ({
     id: r.id, name: r.name, format: r.format as DeckFormat,
@@ -714,6 +733,7 @@ export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Prom
     cardCount: byDeck.get(r.id) ?? 0, updatedAt: r.updatedAt.toISOString(),
     likedByViewer: Boolean(r.likedByViewer),
     starterCardId: starterByDeck.get(r.id) ?? null,
+    starterArtCropVersion: starterCropByDeck.get(r.id) ?? null,
   }))
   return { entries, total, page, pageCount, pageSize: PUBLIC_PAGE_SIZE }
 }

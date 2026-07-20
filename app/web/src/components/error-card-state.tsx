@@ -31,7 +31,7 @@ export function ErrorCardState({
       <div className="relative mb-8 inline-block">
         <div
           className={cn(
-            'relative grid aspect-[5/7] h-64 place-items-center overflow-hidden rounded-2xl border border-border',
+            'relative grid aspect-[5/7] h-80 place-items-center overflow-hidden rounded-2xl border border-border',
             'shadow-[0_18px_42px_rgba(0,0,0,0.55)]',
             variant === 'dissolving' &&
               '[mask-image:linear-gradient(115deg,#000_55%,transparent_92%)]',
@@ -44,7 +44,7 @@ export function ErrorCardState({
           <div className="pointer-events-none absolute inset-4 rounded-lg border border-dashed border-[#3a3568]" />
           <span
             className={cn(
-              'text-6xl [filter:drop-shadow(0_0_18px_rgba(232,178,58,0.5))]',
+              'text-7xl [filter:drop-shadow(0_0_18px_rgba(232,178,58,0.5))]',
               color,
             )}
           >

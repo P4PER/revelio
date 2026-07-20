@@ -534,5 +534,20 @@
     "layoutUnder": "Steuerung unter der Karte",
     "layoutHover": "Steuerung beim Hover",
     "empty": "Du besitzt noch keine Karten."
+  },
+  "errors": {
+    "notFound": {
+      "heading": "Diese Karte ist nicht im Archiv",
+      "description": "Wir haben die Sammlung durchsucht, aber diese Seite nicht gefunden.",
+      "searchCta": "Karten suchen",
+      "homeCta": "Zur Startseite"
+    },
+    "runtime": {
+      "heading": "Der Zauber ist misslungen",
+      "description": "Beim Laden dieser Seite ist etwas schiefgelaufen. Versuch es noch einmal.",
+      "retryCta": "Erneut versuchen",
+      "homeCta": "Zur Startseite"
+    },
+    "digestLabel": "Referenz"
   }
 }

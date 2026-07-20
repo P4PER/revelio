@@ -534,5 +534,20 @@
     "layoutUnder": "Controls under the card",
     "layoutHover": "Controls on hover",
     "empty": "You don't own any cards yet."
+  },
+  "errors": {
+    "notFound": {
+      "heading": "This card isn't in the archive",
+      "description": "We searched the collection but couldn't find that page.",
+      "searchCta": "Search cards",
+      "homeCta": "Go home"
+    },
+    "runtime": {
+      "heading": "The spell fizzled",
+      "description": "Something went wrong loading this page. Try casting it again.",
+      "retryCta": "Try again",
+      "homeCta": "Go home"
+    },
+    "digestLabel": "reference"
   }
 }

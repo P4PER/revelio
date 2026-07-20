@@ -31,7 +31,7 @@ export function ErrorCardState({
       <div className="relative mb-8 inline-block">
         <div
           className={cn(
-            'relative grid h-64 w-48 place-items-center overflow-hidden rounded-2xl border border-border',
+            'relative grid aspect-[5/7] h-64 place-items-center overflow-hidden rounded-2xl border border-border',
             'shadow-[0_18px_42px_rgba(0,0,0,0.55)]',
             variant === 'dissolving' &&
               '[mask-image:linear-gradient(115deg,#000_55%,transparent_92%)]',

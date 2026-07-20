@@ -1,4 +1,4 @@
-export type OtpEmailType = 'sign-in' | 'email-verification' | 'forget-password'
+export type OtpEmailType = 'sign-in' | 'email-verification' | 'change-email'
 
 interface OtpEmailInput {
   otp: string
@@ -14,19 +14,19 @@ interface RenderedEmail {
 const HEADING: Record<OtpEmailType, string> = {
   'sign-in': 'Confirm it’s you',
   'email-verification': 'Verify your email',
-  'forget-password': 'Reset your password',
+  'change-email': 'Confirm your new email',
 }
 
 const INTRO: Record<OtpEmailType, string> = {
   'sign-in': 'Enter this code to finish signing in to Revelio. It works once and only for you.',
   'email-verification': 'Enter this code to verify your email address. It works once and only for you.',
-  'forget-password': 'Enter this code to reset your Revelio password. It works once and only for you.',
+  'change-email': 'Enter this code to confirm your new email address for Revelio. It works once and only for you.',
 }
 
 const SUBJECT: Record<OtpEmailType, string> = {
   'sign-in': 'sign-in code',
   'email-verification': 'verification code',
-  'forget-password': 'password reset code',
+  'change-email': 'email change code',
 }
 
 function escapeHtml(value: string): string {

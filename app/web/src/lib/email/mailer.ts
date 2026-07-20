@@ -27,11 +27,11 @@ export async function sendMail(msg: {
   text: string
 }): Promise<void> {
   const transport = getTransport()
-  const from = process.env.MAIL_FROM ?? 'Revelio <no-reply@revelio.cards>'
+  const from = process.env.MAIL_FROM
 
-  if (!transport) {
+  if (!transport || !from) {
     // No SMTP configured — don't crash sign-in; make the miss visible instead.
-    console.warn(`[mail] SMTP_HOST unset; not sending "${msg.subject}" to ${msg.to}`)
+    console.warn(`[mail] SMTP_HOST or MAIL_FROM unset; not sending "${msg.subject}" to ${msg.to}`)
     return
   }
 

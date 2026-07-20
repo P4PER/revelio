@@ -28,7 +28,7 @@ export const auth = betterAuth({
         // Password auth is disabled, so 'forget-password' never fires; map it
         // defensively so the remaining kinds match our template's union.
         const kind = type === 'forget-password' ? 'sign-in' : type
-        const { subject, html, text } = renderOtpEmail({ otp, type: kind })
+        const { subject, html, text } = await renderOtpEmail({ otp, type: kind })
         await sendMail({ to: email, subject, html, text })
       },
     }),

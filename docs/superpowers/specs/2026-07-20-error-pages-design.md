@@ -109,9 +109,14 @@ Follow existing vitest + testing-library patterns (`src/**/__tests__`).
 
 ## Non-goals / deferred
 
-- **Root (locale-less) `app/not-found.tsx`.** `src/middleware.ts` prefixes every
-  route with a locale, so unmatched paths resolve inside `[locale]`. If a
-  locale-less 404 edge case appears later, add a minimal root not-found then.
+- **Root (locale-less) `app/not-found.tsx`.** The proxy/middleware
+  (`src/proxy.ts`, Next 16's renamed middleware) routes all real navigations
+  through the `[locale]` segment, and a catch-all `[locale]/[...rest]/page.tsx`
+  (calling `notFound()`) hands unmatched paths to the localized not-found page —
+  this is the next-intl-recommended pattern and is **included** in the
+  implementation. Only requests that bypass the middleware matcher entirely
+  (`api`, `_next`, dotted paths) are uncovered; handling those needs a root
+  layout the app doesn't have, so it stays deferred.
 - **Illustrated/animated card art** (e.g. animated dissolve, real card-back
   artwork). The CSS motif is enough for v1; revisit if desired.
 - **Reporting errors to an external service** (Sentry etc.) — out of scope.
@@ -121,6 +126,7 @@ Follow existing vitest + testing-library patterns (`src/**/__tests__`).
 **New**
 - `src/components/error-card-state.tsx`
 - `src/app/[locale]/not-found.tsx`
+- `src/app/[locale]/[...rest]/page.tsx` (catch-all → `notFound()`, so unmatched routes render the localized 404)
 - `src/app/[locale]/error.tsx`
 - `src/app/global-error.tsx`
 - tests under `src/components/__tests__/` and `src/app/[locale]/__tests__/`

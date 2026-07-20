@@ -3,6 +3,8 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { emailOTP, username, admin } from 'better-auth/plugins'
 import { nextCookies } from 'better-auth/next-js'
 import { createClient, schema } from '@revelio/db'
+import { renderOtpEmail } from '@/lib/email/otp-template'
+import { sendMail } from '@/lib/email/mailer'
 
 const db = createClient(process.env.DATABASE_URL ?? '').db
 
@@ -23,11 +25,11 @@ export const auth = betterAuth({
       otpLength: 6,
       expiresIn: 600, // 10 minutes
       async sendVerificationOTP({ email, otp, type }) {
-        if (process.env.NODE_ENV === 'production') {
-          throw new Error('Email provider not configured (deferred to Plan 5)')
-        }
-        // eslint-disable-next-line no-console
-        console.log(`[auth] OTP for ${email} (${type}): ${otp}`)
+        // Password auth is disabled, so 'forget-password' never fires; map it
+        // defensively so the remaining kinds match our template's union.
+        const kind = type === 'forget-password' ? 'sign-in' : type
+        const { subject, html, text } = renderOtpEmail({ otp, type: kind })
+        await sendMail({ to: email, subject, html, text })
       },
     }),
     nextCookies(), // must be the last plugin — sets cookies on Next server actions

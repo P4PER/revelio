@@ -7,11 +7,14 @@ vi.mock('@/../i18n/navigation', () => ({
   ),
 }))
 
+type Dict = { [key: string]: string | Dict }
+
 vi.mock('next-intl/server', () => ({
   getTranslations: async (ns: string) => {
-    const en = (await import('@/../messages/en.json')).default as Record<string, any>
-    const dict = ns.split('.').reduce<any>((o, k) => o[k], en)
-    return (key: string) => key.split('.').reduce<any>((o, k) => o[k], dict)
+    const en = (await import('@/../messages/en.json')).default as unknown as Dict
+    const dict = ns.split('.').reduce<Dict>((o, k) => o[k] as Dict, en)
+    return (key: string) =>
+      key.split('.').reduce<string | Dict>((o, k) => (o as Dict)[k], dict) as string
   },
 }))
 

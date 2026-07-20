@@ -1,5 +1,9 @@
 import '@testing-library/jest-dom/vitest'
 
+// The OTP email template reads CONTACT_EMAIL at module load (defaults to '' in
+// source). Provide a deterministic value for tests so the footer link is testable.
+process.env.CONTACT_EMAIL ??= 'contact@revelio.cards'
+
 // jsdom lacks these; Radix (Select/Checkbox/Dialog) calls them during interaction.
 if (typeof window !== 'undefined') {
   if (!Element.prototype.hasPointerCapture) Element.prototype.hasPointerCapture = () => false

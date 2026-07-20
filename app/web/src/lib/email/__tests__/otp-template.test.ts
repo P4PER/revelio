@@ -34,6 +34,12 @@ describe('renderOtpEmail', () => {
     expect(html).toContain('Confirm your new email')
   })
 
+  it('shows the CONTACT_EMAIL mailto link in the footer', async () => {
+    const { html } = await renderOtpEmail({ otp: '482913', type: 'sign-in' })
+    // CONTACT_EMAIL is provided by vitest.setup.ts (source defaults to '').
+    expect(html).toContain('mailto:contact@revelio.cards')
+  })
+
   it('provides a non-empty, tag-free plain-text alternative', async () => {
     const { text } = await renderOtpEmail({ otp: '482913', type: 'sign-in' })
     expect(text.length).toBeGreaterThan(20)

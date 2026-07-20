@@ -550,7 +550,7 @@
     },
     "digestLabel": "reference"
   },
-  "email":   {
+  "email": {
     "otp": {
       "subject": {
         "sign-in": "{code} is your Revelio sign-in code",
@@ -572,7 +572,8 @@
       "preview": "Your Revelio code is {code}. It expires in {minutes} minutes.",
       "reassurance": "Didn’t try to sign in? You can safely ignore this email — no one can get in without the code.",
       "disclaimer": "Revelio is an unofficial fan project for the Harry Potter Trading Card Game (2001, WotC).",
-      "linkLabel": "revelio.cards"
+      "linkLabel": "revelio.cards",
+      "contactLabel": "Questions?"
     }
   }
 }

@@ -3,6 +3,7 @@ import { createTranslator } from 'next-intl'
 import { render } from '@react-email/render'
 import {
   Body,
+  Column,
   Container,
   Head,
   Heading,
@@ -11,6 +12,7 @@ import {
   Img,
   Link,
   Preview,
+  Row,
   Section,
   Text,
 } from '@react-email/components'
@@ -36,6 +38,9 @@ const EXPIRY_MINUTES = 10
 // email works in any environment (localhost in dev, revelio.cards in prod).
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://revelio.cards'
 
+// Support/contact address shown in the footer.
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL ?? ''
+
 // Copy lives in the next-intl catalog (messages/en.json → `email.otp`), read via
 // createTranslator so it works outside a request/locale context (the Better Auth
 // hook has none). English-only for now; wire a real locale in when available.
@@ -48,6 +53,9 @@ function OtpEmail({ otp, type }: OtpEmailInput) {
   return (
     <Html lang="en">
       <Head>
+        {/* Force light rendering so dark-mode clients don't paint a navy surround. */}
+        <meta name="color-scheme" content="light" />
+        <meta name="supported-color-schemes" content="light" />
         <style
           dangerouslySetInnerHTML={{
             __html:
@@ -57,6 +65,10 @@ function OtpEmail({ otp, type }: OtpEmailInput) {
       </Head>
       <Preview>{t('preview', { code: otp, minutes: EXPIRY_MINUTES })}</Preview>
       <Body style={main}>
+        {/* Full-width gold gradient band, flush at the very top of the email. */}
+        <Row>
+          <Column style={band}>{' '}</Column>
+        </Row>
         <Container style={container}>
           <Section style={pad}>
             <Img
@@ -78,15 +90,22 @@ function OtpEmail({ otp, type }: OtpEmailInput) {
 
             <Hr style={hr} />
             <Text style={fine}>{t('reassurance')}</Text>
-            <Text style={fine}>
-              {t('disclaimer')}
-              <br />
-              <Link href={BASE_URL} style={link}>
-                {t('linkLabel')}
-              </Link>
-            </Text>
           </Section>
         </Container>
+
+        {/* Footer: fan-project disclaimer + site link, set apart from the content. */}
+        <Section style={footer}>
+          <Text style={footerText}>
+            {t('contactLabel')}{' '}
+            <Link href={`mailto:${CONTACT_EMAIL}`} style={footerLinkInline}>
+              {CONTACT_EMAIL}
+            </Link>
+          </Text>
+          <Text style={footerText}>{t('disclaimer')}</Text>
+          <Link href={BASE_URL} style={footerLink}>
+            {t('linkLabel')}
+          </Link>
+        </Section>
       </Body>
     </Html>
   )
@@ -101,14 +120,20 @@ export async function renderOtpEmail({ otp, type }: OtpEmailInput): Promise<Rend
 }
 
 // --- Design B ("Parchment"): light ground, gold band, indigo headings, ink code. ---
-const main: CSSProperties = { backgroundColor: '#FBF3DC', margin: 0, padding: '32px 16px' }
+// No side/top padding so the band spans edge-to-edge and sits flush at the very top.
+const main: CSSProperties = { backgroundColor: '#FBF3DC', margin: 0, padding: '0 0 28px' }
 
-const container: CSSProperties = {
-  maxWidth: '600px',
-  width: '100%',
-  backgroundColor: '#FBF3DC',
-  borderTop: '5px solid #E8B23A',
-  borderRadius: '0 0 14px 14px',
+// Just centers the content column; the parchment page is the Body itself.
+const container: CSSProperties = { maxWidth: '600px', width: '100%', margin: '0 auto' }
+
+// Gold gradient top band. backgroundColor is the Outlook fallback; backgroundImage
+// is the reveal-glow gradient (gold-dark → gold → gold-light → gold).
+const band: CSSProperties = {
+  height: '6px',
+  lineHeight: '6px',
+  fontSize: '1px',
+  backgroundColor: '#E8B23A',
+  backgroundImage: 'linear-gradient(90deg,#C8881E 0%,#E8B23A 38%,#F6D58B 62%,#E8B23A 100%)',
 }
 
 const pad: CSSProperties = { padding: '28px 30px 30px' }
@@ -158,14 +183,43 @@ const expiry: CSSProperties = {
   textAlign: 'center',
 }
 
-const hr: CSSProperties = { borderColor: '#d9d5e8', margin: '22px 0 16px' }
-
 const fine: CSSProperties = {
   margin: '0 0 12px',
   fontFamily: 'Arial,Helvetica,sans-serif',
   fontSize: '12px',
   lineHeight: '1.5',
-  color: '#7a749b',
+  color: '#5d5878',
 }
 
-const link: CSSProperties = { color: '#3B3194' }
+const hr: CSSProperties = { borderColor: '#d9d5e8', margin: '22px 0 16px' }
+
+// Footer, set apart below the content card: centered, small, muted, with a hairline
+// divider above it. Quieter than the body but still WCAG-legible (~5:1 on parchment).
+const footer: CSSProperties = {
+  maxWidth: '600px',
+  width: '100%',
+  margin: '0 auto',
+  padding: '18px 30px 0',
+  borderTop: '1px solid #EBDDB8',
+  textAlign: 'center',
+}
+
+const footerText: CSSProperties = {
+  margin: 0,
+  fontFamily: 'Arial,Helvetica,sans-serif',
+  fontSize: '11px',
+  lineHeight: '1.5',
+  color: '#6a6480',
+}
+
+const footerLink: CSSProperties = {
+  display: 'inline-block',
+  margin: '6px 0 0',
+  fontFamily: 'Arial,Helvetica,sans-serif',
+  fontSize: '11px',
+  color: '#3B3194',
+  textDecoration: 'none',
+}
+
+// Inline (within-text) footer link — underlined for affordance since it sits in muted copy.
+const footerLinkInline: CSSProperties = { color: '#3B3194', textDecoration: 'underline' }

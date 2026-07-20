@@ -38,10 +38,17 @@ describe('sendMail', () => {
     )
   })
 
-  it('does not throw or send when SMTP_HOST is unset', async () => {
-    await expect(
-      sendMail({ to: 'wizard@example.com', subject: 'S', html: 'h', text: 't' }),
-    ).resolves.toBeUndefined()
+  it('throws (rather than silently dropping) when SMTP is not configured', async () => {
+    vi.stubEnv('SMTP_HOST', '')
+    vi.stubEnv('MAIL_FROM', '')
+    let error: unknown
+    await sendMail({ to: 'wizard@example.com', subject: 'S', html: 'h', text: 't' }).catch(
+      (e: unknown) => {
+        error = e
+      },
+    )
+    expect(error).toBeInstanceOf(Error)
+    expect((error as Error).message).toMatch(/SMTP not configured/)
     expect(m.send).not.toHaveBeenCalled()
   })
 })

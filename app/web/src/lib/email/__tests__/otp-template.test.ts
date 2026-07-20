@@ -1,7 +1,9 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { renderOtpEmail } from '../otp-template'
 
 describe('renderOtpEmail', () => {
+  afterEach(() => vi.unstubAllEnvs())
+
   it('puts the code in subject, html, and text', async () => {
     const { subject, html, text } = await renderOtpEmail({ otp: '482913', type: 'sign-in' })
     expect(subject).toContain('482913')
@@ -34,10 +36,19 @@ describe('renderOtpEmail', () => {
     expect(html).toContain('Confirm your new email')
   })
 
-  it('shows the CONTACT_EMAIL mailto link in the footer', async () => {
+  it('shows the CONTACT_EMAIL mailto link in the footer when configured', async () => {
+    vi.stubEnv('CONTACT_EMAIL', 'help@revelio.cards')
     const { html } = await renderOtpEmail({ otp: '482913', type: 'sign-in' })
-    // CONTACT_EMAIL is provided by vitest.setup.ts (source defaults to '').
-    expect(html).toContain('mailto:contact@revelio.cards')
+    expect(html).toContain('mailto:help@revelio.cards')
+    expect(html).toContain('help@revelio.cards')
+  })
+
+  it('omits the contact line entirely when CONTACT_EMAIL is unset', async () => {
+    vi.stubEnv('CONTACT_EMAIL', '')
+    const { html } = await renderOtpEmail({ otp: '482913', type: 'sign-in' })
+    // No dangling "Questions?" label and no empty mailto link.
+    expect(html).not.toContain('mailto:')
+    expect(html).not.toContain('Questions?')
   })
 
   it('provides a non-empty, tag-free plain-text alternative', async () => {

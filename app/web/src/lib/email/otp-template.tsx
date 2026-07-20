@@ -34,13 +34,6 @@ interface RenderedEmail {
 // OTP lifetime shown to the reader — keep in sync with `expiresIn` (600s) in auth.ts.
 const EXPIRY_MINUTES = 10
 
-// Public site origin — the logo image and footer link resolve against it so the
-// email works in any environment (localhost in dev, revelio.cards in prod).
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://revelio.cards'
-
-// Support/contact address shown in the footer.
-const CONTACT_EMAIL = process.env.CONTACT_EMAIL ?? ''
-
 // Copy lives in the next-intl catalog (messages/en.json → `email.otp`), read via
 // createTranslator so it works outside a request/locale context (the Better Auth
 // hook has none). English-only for now; wire a real locale in when available.
@@ -48,8 +41,14 @@ function otpTranslator() {
   return createTranslator({ locale: 'en', messages: en, namespace: 'email.otp' })
 }
 
-function OtpEmail({ otp, type }: OtpEmailInput) {
-  const t = otpTranslator()
+type Translate = ReturnType<typeof otpTranslator>
+
+function OtpEmail({ otp, type, t }: OtpEmailInput & { t: Translate }) {
+  // Read at render time (not module load) so runtime/tests pick up the current env.
+  // Public site origin the logo image and footer link resolve against.
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://revelio.cards'
+  // Optional support/contact address — the contact line only renders when set.
+  const contactEmail = process.env.CONTACT_EMAIL ?? ''
   return (
     <Html lang="en">
       <Head>
@@ -67,12 +66,12 @@ function OtpEmail({ otp, type }: OtpEmailInput) {
       <Body style={main}>
         {/* Full-width gold gradient band, flush at the very top of the email. */}
         <Row>
-          <Column style={band}>{' '}</Column>
+          <Column style={band}>{' '}</Column>
         </Row>
         <Container style={container}>
           <Section style={pad}>
             <Img
-              src={`${BASE_URL}/revelio-logo-email.png`}
+              src={`${baseUrl}/revelio-logo-email.png`}
               alt="Revelio"
               width="150"
               height="45"
@@ -93,16 +92,18 @@ function OtpEmail({ otp, type }: OtpEmailInput) {
           </Section>
         </Container>
 
-        {/* Footer: fan-project disclaimer + site link, set apart from the content. */}
+        {/* Footer: contact (when configured) + fan-project disclaimer + site link. */}
         <Section style={footer}>
-          <Text style={footerText}>
-            {t('contactLabel')}{' '}
-            <Link href={`mailto:${CONTACT_EMAIL}`} style={footerLinkInline}>
-              {CONTACT_EMAIL}
-            </Link>
-          </Text>
+          {contactEmail ? (
+            <Text style={footerText}>
+              {t('contactLabel')}{' '}
+              <Link href={`mailto:${contactEmail}`} style={footerLinkInline}>
+                {contactEmail}
+              </Link>
+            </Text>
+          ) : null}
           <Text style={footerText}>{t('disclaimer')}</Text>
-          <Link href={BASE_URL} style={footerLink}>
+          <Link href={baseUrl} style={footerLink}>
             {t('linkLabel')}
           </Link>
         </Section>
@@ -114,7 +115,7 @@ function OtpEmail({ otp, type }: OtpEmailInput) {
 export async function renderOtpEmail({ otp, type }: OtpEmailInput): Promise<RenderedEmail> {
   const t = otpTranslator()
   const subject = t(`subject.${type}`, { code: otp })
-  const element = <OtpEmail otp={otp} type={type} />
+  const element = <OtpEmail otp={otp} type={type} t={t} />
   const [html, text] = await Promise.all([render(element), render(element, { plainText: true })])
   return { subject, html, text }
 }

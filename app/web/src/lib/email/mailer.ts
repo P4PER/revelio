@@ -31,7 +31,6 @@ export async function sendMail(msg: {
 
   if (!transport) {
     // No SMTP configured — don't crash sign-in; make the miss visible instead.
-    // eslint-disable-next-line no-console
     console.warn(`[mail] SMTP_HOST unset; not sending "${msg.subject}" to ${msg.to}`)
     return
   }

@@ -9,7 +9,8 @@ import { LanguageSwitcher } from './language-switcher'
 import { BackToTopButton } from './back-to-top-button'
 import { BRAND_NAME } from '@/lib/brand'
 
-const linkClass = 'h-auto justify-start p-0 text-muted-foreground hover:text-foreground'
+const linkClass =
+  'h-auto justify-start p-0 has-[>svg]:px-0 text-muted-foreground hover:text-foreground'
 
 function FooterColumn({ label, children }: { label: string; children: ReactNode }) {
   return (

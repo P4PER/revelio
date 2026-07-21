@@ -16,6 +16,21 @@
     "new": "New"
   },
   "footer": {
+    "tagline": "A searchable database for the Harry Potter Trading Card Game.",
+    "browse": "Browse",
+    "build": "Build",
+    "about": "About",
+    "sets": "Sets",
+    "discoverDecks": "Discover decks",
+    "randomCard": "Random card",
+    "deckBuilder": "Deck Builder",
+    "myDecks": "My Decks",
+    "collection": "Collection",
+    "aboutLink": "About",
+    "contact": "Contact",
+    "github": "GitHub",
+    "copyright": "© {year} {brand}",
+    "backToTop": "Back to top",
     "disclaimer": "{brand} is an unofficial, non-commercial fan project. Harry Potter, the Harry Potter Trading Card Game, all card names, artwork, and trademarks are the property of Warner Bros. Entertainment Inc., Wizards of the Coast, and their respective owners. {brand} is not affiliated with or endorsed by them."
   },
   "nav": {

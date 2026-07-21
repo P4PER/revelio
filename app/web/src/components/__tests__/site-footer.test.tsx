@@ -61,6 +61,13 @@ describe('SiteFooter', () => {
     expect(screen.getByRole('button', { name: 'Back to top' })).toBeInTheDocument()
   })
 
+  it('renders the legal links', () => {
+    renderFooter()
+    const legal = screen.getByRole('navigation', { name: 'Legal' })
+    expect(within(legal).getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute('href', '/privacy')
+    expect(within(legal).getByRole('link', { name: 'Imprint' })).toHaveAttribute('href', '/imprint')
+  })
+
   it('hides the GitHub link when GITHUB_URL is unset', () => {
     vi.stubEnv('GITHUB_URL', '')
     renderFooter()

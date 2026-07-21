@@ -32,6 +32,19 @@ function FooterLink({ href, children }: { href: string; children: ReactNode }) {
   )
 }
 
+function LegalLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Button
+      variant="link"
+      size="sm"
+      asChild
+      className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+    >
+      <Link href={href}>{children}</Link>
+    </Button>
+  )
+}
+
 /** Async server wrapper: resolves the session, then renders the presentational view. */
 export async function SiteFooter() {
   const session = await getSession()
@@ -95,9 +108,15 @@ export function SiteFooterView({ isLoggedIn }: { isLoggedIn: boolean }) {
         </p>
 
         <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-muted-foreground">
-            {t('copyright', { year, brand: BRAND_NAME })}
-          </p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+            <p className="text-xs text-muted-foreground">
+              {t('copyright', { year, brand: BRAND_NAME })}
+            </p>
+            <nav aria-label={t('legal')} className="flex items-center gap-4">
+              <LegalLink href="/privacy">{t('privacy')}</LegalLink>
+              <LegalLink href="/imprint">{t('imprint')}</LegalLink>
+            </nav>
+          </div>
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
             <BackToTopButton label={t('backToTop')} />

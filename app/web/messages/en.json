@@ -29,6 +29,9 @@
     "aboutLink": "About",
     "contact": "Contact",
     "github": "GitHub",
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "imprint": "Imprint",
     "copyright": "© {year} {brand}",
     "backToTop": "Back to top",
     "disclaimer": "{brand} is an unofficial, non-commercial fan project. Harry Potter, the Harry Potter Trading Card Game, all card names, artwork, and trademarks are the property of Warner Bros. Entertainment Inc., Wizards of the Coast, and their respective owners. {brand} is not affiliated with or endorsed by them."

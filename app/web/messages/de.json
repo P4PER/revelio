@@ -16,6 +16,24 @@
     "new": "Neu"
   },
   "footer": {
+    "tagline": "Eine durchsuchbare Datenbank für das Harry Potter Sammelkartenspiel.",
+    "browse": "Entdecken",
+    "build": "Erstellen",
+    "about": "Über",
+    "sets": "Editionen",
+    "discoverDecks": "Decks entdecken",
+    "randomCard": "Zufällige Karte",
+    "deckBuilder": "Deck-Builder",
+    "myDecks": "Meine Decks",
+    "collection": "Sammlung",
+    "aboutLink": "Über uns",
+    "contact": "Kontakt",
+    "github": "GitHub",
+    "legal": "Rechtliches",
+    "privacy": "Datenschutz",
+    "imprint": "Impressum",
+    "copyright": "© {year} {brand}",
+    "backToTop": "Nach oben",
     "disclaimer": "{brand} ist ein inoffizielles, nicht-kommerzielles Fan-Projekt. Harry Potter, das Harry Potter Sammelkartenspiel, alle Kartennamen, Illustrationen und Marken sind Eigentum von Warner Bros. Entertainment Inc., Wizards of the Coast und ihren jeweiligen Rechteinhabern. {brand} steht in keiner Verbindung zu ihnen und wird nicht von ihnen unterstützt."
   },
   "nav": {

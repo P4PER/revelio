@@ -90,7 +90,7 @@ export function SiteFooterView({ isLoggedIn }: { isLoggedIn: boolean }) {
 
         <Separator className="my-8" />
 
-        <p className="text-xs leading-relaxed text-muted-foreground">
+        <p className="text-xs leading-relaxed text-muted-foreground/70">
           {t('disclaimer', { brand: BRAND_NAME })}
         </p>
 

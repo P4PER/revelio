@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator'
 import { BrandMark } from './brand-mark'
 import { LanguageSwitcher } from './language-switcher'
 import { BackToTopButton } from './back-to-top-button'
+import { getSession } from '@/lib/session'
 import { BRAND_NAME } from '@/lib/brand'
 
 const linkClass =
@@ -31,7 +32,18 @@ function FooterLink({ href, children }: { href: string; children: ReactNode }) {
   )
 }
 
-export function SiteFooter() {
+/** Async server wrapper: resolves the session, then renders the presentational view. */
+export async function SiteFooter() {
+  const session = await getSession()
+  return <SiteFooterView isLoggedIn={!!session?.user} />
+}
+
+/**
+ * Presentational footer. Kept sync + prop-driven so it renders in both server and
+ * test trees. `isLoggedIn` gates the personal Build links (My Decks, Collection),
+ * mirroring the header — the Deck Builder stays visible since it works for guests.
+ */
+export function SiteFooterView({ isLoggedIn }: { isLoggedIn: boolean }) {
   const t = useTranslations('footer')
   const year = new Date().getFullYear()
   const githubUrl = process.env.GITHUB_URL
@@ -53,8 +65,8 @@ export function SiteFooter() {
 
           <FooterColumn label={t('build')}>
             <FooterLink href="/decks/new">{t('deckBuilder')}</FooterLink>
-            <FooterLink href="/decks/mine">{t('myDecks')}</FooterLink>
-            <FooterLink href="/collection">{t('collection')}</FooterLink>
+            {isLoggedIn && <FooterLink href="/decks/mine">{t('myDecks')}</FooterLink>}
+            {isLoggedIn && <FooterLink href="/collection">{t('collection')}</FooterLink>}
           </FooterColumn>
 
           <FooterColumn label={t('about')}>

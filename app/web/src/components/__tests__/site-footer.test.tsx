@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { SiteFooter } from '../site-footer'
+import { SiteFooterView } from '../site-footer'
 import en from '@/../messages/en.json'
 
 // LanguageSwitcher calls next-intl's useRouter, which needs the Next app router
@@ -11,10 +11,10 @@ vi.mock('../language-switcher', () => ({
   LanguageSwitcher: () => <div data-testid="language-switcher" />,
 }))
 
-function renderFooter() {
+function renderFooter(isLoggedIn = true) {
   render(
     <NextIntlClientProvider locale="en" messages={en}>
-      <SiteFooter />
+      <SiteFooterView isLoggedIn={isLoggedIn} />
     </NextIntlClientProvider>,
   )
 }
@@ -45,6 +45,14 @@ describe('SiteFooter', () => {
     const about = screen.getByRole('navigation', { name: 'About' })
     expect(within(about).getByRole('link', { name: 'About' })).toHaveAttribute('href', '/about')
     expect(within(about).getByRole('link', { name: 'Contact' })).toHaveAttribute('href', '/contact')
+  })
+
+  it('hides personal Build links when logged out but keeps the deck builder', () => {
+    renderFooter(false)
+    const build = screen.getByRole('navigation', { name: 'Build' })
+    expect(within(build).getByRole('link', { name: 'Deck Builder' })).toHaveAttribute('href', '/decks/new')
+    expect(within(build).queryByRole('link', { name: 'My Decks' })).not.toBeInTheDocument()
+    expect(within(build).queryByRole('link', { name: 'Collection' })).not.toBeInTheDocument()
   })
 
   it('renders the copyright and back-to-top control', () => {

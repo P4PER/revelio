@@ -37,11 +37,7 @@ export function AboutContent({ githubUrl }: { githubUrl: string | null }) {
       <StarField />
 
       <section className="relative flex flex-col items-center pt-20 pb-16 text-center sm:pt-28">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-1/2 top-4 -z-10 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/20 blur-[100px]"
-        />
-        <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-6xl">
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-5xl">
           {t('titlePrefix')} <span className="text-primary">{BRAND_NAME}</span>
         </h1>
         <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">

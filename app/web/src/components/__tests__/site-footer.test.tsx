@@ -11,10 +11,10 @@ vi.mock('../language-switcher', () => ({
   LanguageSwitcher: () => <div data-testid="language-switcher" />,
 }))
 
-function renderFooter(isLoggedIn = true) {
+function renderFooter(isLoggedIn = true, githubUrl: string | null = null) {
   render(
     <NextIntlClientProvider locale="en" messages={en}>
-      <SiteFooterView isLoggedIn={isLoggedIn} />
+      <SiteFooterView isLoggedIn={isLoggedIn} githubUrl={githubUrl} />
     </NextIntlClientProvider>,
   )
 }
@@ -68,15 +68,13 @@ describe('SiteFooter', () => {
     expect(within(legal).getByRole('link', { name: 'Imprint' })).toHaveAttribute('href', '/imprint')
   })
 
-  it('hides the GitHub link when GITHUB_URL is unset', () => {
-    vi.stubEnv('GITHUB_URL', '')
-    renderFooter()
+  it('hides the GitHub link when githubUrl is unset', () => {
+    renderFooter(true, null)
     expect(screen.queryByRole('link', { name: /GitHub/ })).not.toBeInTheDocument()
   })
 
-  it('renders an external GitHub link when GITHUB_URL is set', () => {
-    vi.stubEnv('GITHUB_URL', 'https://github.com/P4PER/revelio')
-    renderFooter()
+  it('renders an external GitHub link when githubUrl is set', () => {
+    renderFooter(true, 'https://github.com/P4PER/revelio')
     const link = screen.getByRole('link', { name: /GitHub/ })
     expect(link).toHaveAttribute('href', 'https://github.com/P4PER/revelio')
     expect(link).toHaveAttribute('target', '_blank')

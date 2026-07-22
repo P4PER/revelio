@@ -8,6 +8,7 @@ import { BrandMark } from './brand-mark'
 import { LanguageSwitcher } from './language-switcher'
 import { BackToTopButton } from './back-to-top-button'
 import { getSession } from '@/lib/session'
+import { getCachedSiteSettings } from '@/lib/site-settings'
 import { BRAND_NAME } from '@/lib/brand'
 
 const linkClass =
@@ -48,7 +49,8 @@ function LegalLink({ href, children }: { href: string; children: ReactNode }) {
 /** Async server wrapper: resolves the session, then renders the presentational view. */
 export async function SiteFooter() {
   const session = await getSession()
-  return <SiteFooterView isLoggedIn={!!session?.user} />
+  const settings = await getCachedSiteSettings()
+  return <SiteFooterView isLoggedIn={!!session?.user} githubUrl={settings?.githubUrl ?? null} />
 }
 
 /**
@@ -56,10 +58,15 @@ export async function SiteFooter() {
  * test trees. `isLoggedIn` gates the personal Build links (My Decks, Collection),
  * mirroring the header — the Deck Builder stays visible since it works for guests.
  */
-export function SiteFooterView({ isLoggedIn }: { isLoggedIn: boolean }) {
+export function SiteFooterView({
+  isLoggedIn,
+  githubUrl,
+}: {
+  isLoggedIn: boolean
+  githubUrl: string | null
+}) {
   const t = useTranslations('footer')
   const year = new Date().getFullYear()
-  const githubUrl = process.env.GITHUB_URL
 
   return (
     <footer className="border-t border-border/60">

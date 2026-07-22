@@ -661,5 +661,19 @@
     "noteTitle": "A note",
     "note": "Revelio is a non-commercial fan project. This policy was drafted in good faith to describe how the project handles data, but it is not legal advice. Operators should have it reviewed independently.",
     "lastUpdated": "Last updated: {date, date, long}"
+  },
+  "imprint": {
+    "metaTitle": "Imprint",
+    "title": "Imprint",
+    "notConfigured": "Not configured",
+    "providerTitle": "Information pursuant to § 5 DDG",
+    "contactLabel": "Email:",
+    "responsibleTitle": "Responsible for content pursuant to § 18(2) MStV",
+    "liabilityContentTitle": "Liability for content",
+    "liabilityContentBody": "As a service provider we are responsible for our own content on these pages under general law. We are not obliged to monitor transmitted or stored third-party information or to investigate circumstances that indicate unlawful activity. Obligations to remove or block the use of information under general law remain unaffected.",
+    "liabilityLinksTitle": "Liability for links",
+    "liabilityLinksBody": "Our pages contain links to external websites over whose content we have no control. We accept no liability for this third-party content. The respective provider or operator of the linked pages is always responsible for their content. If we become aware of legal violations, we will remove such links promptly.",
+    "copyrightTitle": "Copyright",
+    "copyrightBody": "Content created by the operators of these pages is subject to copyright. Contributions by third parties are marked as such. Reproduction, editing, distribution, or any kind of use beyond what copyright permits requires the written consent of the respective author or creator."
   }
 }

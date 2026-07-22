@@ -635,5 +635,19 @@
     "noteTitle": "Hinweis",
     "note": "Revelio ist ein nicht-kommerzielles Fan-Projekt. Diese Erklärung wurde nach bestem Wissen erstellt, um die Datenverarbeitung des Projekts zu beschreiben; sie stellt keine Rechtsberatung dar. Betreiber sollten sie unabhängig prüfen lassen.",
     "lastUpdated": "Zuletzt aktualisiert: {date, date, long}"
+  },
+  "imprint": {
+    "metaTitle": "Impressum",
+    "title": "Impressum",
+    "notConfigured": "Nicht konfiguriert",
+    "providerTitle": "Angaben gemäß § 5 DDG",
+    "contactLabel": "E-Mail:",
+    "responsibleTitle": "Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV",
+    "liabilityContentTitle": "Haftung für Inhalte",
+    "liabilityContentBody": "Als Diensteanbieter sind wir für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Wir sind nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen. Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt.",
+    "liabilityLinksTitle": "Haftung für Links",
+    "liabilityLinksBody": "Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber verantwortlich. Bei Bekanntwerden von Rechtsverletzungen werden wir derartige Links umgehend entfernen.",
+    "copyrightTitle": "Urheberrecht",
+    "copyrightBody": "Die durch die Betreiber dieser Seiten erstellten Inhalte unterliegen dem Urheberrecht. Beiträge Dritter sind als solche gekennzeichnet. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechts bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers."
   }
 }

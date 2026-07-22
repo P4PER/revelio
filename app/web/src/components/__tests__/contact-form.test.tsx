@@ -64,6 +64,16 @@ describe('ContactForm', () => {
     expect(sendContactMessage).not.toHaveBeenCalled()
   })
 
+  it('prefills name and email from the provided defaults', () => {
+    render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        <ContactForm renderedAt={Date.now() - 10_000} defaultName="Hermione" defaultEmail="h@x.io" />
+      </NextIntlClientProvider>,
+    )
+    expect(screen.getByLabelText(en.contact.name)).toHaveValue('Hermione')
+    expect(screen.getByLabelText(en.contact.email)).toHaveValue('h@x.io')
+  })
+
   it('shows the rate-limit error when the action returns error:rate', async () => {
     sendContactMessage.mockResolvedValueOnce({ ok: false, error: 'rate' })
     const user = userEvent.setup()

@@ -29,7 +29,16 @@ const ERROR_KEY: Record<Exclude<ContactResult, { ok: true }>['error'], string> =
   send: 'errorSend',
 }
 
-export function ContactForm({ renderedAt }: { renderedAt: number }) {
+export function ContactForm({
+  renderedAt,
+  defaultName = '',
+  defaultEmail = '',
+}: {
+  renderedAt: number
+  // Prefilled from the session for signed-in users; empty for guests.
+  defaultName?: string
+  defaultEmail?: string
+}) {
   const t = useTranslations('contact')
   const tv = useTranslations('validation')
   const [sent, setSent] = useState(false)
@@ -37,8 +46,8 @@ export function ContactForm({ renderedAt }: { renderedAt: number }) {
   const form = useForm<Values>({
     resolver: zodResolver(makeContactSchema((k) => tv(k))),
     defaultValues: {
-      name: '',
-      email: '',
+      name: defaultName,
+      email: defaultEmail,
       subject: '',
       message: '',
       website: '',
@@ -102,7 +111,7 @@ export function ContactForm({ renderedAt }: { renderedAt: number }) {
           <Input
             id="contact-name"
             type="text"
-            className="h-11 text-base"
+            className="h-10"
             aria-invalid={!!form.formState.errors.name}
             {...form.register('name')}
           />
@@ -115,7 +124,7 @@ export function ContactForm({ renderedAt }: { renderedAt: number }) {
           <Input
             id="contact-email"
             type="email"
-            className="h-11 text-base"
+            className="h-10"
             aria-invalid={!!form.formState.errors.email}
             {...form.register('email')}
           />
@@ -129,7 +138,7 @@ export function ContactForm({ renderedAt }: { renderedAt: number }) {
           <Input
             id="contact-subject"
             type="text"
-            className="h-11 text-base"
+            className="h-10"
             aria-invalid={!!form.formState.errors.subject}
             {...form.register('subject')}
           />
@@ -141,7 +150,7 @@ export function ContactForm({ renderedAt }: { renderedAt: number }) {
           </label>
           <AutoTextarea
             id="contact-message"
-            className="min-h-36 text-base"
+            className="min-h-32"
             aria-invalid={!!form.formState.errors.message}
             {...form.register('message')}
           />
@@ -153,7 +162,7 @@ export function ContactForm({ renderedAt }: { renderedAt: number }) {
           type="submit"
           size="lg"
           disabled={form.formState.isSubmitting}
-          className="h-11 w-full text-base font-semibold"
+          className="h-10 w-full font-semibold"
         >
           {form.formState.isSubmitting ? t('sending') : t('send')}
         </Button>

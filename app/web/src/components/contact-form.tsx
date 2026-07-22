@@ -29,10 +29,6 @@ const ERROR_KEY: Record<Exclude<ContactResult, { ok: true }>['error'], string> =
   send: 'errorSend',
 }
 
-// Gold "reveal" hairline across the panel's top edge — the Reveal-Glow motif,
-// echoing the gold band on the OTP email (gold-dark → gold → gold-light → gold).
-const REVEAL_EDGE = 'linear-gradient(90deg,#C8881E 0%,#E8B23A 38%,#F6D58B 62%,#E8B23A 100%)'
-
 // The wand-spark star path (shared with StarField / the logo mark).
 const SPARK_PATH = 'M12 1.6l2.7 7.3 7.7.2-6.1 4.7 2.2 7.4L12 17l-6.4 4.4 2.2-7.4-6.1-4.7 7.7-.2z'
 
@@ -69,7 +65,6 @@ export function ContactForm({ renderedAt }: { renderedAt: number }) {
   if (sent) {
     return (
       <div className="relative overflow-hidden rounded-xl border border-border bg-card">
-        <div aria-hidden className="h-px w-full" style={{ backgroundImage: REVEAL_EDGE }} />
         <div role="status" className="flex flex-col items-center px-6 py-14 text-center">
           <svg
             viewBox="0 0 24 24"
@@ -89,8 +84,6 @@ export function ContactForm({ renderedAt }: { renderedAt: number }) {
 
   return (
     <div className="relative overflow-hidden rounded-xl border border-border bg-card">
-      {/* Gold reveal-glow top edge. */}
-      <div aria-hidden className="h-px w-full" style={{ backgroundImage: REVEAL_EDGE }} />
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-6" noValidate>
         {/* Honeypot — visually hidden, off the tab order and a11y tree, no autofill.
             Any value ⇒ the server silently drops the submission. */}

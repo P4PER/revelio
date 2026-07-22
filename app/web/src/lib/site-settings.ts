@@ -12,7 +12,7 @@ export async function loadSiteSettings(): Promise<SiteSettings | null> {
 
 /**
  * Cached read for render paths (footer, legal pages, OTP email). Hits the DB only
- * on a cache miss; the admin save action busts it via `revalidateTag(SITE_SETTINGS_TAG, 'max')`.
+ * on a cache miss; the admin save action busts it via `updateTag(SITE_SETTINGS_TAG)`.
  */
 export const getCachedSiteSettings = unstable_cache(loadSiteSettings, ['site-settings'], {
   tags: [SITE_SETTINGS_TAG],

@@ -1,5 +1,5 @@
 'use server'
-import { revalidateTag } from 'next/cache'
+import { updateTag } from 'next/cache'
 import { requireRole } from '@/lib/session'
 import { getDb } from '@/lib/db'
 import { upsertSiteSettings } from '@revelio/db'
@@ -27,8 +27,10 @@ export async function updateSiteSettings(input: unknown): Promise<SiteSettingsAc
     responsiblePerson: nullify(d.responsiblePerson),
     githubUrl: nullify(d.githubUrl),
   })
-  // Next 16 requires a cache-life profile as the second arg; 'max' is the
-  // documented drop-in for the old single-arg call — it purges the tag outright.
-  revalidateTag(SITE_SETTINGS_TAG, 'max')
+  // updateTag (Server-Action-only) purges the tag AND marks the path revalidated,
+  // giving read-your-own-writes: the footer/legal pages reflect the save on the
+  // next render. revalidateTag(tag, 'max') would only stale-while-revalidate,
+  // so the change wouldn't show until a later background refresh won the race.
+  updateTag(SITE_SETTINGS_TAG)
   return { ok: true }
 }

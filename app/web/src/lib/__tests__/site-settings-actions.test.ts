@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const requireRole = vi.fn()
 const upsertSiteSettings = vi.fn()
-const revalidateTag = vi.fn()
+const updateTag = vi.fn()
 vi.mock('@/lib/session', () => ({ requireRole: (...a: unknown[]) => requireRole(...a) }))
 vi.mock('@/lib/db', () => ({ getDb: () => ({ __db: true }) }))
 vi.mock('@revelio/db', () => ({ upsertSiteSettings: (...a: unknown[]) => upsertSiteSettings(...a) }))
 vi.mock('@/lib/site-settings', () => ({ SITE_SETTINGS_TAG: 'site-settings' }))
-vi.mock('next/cache', () => ({ revalidateTag: (...a: unknown[]) => revalidateTag(...a) }))
+vi.mock('next/cache', () => ({ updateTag: (...a: unknown[]) => updateTag(...a) }))
 
 import { updateSiteSettings } from '../site-settings-actions'
 
@@ -23,7 +23,7 @@ const VALID = {
 beforeEach(() => {
   requireRole.mockReset().mockResolvedValue(undefined)
   upsertSiteSettings.mockReset().mockResolvedValue(undefined)
-  revalidateTag.mockReset()
+  updateTag.mockReset()
 })
 
 describe('updateSiteSettings', () => {
@@ -66,7 +66,7 @@ describe('updateSiteSettings', () => {
         githubUrl: 'https://github.com/P4PER/revelio',
       },
     )
-    expect(revalidateTag).toHaveBeenCalledWith('site-settings', 'max')
+    expect(updateTag).toHaveBeenCalledWith('site-settings')
   })
 
   it('allows empty contactEmail and githubUrl', async () => {

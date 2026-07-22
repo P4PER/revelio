@@ -4,11 +4,23 @@ import { cn } from '@/lib/utils'
 
 // A textarea that grows to fit its content plus one extra line, so there's
 // always a blank line below the text.
-export function AutoTextarea({ className, value, onChange, ...props }: React.ComponentProps<'textarea'>) {
-  const ref = React.useRef<HTMLTextAreaElement>(null)
+export function AutoTextarea({ className, value, onChange, ref: forwardedRef, ...props }: React.ComponentProps<'textarea'>) {
+  const innerRef = React.useRef<HTMLTextAreaElement>(null)
+
+  // Compose the internal auto-grow ref with any forwarded ref. Without this,
+  // rendering inside a Radix Slot (shadcn's <FormControl>) forwards a ref that
+  // would otherwise clobber innerRef, leaving it null so resize() never runs.
+  const setRef = React.useCallback(
+    (el: HTMLTextAreaElement | null) => {
+      innerRef.current = el
+      if (typeof forwardedRef === 'function') forwardedRef(el)
+      else if (forwardedRef) forwardedRef.current = el
+    },
+    [forwardedRef],
+  )
 
   const resize = React.useCallback(() => {
-    const el = ref.current
+    const el = innerRef.current
     if (!el) return
     el.style.height = 'auto'
     const line = parseFloat(getComputedStyle(el).lineHeight) || 20
@@ -21,7 +33,7 @@ export function AutoTextarea({ className, value, onChange, ...props }: React.Com
 
   return (
     <textarea
-      ref={ref}
+      ref={setRef}
       rows={2}
       value={value}
       onChange={(e) => {

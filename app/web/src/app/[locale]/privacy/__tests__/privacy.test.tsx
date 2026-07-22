@@ -36,6 +36,11 @@ describe('PrivacyContent', () => {
     expect(screen.getByText(/within the European Union/)).toBeInTheDocument()
   })
 
+  it('presents the Art. 21 right to object as its own section', () => {
+    renderPrivacy('en', en, FULL)
+    expect(screen.getByRole('heading', { name: /Right to object/i })).toBeInTheDocument()
+  })
+
   it('renders the German title', () => {
     renderPrivacy('de', de, FULL)
     expect(screen.getByRole('heading', { level: 1, name: 'Datenschutzerklärung' })).toBeInTheDocument()

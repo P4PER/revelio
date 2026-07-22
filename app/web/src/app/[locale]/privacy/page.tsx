@@ -43,12 +43,19 @@ export function PrivacyContent({
       <p>
         {t('controllerContactLabel')} {contactEmail ?? nc}
       </p>
+      <p>{t('dpoBody')}</p>
+
+      <h2>{t('basesTitle')}</h2>
+      <p>{t('basesBody')}</p>
+      <p>{t('sslBody')}</p>
 
       <h2>{t('processingTitle')}</h2>
       <h3>{t('accountTitle')}</h3>
       <p>{t('accountBody')}</p>
       <h3>{t('sessionTitle')}</h3>
       <p>{t('sessionBody')}</p>
+      <h3>{t('logsTitle')}</h3>
+      <p>{t('logsBody')}</p>
       <h3>{t('contentTitle')}</h3>
       <p>{t('contentBody')}</p>
       <h3>{t('emailTitle')}</h3>
@@ -79,13 +86,26 @@ export function PrivacyContent({
         <li>{t('rightsErase')}</li>
         <li>{t('rightsRestrict')}</li>
         <li>{t('rightsPort')}</li>
-        <li>{t('rightsObject')}</li>
-        <li>{t('rightsComplain')}</li>
       </ul>
       <p>{t('rightsContact')}</p>
 
-      <h2>{t('noteTitle')}</h2>
-      <p>{t('note')}</p>
+      <h2>{t('objectionTitle')}</h2>
+      <p>{t('objectionBody')}</p>
+
+      <h2>{t('withdrawTitle')}</h2>
+      <p>{t('withdrawBody')}</p>
+
+      <h2>{t('complaintTitle')}</h2>
+      <p>{t('complaintBody')}</p>
+
+      <h2>{t('automatedTitle')}</h2>
+      <p>{t('automatedBody')}</p>
+
+      <h2>{t('provisionTitle')}</h2>
+      <p>{t('provisionBody')}</p>
+
+      <h2>{t('changesTitle')}</h2>
+      <p>{t('changesBody')}</p>
 
       <p className="mt-8 text-xs text-muted-foreground/70">
         {t('lastUpdated', { date: LAST_UPDATED })}

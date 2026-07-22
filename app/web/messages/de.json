@@ -582,5 +582,16 @@
       "homeCta": "Zur Startseite"
     },
     "digestLabel": "Referenz"
+  },
+  "about": {
+    "metaTitle": "Über",
+    "title": "Über Revelio",
+    "intro": "Revelio ist eine durchsuchbare Datenbank im Stil von Scryfall für das Harry Potter Trading Card Game (2001, Wizards of the Coast).",
+    "fanProject": "Es ist ein inoffizielles, nicht-kommerzielles Fan-Projekt, erstellt von und für die Community aus Spielerinnen, Spielern und Sammelnden.",
+    "openSource": "Revelio ist Open Source. <link>Sieh dir den Code auf GitHub an</link>, um zu erfahren, wie es gebaut ist, oder um mitzuwirken.",
+    "creditsTitle": "Danksagung",
+    "credits": "Danke an alle Spielenden, Sammelnden und Bewahrenden, deren Scans, Checklisten und Wissen ein Projekt wie dieses möglich machen.",
+    "exploreTitle": "Loslegen",
+    "explore": "Durchstöbere die <sets>Kartensets</sets> oder springe zu einer <random>zufälligen Karte</random>."
   }
 }

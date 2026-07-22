@@ -79,8 +79,8 @@ export function ContactForm({ renderedAt }: { renderedAt: number }) {
   }
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-border bg-card">
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-6" noValidate>
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-card">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-8 sm:p-10" noValidate>
         {/* Honeypot — visually hidden, off the tab order and a11y tree, no autofill.
             Any value ⇒ the server silently drops the submission. */}
         <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
@@ -96,20 +96,28 @@ export function ContactForm({ renderedAt }: { renderedAt: number }) {
         <input type="hidden" {...form.register('renderedAt')} />
 
         {/* name + email share a row from sm up. */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div className="space-y-2">
+            <label htmlFor="contact-name" className="text-sm font-medium text-foreground">
+              {t('name')}
+            </label>
             <Input
+              id="contact-name"
               type="text"
-              placeholder={t('name')}
+              className="h-11 text-base"
               aria-invalid={!!form.formState.errors.name}
               {...form.register('name')}
             />
             <FieldError>{form.formState.errors.name?.message}</FieldError>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
+            <label htmlFor="contact-email" className="text-sm font-medium text-foreground">
+              {t('email')}
+            </label>
             <Input
+              id="contact-email"
               type="email"
-              placeholder={t('email')}
+              className="h-11 text-base"
               aria-invalid={!!form.formState.errors.email}
               {...form.register('email')}
             />
@@ -117,18 +125,26 @@ export function ContactForm({ renderedAt }: { renderedAt: number }) {
           </div>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-2">
+          <label htmlFor="contact-subject" className="text-sm font-medium text-foreground">
+            {t('subject')}
+          </label>
           <Input
+            id="contact-subject"
             type="text"
-            placeholder={t('subject')}
+            className="h-11 text-base"
             aria-invalid={!!form.formState.errors.subject}
             {...form.register('subject')}
           />
           <FieldError>{form.formState.errors.subject?.message}</FieldError>
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-2">
+          <label htmlFor="contact-message" className="text-sm font-medium text-foreground">
+            {t('message')}
+          </label>
           <AutoTextarea
-            placeholder={t('message')}
+            id="contact-message"
+            className="min-h-36 text-base"
             aria-invalid={!!form.formState.errors.message}
             {...form.register('message')}
           />
@@ -136,7 +152,12 @@ export function ContactForm({ renderedAt }: { renderedAt: number }) {
         </div>
 
         <FieldError>{form.formState.errors.root?.message}</FieldError>
-        <Button type="submit" disabled={form.formState.isSubmitting} className="w-full">
+        <Button
+          type="submit"
+          size="lg"
+          disabled={form.formState.isSubmitting}
+          className="h-11 w-full text-base font-semibold"
+        >
           {form.formState.isSubmitting ? t('sending') : t('send')}
         </Button>
       </form>

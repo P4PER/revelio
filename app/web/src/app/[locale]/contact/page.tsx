@@ -21,7 +21,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
   setRequestLocale(locale)
   const t = await getTranslations('contact')
   return (
-    <main className="relative mx-auto max-w-xl px-6 pt-16 pb-20">
+    <main className="relative mx-auto max-w-2xl px-6 pt-16 pb-20">
       {/* Soft gold reveal-glow behind the title. */}
       <div
         aria-hidden

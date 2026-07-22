@@ -21,11 +21,11 @@ function renderForm() {
 }
 
 async function fillValid(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByPlaceholderText(en.contact.name), 'Hermione')
-  await user.type(screen.getByPlaceholderText(en.contact.email), 'hermione@example.com')
-  await user.type(screen.getByPlaceholderText(en.contact.subject), 'Card data typo')
+  await user.type(screen.getByLabelText(en.contact.name), 'Hermione')
+  await user.type(screen.getByLabelText(en.contact.email), 'hermione@example.com')
+  await user.type(screen.getByLabelText(en.contact.subject), 'Card data typo')
   await user.type(
-    screen.getByPlaceholderText(en.contact.message),
+    screen.getByLabelText(en.contact.message),
     'The Lumos card has the wrong lesson cost listed.',
   )
 }
@@ -54,10 +54,10 @@ describe('ContactForm', () => {
   it('shows a validation error and does not submit when the message is too short', async () => {
     const user = userEvent.setup()
     renderForm()
-    await user.type(screen.getByPlaceholderText(en.contact.name), 'Hermione')
-    await user.type(screen.getByPlaceholderText(en.contact.email), 'hermione@example.com')
-    await user.type(screen.getByPlaceholderText(en.contact.subject), 'Hi')
-    await user.type(screen.getByPlaceholderText(en.contact.message), 'short')
+    await user.type(screen.getByLabelText(en.contact.name), 'Hermione')
+    await user.type(screen.getByLabelText(en.contact.email), 'hermione@example.com')
+    await user.type(screen.getByLabelText(en.contact.subject), 'Hi')
+    await user.type(screen.getByLabelText(en.contact.message), 'short')
     await user.click(screen.getByRole('button', { name: en.contact.send }))
 
     expect(await screen.findByText(en.validation.messageTooShort)).toBeInTheDocument()

@@ -23,6 +23,7 @@ export type OtpEmailType = 'sign-in' | 'email-verification' | 'change-email'
 interface OtpEmailInput {
   otp: string
   type: OtpEmailType
+  contactEmail: string
 }
 
 interface RenderedEmail {
@@ -43,12 +44,10 @@ function otpTranslator() {
 
 type Translate = ReturnType<typeof otpTranslator>
 
-function OtpEmail({ otp, type, t }: OtpEmailInput & { t: Translate }) {
+function OtpEmail({ otp, type, contactEmail, t }: OtpEmailInput & { t: Translate }) {
   // Read at render time (not module load) so runtime/tests pick up the current env.
   // Public site origin the logo image and footer link resolve against.
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://revelio.cards'
-  // Optional support/contact address — the contact line only renders when set.
-  const contactEmail = process.env.CONTACT_EMAIL ?? ''
   return (
     <Html lang="en">
       <Head>
@@ -112,10 +111,10 @@ function OtpEmail({ otp, type, t }: OtpEmailInput & { t: Translate }) {
   )
 }
 
-export async function renderOtpEmail({ otp, type }: OtpEmailInput): Promise<RenderedEmail> {
+export async function renderOtpEmail({ otp, type, contactEmail }: OtpEmailInput): Promise<RenderedEmail> {
   const t = otpTranslator()
   const subject = t(`subject.${type}`, { code: otp })
-  const element = <OtpEmail otp={otp} type={type} t={t} />
+  const element = <OtpEmail otp={otp} type={type} contactEmail={contactEmail} t={t} />
   const [html, text] = await Promise.all([render(element), render(element, { plainText: true })])
   return { subject, html, text }
 }

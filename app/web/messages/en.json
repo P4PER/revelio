@@ -611,14 +611,22 @@
   },
   "about": {
     "metaTitle": "About",
-    "title": "About Revelio",
-    "intro": "Revelio is a Scryfall-style searchable database for the Harry Potter Trading Card Game (2001, Wizards of the Coast).",
-    "fanProject": "It is an unofficial, non-commercial fan project, built by and for the community of players and collectors.",
-    "openSource": "Revelio is open source. <link>Browse the code on GitHub</link> to see how it's built or to contribute.",
+    "eyebrow": "Unofficial fan project",
+    "title": "About <glow>Revelio</glow>",
+    "tagline": "A fast, searchable home for every card in the Harry Potter Trading Card Game.",
+    "ctaBrowse": "Browse sets",
+    "ctaRandom": "Random card",
+    "ctaGithub": "View on GitHub",
+    "storyTitle": "What it is",
+    "storyBody1": "Revelio is a Scryfall-style database for the Harry Potter Trading Card Game — the collectible card game Wizards of the Coast released in 2001. Search by name, lesson, type, or rarity, then open any card for its full text, rulings, and printings in English and German.",
+    "storyBody2": "It's an unofficial, non-commercial project made by fans who wanted the game's cards preserved and easy to find.",
+    "builtTitle": "How it's built",
+    "builtBody": "Revelio is open source, built on a modern web stack:",
+    "builtGithub": "Read the source or contribute on <link>GitHub</link>.",
     "creditsTitle": "Credits & thanks",
-    "credits": "Thanks to the players, collectors, and preservationists whose scans, checklists, and knowledge make a project like this possible.",
+    "creditsBody": "Thanks to the players, collectors, and preservationists whose scans, checklists, and shared knowledge make a project like this possible.",
     "exploreTitle": "Start exploring",
-    "explore": "Browse the <sets>card sets</sets> or jump to a <random>random card</random>."
+    "exploreBody": "Jump into the <sets>card sets</sets> or reveal a <random>random card</random>."
   },
   "privacy": {
     "metaTitle": "Privacy Policy",

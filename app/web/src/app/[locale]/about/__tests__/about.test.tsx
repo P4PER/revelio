@@ -30,14 +30,27 @@ describe('AboutContent', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Über Revelio' })).toBeInTheDocument()
   })
 
-  it('shows the GitHub link only when githubUrl is set', () => {
-    renderAbout('en', en, 'https://github.com/P4PER/revelio')
-    const link = screen.getByRole('link', { name: /GitHub/i })
-    expect(link).toHaveAttribute('href', 'https://github.com/P4PER/revelio')
+  it('renders the browse and random CTAs', () => {
+    renderAbout('en', en, null)
+    expect(screen.getByRole('link', { name: 'Browse sets' })).toHaveAttribute('href', '/sets')
+    expect(screen.getByRole('link', { name: 'Random card' })).toHaveAttribute('href', '/random')
   })
 
-  it('hides the GitHub paragraph when githubUrl is null', () => {
+  it('lists the tech stack', () => {
     renderAbout('en', en, null)
-    expect(screen.queryByRole('link', { name: /GitHub/i })).not.toBeInTheDocument()
+    expect(screen.getByText('Meilisearch')).toBeInTheDocument()
+  })
+
+  it('shows GitHub links pointing at githubUrl when set', () => {
+    const url = 'https://github.com/P4PER/revelio'
+    renderAbout('en', en, url)
+    const links = screen.getAllByRole('link', { name: /GitHub/i })
+    expect(links.length).toBeGreaterThan(0)
+    for (const link of links) expect(link).toHaveAttribute('href', url)
+  })
+
+  it('hides all GitHub links when githubUrl is null', () => {
+    renderAbout('en', en, null)
+    expect(screen.queryAllByRole('link', { name: /GitHub/i })).toHaveLength(0)
   })
 })

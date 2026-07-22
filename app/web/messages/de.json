@@ -585,14 +585,22 @@
   },
   "about": {
     "metaTitle": "Über",
-    "title": "Über Revelio",
-    "intro": "Revelio ist eine durchsuchbare Datenbank im Stil von Scryfall für das Harry Potter Trading Card Game (2001, Wizards of the Coast).",
-    "fanProject": "Es ist ein inoffizielles, nicht-kommerzielles Fan-Projekt, erstellt von und für die Community aus Spielerinnen, Spielern und Sammelnden.",
-    "openSource": "Revelio ist Open Source. <link>Sieh dir den Code auf GitHub an</link>, um zu erfahren, wie es gebaut ist, oder um mitzuwirken.",
+    "eyebrow": "Inoffizielles Fan-Projekt",
+    "title": "Über <glow>Revelio</glow>",
+    "tagline": "Ein schnelles, durchsuchbares Zuhause für jede Karte des Harry Potter Trading Card Game.",
+    "ctaBrowse": "Editionen ansehen",
+    "ctaRandom": "Zufällige Karte",
+    "ctaGithub": "Auf GitHub ansehen",
+    "storyTitle": "Was es ist",
+    "storyBody1": "Revelio ist eine Datenbank im Stil von Scryfall für das Harry Potter Trading Card Game – das Sammelkartenspiel, das Wizards of the Coast 2001 veröffentlicht hat. Suche nach Name, Lektion, Typ oder Seltenheit und öffne jede Karte für den vollständigen Text, Rulings und Ausgaben auf Deutsch und Englisch.",
+    "storyBody2": "Es ist ein inoffizielles, nicht-kommerzielles Projekt von Fans, die die Karten des Spiels bewahren und leicht auffindbar machen wollten.",
+    "builtTitle": "Wie es gebaut ist",
+    "builtBody": "Revelio ist Open Source und basiert auf einem modernen Web-Stack:",
+    "builtGithub": "Sieh dir den Code an oder trage bei auf <link>GitHub</link>.",
     "creditsTitle": "Danksagung",
-    "credits": "Danke an alle Spielenden, Sammelnden und Bewahrenden, deren Scans, Checklisten und Wissen ein Projekt wie dieses möglich machen.",
+    "creditsBody": "Danke an alle Spielenden, Sammelnden und Bewahrenden, deren Scans, Checklisten und geteiltes Wissen ein Projekt wie dieses möglich machen.",
     "exploreTitle": "Loslegen",
-    "explore": "Durchstöbere die <sets>Kartensets</sets> oder springe zu einer <random>zufälligen Karte</random>."
+    "exploreBody": "Stöbere in den <sets>Kartensets</sets> oder enthülle eine <random>zufällige Karte</random>."
   },
   "privacy": {
     "metaTitle": "Datenschutzerklärung",

@@ -3,18 +3,13 @@ import { createTranslator } from 'next-intl'
 import { render } from '@react-email/render'
 import { Body, Container, Heading, Html, Section, Text } from '@react-email/components'
 import en from '@/../messages/en.json'
+import type { RenderedEmail } from './types'
 
 interface ContactEmailInput {
   name: string
   email: string
   subject: string
   message: string
-}
-
-interface RenderedEmail {
-  subject: string
-  html: string
-  text: string
 }
 
 // Operator-facing notification — English-only, mirroring renderOtpEmail. Copy lives

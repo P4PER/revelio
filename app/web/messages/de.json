@@ -598,7 +598,7 @@
     "builtBody": "Revelio ist Open Source und basiert auf einem modernen Web-Stack:",
     "builtGithub": "Sieh dir den Code an oder trage bei auf <link>GitHub</link>.",
     "creditsTitle": "Danksagung",
-    "creditsBody": "Danke an alle Spielenden, Sammelnden und Bewahrenden, deren Scans, Checklisten und geteiltes Wissen ein Projekt wie dieses möglich machen.",
+    "creditsBody": "Danke an alle Spielenden, Sammelnden und Bewahrenden, deren Scans, Checklisten und geteiltes Wissen ein Projekt wie dieses möglich machen – darunter die Community auf <link>harrypottertcg.com</link>.",
     "exploreTitle": "Loslegen",
     "exploreBody": "Stöbere in den <sets>Kartensets</sets> oder enthülle eine <random>zufällige Karte</random>."
   },
@@ -619,6 +619,8 @@
     "accountBody": "Wenn Sie ein Konto anlegen, verarbeiten wir Ihre E-Mail-Adresse, Ihren Benutzernamen, Ihren Anzeigenamen, Ihre Rolle und den Status der E-Mail-Bestätigung, um Ihnen Ihr Konto und dessen Funktionen bereitzustellen. Rechtsgrundlage: Erfüllung eines Vertrags (Art. 6 Abs. 1 lit. b DSGVO).",
     "sessionTitle": "Sitzungsdaten",
     "sessionBody": "Um Sie angemeldet zu halten und den Dienst vor Missbrauch zu schützen, speichern wir ein Sitzungs-Token zusammen mit Ihrer IP-Adresse und der User-Agent-Kennung Ihres Browsers bis zum Ablauf der Sitzung. Rechtsgrundlage: unser berechtigtes Interesse am Betrieb und an der Sicherheit des Dienstes (Art. 6 Abs. 1 lit. f DSGVO).",
+    "logsTitle": "Server-Logfiles",
+    "logsBody": "Beim Zugriff auf die Website erhebt und speichert unser Hosting-Anbieter automatisch Informationen, die Ihr Browser übermittelt, in sogenannten Server-Logfiles: Browsertyp und -version, Betriebssystem, Referrer-URL, Hostname des zugreifenden Geräts, Uhrzeit der Anfrage und IP-Adresse. Diese Daten werden nicht mit anderen Datenquellen zusammengeführt. Rechtsgrundlage: unser berechtigtes Interesse an der technisch fehlerfreien Darstellung und der Sicherheit der Website (Art. 6 Abs. 1 lit. f DSGVO).",
     "contentTitle": "Von Ihnen erstellte Inhalte",
     "contentBody": "Decks, Deck-Likes und Sammlungseinträge, die Sie anlegen, werden gespeichert und mit Ihrem Konto verknüpft, damit wir Ihnen diese Funktionen bereitstellen können. Rechtsgrundlage: Erfüllung eines Vertrags (Art. 6 Abs. 1 lit. b DSGVO).",
     "emailTitle": "Login-E-Mails",

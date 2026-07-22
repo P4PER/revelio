@@ -17,6 +17,8 @@ const LESSON_RULE =
 
 const TECH = ['Next.js', 'React', 'Meilisearch', 'PostgreSQL', 'Tailwind CSS']
 
+const HPTCG_URL = 'https://harrypottertcg.com/'
+
 export async function generateMetadata({
   params,
 }: {
@@ -109,7 +111,18 @@ export function AboutContent({ githubUrl }: { githubUrl: string | null }) {
 
         <h2 className="mt-12 text-xl font-semibold text-foreground">{t('creditsTitle')}</h2>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-          {t('creditsBody')}
+          {t.rich('creditsBody', {
+            link: (chunks) => (
+              <a
+                href={HPTCG_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline underline-offset-2"
+              >
+                {chunks}
+              </a>
+            ),
+          })}
         </p>
 
         <h2 className="mt-12 text-xl font-semibold text-foreground">{t('exploreTitle')}</h2>

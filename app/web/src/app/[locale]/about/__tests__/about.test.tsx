@@ -41,6 +41,12 @@ describe('AboutContent', () => {
     expect(screen.getByText('Meilisearch')).toBeInTheDocument()
   })
 
+  it('links the community credit to harrypottertcg.com', () => {
+    renderAbout('en', en, null)
+    const link = screen.getByRole('link', { name: /harrypottertcg\.com/i })
+    expect(link).toHaveAttribute('href', 'https://harrypottertcg.com/')
+  })
+
   it('shows GitHub links pointing at githubUrl when set', () => {
     const url = 'https://github.com/P4PER/revelio'
     renderAbout('en', en, url)

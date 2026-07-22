@@ -56,4 +56,13 @@ describe('SiteSettingsForm', () => {
     expect(update.mock.calls[0][0]).toMatchObject({ operatorName: 'Jane' })
     await waitFor(() => expect(toast.success).toHaveBeenCalledWith(en.adminSettings.saved))
   })
+
+  it('toasts an error when the action throws (e.g. DB failure)', async () => {
+    update.mockRejectedValueOnce(new Error('db down'))
+    renderForm()
+    fireEvent.input(screen.getByLabelText(en.adminSettings.operatorName), { target: { value: 'Jane' } })
+    fireEvent.click(screen.getByRole('button', { name: en.adminSettings.save }))
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith(en.adminSettings.saveError))
+    expect(toast.success).not.toHaveBeenCalled()
+  })
 })

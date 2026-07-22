@@ -10,6 +10,8 @@ export function AutoTextarea({ className, value, onChange, ref: forwardedRef, ..
   // Compose the internal auto-grow ref with any forwarded ref. Without this,
   // rendering inside a Radix Slot (shadcn's <FormControl>) forwards a ref that
   // would otherwise clobber innerRef, leaving it null so resize() never runs.
+  // Re-derived when forwardedRef changes so React re-attaches to the new ref
+  // (correct ref semantics: old ref cleared, new ref set).
   const setRef = React.useCallback(
     (el: HTMLTextAreaElement | null) => {
       innerRef.current = el

@@ -46,6 +46,12 @@ describe('updateSiteSettings', () => {
     expect(result).toEqual({ ok: false, error: 'invalid' })
   })
 
+  it('rejects a non-http(s) github url scheme', async () => {
+    const result = await updateSiteSettings({ ...VALID, githubUrl: 'javascript:alert(1)' })
+    expect(result).toEqual({ ok: false, error: 'invalid' })
+    expect(upsertSiteSettings).not.toHaveBeenCalled()
+  })
+
   it('upserts (blank → null), busts the cache tag, and returns ok', async () => {
     const result = await updateSiteSettings(VALID)
     expect(result).toEqual({ ok: true })

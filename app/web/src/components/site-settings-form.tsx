@@ -46,9 +46,14 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings | null }) 
   // uses sonner toasts (success / non-field failure), matching set-form.tsx. The
   // action returns no field-specific error codes, so there is no setError mapping.
   async function submit(values: SiteSettingsFormValues) {
-    const res = await updateSiteSettings(values)
-    if (res.ok) toast.success(t('saved'))
-    else toast.error(t('saveError'))
+    try {
+      const res = await updateSiteSettings(values)
+      if (res.ok) toast.success(t('saved'))
+      else toast.error(t('saveError'))
+    } catch {
+      // A thrown action (DB down, forbidden) otherwise fails silently.
+      toast.error(t('saveError'))
+    }
   }
 
   // FormField wraps RHF's Controller; FormLabel/FormControl auto-associate the

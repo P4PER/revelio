@@ -11,7 +11,8 @@ export type SiteSettingsActionResult = { ok: true } | { ok: false; error: string
 // Server-side validation only needs pass/fail; the client form supplies the copy.
 const schema = makeSiteSettingsSchema((k) => k)
 
-const nullify = (v: string): string | null => (v.trim() === '' ? null : v.trim())
+// Schema fields are already `.trim()`-ed, so values arrive trimmed here.
+const nullify = (v: string): string | null => (v === '' ? null : v)
 
 export async function updateSiteSettings(input: unknown): Promise<SiteSettingsActionResult> {
   await requireRole('admin')

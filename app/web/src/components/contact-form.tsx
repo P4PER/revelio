@@ -95,34 +95,31 @@ export function ContactForm({ renderedAt }: { renderedAt: number }) {
         </div>
         <input type="hidden" {...form.register('renderedAt')} />
 
-        {/* name + email share a row from sm up. */}
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div className="space-y-2">
-            <label htmlFor="contact-name" className="text-sm font-medium text-foreground">
-              {t('name')}
-            </label>
-            <Input
-              id="contact-name"
-              type="text"
-              className="h-11 text-base"
-              aria-invalid={!!form.formState.errors.name}
-              {...form.register('name')}
-            />
-            <FieldError>{form.formState.errors.name?.message}</FieldError>
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="contact-email" className="text-sm font-medium text-foreground">
-              {t('email')}
-            </label>
-            <Input
-              id="contact-email"
-              type="email"
-              className="h-11 text-base"
-              aria-invalid={!!form.formState.errors.email}
-              {...form.register('email')}
-            />
-            <FieldError>{form.formState.errors.email?.message}</FieldError>
-          </div>
+        <div className="space-y-2">
+          <label htmlFor="contact-name" className="text-sm font-medium text-foreground">
+            {t('name')}
+          </label>
+          <Input
+            id="contact-name"
+            type="text"
+            className="h-11 text-base"
+            aria-invalid={!!form.formState.errors.name}
+            {...form.register('name')}
+          />
+          <FieldError>{form.formState.errors.name?.message}</FieldError>
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="contact-email" className="text-sm font-medium text-foreground">
+            {t('email')}
+          </label>
+          <Input
+            id="contact-email"
+            type="email"
+            className="h-11 text-base"
+            aria-invalid={!!form.formState.errors.email}
+            {...form.register('email')}
+          />
+          <FieldError>{form.formState.errors.email?.message}</FieldError>
         </div>
 
         <div className="space-y-2">

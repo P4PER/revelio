@@ -10,11 +10,6 @@ import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
 
-// The four Harry Potter TCG Lessons that have a canonical colour — the game's
-// own resource system. Used as the hero's signature accent rule.
-const LESSON_RULE =
-  'linear-gradient(90deg, transparent, #0069A9 20%, #00A661 40%, #E2AE37 60%, #BC3E4D 80%, transparent)'
-
 const TECH = ['Next.js', 'React', 'Meilisearch', 'PostgreSQL', 'Tailwind CSS']
 
 const HPTCG_URL = 'https://harrypottertcg.com/'
@@ -43,7 +38,6 @@ export function AboutContent({ githubUrl }: { githubUrl: string | null }) {
         <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
           {t('tagline')}
         </p>
-        <div aria-hidden className="mt-8 h-px w-64 max-w-[75%]" style={{ backgroundImage: LESSON_RULE }} />
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Button asChild>
             <Link href="/sets">{t('ctaBrowse')}</Link>

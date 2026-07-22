@@ -3,6 +3,7 @@ export {
   types, subTypes, lessons, rarities, legalities,
   sets, cards, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, cardLocalizations,
   subTypeLocalizations, setLocalizations, decks, deckCards, deckLikes, deckViews,
+  siteSettings,
 } from './schema'
 export { user, session, account, verification } from './auth-schema'
 export { createClient } from './client'

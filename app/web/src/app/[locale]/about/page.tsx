@@ -41,10 +41,7 @@ export function AboutContent({ githubUrl }: { githubUrl: string | null }) {
           aria-hidden
           className="pointer-events-none absolute left-1/2 top-4 -z-10 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/20 blur-[100px]"
         />
-        <p className="text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground">
-          {t('eyebrow')}
-        </p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-foreground sm:text-6xl">
+        <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-6xl">
           {t('titlePrefix')} <span className="text-primary">{BRAND_NAME}</span>
         </h1>
         <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">

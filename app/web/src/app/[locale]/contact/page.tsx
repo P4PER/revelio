@@ -29,10 +29,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
       />
 
       <div className="flex flex-col items-center text-center">
-        <p className="text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground">
-          {t('eyebrow')}
-        </p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+        <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
           {t('titlePrefix')} <span className="text-primary">{t('titleAccent')}</span>
         </h1>
         <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground">

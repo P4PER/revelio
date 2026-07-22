@@ -17,11 +17,10 @@ vi.mock('@/components/contact-form', () => ({
 import ContactPage from '../contact/page'
 
 describe('ContactPage', () => {
-  it('renders the eyebrow, accent title, intro, and the form', async () => {
+  it('renders the accent title, intro, and the form', async () => {
     const ui = await ContactPage({ params: Promise.resolve({ locale: 'en' }) })
     render(ui)
 
-    expect(screen.getByText('eyebrow')).toBeInTheDocument()
     const heading = screen.getByRole('heading', { level: 1 })
     expect(heading).toHaveTextContent('titlePrefix')
     expect(heading).toHaveTextContent('titleAccent')

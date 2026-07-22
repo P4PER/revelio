@@ -587,7 +587,6 @@
   },
   "about": {
     "metaTitle": "Über",
-    "eyebrow": "Inoffizielles Fan-Projekt",
     "titlePrefix": "Über",
     "tagline": "Ein schnelles, durchsuchbares Zuhause für jede Karte des Harry Potter Trading Card Game.",
     "ctaBrowse": "Editionen ansehen",
@@ -679,7 +678,6 @@
   },
   "contact": {
     "metaTitle": "Kontakt — Revelio",
-    "eyebrow": "Fragen & Feedback",
     "titlePrefix": "Kontakt zum",
     "titleAccent": "Archiv",
     "intro": "Fragen, Korrekturen oder Feedback zu den Kartendaten? Schreiben Sie uns eine Nachricht — wir antworten per E-Mail.",

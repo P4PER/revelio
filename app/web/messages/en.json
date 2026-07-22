@@ -618,7 +618,7 @@
     "ctaRandom": "Random card",
     "ctaGithub": "View on GitHub",
     "storyTitle": "What it is",
-    "storyBody1": "Revelio is a Scryfall-style database for the Harry Potter Trading Card Game — the collectible card game Wizards of the Coast released in 2001. Search by name, lesson, type, or rarity, then open any card for its full text, rulings, and printings in English and German.",
+    "storyBody1": "Revelio is a searchable database for the Harry Potter Trading Card Game — the collectible card game Wizards of the Coast released in 2001. Search by name, lesson, type, or rarity, then open any card for its full text, rulings, and printings in English and German.",
     "storyBody2": "It's an unofficial, non-commercial project made by fans who wanted the game's cards preserved and easy to find.",
     "builtTitle": "How it's built",
     "builtBody": "Revelio is open source, built on a modern web stack:",

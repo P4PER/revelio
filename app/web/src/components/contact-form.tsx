@@ -3,23 +3,14 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
-import { makeContactSchema } from '@/lib/schemas/contact'
+import { makeContactSchema, type ContactFormValues } from '@/lib/schemas/contact'
 import { sendContactMessage, type ContactResult } from '@/lib/contact-actions'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { FieldError } from '@/components/ui/field-error'
 
-// `website` (honeypot) and `renderedAt` (timing token) are `.optional()` in the
-// schema, so they must be optional here for the zodResolver output type to match.
-type Values = {
-  name: string
-  email: string
-  subject: string
-  message: string
-  website?: string
-  renderedAt?: string
-}
+type Values = ContactFormValues
 
 // Maps a failed action result code to a `contact` error message key.
 const ERROR_KEY: Record<Exclude<ContactResult, { ok: true }>['error'], string> = {
@@ -58,12 +49,18 @@ export function ContactForm({
   })
 
   async function onSubmit(values: Values) {
-    const res = await sendContactMessage(values)
-    if (res.ok) {
-      setSent(true)
-      return
+    try {
+      const res = await sendContactMessage(values)
+      if (res.ok) {
+        setSent(true)
+        return
+      }
+      form.setError('root', { message: t(ERROR_KEY[res.error]) })
+    } catch {
+      // The action can still reject (DB down before it returns a code, an RSC
+      // transport error, …). Surface a generic error rather than failing silently.
+      form.setError('root', { message: t('errorGeneric') })
     }
-    form.setError('root', { message: t(ERROR_KEY[res.error]) })
   }
 
   // Success — the reveal. The panel body swaps to a centered gold spark that
@@ -82,6 +79,19 @@ export function ContactForm({
           </span>
           <h2 className="mt-5 text-lg font-semibold text-foreground">{t('successTitle')}</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">{t('successBody')}</p>
+          <Button
+            type="button"
+            variant="ghost"
+            className="mt-6"
+            onClick={() => {
+              // Reset to the original defaults (keeps the signed-in prefill and reuses
+              // the still-valid renderedAt token) so a second message can be sent.
+              form.reset()
+              setSent(false)
+            }}
+          >
+            {t('sendAnother')}
+          </Button>
         </div>
       </div>
     )

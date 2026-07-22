@@ -29,3 +29,7 @@ export function makeContactSchema(t: T) {
     renderedAt: z.string().optional(),
   })
 }
+
+// Derived from the schema so the form's field types can never drift from validation.
+// `website`/`renderedAt` are optional here (they're `.optional()` above).
+export type ContactFormValues = z.infer<ReturnType<typeof makeContactSchema>>

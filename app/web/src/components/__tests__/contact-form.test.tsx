@@ -83,4 +83,28 @@ describe('ContactForm', () => {
 
     expect(await screen.findByText(en.contact.errorRate)).toBeInTheDocument()
   })
+
+  it('surfaces a generic error when the action rejects instead of failing silently', async () => {
+    sendContactMessage.mockRejectedValueOnce(new Error('boom'))
+    const user = userEvent.setup()
+    renderForm()
+    await fillValid(user)
+    await user.click(screen.getByRole('button', { name: en.contact.send }))
+
+    expect(await screen.findByText(en.contact.errorGeneric)).toBeInTheDocument()
+  })
+
+  it('can send another message after success (resets the form)', async () => {
+    const user = userEvent.setup()
+    renderForm()
+    await fillValid(user)
+    await user.click(screen.getByRole('button', { name: en.contact.send }))
+    await screen.findByText(en.contact.successTitle)
+
+    await user.click(screen.getByRole('button', { name: en.contact.sendAnother }))
+
+    // Back to a blank form ready for a second message.
+    expect(screen.getByLabelText(en.contact.subject)).toHaveValue('')
+    expect(screen.getByRole('button', { name: en.contact.send })).toBeInTheDocument()
+  })
 })

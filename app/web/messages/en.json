@@ -723,6 +723,7 @@
     "sending": "Sending…",
     "successTitle": "Your message is on its way",
     "successBody": "Thanks — we'll reply by email.",
+    "sendAnother": "Send another message",
     "errorRate": "You've sent a few messages already. Please try again later.",
     "errorUnconfigured": "The contact address isn't set up yet. Please try again later.",
     "errorSend": "Something went wrong sending your message. Please try again.",

@@ -19,11 +19,19 @@ const MIN_SUBMIT_MS = 3000
 const schema = makeContactSchema((k) => k)
 
 function clientIp(h: Headers): string {
-  // Trust the reverse proxy's forwarded chain; first entry is the client. Fall back
-  // to x-real-ip, then a constant so the limiter still buckets unknown-IP traffic.
+  // The leftmost x-forwarded-for entry is CLIENT-CONTROLLED (a bot can send its own
+  // header and rotate it to dodge the per-IP limit), so we never trust it. Behind our
+  // single reverse proxy the trustworthy value is x-real-ip (the proxy overwrites any
+  // client-supplied one); failing that, the LAST x-forwarded-for entry is the hop our
+  // proxy appended. Fall back to a constant so unknown-IP traffic still shares a bucket.
+  const realIp = h.get('x-real-ip')?.trim()
+  if (realIp) return realIp
   const fwd = h.get('x-forwarded-for')
-  if (fwd) return fwd.split(',')[0].trim()
-  return h.get('x-real-ip') ?? 'unknown'
+  if (fwd) {
+    const parts = fwd.split(',')
+    return parts[parts.length - 1].trim()
+  }
+  return 'unknown'
 }
 
 export async function sendContactMessage(input: unknown): Promise<ContactResult> {

@@ -689,6 +689,7 @@
     "sending": "Wird gesendet…",
     "successTitle": "Deine Nachricht ist unterwegs",
     "successBody": "Danke — wir antworten per E-Mail.",
+    "sendAnother": "Weitere Nachricht senden",
     "errorRate": "Du hast bereits einige Nachrichten gesendet. Bitte versuch es später erneut.",
     "errorUnconfigured": "Die Kontaktadresse ist noch nicht eingerichtet. Bitte versuch es später erneut.",
     "errorSend": "Beim Senden deiner Nachricht ist etwas schiefgelaufen. Bitte versuch es erneut.",

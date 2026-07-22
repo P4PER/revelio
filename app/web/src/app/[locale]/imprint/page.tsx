@@ -41,7 +41,8 @@ export function ImprintContent({
 
       <h2>{t('contactTitle')}</h2>
       <p>
-        {t('contactLabel')} {contactEmail ?? nc}
+        {t('contactLabel')}{' '}
+        {contactEmail ? <a href={`mailto:${contactEmail}`}>{contactEmail}</a> : nc}
       </p>
 
       {responsiblePerson && (

@@ -41,7 +41,8 @@ export function PrivacyContent({
       <p>{t('controllerIntro')}</p>
       <p className="whitespace-pre-line">{`${operatorName ?? nc}\n${operatorAddress ?? nc}`}</p>
       <p>
-        {t('controllerContactLabel')} {contactEmail ?? nc}
+        {t('controllerContactLabel')}{' '}
+        {contactEmail ? <a href={`mailto:${contactEmail}`}>{contactEmail}</a> : nc}
       </p>
       <p>{t('dpoBody')}</p>
 

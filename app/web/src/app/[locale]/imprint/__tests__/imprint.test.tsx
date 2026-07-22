@@ -30,6 +30,12 @@ describe('ImprintContent', () => {
     expect(screen.getByText(/hi@example\.com/)).toBeInTheDocument()
   })
 
+  it('renders the contact email as a mailto link', () => {
+    renderImprint('en', en, BASE)
+    const link = screen.getByRole('link', { name: 'hi@example.com' })
+    expect(link).toHaveAttribute('href', 'mailto:hi@example.com')
+  })
+
   it('renders the German title (Impressum)', () => {
     renderImprint('de', de, BASE)
     expect(screen.getByRole('heading', { level: 1, name: 'Impressum' })).toBeInTheDocument()

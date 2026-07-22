@@ -19,6 +19,11 @@ export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL,
   database: drizzleAdapter(db, { provider: 'pg', schema }),
   emailAndPassword: { enabled: false },
+  // Prefix auth cookies so they share the `revelio.` family with our functional
+  // cookies (revelio.deck-view, revelio.collection-stepper) — e.g.
+  // `revelio.session_token`. Changing this renames the cookie and logs existing
+  // sessions out once.
+  advanced: { cookiePrefix: 'revelio' },
   plugins: [
     username(),
     admin(), // adds `role` (default 'user') + ban fields

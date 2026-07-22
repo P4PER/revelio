@@ -36,6 +36,12 @@ describe('PrivacyContent', () => {
     expect(screen.getByText(/within the European Union/)).toBeInTheDocument()
   })
 
+  it('renders the contact email as a mailto link', () => {
+    renderPrivacy('en', en, FULL)
+    const link = screen.getByRole('link', { name: 'hi@example.com' })
+    expect(link).toHaveAttribute('href', 'mailto:hi@example.com')
+  })
+
   it('presents the Art. 21 right to object as its own section', () => {
     renderPrivacy('en', en, FULL)
     expect(screen.getByRole('heading', { name: /Right to object/i })).toBeInTheDocument()

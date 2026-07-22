@@ -503,7 +503,7 @@
   "validation": {
     "required": "Dieses Feld ist erforderlich.",
     "tooLong": "Dieser Eintrag ist zu lang.",
-    "messageTooShort": "Bitte schreiben Sie etwas mehr.",
+    "messageTooShort": "Bitte schreib etwas mehr.",
     "email": "Gib eine gültige E-Mail-Adresse ein.",
     "sixDigits": "Gib den 6-stelligen Code ein.",
     "usernameTaken": "Dieser Benutzername ist vergeben.",
@@ -680,18 +680,18 @@
     "metaTitle": "Kontakt — Revelio",
     "titlePrefix": "Kontakt zum",
     "titleAccent": "Archiv",
-    "intro": "Fragen, Korrekturen oder Feedback zu den Kartendaten? Schreiben Sie uns eine Nachricht — wir antworten per E-Mail.",
+    "intro": "Fragen, Korrekturen oder Feedback zu den Kartendaten? Schreib uns eine Nachricht — wir antworten per E-Mail.",
     "name": "Name",
     "email": "E-Mail-Adresse",
     "subject": "Betreff",
     "message": "Nachricht",
     "send": "Nachricht senden",
     "sending": "Wird gesendet…",
-    "successTitle": "Ihre Nachricht ist unterwegs",
+    "successTitle": "Deine Nachricht ist unterwegs",
     "successBody": "Danke — wir antworten per E-Mail.",
-    "errorRate": "Sie haben bereits einige Nachrichten gesendet. Bitte versuchen Sie es später erneut.",
-    "errorUnconfigured": "Die Kontaktadresse ist noch nicht eingerichtet. Bitte versuchen Sie es später erneut.",
-    "errorSend": "Beim Senden Ihrer Nachricht ist etwas schiefgelaufen. Bitte versuchen Sie es erneut.",
-    "errorGeneric": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+    "errorRate": "Du hast bereits einige Nachrichten gesendet. Bitte versuch es später erneut.",
+    "errorUnconfigured": "Die Kontaktadresse ist noch nicht eingerichtet. Bitte versuch es später erneut.",
+    "errorSend": "Beim Senden deiner Nachricht ist etwas schiefgelaufen. Bitte versuch es erneut.",
+    "errorGeneric": "Etwas ist schiefgelaufen. Bitte versuch es erneut."
   }
 }

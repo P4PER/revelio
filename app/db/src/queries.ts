@@ -1,7 +1,7 @@
 import { eq, asc, desc, sql, inArray, and, or, isNotNull, ilike, count, arrayOverlaps } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import type { DB } from './client'
-import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations, setLocalizations, decks, deckCards, deckLikes, deckViews, collections, userCards } from './schema'
+import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations, setLocalizations, decks, deckCards, deckLikes, deckViews, collections, userCards, siteSettings } from './schema'
 import { user } from './auth-schema'
 import type { SetDTO, CardLocalizationDTO, CardDetailDTO, AdventureData, MatchData, DeckDTO, DeckCardView, DeckFormat, DeckVisibility, CollectionVisibility, OwnedQuantities, SetProgress, CollectionSummary } from '@revelio/core'
 import { deckCardMeta } from '@revelio/core'
@@ -942,4 +942,35 @@ export async function resolveCollectionOwner(
   const [byId] = await db.select({ userId: user.id, username: user.username })
     .from(user).where(eq(user.id, key)).limit(1)
   return byId ? { userId: byId.userId, username: byId.username } : null
+}
+
+const SITE_SETTINGS_ID = 'singleton'
+
+export type SiteSettings = typeof siteSettings.$inferSelect
+export type SiteSettingsInput = {
+  operatorName: string | null
+  operatorAddress: string | null
+  contactEmail: string | null
+  hostingProvider: string | null
+  responsiblePerson: string | null
+  githubUrl: string | null
+}
+
+export async function getSiteSettings(db: DB): Promise<SiteSettings | null> {
+  const rows = await db
+    .select()
+    .from(siteSettings)
+    .where(eq(siteSettings.id, SITE_SETTINGS_ID))
+    .limit(1)
+  return rows[0] ?? null
+}
+
+export async function upsertSiteSettings(db: DB, values: SiteSettingsInput): Promise<void> {
+  await db
+    .insert(siteSettings)
+    .values({ id: SITE_SETTINGS_ID, ...values, updatedAt: new Date() })
+    .onConflictDoUpdate({
+      target: siteSettings.id,
+      set: { ...values, updatedAt: new Date() },
+    })
 }

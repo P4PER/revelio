@@ -36,6 +36,15 @@ export default async function AdminIndexPage({ params }: { params: Promise<{ loc
             <div className="text-sm text-muted-foreground">{t('users.desc')}</div>
           </Link>
         )}
+        {isAdmin && (
+          <Link
+            href="/admin/settings"
+            className="block rounded-lg border border-input p-4 transition-colors hover:bg-muted/50"
+          >
+            <div className="font-medium">{t('settings.title')}</div>
+            <div className="text-sm text-muted-foreground">{t('settings.desc')}</div>
+          </Link>
+        )}
       </div>
     </div>
   )

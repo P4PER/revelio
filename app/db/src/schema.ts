@@ -206,5 +206,20 @@ export const userCards = pgTable('user_cards', {
   byUserCard: index('user_cards_user_card_idx').on(t.userId, t.cardId),
 }))
 
+// --- site settings (admin-editable singleton) ---
+// One row (id = 'singleton') holding operator/legal values shown on the Imprint
+// and Privacy pages plus the footer GitHub link. All content columns are nullable:
+// the row may be partially filled and consumers treat null as "not set".
+export const siteSettings = pgTable('site_settings', {
+  id: text('id').primaryKey().default('singleton'),
+  operatorName: text('operator_name'),
+  operatorAddress: text('operator_address'),
+  contactEmail: text('contact_email'),
+  hostingProvider: text('hosting_provider'),
+  responsiblePerson: text('responsible_person'),
+  githubUrl: text('github_url'),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+
 // Better Auth tables (generated via @better-auth/cli).
 export * from './auth-schema'

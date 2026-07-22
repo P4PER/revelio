@@ -5,6 +5,7 @@ import { nextCookies } from 'better-auth/next-js'
 import { createClient, schema } from '@revelio/db'
 import { renderOtpEmail } from '@/lib/email/otp-template'
 import { sendMail } from '@/lib/email/mailer'
+import { getCachedSiteSettings } from '@/lib/site-settings'
 
 const db = createClient(process.env.DATABASE_URL ?? '').db
 
@@ -28,7 +29,12 @@ export const auth = betterAuth({
         // Password auth is disabled, so 'forget-password' never fires; map it
         // defensively so the remaining kinds match our template's union.
         const kind = type === 'forget-password' ? 'sign-in' : type
-        const { subject, html, text } = await renderOtpEmail({ otp, type: kind })
+        const settings = await getCachedSiteSettings()
+        const { subject, html, text } = await renderOtpEmail({
+          otp,
+          type: kind,
+          contactEmail: settings?.contactEmail ?? '',
+        })
         await sendMail({ to: email, subject, html, text })
       },
     }),

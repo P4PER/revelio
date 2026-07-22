@@ -196,6 +196,7 @@
   },
   "admin": {
     "title": "Admin",
+    "settings": { "title": "Settings", "desc": "Operator, legal, and footer details." },
     "subTypes": "Sub-types",
     "subTypesDesc": "Translate creature and character sub-types.",
     "code": "Code",
@@ -509,7 +510,21 @@
     "fileType": "Choose an image file.",
     "fileSize": "The image must be 5 MB or smaller.",
     "costRange": "Min cost must not exceed max cost.",
-    "saveFailed": "Could not save. Please try again."
+    "saveFailed": "Could not save. Please try again.",
+    "url": "Enter a valid URL"
+  },
+  "adminSettings": {
+    "title": "Site settings",
+    "intro": "Operator and legal details shown on the Imprint and Privacy pages, plus the footer GitHub link.",
+    "operatorName": "Operator name",
+    "operatorAddress": "Postal address",
+    "contactEmail": "Contact email",
+    "hostingProvider": "Hosting provider",
+    "responsiblePerson": "Responsible person (optional)",
+    "githubUrl": "GitHub URL",
+    "save": "Save",
+    "saved": "Settings saved.",
+    "saveError": "Could not save settings."
   },
   "pagination": {
     "label": "Pagination",

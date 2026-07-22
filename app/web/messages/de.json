@@ -196,6 +196,7 @@
   },
   "admin": {
     "title": "Admin",
+    "settings": { "title": "Einstellungen", "desc": "Betreiber-, Rechts- und Footer-Angaben." },
     "subTypes": "Unterarten",
     "subTypesDesc": "Kreatur- und Charakter-Unterarten übersetzen.",
     "code": "Code",
@@ -509,7 +510,21 @@
     "fileType": "Wähle eine Bilddatei.",
     "fileSize": "Das Bild darf höchstens 5 MB groß sein.",
     "costRange": "Min-Kosten dürfen die Max-Kosten nicht überschreiten.",
-    "saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen."
+    "saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
+    "url": "Bitte eine gültige URL eingeben"
+  },
+  "adminSettings": {
+    "title": "Website-Einstellungen",
+    "intro": "Betreiber- und Rechtsangaben für Impressum und Datenschutz sowie der GitHub-Link im Footer.",
+    "operatorName": "Name des Betreibers",
+    "operatorAddress": "Postanschrift",
+    "contactEmail": "Kontakt-E-Mail",
+    "hostingProvider": "Hosting-Anbieter",
+    "responsiblePerson": "Verantwortliche Person (optional)",
+    "githubUrl": "GitHub-URL",
+    "save": "Speichern",
+    "saved": "Einstellungen gespeichert.",
+    "saveError": "Einstellungen konnten nicht gespeichert werden."
   },
   "pagination": {
     "label": "Seitennavigation",

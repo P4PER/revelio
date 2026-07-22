@@ -3,10 +3,11 @@ export {
   types, subTypes, lessons, rarities, legalities,
   sets, cards, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, cardLocalizations,
   subTypeLocalizations, setLocalizations, decks, deckCards, deckLikes, deckViews,
+  siteSettings,
 } from './schema'
 export { user, session, account, verification } from './auth-schema'
 export { createClient } from './client'
 export type { DB } from './client'
 export { migrationsDir, runMigrations } from './migrate'
-export { getCardById, listSets, getSetByCode, getSetForEdit, getRandomCardId, upsertLocalization, setLocalizationImage, setSetSymbolVersion, getCardIndexData, saveRulings, listRulingSources, getSubTypeLabels, listSubTypesWithTranslations, saveSubTypeTranslations, createSet, updateSet, deleteSet, listDecksByUser, getDeck, getDeckForViewer, createDeck, updateDeck, updateDeckMeta, deleteDeck, resolveCardsByName, getCardViews, toggleLike, recordView, listPublicDecks, getDeckLikeState, listUsersForAdmin, getUserForAdmin, countAdmins, countUserDecks, updateUserRole, setUserBan, clearUserBan, deleteUserById, setCardQuantity, setCollectionVisibility, getCardFinishes, getOwnedQuantities, getCollectionVisibility, getOwnedCardIds, getDuplicateCardIds, getCollectionSetProgress, getCollectionSummary, resolveCollectionOwner } from './queries'
-export type { SetForEdit, SetWriteInput, DeckWriteInput, DeckSummary, PublicDeckSort, PublicDeckEntry, ListPublicDecksInput, UserAdminRow, UserAdminDetail } from './queries'
+export { getCardById, listSets, getSetByCode, getSetForEdit, getRandomCardId, upsertLocalization, setLocalizationImage, setSetSymbolVersion, getCardIndexData, saveRulings, listRulingSources, getSubTypeLabels, listSubTypesWithTranslations, saveSubTypeTranslations, createSet, updateSet, deleteSet, listDecksByUser, getDeck, getDeckForViewer, createDeck, updateDeck, updateDeckMeta, deleteDeck, resolveCardsByName, getCardViews, toggleLike, recordView, listPublicDecks, getDeckLikeState, listUsersForAdmin, getUserForAdmin, countAdmins, countUserDecks, updateUserRole, setUserBan, clearUserBan, deleteUserById, setCardQuantity, setCollectionVisibility, getCardFinishes, getOwnedQuantities, getCollectionVisibility, getOwnedCardIds, getDuplicateCardIds, getCollectionSetProgress, getCollectionSummary, resolveCollectionOwner, getSiteSettings, upsertSiteSettings } from './queries'
+export type { SetForEdit, SetWriteInput, DeckWriteInput, DeckSummary, PublicDeckSort, PublicDeckEntry, ListPublicDecksInput, UserAdminRow, UserAdminDetail, SiteSettings, SiteSettingsInput } from './queries'

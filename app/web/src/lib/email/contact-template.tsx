@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { createTranslator } from 'next-intl'
 import { render } from '@react-email/render'
-import { Body, Container, Heading, Hr, Html, Section, Text } from '@react-email/components'
+import { Body, Container, Heading, Html, Section, Text } from '@react-email/components'
 import en from '@/../messages/en.json'
 
 interface ContactEmailInput {
@@ -41,6 +41,9 @@ function ContactEmail({ name, email, subject, message, t }: ContactEmailInput & 
             <strong>{t('emailLabel')}:</strong> {email}
           </Text>
           <Text style={row}>
+            <strong>{t('subjectLabel')}:</strong> {subject}
+          </Text>
+          <Text style={row}>
             <strong>{t('messageLabel')}:</strong>
           </Text>
           {/* Preserve the sender's line breaks; the message is untrusted text and is
@@ -48,8 +51,6 @@ function ContactEmail({ name, email, subject, message, t }: ContactEmailInput & 
           <Section style={messageBox}>
             <Text style={messageText}>{message}</Text>
           </Section>
-          <Hr style={hr} />
-          <Text style={fine}>{subject}</Text>
         </Container>
       </Body>
     </Html>
@@ -92,11 +93,4 @@ const messageText: CSSProperties = {
   fontSize: '14px',
   lineHeight: '1.6',
   color: '#1C1838',
-}
-const hr: CSSProperties = { borderColor: '#d9d5e8', margin: '16px 0' }
-const fine: CSSProperties = {
-  margin: 0,
-  fontFamily: 'Arial,Helvetica,sans-serif',
-  fontSize: '11px',
-  color: '#6a6480',
 }

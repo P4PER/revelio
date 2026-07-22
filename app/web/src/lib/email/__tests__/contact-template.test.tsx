@@ -11,7 +11,9 @@ describe('renderContactEmail', () => {
     })
 
     expect(out.subject).toBe('Contact form: Card data typo')
-    // Sender identity + message survive into both renderings so the operator can reply.
+    // Sender identity, subject, and message survive into both renderings so the
+    // operator can reply.
+    expect(out.html).toContain('Card data typo')
     expect(out.html).toContain('Hermione')
     expect(out.html).toContain('hermione@example.com')
     expect(out.html).toContain('The Lumos card has the wrong lesson cost.')

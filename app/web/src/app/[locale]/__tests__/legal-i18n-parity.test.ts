@@ -6,7 +6,7 @@ import de from '@/../messages/de.json'
 // one locale but missing in the other throws MISSING_MESSAGE at render for that
 // locale. Guard en/de key parity for these namespaces.
 describe('legal/about i18n key parity', () => {
-  for (const ns of ['about', 'privacy', 'imprint'] as const) {
+  for (const ns of ['about', 'privacy', 'imprint', 'contact'] as const) {
     it(`${ns}: en and de expose the same keys`, () => {
       const enKeys = Object.keys((en as Record<string, object>)[ns]).sort()
       const deKeys = Object.keys((de as Record<string, object>)[ns]).sort()

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { useTranslations } from 'next-intl'
 import { ProseShell } from '@/components/legal/prose-shell'
+import { ContactEmail } from '@/components/legal/contact-email'
 import { getCachedSiteSettings } from '@/lib/site-settings'
 import { BRAND_NAME } from '@/lib/brand'
 
@@ -41,8 +42,7 @@ export function ImprintContent({
 
       <h2>{t('contactTitle')}</h2>
       <p>
-        {t('contactLabel')}{' '}
-        {contactEmail ? <a href={`mailto:${contactEmail}`}>{contactEmail}</a> : nc}
+        {t('contactLabel')} <ContactEmail email={contactEmail} fallback={nc} />
       </p>
 
       {responsiblePerson && (

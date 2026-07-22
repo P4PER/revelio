@@ -4,6 +4,7 @@ import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/../i18n/navigation'
 import { getCachedSiteSettings } from '@/lib/site-settings'
+import { BRAND_NAME } from '@/lib/brand'
 import { StarField } from '@/components/star-field'
 import { Button } from '@/components/ui/button'
 
@@ -42,7 +43,7 @@ export function AboutContent({ githubUrl }: { githubUrl: string | null }) {
           {t('eyebrow')}
         </p>
         <h1 className="mt-4 text-4xl font-semibold tracking-tight text-foreground sm:text-6xl">
-          {t.rich('title', { glow: (chunks) => <span className="text-primary">{chunks}</span> })}
+          {t('titlePrefix')} <span className="text-primary">{BRAND_NAME}</span>
         </h1>
         <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
           {t('tagline')}

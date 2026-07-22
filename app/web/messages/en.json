@@ -612,7 +612,7 @@
   "about": {
     "metaTitle": "About",
     "eyebrow": "Unofficial fan project",
-    "title": "About <glow>Revelio</glow>",
+    "titlePrefix": "About",
     "tagline": "A fast, searchable home for every card in the Harry Potter Trading Card Game.",
     "ctaBrowse": "Browse sets",
     "ctaRandom": "Random card",
@@ -654,7 +654,7 @@
     "contactTitle": "Contact requests",
     "contactBody": "If you contact us through the contact form or by email, we process the name, email address, and the content of your message in order to handle your enquiry. These messages are delivered to the operator by email and are not stored in our database. Legal basis: our legitimate interest in answering enquiries and, where your request relates to a contract, the performance of that contract (Art. 6(1)(f) and (b) GDPR).",
     "cookiesTitle": "4. Cookies",
-    "cookiesBody": "We use only cookies and local storage that are necessary to operate the site or to remember choices you make; we set no analytics or tracking cookies and load no third-party tracking technologies, so no consent banner is required. In detail: a strictly necessary session cookie (revelio.session_token) keeps you signed in; functional cookies remember your language (NEXT_LOCALE), your deck overview layout (revelio.deck-view), and your collection layout (revelio.collection-stepper); and your browser's local storage temporarily holds an unsaved deck draft (revelio.deck.draft). These are stored solely to provide functions you have expressly requested, on the basis of § 25(2) TDDDG; any associated processing rests on Art. 6(1)(f) GDPR.",
+    "cookiesBody": "We use only cookies and local storage that are necessary to operate the site or to remember choices you make; we set no analytics or tracking cookies and load no third-party tracking technologies, so no consent banner is required. In detail: strictly necessary authentication cookies whose names begin with revelio. (for example revelio.session_token, prefixed __Secure- when served over HTTPS) keep you signed in; functional cookies remember your language (NEXT_LOCALE), your deck overview layout (revelio.deck-view), and your collection layout (revelio.collection-stepper); and your browser's local storage temporarily holds an unsaved deck draft (revelio.deck.draft). These are stored solely to provide functions you have expressly requested, on the basis of § 25(2) TDDDG; any associated processing rests on Art. 6(1)(f) GDPR.",
     "recipientsTitle": "5. Recipients and processors",
     "recipientsBody": "We use carefully selected processors who act only on our instructions and with whom we have concluded data processing agreements pursuant to Art. 28 GDPR. Your data is processed on the servers of our hosting provider. Login and contact emails are sent via STRATO (STRATO GmbH, Germany). Card images are stored in object storage and contain no personal data.",
     "recipientsHostLabel": "Hosting provider:",

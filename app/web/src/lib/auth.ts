@@ -21,8 +21,8 @@ export const auth = betterAuth({
   emailAndPassword: { enabled: false },
   // Prefix auth cookies so they share the `revelio.` family with our functional
   // cookies (revelio.deck-view, revelio.collection-stepper) — e.g.
-  // `revelio.session_token`. Changing this renames the cookie and logs existing
-  // sessions out once.
+  // `revelio.session_token` (Better Auth prepends `__Secure-` over HTTPS).
+  // Changing this renames the cookies and logs existing sessions out once.
   advanced: { cookiePrefix: 'revelio' },
   plugins: [
     username(),

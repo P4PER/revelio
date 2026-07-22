@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { useTranslations } from 'next-intl'
 import { ProseShell } from '@/components/legal/prose-shell'
+import { ContactEmail } from '@/components/legal/contact-email'
 import { getCachedSiteSettings } from '@/lib/site-settings'
 
 export const dynamic = 'force-dynamic'
@@ -41,8 +42,7 @@ export function PrivacyContent({
       <p>{t('controllerIntro')}</p>
       <p className="whitespace-pre-line">{`${operatorName ?? nc}\n${operatorAddress ?? nc}`}</p>
       <p>
-        {t('controllerContactLabel')}{' '}
-        {contactEmail ? <a href={`mailto:${contactEmail}`}>{contactEmail}</a> : nc}
+        {t('controllerContactLabel')} <ContactEmail email={contactEmail} fallback={nc} />
       </p>
       <p>{t('dpoBody')}</p>
 

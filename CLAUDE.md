@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Revelio (revelio.cards) is a Scryfall-style searchable card database for the **Harry Potter Trading Card Game (2001, WotC)** — an unofficial fan project. Branding lives in `logos/BRAND-GUIDE.md` (Poppins font, gold-on-indigo "Reveal-Glow" scheme). The card dataset and its build pipeline live under `card-data/` (Python, see `card-data/README.md`); the deployable web application lives under `app/`.
+Revelio (revelio.cards) is a searchable card database for the **Harry Potter Trading Card Game (2001, WotC)** — an unofficial fan project. Branding lives in `logos/BRAND-GUIDE.md` (Poppins font, gold-on-indigo "Reveal-Glow" scheme). The card dataset and its build pipeline live under `card-data/` (Python, see `card-data/README.md`); the deployable web application lives under `app/`.
 
 ## Working directory
 

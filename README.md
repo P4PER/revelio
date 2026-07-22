@@ -1,6 +1,6 @@
 # Revelio
 
-**A Scryfall-style searchable card database for the Harry Potter Trading Card Game (2001, Wizards of the Coast).**
+**A searchable card database for the Harry Potter Trading Card Game (2001, Wizards of the Coast).**
 
 > ⚠️ **Unofficial fan project.** Revelio is not affiliated with, endorsed, or
 > sponsored by Warner Bros., Wizards of the Coast, or any rights holder. It is a

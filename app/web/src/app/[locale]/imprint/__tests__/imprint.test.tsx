@@ -46,6 +46,13 @@ describe('ImprintContent', () => {
     expect(screen.getByRole('heading', { name: /Responsible for content/i })).toBeInTheDocument()
   })
 
+  it('repeats the operator address under the responsible person', () => {
+    renderImprint('en', en, { ...BASE, responsiblePerson: 'Max Mustermann' })
+    expect(screen.getByText(/Max Mustermann/)).toBeInTheDocument()
+    // The address shows in both the § 5 provider block and the § 18 block.
+    expect(screen.getAllByText(/12345 Berlin/)).toHaveLength(2)
+  })
+
   it('hides the responsible-person section when null', () => {
     renderImprint('en', en, BASE)
     expect(screen.queryByRole('heading', { name: /Responsible for content/i })).not.toBeInTheDocument()

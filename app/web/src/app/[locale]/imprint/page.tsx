@@ -48,7 +48,9 @@ export function ImprintContent({
       {responsiblePerson && (
         <>
           <h2>{t('responsibleTitle')}</h2>
-          <p className="whitespace-pre-line">{responsiblePerson}</p>
+          {/* § 18(2) MStV wants name + address; the responsible person is the
+              operator, so reuse the § 5 operator address. */}
+          <p className="whitespace-pre-line">{`${responsiblePerson}\n${operatorAddress ?? nc}`}</p>
         </>
       )}
 

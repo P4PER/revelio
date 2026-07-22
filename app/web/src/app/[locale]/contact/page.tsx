@@ -30,12 +30,6 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
 
   return (
     <main className="relative mx-auto max-w-2xl px-6 pt-16 pb-20">
-      {/* Soft gold reveal-glow behind the title. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-6 -z-10 h-56 w-56 -translate-x-1/2 rounded-full bg-primary/15 blur-[90px]"
-      />
-
       <div className="flex flex-col items-center text-center">
         <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
           {t('titlePrefix')} <span className="text-primary">{t('titleAccent')}</span>

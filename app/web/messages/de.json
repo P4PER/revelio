@@ -522,7 +522,7 @@
     "hostingProvider": "Hosting-Anbieter",
     "responsiblePerson": "Verantwortliche Person (optional)",
     "githubUrl": "GitHub-URL",
-    "save": "Einstellungen speichern",
+    "save": "Speichern",
     "saved": "Einstellungen gespeichert.",
     "saveError": "Einstellungen konnten nicht gespeichert werden."
   },

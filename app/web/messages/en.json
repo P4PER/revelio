@@ -522,7 +522,7 @@
     "hostingProvider": "Hosting provider",
     "responsiblePerson": "Responsible person (optional)",
     "githubUrl": "GitHub URL",
-    "save": "Save settings",
+    "save": "Save",
     "saved": "Settings saved.",
     "saveError": "Could not save settings."
   },

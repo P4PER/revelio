@@ -45,6 +45,12 @@ describe('ImprintContent', () => {
     expect(screen.queryByRole('heading', { name: /Responsible for content/i })).not.toBeInTheDocument()
   })
 
+  it('includes the § 36 VSBG consumer dispute-resolution statement', () => {
+    renderImprint('en', en, BASE)
+    expect(screen.getByRole('heading', { name: /Consumer dispute resolution/i })).toBeInTheDocument()
+    expect(screen.getByText(/§ 36 VSBG/)).toBeInTheDocument()
+  })
+
   it('reuses the footer fan-project disclaimer', () => {
     renderImprint('en', en, BASE)
     expect(screen.getByText(/unofficial, non-commercial fan project/i)).toBeInTheDocument()

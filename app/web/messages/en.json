@@ -681,13 +681,16 @@
     "title": "Imprint",
     "notConfigured": "Not configured",
     "providerTitle": "Information pursuant to § 5 DDG",
+    "contactTitle": "Contact",
     "contactLabel": "Email:",
     "responsibleTitle": "Responsible for content pursuant to § 18(2) MStV",
+    "disputeTitle": "Consumer dispute resolution",
+    "disputeBody": "We are neither willing nor obliged to take part in dispute resolution proceedings before a consumer arbitration board (§ 36 VSBG).",
     "liabilityContentTitle": "Liability for content",
-    "liabilityContentBody": "As a service provider we are responsible for our own content on these pages under general law. We are not obliged to monitor transmitted or stored third-party information or to investigate circumstances that indicate unlawful activity. Obligations to remove or block the use of information under general law remain unaffected.",
+    "liabilityContentBody": "As a service provider we are responsible under § 7(1) DDG for our own content on these pages in accordance with general law. Under §§ 8 to 10 DDG, however, we are not obliged as a service provider to monitor transmitted or stored third-party information or to investigate circumstances that indicate unlawful activity. Obligations to remove or block the use of information under general law remain unaffected; liability in this respect is, however, only possible from the point in time at which we become aware of a specific infringement. Upon becoming aware of such infringements, we will remove the content in question promptly.",
     "liabilityLinksTitle": "Liability for links",
-    "liabilityLinksBody": "Our pages contain links to external websites over whose content we have no control. We accept no liability for this third-party content. The respective provider or operator of the linked pages is always responsible for their content. If we become aware of legal violations, we will remove such links promptly.",
+    "liabilityLinksBody": "Our pages contain links to external third-party websites over whose content we have no influence. We therefore cannot accept any liability for this third-party content. The respective provider or operator of the linked pages is always responsible for their content. The linked pages were checked for possible legal violations at the time of linking; no unlawful content was identifiable at that time. Permanent monitoring of the content of the linked pages is, however, unreasonable without concrete evidence of an infringement. Upon becoming aware of legal violations, we will remove such links promptly.",
     "copyrightTitle": "Copyright",
-    "copyrightBody": "Content created by the operators of these pages is subject to copyright. Contributions by third parties are marked as such. Reproduction, editing, distribution, or any kind of use beyond what copyright permits requires the written consent of the respective author or creator."
+    "copyrightBody": "The content and works created by the site operators on these pages are subject to German copyright law. Reproduction, editing, distribution, and any kind of use beyond the limits of copyright require the written consent of the respective author or creator. Downloads and copies of this site are permitted only for private, non-commercial use. Insofar as the content on this site was not created by the operator, the copyrights of third parties are respected; in particular, third-party content is marked as such. Should you nevertheless become aware of a copyright infringement, please let us know, and we will remove such content promptly."
   }
 }

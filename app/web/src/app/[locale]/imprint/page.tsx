@@ -38,6 +38,8 @@ export function ImprintContent({
 
       <h2>{t('providerTitle')}</h2>
       <p className="whitespace-pre-line">{`${operatorName ?? nc}\n${operatorAddress ?? nc}`}</p>
+
+      <h2>{t('contactTitle')}</h2>
       <p>
         {t('contactLabel')} {contactEmail ?? nc}
       </p>
@@ -48,6 +50,9 @@ export function ImprintContent({
           <p className="whitespace-pre-line">{responsiblePerson}</p>
         </>
       )}
+
+      <h2>{t('disputeTitle')}</h2>
+      <p>{t('disputeBody')}</p>
 
       <h2>{t('liabilityContentTitle')}</h2>
       <p>{t('liabilityContentBody')}</p>

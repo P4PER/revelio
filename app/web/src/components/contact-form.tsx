@@ -63,21 +63,55 @@ export function ContactForm({
     }
   }
 
-  // Success — the reveal. The panel body swaps to a centered gold spark that
-  // fades + scales in with a soft glow; reduced-motion users get a static spark.
+  // Success — "owl post". The panel body swaps to a winged-envelope emblem that
+  // lifts in along a drawn gold flight trail (reduced-motion users get it static).
   if (sent) {
     return (
-      <div className="relative overflow-hidden rounded-xl border border-border bg-card">
-        <div role="status" className="flex flex-col items-center px-6 py-14 text-center">
-          {/* The ✦ spark, matching the stars on the not-found page (gold glyph +
-              gold glow), fades + scales in via the reveal-spark keyframe. */}
-          <span
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-card">
+        <div role="status" className="relative flex flex-col items-center px-6 py-14 text-center">
+          {/* Soft gold glow behind the emblem. */}
+          <div
             aria-hidden
-            className="inline-block text-5xl leading-none text-primary [filter:drop-shadow(0_0_18px_rgba(232,178,58,0.5))] motion-safe:animate-[reveal-spark_600ms_ease-out]"
+            className="pointer-events-none absolute left-1/2 top-8 h-40 w-52 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl"
+          />
+          <svg
+            viewBox="0 0 140 100"
+            aria-hidden
+            fill="none"
+            className="relative h-24 w-auto text-primary motion-safe:animate-[owl-lift_620ms_ease-out] [filter:drop-shadow(0_0_14px_rgba(232,178,58,0.45))]"
           >
-            ✦
-          </span>
-          <h2 className="mt-5 text-lg font-semibold text-foreground">{t('successTitle')}</h2>
+            {/* Flight trail — draws itself from the launch point up to the envelope. */}
+            <path
+              d="M18 88 C 34 82, 46 74, 56 62"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeOpacity="0.5"
+              strokeDasharray="130"
+              className="motion-safe:animate-[trail-draw_720ms_200ms_ease-out_both]"
+            />
+            <circle cx="18" cy="88" r="2.4" fill="currentColor" fillOpacity="0.6" />
+
+            {/* Winged envelope. */}
+            <path d="M58 42 C 44 34, 32 38, 22 34 C 32 42, 44 46, 57 47 Z" fill="currentColor" fillOpacity="0.85" />
+            <path d="M82 42 C 96 34, 108 38, 118 34 C 108 42, 96 46, 83 47 Z" fill="currentColor" fillOpacity="0.85" />
+            <rect x="58" y="38" width="24" height="17" rx="3" fill="currentColor" />
+            <path
+              d="M58.5 40.5 L70 49 L81.5 40.5"
+              stroke="#1b1836"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+
+            {/* Destination spark. */}
+            <path
+              d="M112 16 l1.7 4.5 4.8 .2 -3.8 2.9 1.4 4.6 -4.1-2.7 -4.1 2.7 1.4-4.6 -3.8-2.9 4.8-.2 z"
+              fill="currentColor"
+              className="motion-safe:animate-[spark-pulse_2.4s_ease-in-out_infinite]"
+            />
+          </svg>
+          <h2 className="mt-6 text-lg font-semibold text-foreground">{t('successTitle')}</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">{t('successBody')}</p>
           <Button
             type="button"

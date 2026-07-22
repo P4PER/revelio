@@ -78,7 +78,7 @@ export function ContactForm({
             viewBox="0 0 140 100"
             aria-hidden
             fill="none"
-            className="relative h-28 w-auto text-primary motion-safe:animate-[owl-lift_620ms_ease-out] [filter:drop-shadow(0_0_9px_rgba(232,178,58,0.28))]"
+            className="relative h-32 w-auto text-primary motion-safe:animate-[owl-lift_620ms_ease-out] [filter:drop-shadow(0_0_9px_rgba(232,178,58,0.28))]"
           >
             {/* Flight trail — draws itself from the launch point up to the envelope. */}
             <path
@@ -116,8 +116,8 @@ export function ContactForm({
               />
             </g>
           </svg>
-          <h2 className="mt-6 text-lg font-semibold text-foreground">{t('successTitle')}</h2>
-          <p className="mt-1.5 text-sm text-muted-foreground">{t('successBody')}</p>
+          <h2 className="mt-6 text-xl font-semibold text-foreground">{t('successTitle')}</h2>
+          <p className="mt-2 max-w-sm text-base text-muted-foreground">{t('successBody')}</p>
           <Button
             type="button"
             variant="ghost"

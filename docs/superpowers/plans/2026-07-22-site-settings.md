@@ -682,8 +682,8 @@ git commit -m "feat(web): add site-settings validation schema and save action"
 - Test: `app/web/src/components/__tests__/site-settings-form.test.tsx`
 
 **Interfaces:**
-- Consumes: `updateSiteSettings` (Task 6), `makeSiteSettingsSchema` (Task 6), `SiteSettings` (Task 2), `Input`, `AutoTextarea` (`@/components/ui/auto-textarea`), `FieldError`, `Button`.
-- Produces: `SiteSettingsForm({ initial }: { initial: SiteSettings | null })` (client component).
+- Consumes: `updateSiteSettings` (Task 6), `makeSiteSettingsSchema` (Task 6), `SiteSettings` (Task 2), the shadcn `Form`/`FormField`/`FormItem`/`FormLabel`/`FormControl`/`FormMessage` set (`@/components/ui/form`), `Input`, `AutoTextarea` (`@/components/ui/auto-textarea`), `Button`.
+- Produces: `SiteSettingsForm({ initial }: { initial: SiteSettings | null })` (client component). Follows the project's reactive-error pattern (per the inline-errors spec + `set-form.tsx`): RHF `mode: 'onSubmit'` + `reValidateMode: 'onChange'`; per-field validation errors render reactively via shadcn `FormMessage` under each control; the save result uses `sonner` toasts (`toast.success` / `toast.error`) — toasts are reserved for success and non-field save failures. The settings action has no field-specific server error codes, so no `form.setError(field, …)` mapping is needed (unlike set-form's `exists` → `code`).
 
 - [ ] **Step 1: Add the i18n keys**
 
@@ -748,6 +748,8 @@ const update = vi.fn(async () => ({ ok: true }))
 vi.mock('@/lib/site-settings-actions', () => ({
   updateSiteSettings: (...a: unknown[]) => update(...a),
 }))
+const toast = { success: vi.fn(), error: vi.fn(), warning: vi.fn() }
+vi.mock('sonner', () => ({ toast }))
 
 function renderForm(initial: Parameters<typeof SiteSettingsForm>[0]['initial'] = null) {
   return render(
@@ -757,7 +759,11 @@ function renderForm(initial: Parameters<typeof SiteSettingsForm>[0]['initial'] =
   )
 }
 
-beforeEach(() => update.mockClear())
+beforeEach(() => {
+  update.mockClear().mockResolvedValue({ ok: true })
+  toast.success.mockClear()
+  toast.error.mockClear()
+})
 
 describe('SiteSettingsForm', () => {
   it('prefills fields from initial settings', () => {
@@ -770,20 +776,24 @@ describe('SiteSettingsForm', () => {
     expect(screen.getByDisplayValue('hi@revelio.cards')).toBeInTheDocument()
   })
 
-  it('shows a validation error for a bad email and does not submit', async () => {
+  it('shows a reactive validation error for a bad email and does not submit', async () => {
     renderForm()
     fireEvent.input(screen.getByLabelText(en.adminSettings.contactEmail), { target: { value: 'nope' } })
     fireEvent.click(screen.getByRole('button', { name: en.adminSettings.save }))
     await waitFor(() => expect(screen.getByText(en.validation.email)).toBeInTheDocument())
     expect(update).not.toHaveBeenCalled()
+    // reValidateMode: 'onChange' — correcting the field clears the error live.
+    fireEvent.input(screen.getByLabelText(en.adminSettings.contactEmail), { target: { value: 'ok@x.com' } })
+    await waitFor(() => expect(screen.queryByText(en.validation.email)).toBeNull())
   })
 
-  it('submits valid values through the action', async () => {
+  it('submits valid values through the action and toasts success', async () => {
     renderForm()
     fireEvent.input(screen.getByLabelText(en.adminSettings.operatorName), { target: { value: 'Jane' } })
     fireEvent.click(screen.getByRole('button', { name: en.adminSettings.save }))
     await waitFor(() => expect(update).toHaveBeenCalledTimes(1))
     expect(update.mock.calls[0][0]).toMatchObject({ operatorName: 'Jane' })
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith(en.adminSettings.saved))
   })
 })
 ```
@@ -799,18 +809,26 @@ Create `app/web/src/components/site-settings-form.tsx`:
 
 ```tsx
 'use client'
-import { useState } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
+import { toast } from 'sonner'
 import type { SiteSettings } from '@revelio/db'
 import { updateSiteSettings } from '@/lib/site-settings-actions'
 import { makeSiteSettingsSchema, type SiteSettingsFormValues } from '@/lib/schemas/site-settings'
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { FieldError } from '@/components/ui/field-error'
+
+type TextField = 'operatorName' | 'contactEmail' | 'hostingProvider' | 'responsiblePerson' | 'githubUrl'
 
 function toValues(initial: SiteSettings | null): SiteSettingsFormValues {
   return {
@@ -826,64 +844,74 @@ function toValues(initial: SiteSettings | null): SiteSettingsFormValues {
 export function SiteSettingsForm({ initial }: { initial: SiteSettings | null }) {
   const t = useTranslations('adminSettings')
   const tv = useTranslations('validation')
-  const [status, setStatus] = useState<'idle' | 'saved' | 'error'>('idle')
 
-  const { register, handleSubmit, control, formState } = useForm<SiteSettingsFormValues>({
+  const form = useForm<SiteSettingsFormValues>({
     resolver: zodResolver(makeSiteSettingsSchema((k) => tv(k))),
     defaultValues: toValues(initial),
     mode: 'onSubmit',
     reValidateMode: 'onChange',
   })
 
-  async function onSubmit(values: SiteSettingsFormValues) {
-    setStatus('idle')
-    const result = await updateSiteSettings(values)
-    setStatus(result.ok ? 'saved' : 'error')
+  // Field/validation errors surface reactively via <FormMessage>. The save result
+  // uses sonner toasts (success / non-field failure), matching set-form.tsx. The
+  // action returns no field-specific error codes, so there is no setError mapping.
+  async function submit(values: SiteSettingsFormValues) {
+    const res = await updateSiteSettings(values)
+    if (res.ok) toast.success(t('saved'))
+    else toast.error(t('saveError'))
   }
 
-  // Single-line fields use RHF's uncontrolled register(). The address uses a
-  // <Controller> because AutoTextarea is a *controlled* component (value/onChange),
-  // matching how rulings-editor.tsx binds it.
-  const inputField = (name: keyof SiteSettingsFormValues) => (
-    <div className="space-y-1.5">
-      <Label htmlFor={name}>{t(name)}</Label>
-      <Input id={name} aria-invalid={!!formState.errors[name]} {...register(name)} />
-      <FieldError>{formState.errors[name]?.message}</FieldError>
-    </div>
+  // FormField wraps RHF's Controller; FormLabel/FormControl auto-associate the
+  // label with the control, and FormMessage renders that field's zod error.
+  const textField = (name: TextField) => (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{t(name)}</FormLabel>
+          <FormControl>
+            <Input {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   )
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="max-w-xl space-y-4" noValidate>
-      <p className="text-sm text-muted-foreground">{t('intro')}</p>
-      {inputField('operatorName')}
-      <div className="space-y-1.5">
-        <Label htmlFor="operatorAddress">{t('operatorAddress')}</Label>
-        <Controller
-          control={control}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(submit)} className="max-w-xl space-y-4" noValidate>
+        <p className="text-sm text-muted-foreground">{t('intro')}</p>
+        {textField('operatorName')}
+        {/* AutoTextarea is controlled (value/onChange), so bind field explicitly. */}
+        <FormField
+          control={form.control}
           name="operatorAddress"
-          render={({ field, fieldState }) => (
-            <AutoTextarea
-              id="operatorAddress"
-              aria-invalid={!!fieldState.error}
-              value={field.value}
-              onChange={field.onChange}
-            />
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('operatorAddress')}</FormLabel>
+              <FormControl>
+                <AutoTextarea
+                  name={field.name}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
         />
-        <FieldError>{formState.errors.operatorAddress?.message}</FieldError>
-      </div>
-      {inputField('contactEmail')}
-      {inputField('hostingProvider')}
-      {inputField('responsiblePerson')}
-      {inputField('githubUrl')}
-      <div className="flex items-center gap-3">
-        <Button type="submit" disabled={formState.isSubmitting}>
+        {textField('contactEmail')}
+        {textField('hostingProvider')}
+        {textField('responsiblePerson')}
+        {textField('githubUrl')}
+        <Button type="submit" disabled={form.formState.isSubmitting}>
           {t('save')}
         </Button>
-        {status === 'saved' && <span className="text-sm text-muted-foreground">{t('saved')}</span>}
-        {status === 'error' && <span className="text-sm text-destructive">{t('saveError')}</span>}
-      </div>
-    </form>
+      </form>
+    </Form>
   )
 }
 ```

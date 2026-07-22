@@ -27,6 +27,7 @@ export async function sendMail(msg: {
   subject: string
   html: string
   text: string
+  replyTo?: string
 }): Promise<void> {
   const transport = getTransport()
   const from = process.env.MAIL_FROM
@@ -38,5 +39,14 @@ export async function sendMail(msg: {
     throw new Error('[mail] SMTP not configured (set SMTP_HOST and MAIL_FROM)')
   }
 
-  await transport.sendMail({ from, to: msg.to, subject: msg.subject, html: msg.html, text: msg.text })
+  await transport.sendMail({
+    from,
+    to: msg.to,
+    subject: msg.subject,
+    html: msg.html,
+    text: msg.text,
+    // Only set replyTo when given so OTP mail (no replyTo) is unaffected and
+    // nodemailer doesn't receive an undefined header.
+    ...(msg.replyTo ? { replyTo: msg.replyTo } : {}),
+  })
 }

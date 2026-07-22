@@ -73,6 +73,7 @@ Design specs and phased implementation plans live in `docs/superpowers/specs/` a
 - **Conventional Commits** for commit messages.
 - Documentation filenames are UPPERCASE (`README.md`, `MIGRATIONS.md`, `BRAND-GUIDE.md`).
 - All docs/specs/prose in English.
+- **Shared types → `types.ts`.** When a type is used by two or more sibling modules in a folder, define it once in a folder-scoped `types.ts` (e.g. `src/lib/email/types.ts` exports `RenderedEmail`, shared by `otp-template.tsx` and `contact-template.tsx`) and import it with `import type`. Keep single-use types local to their module — don't pre-emptively create a `types.ts` for a type with one consumer.
 
 ## Subagents
 

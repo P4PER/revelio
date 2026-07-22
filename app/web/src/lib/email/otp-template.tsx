@@ -17,6 +17,7 @@ import {
   Text,
 } from '@react-email/components'
 import en from '@/../messages/en.json'
+import type { RenderedEmail } from './types'
 
 export type OtpEmailType = 'sign-in' | 'email-verification' | 'change-email'
 
@@ -24,12 +25,6 @@ interface OtpEmailInput {
   otp: string
   type: OtpEmailType
   contactEmail: string
-}
-
-interface RenderedEmail {
-  subject: string
-  html: string
-  text: string
 }
 
 // OTP lifetime shown to the reader — keep in sync with `expiresIn` (600s) in auth.ts.

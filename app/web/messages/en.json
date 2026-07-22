@@ -502,6 +502,8 @@
   },
   "validation": {
     "required": "This field is required.",
+    "tooLong": "This entry is too long.",
+    "messageTooShort": "Please write a little more.",
     "email": "Enter a valid email address.",
     "sixDigits": "Enter the 6-digit code.",
     "usernameTaken": "That username is taken.",
@@ -607,11 +609,18 @@
       "disclaimer": "Revelio is an unofficial fan project for the Harry Potter Trading Card Game (2001, WotC).",
       "linkLabel": "revelio.cards",
       "contactLabel": "Questions?"
+    },
+    "contact": {
+      "subject": "Contact form: {subject}",
+      "heading": "New contact message",
+      "fromLabel": "From",
+      "emailLabel": "Email",
+      "subjectLabel": "Subject",
+      "messageLabel": "Message"
     }
   },
   "about": {
     "metaTitle": "About",
-    "eyebrow": "Unofficial fan project",
     "titlePrefix": "About",
     "tagline": "A fast, searchable home for every card in the Harry Potter Trading Card Game.",
     "ctaBrowse": "Browse sets",
@@ -700,5 +709,24 @@
     "liabilityLinksBody": "Our pages contain links to external third-party websites over whose content we have no influence. We therefore cannot accept any liability for this third-party content. The respective provider or operator of the linked pages is always responsible for their content. The linked pages were checked for possible legal violations at the time of linking; no unlawful content was identifiable at that time. Permanent monitoring of the content of the linked pages is, however, unreasonable without concrete evidence of an infringement. Upon becoming aware of legal violations, we will remove such links promptly.",
     "copyrightTitle": "Copyright",
     "copyrightBody": "The content and works created by the site operators on these pages are subject to German copyright law. Reproduction, editing, distribution, and any kind of use beyond the limits of copyright require the written consent of the respective author or creator. Downloads and copies of this site are permitted only for private, non-commercial use. Insofar as the content on this site was not created by the operator, the copyrights of third parties are respected; in particular, third-party content is marked as such. Should you nevertheless become aware of a copyright infringement, please let us know, and we will remove such content promptly."
+  },
+  "contact": {
+    "metaTitle": "Contact — Revelio",
+    "titlePrefix": "Contact the",
+    "titleAccent": "archive",
+    "intro": "Questions, corrections, or feedback about the card data? Send a message — we'll reply by email.",
+    "name": "Name",
+    "email": "Email",
+    "subject": "Subject",
+    "message": "Message",
+    "send": "Send message",
+    "sending": "Sending…",
+    "successTitle": "Off by owl",
+    "successBody": "Your message is winging its way to us — we'll reply by email.",
+    "sendAnother": "Send another message",
+    "errorRate": "You've sent a few messages already. Please try again later.",
+    "errorUnconfigured": "The contact address isn't set up yet. Please try again later.",
+    "errorSend": "Something went wrong sending your message. Please try again.",
+    "errorGeneric": "Something went wrong. Please try again."
   }
 }

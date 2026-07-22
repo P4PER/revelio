@@ -12,7 +12,7 @@ describe('ProseShell', () => {
     )
     const main = screen.getByRole('main')
     expect(main).toBeInTheDocument()
-    expect(main.className).toContain('max-w-3xl')
+    expect(main.className).toContain('max-w-[76rem]')
     expect(screen.getByRole('heading', { level: 1, name: 'Hello' })).toBeInTheDocument()
     expect(screen.getByText('Body text.')).toBeInTheDocument()
   })

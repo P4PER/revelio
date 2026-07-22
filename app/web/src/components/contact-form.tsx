@@ -104,12 +104,17 @@ export function ContactForm({
               strokeLinejoin="round"
             />
 
-            {/* Destination spark. */}
-            <path
-              d="M112 16 l1.7 4.5 4.8 .2 -3.8 2.9 1.4 4.6 -4.1-2.7 -4.1 2.7 1.4-4.6 -3.8-2.9 4.8-.2 z"
-              fill="currentColor"
+            {/* Destination spark — the four-point sparkle from the logo mark
+                (logos/revelio-icon.svg), scaled down and placed at the trail's head. */}
+            <g
+              transform="translate(112 17) scale(0.46) translate(-70 -34)"
               className="motion-safe:animate-[spark-pulse_2.4s_ease-in-out_infinite]"
-            />
+            >
+              <path
+                d="M70,16 Q73.4,30.6 88,34 Q73.4,37.4 70,52 Q66.6,37.4 52,34 Q66.6,30.6 70,16 Z"
+                fill="currentColor"
+              />
+            </g>
           </svg>
           <h2 className="mt-6 text-lg font-semibold text-foreground">{t('successTitle')}</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">{t('successBody')}</p>

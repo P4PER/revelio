@@ -26,6 +26,8 @@ export async function updateSiteSettings(input: unknown): Promise<SiteSettingsAc
     responsiblePerson: nullify(d.responsiblePerson),
     githubUrl: nullify(d.githubUrl),
   })
-  revalidateTag(SITE_SETTINGS_TAG)
+  // Next 16 requires a cache-life profile as the second arg; 'max' is the
+  // documented drop-in for the old single-arg call — it purges the tag outright.
+  revalidateTag(SITE_SETTINGS_TAG, 'max')
   return { ok: true }
 }

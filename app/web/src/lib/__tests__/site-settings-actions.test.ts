@@ -60,7 +60,7 @@ describe('updateSiteSettings', () => {
         githubUrl: 'https://github.com/P4PER/revelio',
       },
     )
-    expect(revalidateTag).toHaveBeenCalledWith('site-settings')
+    expect(revalidateTag).toHaveBeenCalledWith('site-settings', 'max')
   })
 
   it('allows empty contactEmail and githubUrl', async () => {

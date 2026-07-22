@@ -72,13 +72,13 @@ export function ContactForm({
           {/* Soft gold glow behind the emblem. */}
           <div
             aria-hidden
-            className="pointer-events-none absolute left-1/2 top-8 h-40 w-52 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl"
+            className="pointer-events-none absolute left-1/2 top-9 h-36 w-48 -translate-x-1/2 rounded-full bg-primary/8 blur-2xl"
           />
           <svg
             viewBox="0 0 140 100"
             aria-hidden
             fill="none"
-            className="relative h-24 w-auto text-primary motion-safe:animate-[owl-lift_620ms_ease-out] [filter:drop-shadow(0_0_14px_rgba(232,178,58,0.45))]"
+            className="relative h-28 w-auto text-primary motion-safe:animate-[owl-lift_620ms_ease-out] [filter:drop-shadow(0_0_9px_rgba(232,178,58,0.28))]"
           >
             {/* Flight trail — draws itself from the launch point up to the envelope. */}
             <path

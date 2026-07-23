@@ -78,12 +78,10 @@ export function AdminSidebar({ isAdmin }: { isAdmin: boolean }) {
 
   return (
     <>
-      {/* Desktop: static sidebar sitting in the gutter (always mounted). */}
-      <aside className="hidden w-48 shrink-0 min-[1024px]:block">
-        <div className="sticky top-6">
-          {label}
-          <NavList isAdmin={isAdmin} activeHref={activeHref} />
-        </div>
+      {/* Desktop: static sidebar column (sits in the left gutter on wide screens). */}
+      <aside className="hidden w-48 shrink-0 self-start min-[1024px]:block min-[1024px]:sticky min-[1024px]:top-6">
+        {label}
+        <NavList isAdmin={isAdmin} activeHref={activeHref} />
       </aside>
 
       {/* Mobile: trigger + drawer. */}

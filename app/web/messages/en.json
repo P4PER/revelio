@@ -196,6 +196,12 @@
   },
   "admin": {
     "title": "Admin",
+    "nav": {
+      "subTypes": "Sub-types",
+      "sets": "Sets",
+      "users": "Users",
+      "settings": "Settings"
+    },
     "settings": { "title": "Settings", "desc": "Operator, legal, and footer details." },
     "subTypes": "Sub-types",
     "subTypesDesc": "Translate creature and character sub-types.",

@@ -79,7 +79,7 @@ export function AdminSidebar({ isAdmin }: { isAdmin: boolean }) {
   return (
     <>
       {/* Desktop: static sidebar sitting in the gutter (always mounted). */}
-      <aside className="hidden w-48 shrink-0 min-[1180px]:block">
+      <aside className="hidden w-48 shrink-0 min-[1024px]:block">
         <div className="sticky top-6">
           {label}
           <NavList isAdmin={isAdmin} activeHref={activeHref} />
@@ -87,7 +87,7 @@ export function AdminSidebar({ isAdmin }: { isAdmin: boolean }) {
       </aside>
 
       {/* Mobile: trigger + drawer. */}
-      <div className="min-[1180px]:hidden">
+      <div className="min-[1024px]:hidden">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
             <Button variant="outline" size="sm" className="gap-2">

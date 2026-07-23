@@ -196,6 +196,12 @@
   },
   "admin": {
     "title": "Admin",
+    "nav": {
+      "subTypes": "Unterarten",
+      "sets": "Sets",
+      "users": "Benutzer",
+      "settings": "Einstellungen"
+    },
     "settings": { "title": "Einstellungen", "desc": "Betreiber-, Rechts- und Footer-Angaben." },
     "subTypes": "Unterarten",
     "subTypesDesc": "Kreatur- und Charakter-Unterarten übersetzen.",

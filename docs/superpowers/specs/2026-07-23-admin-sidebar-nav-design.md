@@ -94,16 +94,19 @@ normal centered `max-w-[76rem]`. This avoids a squeezed content column at interm
 **`src/app/[locale]/admin/layout.tsx`** (modify — stays server component)
 - Keep: `getSession()` + `hasRequiredRole(role, 'editor')` → `notFound()`.
 - Compute `isAdmin = hasRequiredRole(role, 'admin')`.
-- Replace the bare `<main>` with a centered flex row that places the sidebar in the gutter and
-  keeps the content at full width:
-  `<div className="mx-auto flex w-fit gap-8 px-6 py-10"> <AdminSidebar isAdmin={isAdmin} /> <main className="w-full max-w-[76rem] min-w-0">{children}</main> </div>`.
-- The sidebar is a fixed ~200px sticky column; the content keeps `max-w-[76rem]`, so the row's
-  total width exceeds 76rem and the sidebar occupies gutter space rather than shrinking content.
-- Below the combined breakpoint the sidebar column is hidden (`hidden xl:flex` or similar) and
-  the content falls back to the normal centered `max-w-[76rem]`; nav is reached via the mobile
-  `Sheet` trigger. Pick the breakpoint so the sidebar only shows when `76rem + ~200px + gap`
-  fits (Tailwind `xl` = 80rem is too small on its own, so use a `min-[…]` arbitrary breakpoint
-  around `72rem`+sidebar, e.g. `min-[1180px]:flex`).
+- Wrap children in the same `mx-auto max-w-[76rem] px-6` container as the header (so the
+  content's right edge always aligns with the header and never spills past it), with an inner
+  flex row holding `<AdminSidebar isAdmin={isAdmin} />` + `<main className="min-w-0 flex-1 min-[1024px]:max-w-[76rem]">{children}</main>`.
+- **Two-tier width behaviour** so the content column is anchored to the header while only the
+  sidebar reaches into the gutter, without ever overflowing:
+  - `>=1700px`: the inner row is pulled 14rem into the left gutter
+    (`min-[1700px]:-ml-56 min-[1700px]:w-[calc(100%+14rem)]`); the sidebar (12rem) + gap (2rem)
+    occupy that extra width and content keeps the full 76rem — only the sidebar goes "over".
+  - `1024px–1699px`: sidebar and content share the 76rem row (content a bit narrower); nothing
+    overflows and content still aligns with the header's right edge.
+  - `<1024px`: the row stacks (`flex-col`) and the sidebar collapses to the mobile `Sheet`
+    trigger.
+- The sidebar `<aside>` is a `w-48` (12rem) sticky column (`self-start min-[1024px]:sticky min-[1024px]:top-6`).
 
 **`src/components/admin-sidebar.tsx`** (new — client component, `'use client'`)
 - Props: `{ isAdmin: boolean }`.

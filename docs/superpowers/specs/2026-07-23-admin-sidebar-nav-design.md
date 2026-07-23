@@ -28,10 +28,10 @@ already know.
 
 **In scope**
 - New two-column admin shell: sidebar + content.
-- New `AdminSidebar` client component (nav, active state, role gating, "Back to site",
-  mobile drawer, last-section cookie writer).
+- New `AdminSidebar` client component (nav, active state, role gating, mobile drawer,
+  last-section cookie writer).
 - `/admin` becomes a server-side "resume last section" redirect; the link-card grid is removed.
-- i18n keys for the nav labels and "Back to site".
+- i18n keys for the nav labels.
 
 **Out of scope**
 - Any change to the individual section pages' contents (sub-types, sets, users, settings tables).
@@ -62,30 +62,48 @@ which links to *show*.
 ## Architecture
 
 The parent `[locale]/layout.tsx` continues to supply `SiteHeader` / `SiteFooter`. The admin
-layout renders inside it:
+layout renders inside it.
+
+**Sidebar lives in the gutter, not inside the content width.** The admin content column keeps
+the app's full `max-w-[76rem]`; the sidebar is a fixed-width (~200px) column placed *to the
+left of* that content, so the overall shell is wider than 76rem and the content never loses
+width to the nav. The shell is centered as a whole, so on wide screens the sidebar sits in the
+left margin/gutter beside the full-width content:
 
 ```
-┌ SiteHeader  (unchanged — logo → home, main nav)               ┐
-├───────────────┬───────────────────────────────────────────────┤
-│  AdminSidebar │  <main> {children} </main>                     │
-│  (sticky)     │                                                │
-│  · Sub-types  │                                                │
-│  · Sets       │                                                │
-│  · Users*     │   * admin-only                                 │
-│  · Settings*  │                                                │
-│  ─────────    │                                                │
-│  ← Back to site                                                │
-└───────────────┴───────────────────────────────────────────────┘
+┌ SiteHeader  (unchanged — logo → home, main nav) ─────────────────────────────┐
+├──────────────┬───────────────────────────────────────────────────────────────┤
+│              │                                                                │
+│ AdminSidebar │   <main> {children} </main>        (full max-w-[76rem])        │
+│  (~200px,    │                                                                │
+│   sticky,    │   · Sub-types  · Sets  · Users*  · Settings*   * admin-only    │
+│   gutter)    │                                                                │
+└──────────────┴───────────────────────────────────────────────────────────────┘
+   └── sidebar width + gap sits OUTSIDE the 76rem content column ──┘
 ```
+
+The shell is a flex row: `[sidebar (fixed ~200px)] [gap] [content (max-w-[76rem])]`, with the
+whole row centered (`w-fit mx-auto`) so the content column matches the width of every other
+page and the sidebar consumes gutter space. When the viewport is too narrow to fit both
+side-by-side (roughly below `76rem + sidebar + gap`), the desktop sidebar column is dropped
+and nav moves entirely into the mobile `Sheet` drawer (see below) — the content then uses the
+normal centered `max-w-[76rem]`. This avoids a squeezed content column at intermediate widths.
 
 ### Components & files
 
 **`src/app/[locale]/admin/layout.tsx`** (modify — stays server component)
 - Keep: `getSession()` + `hasRequiredRole(role, 'editor')` → `notFound()`.
 - Compute `isAdmin = hasRequiredRole(role, 'admin')`.
-- Replace the bare `<main>` with a two-column wrapper (`max-w-[76rem]` container preserved):
-  `<AdminSidebar isAdmin={isAdmin} />` + `<main className="min-w-0 flex-1 …">{children}</main>`.
-- On desktop the sidebar is a sticky left column (~200px). Layout uses flex/`gap`.
+- Replace the bare `<main>` with a centered flex row that places the sidebar in the gutter and
+  keeps the content at full width:
+  `<div className="mx-auto flex w-fit gap-8 px-6 py-10"> <AdminSidebar isAdmin={isAdmin} /> <main className="w-full max-w-[76rem] min-w-0">{children}</main> </div>`.
+- The sidebar is a fixed ~200px sticky column; the content keeps `max-w-[76rem]`, so the row's
+  total width exceeds 76rem and the sidebar occupies gutter space rather than shrinking content.
+- Below the combined breakpoint the sidebar column is hidden (`hidden xl:flex` or similar) and
+  the content falls back to the normal centered `max-w-[76rem]`; nav is reached via the mobile
+  `Sheet` trigger. Pick the breakpoint so the sidebar only shows when `76rem + ~200px + gap`
+  fits (Tailwind `xl` = 80rem is too small on its own, so use a `min-[…]` arbitrary breakpoint
+  around `72rem`+sidebar, e.g. `min-[1180px]:flex`).
 
 **`src/components/admin-sidebar.tsx`** (new — client component, `'use client'`)
 - Props: `{ isAdmin: boolean }`.
@@ -101,7 +119,8 @@ layout renders inside it:
 - Links use `Link` from `@/../i18n/navigation` (locale-aware).
 - Active styling: `bg` tint from `--primary` + gold `text-primary`, matching the artifact
   mockup and existing token usage.
-- **"Back to site"** link (`←` + label) pinned at the bottom, `href="/"`.
+- No dedicated "back to site" control: the global `SiteHeader` logo (always present above the
+  shell) is the route back to the main site.
 - **Last-section cookie writer:** a `useEffect` keyed on `pathname` writes
   `document.cookie = "revelio.admin.section=<pathname>; path=/; max-age=…; SameSite=Lax"`
   whenever the pathname is an admin *section* route. It stores the **locale-stripped section
@@ -125,7 +144,6 @@ layout renders inside it:
 - Add under `admin`:
   - `nav.subTypes`, `nav.sets`, `nav.users`, `nav.settings` — short sidebar labels
     (reuse existing wording: "Sub-types", "Sets", "Users", "Settings").
-  - `backToSite` — e.g. "Back to site" / "Zurück zur Seite".
 - Existing `admin.title` / `admin.*.desc` keys stay (still used by section pages); the
   redundant grid copy is simply no longer rendered.
 
@@ -136,7 +154,7 @@ layout renders inside it:
 2. Section page renders inside the layout shell; `AdminSidebar` highlights the active item and
    writes the cookie for the current section.
 3. Navigating between sections updates the highlight (client) and the cookie (client effect).
-4. "Back to site" or the header logo → `/`.
+4. The header logo → `/` (the way back to the main site).
 
 ## Error handling & edge cases
 
@@ -157,7 +175,6 @@ layout renders inside it:
 - **`admin-sidebar.test.tsx`** (new):
   - Renders all four items when `isAdmin`; hides Users & Settings when not.
   - Marks the correct item active for `/admin/sets` and for a nested `/admin/sets/new`.
-  - Renders the "Back to site" link → `/`.
   - Writes the `revelio.admin.section` cookie to the section href on the active pathname;
     does not write for `/admin`.
 - **`/admin` redirect** — unit-test the cookie→target resolution helper (extract the

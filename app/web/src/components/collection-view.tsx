@@ -84,7 +84,7 @@ export function CollectionView({
   }
 
   const grid = (list: CollectionCard[]) => (
-    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+    <ul className="grid grid-cols-2 gap-3 min-[640px]:grid-cols-3 min-[768px]:grid-cols-4 min-[1700px]:grid-cols-5">
       {list.map((c) => (
         <li key={c.id}>
           <CollectionCardTile card={c} quantities={quantities[c.id] ?? {}} editable={editable} locale={locale} stepperLayout={layout} />

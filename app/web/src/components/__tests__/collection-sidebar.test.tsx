@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { CollectionSidebar } from '@/components/collection-sidebar'
 
@@ -28,5 +28,11 @@ describe('CollectionSidebar', () => {
     wrap(<CollectionSidebar sets={sets} progress={progress} selected="BS" hrefFor={(c) => `?set=${c}`} />)
     expect(screen.getByTestId('set-row-BS').dataset.active).toBe('true')
     expect(screen.getByTestId('set-row-PR').dataset.active).toBe('false')
+  })
+  it('calls onSelect when a set row is clicked', () => {
+    const onSelect = vi.fn()
+    wrap(<CollectionSidebar sets={sets} progress={progress} selected="BS" hrefFor={(c) => `?set=${c}`} onSelect={onSelect} />)
+    fireEvent.click(screen.getByTestId('set-row-PR'))
+    expect(onSelect).toHaveBeenCalledTimes(1)
   })
 })

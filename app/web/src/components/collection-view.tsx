@@ -8,7 +8,7 @@ import { parseSearchParams, withParams } from '@/lib/search-params'
 import { STEPPER_LAYOUT_COOKIE, type StepperLayout } from '@/lib/collection-prefs'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { CollectionSidebar } from '@/components/collection-sidebar'
+import { CollectionSetNav } from '@/components/collection-set-nav'
 import { CollectionCardTile, type CollectionCard } from '@/components/collection-card-tile'
 import { CollectionFilterDrawer } from '@/components/collection-filter-drawer'
 import { ClearFiltersButton } from '@/components/clear-filters-button'
@@ -114,12 +114,10 @@ export function CollectionView({
       </div>
 
       <TabsContent value="sets">
-        <div className="grid gap-6 md:grid-cols-[16rem_1fr]">
-          <aside className="md:sticky md:top-6 md:self-start md:max-h-[calc(100vh-3rem)] md:overflow-y-auto">
-            <CollectionSidebar sets={sets} progress={progress} selected={selectedSet}
-              hrefFor={(c) => `?tab=sets&set=${c}`} />
-          </aside>
-          <section className="hidden md:block">
+        <div className="flex flex-col gap-4 min-[1024px]:flex-row min-[1024px]:gap-8 min-[1700px]:-ml-72 min-[1700px]:w-[calc(100%+18rem)]">
+          <CollectionSetNav sets={sets} progress={progress} selected={selectedSet}
+            hrefFor={(c) => `?tab=sets&set=${c}`} />
+          <section className="min-w-0 flex-1 min-[1024px]:max-w-[76rem]">
             {cards.length ? grid(cards) : <p className="text-muted-foreground">{t('empty')}</p>}
           </section>
         </div>

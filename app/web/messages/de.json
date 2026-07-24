@@ -548,6 +548,7 @@
     "distinct": "{owned} / {total} Karten",
     "browseAll": "Alle durchsuchen",
     "bySets": "Nach Set",
+    "setsNav": "Sets",
     "addToCollection": "Zur Sammlung hinzufügen",
     "inCollection": "In Sammlung",
     "ownership": "Besitz",

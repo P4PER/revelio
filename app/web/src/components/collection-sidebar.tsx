@@ -7,15 +7,17 @@ import { cn } from '@/lib/utils'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
-export function CollectionSidebar({
-  sets, progress, selected, hrefFor, onSelect,
-}: {
+/** Shared shape for the set-nav sidebar and its responsive wrapper. */
+export type SetNavProps = {
   sets: SetDTO[]
   progress: SetProgress[]
   selected?: string
   hrefFor: (setCode: string) => string
-  onSelect?: () => void
-}) {
+}
+
+export function CollectionSidebar({
+  sets, progress, selected, hrefFor, onSelect,
+}: SetNavProps & { onSelect?: () => void }) {
   const t = useTranslations('collection')
   const byCode = new Map(progress.map((p) => [p.setCode, p]))
   return (

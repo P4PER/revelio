@@ -83,8 +83,13 @@ export function CollectionView({
     router.push(`${pathname}?${next.toString()}`)
   }
 
+  // Column breakpoints use arbitrary min-[] values (not sm:/md:) on purpose:
+  // Tailwind v4 orders named breakpoint utilities AFTER arbitrary min-[] ones, so a
+  // named md:grid-cols-4 would win over min-[1780px]:grid-cols-5 at every width. Keep
+  // them all min-[] so they cascade by ascending width. 640/768 mirror sm/md; 5-up is
+  // tied to the 1780px gutter breakpoint below (where the card column is full-width).
   const grid = (list: CollectionCard[]) => (
-    <ul className="grid grid-cols-2 gap-3 min-[640px]:grid-cols-3 min-[768px]:grid-cols-4 min-[1700px]:grid-cols-5">
+    <ul className="grid grid-cols-2 gap-3 min-[640px]:grid-cols-3 min-[768px]:grid-cols-4 min-[1780px]:grid-cols-5">
       {list.map((c) => (
         <li key={c.id}>
           <CollectionCardTile card={c} quantities={quantities[c.id] ?? {}} editable={editable} locale={locale} stepperLayout={layout} />
@@ -114,7 +119,15 @@ export function CollectionView({
       </div>
 
       <TabsContent value="sets">
-        <div className="flex flex-col gap-4 min-[1024px]:flex-row min-[1024px]:gap-8 min-[1700px]:-ml-72 min-[1700px]:w-[calc(100%+18rem)]">
+        {/* Gutter layout: content stays anchored to the 76rem container; at >=1780px
+            the row is pulled 18rem into the LEFT gutter (-ml-72) so the 16rem sidebar
+            + 2rem gap hangs outside while the card column keeps full width. The
+            breakpoint is 1780 (not the admin layout's 1700) because the pull here is
+            18rem vs admin's 14rem: at 1700px the gutter is only ~16.6rem, so an 18rem
+            pull would spill past the left viewport edge. 1780px is the smallest width
+            where the gutter can hold 18rem with a little breathing room. Below 1024px
+            it stacks into a Sheet drawer. */}
+        <div className="flex flex-col gap-4 min-[1024px]:flex-row min-[1024px]:gap-8 min-[1780px]:-ml-72 min-[1780px]:w-[calc(100%+18rem)]">
           <CollectionSetNav sets={sets} progress={progress} selected={selectedSet}
             hrefFor={(c) => `?tab=sets&set=${c}`} />
           <section className="min-w-0 flex-1 min-[1024px]:max-w-[76rem]">

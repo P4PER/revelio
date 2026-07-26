@@ -29,7 +29,7 @@ import type { AccountUser } from './account-menu'
 const LOCALE_NAMES: Record<string, string> = { en: 'English', de: 'Deutsch' }
 
 const rowClass =
-  'flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm text-left hover:bg-accent hover:text-accent-foreground'
+  'flex w-full cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-left hover:bg-accent hover:text-accent-foreground'
 
 // Mobile counterpart to the inline header nav: a hamburger that opens a drawer
 // listing every destination as a flat row (dropdowns don't nest cleanly inside

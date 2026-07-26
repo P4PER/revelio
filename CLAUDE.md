@@ -25,6 +25,9 @@ npm run dev -w web           # next dev server
 npm test -w web -- src/lib/__tests__/search-params.test.ts
 npm test -w web -- -t "test name substring"
 
+# Playwright e2e (web only; specs in web/e2e/, config in web/playwright.config.ts)
+npm run e2e -w web           # builds + starts prod server, runs against localhost:3000
+
 # lint (only the web workspace is linted — eslint-config-next)
 npm run lint -w web
 

@@ -3,9 +3,6 @@ import { useState } from 'react'
 import {
   Menu,
   Layers,
-  Compass,
-  Wand2,
-  Library,
   LibraryBig,
   Dices,
   Globe,
@@ -13,9 +10,8 @@ import {
   LogOut,
 } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
-import { Link, usePathname, useRouter } from '@/../i18n/navigation'
+import { Link, usePathname } from '@/../i18n/navigation'
 import { routing } from '@/../i18n/routing'
-import { signOut } from '@/lib/auth-client'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -23,10 +19,10 @@ import {
   SheetTrigger,
   SheetTitle,
 } from '@/components/ui/sheet'
-import type { AccountUser } from './account-menu'
-
-// Autonyms, mirroring LanguageSwitcher.
-const LOCALE_NAMES: Record<string, string> = { en: 'English', de: 'Deutsch' }
+import { DECK_LINKS } from './nav-links'
+import { LOCALE_NAMES, useSwitchLocale } from './locale-switch'
+import { useSignOut } from './use-sign-out'
+import type { AccountUser } from './types'
 
 const rowClass =
   'flex w-full cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-left hover:bg-accent hover:text-accent-foreground'
@@ -45,7 +41,8 @@ export function MobileNav({
   const tAuth = useTranslations('auth')
   const locale = useLocale()
   const pathname = usePathname()
-  const router = useRouter()
+  const switchLocale = useSwitchLocale()
+  const signOut = useSignOut()
   const [open, setOpen] = useState(false)
   const close = () => setOpen(false)
   const isLoggedIn = !!user
@@ -67,20 +64,12 @@ export function MobileNav({
             <Layers className="size-4 opacity-70" />
             {t('sets')}
           </Link>
-          <Link href="/decks" onClick={close} className={rowClass}>
-            <Compass className="size-4 opacity-70" />
-            {t('browse')}
-          </Link>
-          <Link href="/decks/new" onClick={close} className={rowClass}>
-            <Wand2 className="size-4 opacity-70" />
-            {t('deckBuilder')}
-          </Link>
-          {isLoggedIn && (
-            <Link href="/decks/mine" onClick={close} className={rowClass}>
-              <Library className="size-4 opacity-70" />
-              {t('myDecks')}
+          {DECK_LINKS.filter((l) => !l.requiresAuth || isLoggedIn).map((l) => (
+            <Link key={l.href} href={l.href} onClick={close} className={rowClass}>
+              <l.Icon className="size-4 opacity-70" />
+              {t(l.labelKey)}
             </Link>
-          )}
+          ))}
           {isLoggedIn && (
             <Link href="/collection" onClick={close} className={rowClass}>
               <LibraryBig className="size-4 opacity-70" />
@@ -104,7 +93,7 @@ export function MobileNav({
               key={l}
               type="button"
               onClick={() => {
-                router.replace(pathname, { locale: l })
+                switchLocale(l)
                 close()
               }}
               className={`${rowClass}${l === locale ? ' text-primary' : ''}`}
@@ -131,14 +120,7 @@ export function MobileNav({
             <button
               type="button"
               onClick={() => {
-                signOut({
-                  fetchOptions: {
-                    onSuccess: () => {
-                      router.push('/')
-                      router.refresh()
-                    },
-                  },
-                })
+                signOut()
                 close()
               }}
               className={`${rowClass} text-destructive hover:bg-destructive/20 hover:text-destructive`}

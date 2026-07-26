@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi } from 'vitest'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
-import type { AccountUser } from '../account-menu'
+import type { AccountUser } from '../types'
 
 vi.mock('@/lib/auth-client', () => ({ signOut: vi.fn() }))
 vi.mock('@/../i18n/routing', () => ({ routing: { locales: ['en', 'de'] } }))

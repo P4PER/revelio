@@ -12,7 +12,8 @@ vi.mock('@/../i18n/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }))
 
-import { AccountMenu, type AccountUser } from '../account-menu'
+import { AccountMenu } from '../account-menu'
+import type { AccountUser } from '../types'
 
 function renderMenu(isEditor = false, user: AccountUser | null = null) {
   return render(

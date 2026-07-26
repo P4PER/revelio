@@ -5,7 +5,7 @@ import { Link } from '@/../i18n/navigation'
 import { BRAND_NAME } from '@/lib/brand'
 import { Layers, Library } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { BrandMark } from './brand-mark'
+import { HeaderBrandMark } from './header-brand-mark'
 import { DecksMenu } from './decks-menu'
 import { RandomNavButton } from './random-nav-button'
 import { LanguageSwitcher } from './language-switcher'
@@ -29,8 +29,8 @@ export async function SiteHeader() {
   return (
     <header className="border-b border-border/60">
       <div className="mx-auto flex max-w-[76rem] items-center gap-4 px-6 py-2">
-        <Link href="/" aria-label={`${BRAND_NAME} home`} className="shrink-0"><BrandMark /></Link>
-        <Suspense fallback={<div className="w-full max-w-md" />}>
+        <Link href="/" aria-label={`${BRAND_NAME} home`} className="shrink-0"><HeaderBrandMark /></Link>
+        <Suspense fallback={<div className="w-full min-w-0 max-w-md" />}>
           <HeaderSearch placeholder={ts('placeholder')} />
         </Suspense>
         {/* Inline nav at >=1024px; collapses into a drawer below that. */}

@@ -7,14 +7,17 @@ import { cn } from '@/lib/utils'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
-export function CollectionSidebar({
-  sets, progress, selected, hrefFor,
-}: {
+/** Shared shape for the set-nav sidebar and its responsive wrapper. */
+export type SetNavProps = {
   sets: SetDTO[]
   progress: SetProgress[]
   selected?: string
   hrefFor: (setCode: string) => string
-}) {
+}
+
+export function CollectionSidebar({
+  sets, progress, selected, hrefFor, onSelect,
+}: SetNavProps & { onSelect?: () => void }) {
   const t = useTranslations('collection')
   const byCode = new Map(progress.map((p) => [p.setCode, p]))
   return (
@@ -24,7 +27,7 @@ export function CollectionSidebar({
         const pct = p.total > 0 ? Math.round((p.owned / p.total) * 100) : 0
         const active = s.code === selected
         return (
-          <Link key={s.code} href={hrefFor(s.code)}
+          <Link key={s.code} href={hrefFor(s.code)} onClick={onSelect}
             data-testid={`set-row-${s.code}`} data-active={active}
             className={cn(
               'rounded-lg px-3 py-2 transition-colors',

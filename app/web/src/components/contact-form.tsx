@@ -199,7 +199,7 @@ export function ContactForm({
           </label>
           <AutoTextarea
             id="contact-message"
-            className="min-h-32"
+            className="min-h-32 mb-0"
             aria-invalid={!!form.formState.errors.message}
             {...form.register('message')}
           />

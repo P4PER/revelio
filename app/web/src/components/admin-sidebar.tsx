@@ -1,11 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { usePathname, Link } from '@/../i18n/navigation'
-import { Menu, Tags, Layers, Users, Settings, type LucideIcon } from 'lucide-react'
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
-import { Button } from '@/components/ui/button'
+import { Tags, Layers, Users, Settings, type LucideIcon } from 'lucide-react'
+import { ResponsiveSidebar } from '@/components/responsive-sidebar'
 import { cn } from '@/lib/utils'
 import {
   ADMIN_SECTION_COOKIE,
@@ -62,7 +61,6 @@ export function AdminSidebar({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname()
   const activeHref = activeSectionHref(pathname)
   const t = useTranslations('admin')
-  const [open, setOpen] = useState(false)
 
   useEffect(() => {
     if (!activeHref) return
@@ -70,41 +68,22 @@ export function AdminSidebar({ isAdmin }: { isAdmin: boolean }) {
     document.cookie = `${ADMIN_SECTION_COOKIE}=${activeHref}; path=/; max-age=${oneYear}; SameSite=Lax`
   }, [activeHref])
 
-  const label = (
-    <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-      {t('title')}
-    </p>
-  )
-
   return (
-    <>
-      {/* Desktop: static sidebar column (sits in the left gutter on wide screens). */}
-      <aside className="hidden w-48 shrink-0 self-start min-[1024px]:block min-[1024px]:sticky min-[1024px]:top-6">
-        {label}
-        <NavList isAdmin={isAdmin} activeHref={activeHref} />
-      </aside>
-
-      {/* Mobile: trigger + drawer. */}
-      <div className="min-[1024px]:hidden">
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Menu className="size-4" aria-hidden />
-              {t('title')}
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-64 p-4">
-            <SheetTitle className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              {t('title')}
-            </SheetTitle>
-            <NavList
-              isAdmin={isAdmin}
-              activeHref={activeHref}
-              onNavigate={() => setOpen(false)}
-            />
-          </SheetContent>
-        </Sheet>
-      </div>
-    </>
+    <ResponsiveSidebar
+      title={t('title')}
+      railClassName="w-48"
+      drawerClassName="w-64"
+      rail={
+        <>
+          <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {t('title')}
+          </p>
+          <NavList isAdmin={isAdmin} activeHref={activeHref} />
+        </>
+      }
+      drawer={(close) => (
+        <NavList isAdmin={isAdmin} activeHref={activeHref} onNavigate={close} />
+      )}
+    />
   )
 }

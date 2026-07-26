@@ -548,6 +548,7 @@
     "distinct": "{owned} / {total} cards",
     "browseAll": "Browse all",
     "bySets": "By set",
+    "setsNav": "Sets",
     "addToCollection": "Add to collection",
     "inCollection": "In collection",
     "ownership": "Ownership",

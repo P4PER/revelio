@@ -1,8 +1,8 @@
 'use client'
 import { CircleUser, LogOut, Shield } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { Link } from '@/../i18n/navigation'
-import { useSession, signOut } from '@/lib/auth-client'
+import { Link, useRouter } from '@/../i18n/navigation'
+import { signOut } from '@/lib/auth-client'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,18 +13,30 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 
-export function AccountMenu({ isEditor }: { isEditor: boolean }) {
-  const { data } = useSession()
+export type AccountUser = {
+  email: string
+  username?: string | null
+  displayUsername?: string | null
+}
+
+export function AccountMenu({
+  isEditor,
+  user,
+}: {
+  isEditor: boolean
+  user: AccountUser | null
+}) {
   const tAuth = useTranslations('auth')
   const tNav = useTranslations('nav')
-  if (!data?.user) {
+  const router = useRouter()
+  if (!user) {
     return (
       <Button variant="ghost" size="sm" asChild>
         <Link href="/login">{tAuth('signIn')}</Link>
       </Button>
     )
   }
-  const name = data.user.displayUsername ?? data.user.username ?? data.user.email
+  const name = user.displayUsername ?? user.username ?? user.email
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -34,7 +46,7 @@ export function AccountMenu({ isEditor }: { isEditor: boolean }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DropdownMenuLabel className="font-normal text-muted-foreground">
-          {data.user.email}
+          {user.email}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {isEditor && (
@@ -46,7 +58,18 @@ export function AccountMenu({ isEditor }: { isEditor: boolean }) {
           </>
         )}
         <DropdownMenuItem
-          onSelect={() => signOut()}
+          onSelect={() =>
+            signOut({
+              fetchOptions: {
+                onSuccess: () => {
+                  // Send the user home and re-render the server tree so the
+                  // header reflects the signed-out state (no stale session).
+                  router.push('/')
+                  router.refresh()
+                },
+              },
+            })
+          }
           className="text-destructive focus:bg-destructive/20 focus:text-destructive"
         >
           <LogOut />

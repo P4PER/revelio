@@ -42,7 +42,18 @@ export async function SiteHeader() {
           {/* Admin entry is editor-gated via the isEditor flag (server-side role
               check); the /admin route is independently enforced server-side too
               (layout requireRole). */}
-          <AccountMenu isEditor={isEditor} />
+          <AccountMenu
+            isEditor={isEditor}
+            user={
+              session?.user
+                ? {
+                    email: session.user.email,
+                    username: session.user.username,
+                    displayUsername: session.user.displayUsername,
+                  }
+                : null
+            }
+          />
         </nav>
       </div>
     </header>

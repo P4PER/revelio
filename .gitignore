@@ -11,6 +11,9 @@ __pycache__/
 venv/
 .env
 
+# === Node ===
+node_modules/
+
 # === Build / generated artifacts ===
 dist/
 hpjson/

@@ -73,7 +73,10 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         return
       }
     }
+    // Refresh so server components (e.g. the header) re-render with the new
+    // session cookie — without this the header keeps its logged-out state.
     router.push('/')
+    router.refresh()
   }
 
   return (

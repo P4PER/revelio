@@ -1,21 +1,17 @@
 'use client'
 import { useLocale } from 'next-intl'
 import { Globe } from 'lucide-react'
-import { usePathname, useRouter } from '@/../i18n/navigation'
 import { routing } from '@/../i18n/routing'
 import {
   Select, SelectContent, SelectItem, SelectTrigger,
 } from '@/components/ui/select'
-
-// Autonyms: each language written in its own language (i18n best practice).
-const LOCALE_NAMES: Record<string, string> = { en: 'English', de: 'Deutsch' }
+import { LOCALE_NAMES, useSwitchLocale } from './locale-switch'
 
 export function LanguageSwitcher() {
   const locale = useLocale()
-  const pathname = usePathname()
-  const router = useRouter()
+  const switchLocale = useSwitchLocale()
   return (
-    <Select value={locale} onValueChange={(next) => router.replace(pathname, { locale: next })}>
+    <Select value={locale} onValueChange={switchLocale}>
       <SelectTrigger
         size="sm"
         aria-label={`Language: ${LOCALE_NAMES[locale] ?? locale}`}

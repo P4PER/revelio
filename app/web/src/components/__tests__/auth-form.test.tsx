@@ -21,7 +21,7 @@ vi.mock('@/lib/auth-actions', () => ({
   usernameAvailable: (...a: unknown[]) => usernameAvailable(...a),
 }))
 vi.mock('@/../i18n/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
   Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,
 }))
 

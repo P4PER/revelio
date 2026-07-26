@@ -45,7 +45,8 @@
     "decks": "Decks",
     "random": "Random",
     "browse": "Discover decks",
-    "collection": "Collection"
+    "collection": "Collection",
+    "menu": "Menu"
   },
   "search": {
     "title": "Search",

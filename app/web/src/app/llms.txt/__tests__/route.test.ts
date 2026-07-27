@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { routing } from '@/../i18n/routing'
 import { GET } from '../route'
 
 describe('/llms.txt', () => {
@@ -20,5 +21,12 @@ describe('/llms.txt', () => {
     const text = await GET().text()
     expect(text).toMatch(/unofficial/i)
     expect(text).toMatch(/not affiliated/i)
+  })
+
+  it('derives the locale list from routing config (no hardcoded locales)', async () => {
+    const text = await GET().text()
+    for (const locale of routing.locales) {
+      expect(text).toContain(`(${locale}`)
+    }
   })
 })

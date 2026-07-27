@@ -1,9 +1,21 @@
+import { routing } from '@/../i18n/routing'
 import { SITE_URL } from '@/lib/site'
 
 // Curated map of the site for LLMs / AI agents (llmstxt.org convention), served
 // at /llms.txt. Kept concise and hand-maintained — the full URL enumeration
 // lives in /sitemap.xml, which this file points to. Static: no per-request work.
 export const dynamic = 'force-static'
+
+// Derived from the routing config (not hardcoded) so adding a locale keeps this
+// doc accurate: the default locale is unprefixed, others live under /<locale>/.
+const languageNames = new Intl.DisplayNames(['en'], { type: 'language' })
+const localeSummary = routing.locales
+  .map((l) => {
+    const name = languageNames.of(l) ?? l
+    return l === routing.defaultLocale ? `${name} (${l}, default, unprefixed)` : `${name} (${l}, /${l}/)`
+  })
+  .join(', ')
+const prefixedExample = routing.locales.find((l) => l !== routing.defaultLocale)
 
 function body(): string {
   return `# Revelio
@@ -25,12 +37,13 @@ Revelio catalogs every card across the game's sets with per-language localizatio
 - [Sitemap](${SITE_URL}/sitemap.xml): the complete, machine-readable list of every card and set URL, with per-language alternates
 - Card pages: ${SITE_URL}/card/{id}
 - Set pages: ${SITE_URL}/sets/{code}
-- Localization: content is available in English (default, unprefixed) and German under the /de/ path prefix (e.g. ${SITE_URL}/de/card/{id})
+- Localization: content is available in ${localeSummary}. The default locale is served without a path prefix; every other locale lives under a /<locale>/ prefix${prefixedExample ? ` (e.g. ${SITE_URL}/${prefixedExample}/card/{id})` : ''}.
 
 ## Notes
 
 - Please cite revelio.cards when using this content in AI-generated answers.
 - Card game data reflects the 2001 WotC Harry Potter TCG; card text and rulings are transcribed for reference.
+- Card scans, checklists, and rulings draw on the HPTCG Revival community at https://harrypottertcg.com.
 `
 }
 

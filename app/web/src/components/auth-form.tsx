@@ -9,15 +9,21 @@ import { emailHasAccount, usernameAvailable } from '@/lib/auth-actions'
 import { BRAND_NAME } from '@/lib/brand'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { FieldError } from '@/components/ui/field-error'
 import { makeEmailStepSchema, makeCodeSchema } from '@/lib/schemas/auth'
+import { REGEXP_ONLY_DIGITS } from 'input-otp'
 
 // Shared passwordless (email OTP) form. `register` collects a username and sets
 // it after verification; `login` is email-only. Both cross-link to the other.
 //
-// Fields use RHF's uncontrolled register() rather than <Controller>: this form
-// swaps between two separate useForm instances across the email/code step, and
+// The email step uses react-hook-form with uncontrolled register() (NOT
+// <Controller>): the form swaps between the email and code step, and
 // Controller-bound inputs stop updating after that unmount/mount under React 19.
+// The code step is a controlled segmented OTP (InputOTP), so it is kept OUT of
+// react-hook-form entirely — the value lives in local useState and is validated
+// with makeCodeSchema on submit.
 export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
   const t = useTranslations('auth')
   const tv = useTranslations('validation')
@@ -32,12 +38,9 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
     mode: 'onSubmit',
     reValidateMode: 'onChange',
   })
-  const codeForm = useForm<{ code: string }>({
-    resolver: zodResolver(makeCodeSchema((k) => tv(k))),
-    defaultValues: { code: '' },
-    mode: 'onSubmit',
-    reValidateMode: 'onChange',
-  })
+  const [code, setCode] = useState('')
+  const [codeError, setCodeError] = useState<string | null>(null)
+  const [verifying, setVerifying] = useState(false)
 
   async function requestCode(values: { email: string; name?: string }) {
     // /login is for existing users only — account creation happens via /register.
@@ -59,17 +62,27 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
     setStep('code')
   }
 
-  async function verify(values: { code: string }) {
-    const { error } = await authClient.signIn.emailOtp({ email, otp: values.code })
+  async function verify(e: React.FormEvent) {
+    e.preventDefault()
+    setCodeError(null)
+    const parsed = makeCodeSchema((k) => tv(k)).safeParse({ code })
+    if (!parsed.success) {
+      setCodeError(parsed.error.issues[0]?.message ?? tv('sixDigits'))
+      return
+    }
+    setVerifying(true)
+    const { error } = await authClient.signIn.emailOtp({ email, otp: code })
     if (error) {
-      codeForm.setError('code', { message: t('badCode') })
+      setVerifying(false)
+      setCodeError(t('badCode'))
       return
     }
     if (register) {
       const name = emailForm.getValues('name') ?? ''
       const { error: updateError } = await authClient.updateUser({ username: name, displayUsername: name })
       if (updateError) {
-        codeForm.setError('root', { message: t('usernameTaken') })
+        setVerifying(false)
+        setCodeError(t('usernameTaken'))
         return
       }
     }
@@ -80,8 +93,8 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
   }
 
   return (
-    <main className="mx-auto flex min-h-[60vh] max-w-sm flex-col justify-center px-6">
-      <h1 className="mb-2 text-2xl font-semibold text-primary">
+    <div>
+      <h1 className="mb-2 text-2xl font-semibold tracking-tight text-foreground">
         {register ? t('registerTitle') : t('title')}
       </h1>
       {step === 'email' && (
@@ -92,11 +105,15 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         </p>
       )}
       {step === 'email' ? (
-        <form onSubmit={emailForm.handleSubmit(requestCode)} className="space-y-3" noValidate>
+        <form onSubmit={emailForm.handleSubmit(requestCode)} className="space-y-4" noValidate>
           <div className="space-y-1.5">
+            <Label htmlFor="email">{t('email')}</Label>
             <Input
+              id="email"
               type="email"
-              placeholder={t('email')}
+              autoComplete="email"
+              placeholder="you@example.com"
+              className="h-11 text-base md:text-base"
               aria-invalid={!!emailForm.formState.errors.email}
               {...emailForm.register('email')}
             />
@@ -104,9 +121,13 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
           </div>
           {register && (
             <div className="space-y-1.5">
+              <Label htmlFor="username">{t('username')}</Label>
               <Input
+                id="username"
                 type="text"
-                placeholder={t('username')}
+                autoComplete="username"
+                placeholder="e.g. hermione_g"
+                className="h-11 text-base md:text-base"
                 aria-invalid={!!emailForm.formState.errors.name}
                 {...emailForm.register('name')}
               />
@@ -114,27 +135,51 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
             </div>
           )}
           <FieldError>{emailForm.formState.errors.root?.message}</FieldError>
-          <Button type="submit" disabled={emailForm.formState.isSubmitting} className="w-full">
-            {t('sendCode')}
+          <Button type="submit" disabled={emailForm.formState.isSubmitting} className="h-11 w-full text-base">
+            {register ? t('register') : t('login')}
           </Button>
         </form>
       ) : (
-        <form onSubmit={codeForm.handleSubmit(verify)} className="space-y-3" noValidate>
+        <form onSubmit={verify} className="space-y-4" noValidate>
           <p className="text-sm text-muted-foreground">{t('codeSent', { email })}</p>
           <div className="space-y-1.5">
-            <Input
-              inputMode="numeric"
+            <Label htmlFor="code">{t('code')}</Label>
+            <InputOTP
+              id="code"
               maxLength={6}
-              placeholder="000000"
-              aria-invalid={!!codeForm.formState.errors.code}
-              {...codeForm.register('code')}
-            />
-            <FieldError>{codeForm.formState.errors.code?.message}</FieldError>
+              value={code}
+              onChange={setCode}
+              pattern={REGEXP_ONLY_DIGITS}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              containerClassName="justify-center"
+              aria-invalid={!!codeError}
+            >
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+                <InputOTPSlot index={2} />
+                <InputOTPSlot index={3} />
+                <InputOTPSlot index={4} />
+                <InputOTPSlot index={5} />
+              </InputOTPGroup>
+            </InputOTP>
+            <FieldError>{codeError}</FieldError>
           </div>
-          <FieldError>{codeForm.formState.errors.root?.message}</FieldError>
-          <Button type="submit" disabled={codeForm.formState.isSubmitting} className="w-full">
+          <Button type="submit" disabled={verifying} className="h-11 w-full text-base">
             {t('verify')}
           </Button>
+          <button
+            type="button"
+            onClick={() => {
+              setStep('email')
+              setCode('')
+              setCodeError(null)
+            }}
+            className="mx-auto block text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            &larr; {t('differentEmail')}
+          </button>
         </form>
       )}
       <p className="mt-6 text-center text-sm text-muted-foreground">
@@ -150,6 +195,6 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
           </>
         )}
       </p>
-    </main>
+    </div>
   )
 }

@@ -14,9 +14,7 @@ export function AuthCard({ mode }: { mode: 'login' | 'register' }) {
         <aside
           className="relative hidden flex-col items-center justify-center gap-5 p-8 text-center md:flex"
           style={{
-            background:
-              'radial-gradient(360px 360px at 50% 45%, rgba(232,178,58,0.20), transparent 62%),' +
-              'linear-gradient(150deg, #2A2570, #161436 70%)',
+            background: 'linear-gradient(150deg, #2A2570, #161436 70%)',
           }}
         >
           <Image
@@ -25,7 +23,7 @@ export function AuthCard({ mode }: { mode: 'login' | 'register' }) {
             width={120}
             height={120}
             priority
-            className="h-24 w-auto drop-shadow-[0_0_30px_rgba(232,178,58,0.5)]"
+            className="h-24 w-auto"
           />
           <p className="text-lg leading-snug font-semibold tracking-tight text-balance text-foreground">
             {t('panelTagline')}

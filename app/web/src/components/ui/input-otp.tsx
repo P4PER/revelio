@@ -29,7 +29,7 @@ function InputOTPGroup({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="input-otp-group"
-      className={cn('flex items-center', className)}
+      className={cn('flex items-center gap-2.5', className)}
       {...props}
     />
   )
@@ -48,9 +48,8 @@ function InputOTPSlot({
       data-slot="input-otp-slot"
       data-active={isActive}
       className={cn(
-        'relative flex h-12 w-11 items-center justify-center border-y border-r border-input text-lg font-medium tabular-nums shadow-xs transition-all outline-none',
-        'first:rounded-l-md first:border-l last:rounded-r-md',
-        'data-[active=true]:z-10 data-[active=true]:border-ring data-[active=true]:ring-[3px] data-[active=true]:ring-ring/50',
+        'relative flex h-12 w-12 items-center justify-center rounded-lg border border-input text-lg font-medium tabular-nums shadow-xs transition-all outline-none',
+        'data-[active=true]:z-10 data-[active=true]:border-ring data-[active=true]:ring-4 data-[active=true]:ring-ring/25',
         'aria-invalid:border-destructive data-[active=true]:aria-invalid:border-destructive data-[active=true]:aria-invalid:ring-destructive/30',
         className,
       )}

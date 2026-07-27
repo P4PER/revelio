@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { getCardById, listSets, getSetByCode, schema } from '@revelio/db'
+import { getCardById, listSets, getSetByCode, listCardsForSitemap, listSetsForSitemap, schema } from '@revelio/db'
 import { withMigratedDb } from './helpers'
 
 let ctx: Awaited<ReturnType<typeof withMigratedDb>>
@@ -64,5 +64,21 @@ describe('listSets / getSetByCode', () => {
     const bs = await getSetByCode(ctx.db, 'BS')
     expect(bs!.name).toBe('Base Set')
     expect(await getSetByCode(ctx.db, 'ZZ')).toBeNull()
+  })
+})
+
+describe('listCardsForSitemap / listSetsForSitemap', () => {
+  it('returns id + updatedAt rows for every card', async () => {
+    const rows = await listCardsForSitemap(ctx.db)
+    const fluffy = rows.find((r) => r.id === 'bs-1-fluffy')
+    expect(fluffy).toBeDefined()
+    expect(fluffy!.updatedAt).toBeInstanceOf(Date)
+  })
+
+  it('returns set code as id + updatedAt for every set', async () => {
+    const rows = await listSetsForSitemap(ctx.db)
+    const bs = rows.find((r) => r.id === 'BS')
+    expect(bs).toBeDefined()
+    expect(bs!.updatedAt).toBeInstanceOf(Date)
   })
 })

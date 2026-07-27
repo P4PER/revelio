@@ -16,7 +16,8 @@ export async function generateMetadata({
   const { locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations('decks')
-  return { title: t('title') }
+  // Interactive builder tool, not indexable content — keep out of the index.
+  return { title: t('title'), robots: { index: false } }
 }
 
 export default async function NewDeckPage({

@@ -206,6 +206,17 @@ export async function getRandomCardId(db: DB): Promise<string | null> {
   return row?.id ?? null
 }
 
+export type SitemapEntry = { id: string; updatedAt: Date }
+
+// Minimal rows for the XML sitemap: id/code + last-modified for <lastmod>.
+export async function listCardsForSitemap(db: DB): Promise<SitemapEntry[]> {
+  return db.select({ id: cards.id, updatedAt: cards.updatedAt }).from(cards).orderBy(asc(cards.id))
+}
+
+export async function listSetsForSitemap(db: DB): Promise<SitemapEntry[]> {
+  return db.select({ id: sets.code, updatedAt: sets.updatedAt }).from(sets).orderBy(asc(sets.code))
+}
+
 export async function upsertLocalization(
   db: DB,
   input: {

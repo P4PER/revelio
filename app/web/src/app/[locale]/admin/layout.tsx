@@ -1,9 +1,15 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getSession } from '@/lib/session'
 import { hasRequiredRole } from '@/lib/roles'
 import { AdminSidebar } from '@/components/admin-sidebar'
 
 export const dynamic = 'force-dynamic'
+
+// Keep the entire admin subtree out of search indexes (inherited by all
+// admin pages). Outsiders already get a 404 from the gate below; this is the
+// belt-and-suspenders signal for anything that does render.
+export const metadata: Metadata = { robots: { index: false } }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession()

@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter, Link } from '@/../i18n/navigation'
 import { useTranslations } from 'next-intl'
+import { ArrowLeft } from 'lucide-react'
 import { authClient } from '@/lib/auth-client'
 import { emailHasAccount, usernameAvailable } from '@/lib/auth-actions'
 import { BRAND_NAME } from '@/lib/brand'
@@ -176,9 +177,10 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
               setCode('')
               setCodeError(null)
             }}
-            className="mx-auto block text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            className="mx-auto flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
-            &larr; {t('differentEmail')}
+            <ArrowLeft className="size-3.5" aria-hidden />
+            {t('differentEmail')}
           </button>
         </form>
       )}

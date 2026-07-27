@@ -1,38 +1,22 @@
 'use client'
 import Image from 'next/image'
-import { useTranslations } from 'next-intl'
 import { AuthForm } from './auth-form'
 
-// Bounded split card for /login and /register. Sits inside the normal page
-// (the global SiteHeader/SiteFooter stay). Left: a branded Reveal-Glow panel
-// (hidden below md). Right: the form. login/register pages render this.
+// Centered single-column auth layout for /login and /register. No card chrome
+// and no brand panel — just the mark above the form, framed by the global
+// SiteHeader/SiteFooter.
 export function AuthCard({ mode }: { mode: 'login' | 'register' }) {
-  const t = useTranslations('auth')
   return (
-    <main className="mx-auto w-full max-w-3xl px-6 py-12 md:py-20">
-      <div className="grid overflow-hidden rounded-2xl border border-border bg-card shadow-xl md:grid-cols-[0.9fr_1.1fr]">
-        <aside
-          className="relative hidden flex-col items-center justify-center gap-5 p-8 text-center md:flex"
-          style={{
-            background: 'linear-gradient(150deg, #2A2570, #161436 70%)',
-          }}
-        >
-          <Image
-            src="/revelio-icon.svg"
-            alt=""
-            width={120}
-            height={120}
-            priority
-            className="h-24 w-auto"
-          />
-          <p className="text-lg leading-snug font-semibold tracking-tight text-balance text-foreground">
-            {t('panelTagline')}
-          </p>
-        </aside>
-        <div className="p-8 sm:p-10">
-          <AuthForm mode={mode} />
-        </div>
-      </div>
+    <main className="mx-auto flex w-full max-w-sm flex-col px-6 py-12 md:py-20">
+      <Image
+        src="/revelio-icon.svg"
+        alt=""
+        width={96}
+        height={96}
+        priority
+        className="mx-auto mb-6 h-16 w-auto"
+      />
+      <AuthForm mode={mode} />
     </main>
   )
 }

@@ -156,7 +156,6 @@
     "haveAccount": "Schon ein Konto?",
     "subtitle": "Gib deine E-Mail-Adresse ein, um dich bei {brand} anzumelden.",
     "registerSubtitle": "Gib deine E-Mail und einen Benutzernamen ein, um dein {brand}-Konto zu erstellen.",
-    "panelTagline": "Der Zauber, der das Verborgene enthüllt.",
     "differentEmail": "Andere E-Mail verwenden",
     "noAccountError": "Kein Konto für diese E-Mail gefunden. Bitte zuerst registrieren.",
     "usernameTaken": "Dieser Benutzername ist vergeben. Bitte einen anderen wählen."

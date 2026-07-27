@@ -6,7 +6,6 @@ describe('auth i18n', () => {
   it('has the new keys and dropped sendCode in both locales', () => {
     for (const m of [en, de]) {
       expect(m.auth.login).toBeTruthy()
-      expect(m.auth.panelTagline).toBeTruthy()
       expect(m.auth.differentEmail).toBeTruthy()
       expect(m.auth.code).toBeTruthy()
       expect('sendCode' in m.auth).toBe(false)

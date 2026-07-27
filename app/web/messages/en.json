@@ -156,7 +156,6 @@
     "haveAccount": "Already have an account?",
     "subtitle": "Enter your email address to sign in to {brand}.",
     "registerSubtitle": "Enter your email and a username to create your {brand} account.",
-    "panelTagline": "The charm that reveals what's hidden.",
     "differentEmail": "Use a different email",
     "noAccountError": "No account found for that email. Please register first.",
     "usernameTaken": "That username is taken. Please choose another."

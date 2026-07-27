@@ -84,6 +84,21 @@ jobs:
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web
 
+      # Redeploy the host now that a fresh web image is pushed. Runs as a step on
+      # build-web (not a separate job) so it reuses this runner and only fires
+      # after the push step succeeds. The token-bearing URL lives entirely in the
+      # DEPLOY_WEBHOOK_URL secret and is passed via env so it never appears in the
+      # logs; if the secret is unset the step no-ops instead of failing the run.
+      - name: Trigger redeploy webhook
+        env:
+          DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DEPLOY_WEBHOOK_URL" ]; then
+            echo "::notice::DEPLOY_WEBHOOK_URL not set; skipping redeploy webhook."
+            exit 0
+          fi
+          curl -fsS -X POST --max-time 30 --retry 3 --retry-all-errors "$DEPLOY_WEBHOOK_URL"
+
   build-ingest:
     needs: changes
     if: needs.changes.outputs.ingest == 'true' || github.event_name == 'workflow_dispatch'

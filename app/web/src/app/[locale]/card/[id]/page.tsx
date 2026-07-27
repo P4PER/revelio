@@ -12,8 +12,8 @@ import { CardDetail } from '@/components/card-detail'
 import { getSession } from '@/lib/session'
 import { hasRequiredRole } from '@/lib/roles'
 import { getSubTypeLabelMap } from '@/lib/subtype-labels'
+import { SITE_URL as BASE_URL } from '@/lib/site'
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://revelio.cards'
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
 // Deduped per request: generateMetadata + the page share one DB round-trip.

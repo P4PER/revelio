@@ -11,9 +11,9 @@ import { STEPPER_LAYOUT_COOKIE, parseStepperLayout } from '@/lib/collection-pref
 import { CollectionView } from '@/components/collection-view'
 import { CollectionSummary } from '@/components/collection-summary'
 import { CollectionVisibilityToggle } from '@/components/collection-visibility-toggle'
+import { SITE_URL as BASE_URL } from '@/lib/site'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://revelio.cards'
 
 export default async function CollectionPage({
   params, searchParams,

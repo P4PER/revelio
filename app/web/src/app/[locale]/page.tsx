@@ -8,6 +8,7 @@ import { getDb } from '@/lib/db'
 import { listSets } from '@revelio/db'
 import { byReleaseDate } from '@/lib/set-sort'
 import { BRAND_NAME } from '@/lib/brand'
+import { SITE_URL as BASE_URL } from '@/lib/site'
 import { HomeSearch } from '@/components/home-search'
 import { StarField } from '@/components/star-field'
 import { Badge } from '@/components/ui/badge'
@@ -15,7 +16,6 @@ import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://revelio.cards'
 const EXAMPLE_SEARCHES = ['Harry Potter', 'Dumbledore', 'Quidditch', 'Snitch', 'Charms']
 
 export async function generateMetadata({

@@ -1,4 +1,9 @@
+import type { Metadata } from 'next'
 import { PublicCollection } from '@/components/public-collection'
+
+// A user's collection is personal data, not catalog content — keep it out of
+// search indexes (robots.txt intentionally does not enumerate this route).
+export const metadata: Metadata = { robots: { index: false } }
 
 // Fallback share route for users without a username (usernames are nullable).
 export default async function PublicCollectionByIdPage({

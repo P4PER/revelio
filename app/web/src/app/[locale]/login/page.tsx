@@ -10,7 +10,8 @@ export async function generateMetadata({
   const { locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations('auth')
-  return { title: t('title') }
+  // Publicly reachable but thin — no SEO value, keep out of the index.
+  return { title: t('title'), robots: { index: false } }
 }
 
 export default function LoginPage() {

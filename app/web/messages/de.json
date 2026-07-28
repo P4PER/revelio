@@ -144,6 +144,8 @@
     "username": "Benutzername",
     "login": "Anmelden",
     "code": "Bestätigungscode",
+    "emailPlaceholder": "du@beispiel.de",
+    "usernamePlaceholder": "z. B. hermine_g",
     "codeSent": "Wir haben einen 6-stelligen Code an {email} gesendet.",
     "verify": "Bestätigen",
     "sendFailed": "Code konnte nicht gesendet werden. Bitte erneut versuchen.",

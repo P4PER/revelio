@@ -214,6 +214,7 @@ export function ContactForm({
                     value={field.value}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
+                    ref={field.ref}
                     className="min-h-32 mb-0"
                   />
                 </FormControl>

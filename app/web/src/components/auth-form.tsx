@@ -82,6 +82,11 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       const name = emailForm.getValues('name') ?? ''
       const { error: updateError } = await authClient.updateUser({ username: name, displayUsername: name })
       if (updateError) {
+        // signIn.emailOtp already created a session; without a username the
+        // account is half-provisioned, so roll the session back rather than
+        // leave the user authenticated with no username. Re-registering with
+        // the same email and an available username recovers the account.
+        await authClient.signOut().catch(() => {})
         setVerifying(false)
         setCodeError(t('usernameTaken'))
         return
@@ -114,7 +119,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
               type="email"
               autoFocus
               autoComplete="email"
-              placeholder="you@example.com"
+              placeholder={t('emailPlaceholder')}
               className="h-10 md:text-base"
               aria-invalid={!!emailForm.formState.errors.email}
               {...emailForm.register('email')}
@@ -128,7 +133,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
                 id="username"
                 type="text"
                 autoComplete="username"
-                placeholder="e.g. hermione_g"
+                placeholder={t('usernamePlaceholder')}
                 className="h-10 md:text-base"
                 aria-invalid={!!emailForm.formState.errors.name}
                 {...emailForm.register('name')}
@@ -150,7 +155,10 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
               id="code"
               maxLength={6}
               value={code}
-              onChange={setCode}
+              onChange={(value) => {
+                setCode(value)
+                setCodeError(null)
+              }}
               pattern={REGEXP_ONLY_DIGITS}
               inputMode="numeric"
               autoFocus
@@ -158,7 +166,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
               containerClassName="justify-center"
               aria-invalid={!!codeError}
             >
-              <InputOTPGroup>
+              <InputOTPGroup data-invalid={!!codeError}>
                 <InputOTPSlot index={0} />
                 <InputOTPSlot index={1} />
                 <InputOTPSlot index={2} />

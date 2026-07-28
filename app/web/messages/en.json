@@ -144,6 +144,8 @@
     "username": "Username",
     "login": "Login",
     "code": "Verification code",
+    "emailPlaceholder": "you@example.com",
+    "usernamePlaceholder": "e.g. hermione_g",
     "codeSent": "We emailed a 6-digit code to {email}.",
     "verify": "Verify",
     "sendFailed": "Could not send the code. Try again.",

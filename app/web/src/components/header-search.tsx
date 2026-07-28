@@ -65,11 +65,11 @@ export function HeaderSearch({ placeholder }: { placeholder: string }) {
         value={q}
         onChange={(e) => onChange(e.target.value)}
         data-search-hotkey
-        className="peer h-8 w-full rounded-none border-0 border-b border-input bg-transparent pr-14 pl-6 text-sm text-foreground outline-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
+        className="peer h-8 w-full rounded-none border-0 border-b border-input bg-transparent pr-3 pl-6 text-sm text-foreground outline-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden sm:pr-10"
       />
       {/* Reveal-glow: a gold underline that wipes in on focus / while querying. */}
       <span className="pointer-events-none absolute inset-x-0 -bottom-px h-px origin-left scale-x-0 bg-gradient-to-r from-primary to-primary/20 transition-transform duration-300 peer-focus:scale-x-100 peer-[:not(:placeholder-shown)]:scale-x-100" />
-      <KbdHint shortcut="slash" className="absolute top-1/2 right-0 -translate-y-1/2 transition-opacity peer-focus:opacity-0 peer-[:not(:placeholder-shown)]:opacity-0" />
+      <KbdHint shortcut="slash" className="absolute top-1/2 right-0 -translate-y-1/2" />
     </form>
   )
 }

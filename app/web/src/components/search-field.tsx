@@ -24,10 +24,10 @@ export function SearchField({
         type="search"
         size="sm"
         data-search-primary={primary || undefined}
-        className="peer w-full pr-14 pl-9 [&::-webkit-search-cancel-button]:hidden"
+        className="peer w-full pr-3 pl-9 [&::-webkit-search-cancel-button]:hidden sm:pr-14"
         {...props}
       />
-      <KbdHint className="absolute top-1/2 right-2 -translate-y-1/2 transition-opacity peer-focus:opacity-0 peer-[:not(:placeholder-shown)]:opacity-0" />
+      <KbdHint className="absolute top-1/2 right-2 -translate-y-1/2" />
     </div>
   )
 }

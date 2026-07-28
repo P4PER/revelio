@@ -17,7 +17,8 @@ function useIsMac() {
 
 // A search-field keyboard affordance built on the shadcn Kbd. `cmdk` renders ⌘K
 // (Ctrl K off macOS); `slash` renders a single "/". Hidden on touch-first widths
-// where there's no keyboard.
+// where there's no keyboard, and fades out on focus / once the sibling `peer`
+// input has text (so callers only pass positioning).
 export function KbdHint({
   className,
   shortcut = 'cmdk',
@@ -30,7 +31,10 @@ export function KbdHint({
   return (
     <KbdGroup
       aria-hidden
-      className={cn('pointer-events-none hidden select-none sm:inline-flex', className)}
+      className={cn(
+        'pointer-events-none hidden select-none transition-opacity peer-focus:opacity-0 peer-[:not(:placeholder-shown)]:opacity-0 sm:inline-flex',
+        className,
+      )}
     >
       {shortcut === 'slash' ? (
         <Kbd>/</Kbd>

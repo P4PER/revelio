@@ -37,7 +37,7 @@ if (typeof window !== 'undefined') {
   // input-otp's password-manager-badge detection calls elementFromPoint when the
   // field is focused (e.g. via autoFocus); jsdom doesn't implement it.
   if (!document.elementFromPoint) {
-    document.elementFromPoint = (_x: number, _y: number) => null
+    document.elementFromPoint = () => null
   }
   // Radix Checkbox (useSize) observes its control on mount; jsdom has no ResizeObserver.
   if (!('ResizeObserver' in window)) {

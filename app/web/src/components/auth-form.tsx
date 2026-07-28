@@ -107,7 +107,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       )}
       {step === 'email' ? (
         <form onSubmit={emailForm.handleSubmit(requestCode)} className="space-y-4" noValidate>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="email">{t('email')}</Label>
             <Input
               id="email"
@@ -122,7 +122,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
             <FieldError>{emailForm.formState.errors.email?.message}</FieldError>
           </div>
           {register && (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="username">{t('username')}</Label>
               <Input
                 id="username"
@@ -144,7 +144,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       ) : (
         <form onSubmit={verify} className="space-y-4" noValidate>
           <p className="text-base text-muted-foreground">{t('codeSent', { email })}</p>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="code">{t('code')}</Label>
             <InputOTP
               id="code"

@@ -154,7 +154,7 @@ export function ContactForm({
         </div>
         <input type="hidden" {...form.register('renderedAt')} />
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="contact-name">{t('name')}</Label>
           <Input
             id="contact-name"
@@ -165,7 +165,7 @@ export function ContactForm({
           />
           <FieldError>{form.formState.errors.name?.message}</FieldError>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="contact-email">{t('email')}</Label>
           <Input
             id="contact-email"
@@ -177,7 +177,7 @@ export function ContactForm({
           <FieldError>{form.formState.errors.email?.message}</FieldError>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="contact-subject">{t('subject')}</Label>
           <Input
             id="contact-subject"
@@ -188,7 +188,7 @@ export function ContactForm({
           />
           <FieldError>{form.formState.errors.subject?.message}</FieldError>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="contact-message">{t('message')}</Label>
           <AutoTextarea
             id="contact-message"

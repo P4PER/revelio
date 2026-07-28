@@ -99,7 +99,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         {register ? t('registerTitle') : t('title')}
       </h1>
       {step === 'email' && (
-        <p className="mb-6 text-sm text-muted-foreground">
+        <p className="mb-6 text-base text-muted-foreground">
           {register
             ? t('registerSubtitle', { brand: BRAND_NAME })
             : t('subtitle', { brand: BRAND_NAME })}
@@ -108,14 +108,14 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       {step === 'email' ? (
         <form onSubmit={emailForm.handleSubmit(requestCode)} className="space-y-4" noValidate>
           <div className="space-y-1.5">
-            <Label htmlFor="email">{t('email')}</Label>
+            <Label htmlFor="email" className="text-base">{t('email')}</Label>
             <Input
               id="email"
               type="email"
               autoFocus
               autoComplete="email"
               placeholder="you@example.com"
-              className="h-10"
+              className="h-10 md:text-base"
               aria-invalid={!!emailForm.formState.errors.email}
               {...emailForm.register('email')}
             />
@@ -123,13 +123,13 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
           </div>
           {register && (
             <div className="space-y-1.5">
-              <Label htmlFor="username">{t('username')}</Label>
+              <Label htmlFor="username" className="text-base">{t('username')}</Label>
               <Input
                 id="username"
                 type="text"
                 autoComplete="username"
                 placeholder="e.g. hermione_g"
-                className="h-10"
+                className="h-10 md:text-base"
                 aria-invalid={!!emailForm.formState.errors.name}
                 {...emailForm.register('name')}
               />
@@ -143,9 +143,9 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         </form>
       ) : (
         <form onSubmit={verify} className="space-y-4" noValidate>
-          <p className="text-sm text-muted-foreground">{t('codeSent', { email })}</p>
+          <p className="text-base text-muted-foreground">{t('codeSent', { email })}</p>
           <div className="space-y-1.5">
-            <Label htmlFor="code">{t('code')}</Label>
+            <Label htmlFor="code" className="text-base">{t('code')}</Label>
             <InputOTP
               id="code"
               maxLength={6}
@@ -179,14 +179,14 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
               setCode('')
               setCodeError(null)
             }}
-            className="mx-auto flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            className="mx-auto flex cursor-pointer items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
             <ArrowLeft className="size-3.5" aria-hidden />
             {t('differentEmail')}
           </button>
         </form>
       )}
-      <p className="mt-6 text-center text-sm text-muted-foreground">
+      <p className="mt-6 text-center text-base text-muted-foreground">
         {register ? (
           <>
             {t('haveAccount')}{' '}

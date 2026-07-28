@@ -57,16 +57,34 @@ consistency wins: it must be the same size everywhere, and no per-call-site
 tiers, that is a signal the pages disagree about the pattern — resolve it by
 picking one tier for the family, not by parameterising the component.
 
-The **card/deck filter toolbar** is the worked example: the search page,
+The **card/deck filter toolbar** is the worked example. The search page,
 collection "Browse all" tab, deck builder, and deck-browse all render the same
-family — a search input, lesson/type chips, a Clear button, a Sort select, and
-the Advanced (`FilterSheet`) trigger. The whole family is fixed at the **default
-tier (36px)**: filter toolbars are a primary "find cards" surface, not dense
-data-table chrome, and they contain a text search input that reads poorly at
-32px. The `size` props on `FilterSheet`, `ClearFiltersButton`, `LessonFilterChips`,
-`SortSelect`, and the quick-filter chips were **removed** so the family cannot
-diverge again. Compact (32px) stays reserved for the genuinely dense contexts:
-the site header and admin data tables.
+family, split into **two roles by a deliberate visual hierarchy** — but each
+control type is still ONE size across every page:
+
+- **Search text input → default (36px).** The primary control; stays prominent
+  and reads well for typing.
+- **Filter chrome → compact (32px):** lesson/type chips, the Clear button, the
+  Sort select, deck-browse's sort/format selects, and the Advanced
+  (`FilterSheet`) trigger. These sit one tier *below* the search so they read as
+  secondary controls rather than competing with it — the chrome under the search
+  was too heavy at 36px, especially in the deck builder.
+
+Consequence: on rows where a 36px search input sits beside 32px chrome
+(collection browse, deck-browse), the input is intentionally a touch taller than
+its neighbours — a standard search-bar look, and the price of keeping Clear/Sort/
+Advanced the same size on the pages where they instead sit *under* the search
+(deck builder, search page).
+
+The **Advanced sheet's internals** (set select, ownership toggles, cost inputs,
+Apply/Clear) are a **form panel**, a different context — they stay at **default
+(36px)**, matching each other.
+
+No per-call-site `size` prop is exposed on `FilterSheet`, `ClearFiltersButton`,
+`LessonFilterChips`, `SortSelect`, or the quick-filter chips — each is hardcoded
+to its role's tier so the family cannot diverge across pages again. Compact
+(32px) also remains the tier for the genuinely dense contexts: the site header
+and admin data tables.
 
 Icon buttons use the parallel scale already present in `button.tsx`:
 `icon-sm` / `icon` / `icon-lg` = 32 / 36 / 40, with `icon-xs` = 24 for truly tiny
@@ -107,11 +125,12 @@ limited to height alignment, not a restyle.
 | `subtype-translations-form.tsx` | input `className="h-8 w-full pr-8"` → `size="sm"` + keep `w-full pr-8` |
 | `deck-browse.tsx` | drop redundant `h-9` on search input and selects (default already h-9) |
 | `collection-view.tsx` | `SearchBox` drop `h-9` (default); drop `h-9` TabsList override |
-| `lesson-filter-chips.tsx` | remove the `size` prop entirely — one canonical chip at the **default tier** (button default: `h-9`, `text-sm`, 16px icon) so every call site renders identically and matches the filter toolbar around it. `deck-card-browser.tsx` drops its `size="sm"`. Kills the orphan 28px height and the `text-xs`/`text-sm` fork |
-| `filter-sheet.tsx` + adapters | remove `FilterSheet`'s `size` prop; the Advanced trigger is default (h-9) on every page. `collection-filter-drawer.tsx` drops `size="default"`; the in-sheet ownership toggles drop `size="sm"` to match the h-9 set-select and cost inputs |
-| `clear-filters-button.tsx` | remove the `size` prop; Clear is default (h-9) everywhere. `collection-view.tsx` and `deck-browse.tsx` drop `size="default"` |
-| `sort-select.tsx` | drop `size="sm"` on the trigger → default (h-9) |
-| `quick-filters.tsx` | drop `size="sm"` on the type chips → default (h-9), matching the lesson chips beside them |
+| `lesson-filter-chips.tsx` | no `size` prop — one canonical chip at the **compact tier** (button `sm`: `h-8`, `text-sm`, 16px icon) so every call site renders identically. `deck-card-browser.tsx` passes none. Kills the orphan 28px height and the `text-xs`/`text-sm` fork |
+| `filter-sheet.tsx` + adapters | no `size` prop on `FilterSheet`; the Advanced **trigger** is compact (`h-8`) on every page. `collection-filter-drawer.tsx` passes none. The in-sheet **ownership toggles** are default (`h-9`) to match the sheet's set-select and cost inputs (form-panel context) |
+| `clear-filters-button.tsx` | no `size` prop; Clear is compact (`h-8`) everywhere. `collection-view.tsx` and `deck-browse.tsx` pass none |
+| `sort-select.tsx` | trigger is `size="sm"` (compact, `h-8`) |
+| `quick-filters.tsx` | type chips are `size="sm"` (compact, `h-8`), matching the lesson chips beside them |
+| `deck-browse.tsx` | sort + format selects are `size="sm"` (compact, `h-8`); the search input stays default (`h-9`) |
 
 `search-box.tsx` needs no change itself — it forwards `className`; call-sites stop
 passing heights so it renders at the `Input` default (36px), except where a

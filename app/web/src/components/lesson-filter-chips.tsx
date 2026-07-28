@@ -11,9 +11,9 @@ import { Button } from '@/components/ui/button'
 // fragment so it composes into the caller's own flex container (which may also
 // hold type filters, a drawer trigger, etc.).
 //
-// One canonical chip at the default tier (button default, h-9) so every call
-// site renders identically and matches the rest of the filter toolbar it sits
-// in — see the control-size standard.
+// One canonical chip at the compact tier (button `sm`, h-8) so every call site
+// renders identically. Filter chrome sits one tier below the 36px search input
+// it accompanies — see the control-size standard.
 export function LessonFilterChips({
   selected,
   onToggle,
@@ -39,6 +39,7 @@ export function LessonFilterChips({
           <Button
             key={l.code}
             type="button"
+            size="sm"
             variant="outline"
             aria-pressed={active}
             onClick={() => onToggle(l.code)}

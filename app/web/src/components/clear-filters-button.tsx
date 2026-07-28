@@ -15,6 +15,6 @@ export function ClearFiltersButton({
   const t = useTranslations('filters')
   if (!active) return null
   return (
-    <Button variant="ghost" onClick={onClear}>{t('clearFilters')}</Button>
+    <Button variant="ghost" size="sm" onClick={onClear}>{t('clearFilters')}</Button>
   )
 }

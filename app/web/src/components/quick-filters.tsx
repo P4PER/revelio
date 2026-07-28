@@ -31,6 +31,7 @@ export function QuickFilters({ locale }: { locale: string }) {
           <Button
             key={t.code}
             type="button"
+            size="sm"
             variant={active ? 'default' : 'outline'}
             aria-pressed={active}
             onClick={() => toggle('type', state.types, t.code)}

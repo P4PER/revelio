@@ -132,7 +132,7 @@ export function FilterSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
-        <Button variant="outline" className="gap-1.5">
+        <Button variant="outline" size="sm" className="gap-1.5">
           <SlidersHorizontal className="size-3.5" />
           {t('button')}
           {count > 0 && (

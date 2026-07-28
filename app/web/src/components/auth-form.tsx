@@ -10,6 +10,7 @@ import { emailHasAccount, usernameAvailable } from '@/lib/auth-actions'
 import { BRAND_NAME } from '@/lib/brand'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { FieldError } from '@/components/ui/field-error'
 import { makeEmailStepSchema, makeCodeSchema } from '@/lib/schemas/auth'
@@ -107,9 +108,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       {step === 'email' ? (
         <form onSubmit={emailForm.handleSubmit(requestCode)} className="space-y-4" noValidate>
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium text-foreground">
-              {t('email')}
-            </label>
+            <Label htmlFor="email">{t('email')}</Label>
             <Input
               id="email"
               type="email"
@@ -124,9 +123,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
           </div>
           {register && (
             <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium text-foreground">
-                {t('username')}
-              </label>
+              <Label htmlFor="username">{t('username')}</Label>
               <Input
                 id="username"
                 type="text"
@@ -148,9 +145,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         <form onSubmit={verify} className="space-y-4" noValidate>
           <p className="text-base text-muted-foreground">{t('codeSent', { email })}</p>
           <div className="space-y-2">
-            <label htmlFor="code" className="text-sm font-medium text-foreground">
-              {t('code')}
-            </label>
+            <Label htmlFor="code">{t('code')}</Label>
             <InputOTP
               id="code"
               maxLength={6}

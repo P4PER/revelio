@@ -7,6 +7,7 @@ import { makeContactSchema, type ContactFormValues } from '@/lib/schemas/contact
 import { sendContactMessage, type ContactResult } from '@/lib/contact-actions'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { FieldError } from '@/components/ui/field-error'
 
@@ -154,9 +155,7 @@ export function ContactForm({
         <input type="hidden" {...form.register('renderedAt')} />
 
         <div className="space-y-2">
-          <label htmlFor="contact-name" className="text-sm font-medium text-foreground">
-            {t('name')}
-          </label>
+          <Label htmlFor="contact-name">{t('name')}</Label>
           <Input
             id="contact-name"
             type="text"
@@ -167,9 +166,7 @@ export function ContactForm({
           <FieldError>{form.formState.errors.name?.message}</FieldError>
         </div>
         <div className="space-y-2">
-          <label htmlFor="contact-email" className="text-sm font-medium text-foreground">
-            {t('email')}
-          </label>
+          <Label htmlFor="contact-email">{t('email')}</Label>
           <Input
             id="contact-email"
             type="email"
@@ -181,9 +178,7 @@ export function ContactForm({
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="contact-subject" className="text-sm font-medium text-foreground">
-            {t('subject')}
-          </label>
+          <Label htmlFor="contact-subject">{t('subject')}</Label>
           <Input
             id="contact-subject"
             type="text"
@@ -194,9 +189,7 @@ export function ContactForm({
           <FieldError>{form.formState.errors.subject?.message}</FieldError>
         </div>
         <div className="space-y-2">
-          <label htmlFor="contact-message" className="text-sm font-medium text-foreground">
-            {t('message')}
-          </label>
+          <Label htmlFor="contact-message">{t('message')}</Label>
           <AutoTextarea
             id="contact-message"
             className="min-h-32 mb-0"

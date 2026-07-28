@@ -10,7 +10,6 @@ import { emailHasAccount, usernameAvailable } from '@/lib/auth-actions'
 import { BRAND_NAME } from '@/lib/brand'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { FieldError } from '@/components/ui/field-error'
 import { makeEmailStepSchema, makeCodeSchema } from '@/lib/schemas/auth'
@@ -107,8 +106,10 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       )}
       {step === 'email' ? (
         <form onSubmit={emailForm.handleSubmit(requestCode)} className="space-y-4" noValidate>
-          <div>
-            <Label htmlFor="email" className="text-base">{t('email')}</Label>
+          <div className="space-y-2">
+            <label htmlFor="email" className="text-sm font-medium text-foreground">
+              {t('email')}
+            </label>
             <Input
               id="email"
               type="email"
@@ -119,11 +120,13 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
               aria-invalid={!!emailForm.formState.errors.email}
               {...emailForm.register('email')}
             />
-            <FieldError className="mt-1.5">{emailForm.formState.errors.email?.message}</FieldError>
+            <FieldError>{emailForm.formState.errors.email?.message}</FieldError>
           </div>
           {register && (
-            <div>
-              <Label htmlFor="username" className="text-base">{t('username')}</Label>
+            <div className="space-y-2">
+              <label htmlFor="username" className="text-sm font-medium text-foreground">
+                {t('username')}
+              </label>
               <Input
                 id="username"
                 type="text"
@@ -133,7 +136,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
                 aria-invalid={!!emailForm.formState.errors.name}
                 {...emailForm.register('name')}
               />
-              <FieldError className="mt-1.5">{emailForm.formState.errors.name?.message}</FieldError>
+              <FieldError>{emailForm.formState.errors.name?.message}</FieldError>
             </div>
           )}
           <FieldError>{emailForm.formState.errors.root?.message}</FieldError>
@@ -144,8 +147,10 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       ) : (
         <form onSubmit={verify} className="space-y-4" noValidate>
           <p className="text-base text-muted-foreground">{t('codeSent', { email })}</p>
-          <div>
-            <Label htmlFor="code" className="text-base">{t('code')}</Label>
+          <div className="space-y-2">
+            <label htmlFor="code" className="text-sm font-medium text-foreground">
+              {t('code')}
+            </label>
             <InputOTP
               id="code"
               maxLength={6}
@@ -167,7 +172,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
                 <InputOTPSlot index={5} />
               </InputOTPGroup>
             </InputOTP>
-            <FieldError className="mt-1.5">{codeError}</FieldError>
+            <FieldError>{codeError}</FieldError>
           </div>
           <Button type="submit" size="lg" disabled={verifying} className="w-full font-semibold">
             {t('verify')}

@@ -12,7 +12,7 @@ vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams('
 import { QuickFilters } from '../quick-filters'
 
 function renderFilters() {
-  // LessonFilterChips (shared) calls useLocale(), so an intl provider is needed.
+  // LessonFilter (shared) calls useLocale(), so an intl provider is needed.
   return render(
     <NextIntlClientProvider locale="en" messages={{}}>
       <QuickFilters locale="en" />

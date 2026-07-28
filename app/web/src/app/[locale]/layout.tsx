@@ -8,6 +8,7 @@ import { BRAND_NAME } from '@/lib/brand'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { Toaster } from '@/components/ui/sonner'
+import { SearchHotkey } from '@/components/search-hotkey'
 import '../globals.css'
 
 export async function generateMetadata({
@@ -60,6 +61,7 @@ export default async function LocaleLayout({
           </div>
           <SiteFooter />
           <Toaster />
+          <SearchHotkey />
         </NextIntlClientProvider>
       </body>
     </html>

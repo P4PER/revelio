@@ -3,7 +3,7 @@ import { useSearchParams } from 'next/navigation'
 import { useRef } from 'react'
 import { useRouter, usePathname } from '@/../i18n/navigation'
 import { withParams } from '@/lib/search-params'
-import { Input } from '@/components/ui/input'
+import { SearchField } from '@/components/search-field'
 
 export function SearchBox({ placeholder, className }: { placeholder: string; className?: string }) {
   const router = useRouter()
@@ -20,8 +20,8 @@ export function SearchBox({ placeholder, className }: { placeholder: string; cla
   }
 
   return (
-    <Input
-      type="search"
+    <SearchField
+      primary
       defaultValue={params.get('q') ?? ''}
       placeholder={placeholder}
       className={className}

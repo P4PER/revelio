@@ -5,9 +5,16 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
 import { makeContactSchema, type ContactFormValues } from '@/lib/schemas/contact'
 import { sendContactMessage, type ContactResult } from '@/lib/contact-actions'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { FieldError } from '@/components/ui/field-error'
 
@@ -139,76 +146,93 @@ export function ContactForm({
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-border bg-card">
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-8 sm:p-10" noValidate>
-        {/* Honeypot — visually hidden, off the tab order and a11y tree, no autofill.
-            Any value ⇒ the server silently drops the submission. */}
-        <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
-          <label htmlFor="contact-website">Website</label>
-          <input
-            id="contact-website"
-            type="text"
-            tabIndex={-1}
-            autoComplete="off"
-            {...form.register('website')}
-          />
-        </div>
-        <input type="hidden" {...form.register('renderedAt')} />
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-8 sm:p-10" noValidate>
+          {/* Honeypot — visually hidden, off the tab order and a11y tree, no autofill.
+              Any value ⇒ the server silently drops the submission. */}
+          <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
+            <label htmlFor="contact-website">Website</label>
+            <input
+              id="contact-website"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+              {...form.register('website')}
+            />
+          </div>
+          <input type="hidden" {...form.register('renderedAt')} />
 
-        <div className="space-y-1.5">
-          <Label htmlFor="contact-name">{t('name')}</Label>
-          <Input
-            id="contact-name"
-            type="text"
-            className="h-10"
-            aria-invalid={!!form.formState.errors.name}
-            {...form.register('name')}
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('name')}</FormLabel>
+                <FormControl>
+                  <Input type="text" className="h-10" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          <FieldError>{form.formState.errors.name?.message}</FieldError>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="contact-email">{t('email')}</Label>
-          <Input
-            id="contact-email"
-            type="email"
-            className="h-10"
-            aria-invalid={!!form.formState.errors.email}
-            {...form.register('email')}
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('email')}</FormLabel>
+                <FormControl>
+                  <Input type="email" className="h-10" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          <FieldError>{form.formState.errors.email?.message}</FieldError>
-        </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="contact-subject">{t('subject')}</Label>
-          <Input
-            id="contact-subject"
-            type="text"
-            className="h-10"
-            aria-invalid={!!form.formState.errors.subject}
-            {...form.register('subject')}
+          <FormField
+            control={form.control}
+            name="subject"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('subject')}</FormLabel>
+                <FormControl>
+                  <Input type="text" className="h-10" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          <FieldError>{form.formState.errors.subject?.message}</FieldError>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="contact-message">{t('message')}</Label>
-          <AutoTextarea
-            id="contact-message"
-            className="min-h-32 mb-0"
-            aria-invalid={!!form.formState.errors.message}
-            {...form.register('message')}
+          <FormField
+            control={form.control}
+            name="message"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('message')}</FormLabel>
+                <FormControl>
+                  <AutoTextarea
+                    name={field.name}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    className="min-h-32 mb-0"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          <FieldError>{form.formState.errors.message?.message}</FieldError>
-        </div>
 
-        <FieldError>{form.formState.errors.root?.message}</FieldError>
-        <Button
-          type="submit"
-          size="lg"
-          disabled={form.formState.isSubmitting}
-          className="h-10 w-full font-semibold"
-        >
-          {form.formState.isSubmitting ? t('sending') : t('send')}
-        </Button>
-      </form>
+          <FieldError>{form.formState.errors.root?.message}</FieldError>
+          <Button
+            type="submit"
+            size="lg"
+            disabled={form.formState.isSubmitting}
+            className="h-10 w-full font-semibold"
+          >
+            {form.formState.isSubmitting ? t('sending') : t('send')}
+          </Button>
+        </form>
+      </Form>
     </div>
   )
 }

@@ -112,6 +112,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
             <Input
               id="email"
               type="email"
+              autoFocus
               autoComplete="email"
               placeholder="you@example.com"
               aria-invalid={!!emailForm.formState.errors.email}
@@ -150,6 +151,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
               onChange={setCode}
               pattern={REGEXP_ONLY_DIGITS}
               inputMode="numeric"
+              autoFocus
               autoComplete="one-time-code"
               containerClassName="justify-center"
               aria-invalid={!!codeError}

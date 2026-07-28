@@ -34,6 +34,11 @@ if (typeof window !== 'undefined') {
   if (!Element.prototype.hasPointerCapture) Element.prototype.hasPointerCapture = () => false
   if (!Element.prototype.releasePointerCapture) Element.prototype.releasePointerCapture = () => {}
   if (!Element.prototype.scrollIntoView) Element.prototype.scrollIntoView = () => {}
+  // input-otp's password-manager-badge detection calls elementFromPoint when the
+  // field is focused (e.g. via autoFocus); jsdom doesn't implement it.
+  if (!document.elementFromPoint) {
+    document.elementFromPoint = (_x: number, _y: number) => null
+  }
   // Radix Checkbox (useSize) observes its control on mount; jsdom has no ResizeObserver.
   if (!('ResizeObserver' in window)) {
     ;(window as unknown as { ResizeObserver: unknown }).ResizeObserver = class {

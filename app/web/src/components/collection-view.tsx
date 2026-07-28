@@ -140,7 +140,7 @@ export function CollectionView({
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <SearchBox placeholder={t('searchPlaceholder')} className="w-full sm:w-1/2" />
           <div className="ml-auto flex items-center gap-2">
-            <ClearFiltersButton active={hasFilters} onClear={clearFilters} size="default" />
+            <ClearFiltersButton active={hasFilters} onClear={clearFilters} />
             <CollectionFilterDrawer sets={sets} locale={locale} />
           </div>
         </div>

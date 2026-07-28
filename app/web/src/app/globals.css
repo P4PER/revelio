@@ -54,6 +54,13 @@
   --color-lesson-potions: #00A661;
   --color-lesson-transfiguration: #BC3E4D;
   --color-lesson-quidditch: #E2AE37;
+
+  --animate-caret-blink: caret-blink 1.25s ease-out infinite;
+}
+
+@keyframes caret-blink {
+  0%, 70%, 100% { opacity: 1; }
+  20%, 50% { opacity: 0; }
 }
 
 /* ─── Reveal-Glow dark palette (dark-first: values live in :root) ─── */

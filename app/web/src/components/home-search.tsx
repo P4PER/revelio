@@ -23,6 +23,7 @@ export function HomeSearch({ placeholder }: { placeholder: string }) {
       />
       <Input
         type="search"
+        autoFocus={true}
         aria-label={placeholder}
         placeholder={placeholder}
         value={q}

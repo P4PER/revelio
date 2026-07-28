@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { AuthForm } from '@/components/auth-form'
+import { AuthCard } from '@/components/auth-card'
 
 export async function generateMetadata({
   params,
@@ -15,5 +15,5 @@ export async function generateMetadata({
 }
 
 export default function LoginPage() {
-  return <AuthForm mode="login" />
+  return <AuthCard mode="login" />
 }

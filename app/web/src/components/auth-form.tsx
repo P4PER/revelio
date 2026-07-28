@@ -107,7 +107,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       )}
       {step === 'email' ? (
         <form onSubmit={emailForm.handleSubmit(requestCode)} className="space-y-4" noValidate>
-          <div className="space-y-1.5">
+          <div>
             <Label htmlFor="email" className="text-base">{t('email')}</Label>
             <Input
               id="email"
@@ -119,10 +119,10 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
               aria-invalid={!!emailForm.formState.errors.email}
               {...emailForm.register('email')}
             />
-            <FieldError>{emailForm.formState.errors.email?.message}</FieldError>
+            <FieldError className="mt-1.5">{emailForm.formState.errors.email?.message}</FieldError>
           </div>
           {register && (
-            <div className="space-y-1.5">
+            <div>
               <Label htmlFor="username" className="text-base">{t('username')}</Label>
               <Input
                 id="username"
@@ -133,7 +133,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
                 aria-invalid={!!emailForm.formState.errors.name}
                 {...emailForm.register('name')}
               />
-              <FieldError>{emailForm.formState.errors.name?.message}</FieldError>
+              <FieldError className="mt-1.5">{emailForm.formState.errors.name?.message}</FieldError>
             </div>
           )}
           <FieldError>{emailForm.formState.errors.root?.message}</FieldError>
@@ -144,7 +144,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       ) : (
         <form onSubmit={verify} className="space-y-4" noValidate>
           <p className="text-base text-muted-foreground">{t('codeSent', { email })}</p>
-          <div className="space-y-1.5">
+          <div>
             <Label htmlFor="code" className="text-base">{t('code')}</Label>
             <InputOTP
               id="code"
@@ -167,7 +167,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
                 <InputOTPSlot index={5} />
               </InputOTPGroup>
             </InputOTP>
-            <FieldError>{codeError}</FieldError>
+            <FieldError className="mt-1.5">{codeError}</FieldError>
           </div>
           <Button type="submit" size="lg" disabled={verifying} className="w-full font-semibold">
             {t('verify')}

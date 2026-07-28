@@ -74,11 +74,11 @@ export function DeckBrowse({
           type="search"
           defaultValue={state.q}
           placeholder={t('explore.searchPlaceholder')}
-          className="h-9 min-w-56 flex-1"
+          className="min-w-56 flex-1"
           onChange={(e) => onSearchChange(e.target.value)}
         />
         <Select value={state.sort} onValueChange={(v) => push({ sort: v as PublicDeckSort })}>
-          <SelectTrigger aria-label={t('explore.sort.label')} className="h-9 w-auto min-w-36">
+          <SelectTrigger aria-label={t('explore.sort.label')} className="w-auto min-w-36">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -89,7 +89,7 @@ export function DeckBrowse({
           value={state.format ?? 'all'}
           onValueChange={(v) => push({ format: v === 'all' ? null : (v as DeckFormat) })}
         >
-          <SelectTrigger aria-label={t('explore.format.label')} className="h-9 w-auto min-w-36">
+          <SelectTrigger aria-label={t('explore.format.label')} className="w-auto min-w-36">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

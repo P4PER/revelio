@@ -169,7 +169,7 @@ export function ContactForm({
               <FormItem>
                 <FormLabel>{t('name')}</FormLabel>
                 <FormControl>
-                  <Input type="text" className="h-10" {...field} />
+                  <Input type="text" size="lg" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -182,7 +182,7 @@ export function ContactForm({
               <FormItem>
                 <FormLabel>{t('email')}</FormLabel>
                 <FormControl>
-                  <Input type="email" className="h-10" {...field} />
+                  <Input type="email" size="lg" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -196,7 +196,7 @@ export function ContactForm({
               <FormItem>
                 <FormLabel>{t('subject')}</FormLabel>
                 <FormControl>
-                  <Input type="text" className="h-10" {...field} />
+                  <Input type="text" size="lg" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -215,6 +215,7 @@ export function ContactForm({
                     onChange={field.onChange}
                     onBlur={field.onBlur}
                     ref={field.ref}
+                    size="lg"
                     className="min-h-32 mb-0"
                   />
                 </FormControl>
@@ -228,7 +229,7 @@ export function ContactForm({
             type="submit"
             size="lg"
             disabled={form.formState.isSubmitting}
-            className="h-10 w-full font-semibold"
+            className="w-full font-semibold"
           >
             {form.formState.isSubmitting ? t('sending') : t('send')}
           </Button>

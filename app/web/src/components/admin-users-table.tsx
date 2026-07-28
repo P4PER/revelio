@@ -126,7 +126,8 @@ export function AdminUsersTable({ users }: { users: UserAdminRow[] }) {
             onChange={(e) => setGlobalFilter(e.target.value)}
             placeholder={t('searchPlaceholder')}
             aria-label={t('searchPlaceholder')}
-            className="h-8 w-full pr-8"
+            size="sm"
+            className="w-full pr-8"
           />
           {globalFilter && (
             <button

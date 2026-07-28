@@ -4,7 +4,6 @@ import { useLocale } from 'next-intl'
 import { LESSONS } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 
 // Shared lesson filter: a row of rounded, lesson-colour-tinted pills (icon +
 // translated label) that fill with the lesson colour when active. Used wherever
@@ -12,20 +11,18 @@ import { cn } from '@/lib/utils'
 // fragment so it composes into the caller's own flex container (which may also
 // hold type filters, a drawer trigger, etc.).
 //
-// `size` covers the two call sites: 'md' (search) and 'sm' (deck builder, the
-// tighter text-xs chip).
+// One canonical chip at the compact tier (button `sm`, text-sm) so every call
+// site renders identically — see the control-size standard.
 export function LessonFilterChips({
   selected,
   onToggle,
-  size = 'md',
 }: {
   selected: string[]
   onToggle: (code: string) => void
-  size?: 'sm' | 'md'
 }) {
   const locale = useLocale()
   const [hovered, setHovered] = useState<string | null>(null)
-  const iconSize = size === 'sm' ? 14 : 16
+  const iconSize = 16
   return (
     <>
       {LESSONS.map((l) => {
@@ -48,7 +45,7 @@ export function LessonFilterChips({
             onMouseEnter={() => setHovered(l.code)}
             onMouseLeave={() => setHovered(null)}
             style={{ borderColor: l.color, color: active ? '#fff' : l.color, backgroundColor }}
-            className={cn('gap-1.5 rounded-full transition-colors', size === 'sm' && 'h-7 px-2.5 text-xs')}
+            className="gap-1.5 rounded-full transition-colors"
           >
             {/* SVGs are filled with the lesson colour; on the active
                 (colour-filled) state, force the icon white so it stays legible. */}

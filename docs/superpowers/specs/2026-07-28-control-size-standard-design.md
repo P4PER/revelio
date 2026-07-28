@@ -88,7 +88,7 @@ limited to height alignment, not a restyle.
 | `subtype-translations-form.tsx` | input `className="h-8 w-full pr-8"` → `size="sm"` + keep `w-full pr-8` |
 | `deck-browse.tsx` | drop redundant `h-9` on search input and selects (default already h-9) |
 | `collection-view.tsx` | `SearchBox` drop `h-9` (default); drop `h-9` TabsList override |
-| `lesson-filter-chips.tsx` | `h-7` (28px) → compact `h-8`, removing the orphan 28px height |
+| `lesson-filter-chips.tsx` | remove the `size` prop entirely — one canonical chip (button `sm`: `h-8`, `px-3`, `text-sm`, 16px icon) so the search page and deck builder render identically. `deck-card-browser.tsx` drops its `size="sm"`. Kills both the orphan 28px height and the `text-xs`/`text-sm` fork |
 
 `search-box.tsx` needs no change itself — it forwards `className`; call-sites stop
 passing heights so it renders at the `Input` default (36px), except where a

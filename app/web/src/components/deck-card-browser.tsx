@@ -163,7 +163,7 @@ export function DeckCardBrowser({
           />
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
-          <LessonFilterChips selected={lessons} onToggle={toggleLesson} size="sm" />
+          <LessonFilterChips selected={lessons} onToggle={toggleLesson} />
           <div className="ml-auto flex items-center gap-1.5">
             <ClearFiltersButton active={filtersActive} onClear={clearFilters} />
             <DeckFilterDrawer sets={sets} value={filters} onApply={setFilters} />

@@ -120,7 +120,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
               autoFocus
               autoComplete="email"
               placeholder={t('emailPlaceholder')}
-              className="h-10 md:text-base"
+              size="lg"
               aria-invalid={!!emailForm.formState.errors.email}
               {...emailForm.register('email')}
             />
@@ -134,7 +134,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
                 type="text"
                 autoComplete="username"
                 placeholder={t('usernamePlaceholder')}
-                className="h-10 md:text-base"
+                size="lg"
                 aria-invalid={!!emailForm.formState.errors.name}
                 {...emailForm.register('name')}
               />

@@ -2,9 +2,24 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 
+// Density tiers mirror the Input scale (text/padding only; height auto-grows).
+// See docs/superpowers/specs/2026-07-28-control-size-standard-design.md.
+const sizeClasses = {
+  sm: 'px-2.5 py-1.5 text-sm',
+  default: 'px-3 py-2 text-sm',
+  lg: 'px-3 py-2 text-base',
+} as const
+
 // A textarea that grows to fit its content plus one extra line, so there's
 // always a blank line below the text.
-export function AutoTextarea({ className, value, onChange, ref: forwardedRef, ...props }: React.ComponentProps<'textarea'>) {
+export function AutoTextarea({
+  className,
+  value,
+  onChange,
+  ref: forwardedRef,
+  size = 'default',
+  ...props
+}: Omit<React.ComponentProps<'textarea'>, 'size'> & { size?: keyof typeof sizeClasses }) {
   const innerRef = React.useRef<HTMLTextAreaElement>(null)
 
   // Compose the internal auto-grow ref with any forwarded ref. Without this,
@@ -43,7 +58,8 @@ export function AutoTextarea({ className, value, onChange, ref: forwardedRef, ..
         resize()
       }}
       className={cn(
-        'w-full resize-none overflow-hidden rounded-md border border-input bg-input-fill px-3 py-2 text-sm shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
+        'w-full resize-none overflow-hidden rounded-md border border-input bg-input-fill shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
+        sizeClasses[size],
         'focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50',
         'aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40',
         className,

@@ -115,6 +115,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
               autoFocus
               autoComplete="email"
               placeholder="you@example.com"
+              className="h-10"
               aria-invalid={!!emailForm.formState.errors.email}
               {...emailForm.register('email')}
             />
@@ -128,6 +129,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
                 type="text"
                 autoComplete="username"
                 placeholder="e.g. hermione_g"
+                className="h-10"
                 aria-invalid={!!emailForm.formState.errors.name}
                 {...emailForm.register('name')}
               />
@@ -135,7 +137,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
             </div>
           )}
           <FieldError>{emailForm.formState.errors.root?.message}</FieldError>
-          <Button type="submit" disabled={emailForm.formState.isSubmitting} className="w-full">
+          <Button type="submit" size="lg" disabled={emailForm.formState.isSubmitting} className="w-full font-semibold">
             {register ? t('register') : t('login')}
           </Button>
         </form>
@@ -167,7 +169,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
             </InputOTP>
             <FieldError>{codeError}</FieldError>
           </div>
-          <Button type="submit" disabled={verifying} className="w-full">
+          <Button type="submit" size="lg" disabled={verifying} className="w-full font-semibold">
             {t('verify')}
           </Button>
           <button

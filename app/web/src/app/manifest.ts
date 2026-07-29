@@ -1,14 +1,16 @@
 import type { MetadataRoute } from 'next'
 import { BRAND_NAME } from '@/lib/brand'
 import { THEME_COLOR } from '@/lib/seo'
+import en from '@/../messages/en.json'
 
 // Not localized: the manifest lives outside the [locale] segment, so it has no
-// request locale. English description matches messages/en.json → meta.description.
+// request locale. The description reuses the English `meta.description` string so
+// it stays in sync with the site's default metadata.
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: BRAND_NAME,
     short_name: BRAND_NAME,
-    description: 'A searchable Harry Potter TCG card database.',
+    description: en.meta.description,
     start_url: '/',
     display: 'standalone',
     background_color: THEME_COLOR,

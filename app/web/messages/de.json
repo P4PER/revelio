@@ -1,6 +1,7 @@
 {
   "meta": {
-    "description": "Eine durchsuchbare Datenbank für das Harry-Potter-Sammelkartenspiel."
+    "description": "Eine durchsuchbare Datenbank für das Harry-Potter-Sammelkartenspiel.",
+    "ogImageAlt": "Revelio — Harry-Potter-TCG-Kartendatenbank"
   },
   "home": {
     "titleSuffix": "Harry Potter TCG Kartensuche",

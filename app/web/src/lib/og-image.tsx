@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
 import { ImageResponse } from 'next/og'
 import { getTranslations } from 'next-intl/server'
 import { OG_SIZE, clampOgTitle } from '@/lib/seo'
@@ -19,6 +20,24 @@ function loadFont(): Promise<Buffer> {
     fontPromise = readFile(fileURLToPath(new URL('./fonts/Poppins-SemiBold.ttf', import.meta.url)))
   }
   return fontPromise
+}
+
+// Lesson symbols are static public SVGs; read from disk and inline as data URIs
+// (satori can't resolve a relative URL). Best-effort: a missing/unreadable icon
+// resolves to null and is simply omitted — it never fails the image.
+const lessonIconCache = new Map<string, string | null>()
+async function loadLessonIcon(code: string): Promise<string | null> {
+  const cached = lessonIconCache.get(code)
+  if (cached !== undefined) return cached
+  let uri: string | null = null
+  try {
+    const buf = await readFile(join(process.cwd(), 'public', 'lessons', `${code}.svg`))
+    uri = `data:image/svg+xml;base64,${buf.toString('base64')}`
+  } catch {
+    uri = null
+  }
+  lessonIconCache.set(code, uri)
+  return uri
 }
 
 /**
@@ -71,4 +90,74 @@ export async function renderBrandOgImage(opts: {
 export async function renderDefaultOgImage(locale: string): Promise<ImageResponse> {
   const t = await getTranslations({ locale, namespace: 'home' })
   return renderBrandOgImage({ title: t('tagline'), subtitle: 'revelio.cards' })
+}
+
+/**
+ * Deck share card: full-bleed starting-character art with top/bottom scrims, the
+ * revelio lockup, and the deck name + format + up to four lesson icons — the
+ * DeckHeroCard aesthetic at 1200x630. `artDataUri` must already be resolved (the
+ * route fetches it so a failure can fall back to the default image).
+ */
+export async function renderDeckOgImage(opts: {
+  name: string
+  formatLabel: string
+  lessonCodes: string[]
+  artDataUri: string
+}): Promise<ImageResponse> {
+  const font = await loadFont()
+  const lessonUris = (await Promise.all(opts.lessonCodes.slice(0, 4).map(loadLessonIcon))).filter(
+    (u): u is string => u != null,
+  )
+  return new ImageResponse(
+    (
+      <div style={{ width: '100%', height: '100%', display: 'flex', position: 'relative', fontFamily: 'Poppins' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={opts.artDataUri}
+          width={OG_SIZE.width}
+          height={OG_SIZE.height}
+          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          alt=""
+        />
+        <div
+          style={{
+            position: 'absolute', top: 0, left: 0, right: 0, height: 200, display: 'flex',
+            alignItems: 'flex-start', padding: '40px 56px',
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.75), transparent)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={MARK_DATA_URI} width={44} height={44} alt="" />
+            <span style={{ fontSize: 30, color: '#FBF3DC', letterSpacing: '-1px' }}>revelio</span>
+          </div>
+        </div>
+        <div
+          style={{
+            position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', flexDirection: 'column',
+            gap: 16, padding: '140px 56px 56px 56px',
+            background: 'linear-gradient(to top, rgba(0,0,0,0.88) 45%, transparent)',
+          }}
+        >
+          <span style={{ fontSize: 68, color: '#FBF3DC', lineHeight: 1.05 }}>{clampOgTitle(opts.name)}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+            <span style={{ fontSize: 32, color: '#E8B23A' }}>{opts.formatLabel}</span>
+            {lessonUris.length > 0 && (
+              <div style={{ display: 'flex', gap: 10 }}>
+                {lessonUris.map((uri, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={i} src={uri} width={40} height={40} alt="" />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    ),
+    {
+      width: OG_SIZE.width,
+      height: OG_SIZE.height,
+      fonts: [{ name: 'Poppins', data: font, weight: 600, style: 'normal' }],
+    },
+  )
 }

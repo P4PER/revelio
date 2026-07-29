@@ -55,7 +55,7 @@ describe('buildCardDocument', () => {
       id: 'bs-1', setCode: 'BS', number: '1', name: 'Harry',
       lesson: null, rarity: null, finishes: [], legality: null, cost: null, damage: null,
       isOfficial: true, types: ['character'], subTypes: [], defaultLanguage: 'en',
-      orientation: 'horizontal',
+      orientation: 'horizontal', artCropVersion: 7,
       localizations: { en: { name: 'Harry', text: null, flavorText: null, imageVersion: 42 } },
     }
     const doc = buildCardDocument(data, 'en')
@@ -64,12 +64,28 @@ describe('buildCardDocument', () => {
     expect(doc.imageVersion).toBe(42)
   })
 
+  it('carries the card-level art-crop version onto every language document', () => {
+    const data = {
+      id: 'bs-1', setCode: 'BS', number: '1', name: 'Harry',
+      lesson: null, rarity: null, finishes: [], legality: null, cost: null, damage: null,
+      isOfficial: true, types: ['character'], subTypes: [], defaultLanguage: 'en',
+      orientation: 'horizontal', artCropVersion: 7,
+      localizations: {
+        en: { name: 'Harry', text: null, flavorText: null, imageVersion: 42 },
+        de: { name: 'Harry', text: null, flavorText: null, imageVersion: null },
+      },
+    }
+    // art crop is default-language only (no lang suffix), so it's identical across indexes
+    expect(buildCardDocument(data, 'en').artCropVersion).toBe(7)
+    expect(buildCardDocument(data, 'de').artCropVersion).toBe(7)
+  })
+
   it('reports no image version when the language has none', () => {
     const data = {
       id: 'bs-2', setCode: 'BS', number: '2', name: 'Ron',
       lesson: null, rarity: null, finishes: [], legality: null, cost: null, damage: null,
       isOfficial: true, types: ['character'], subTypes: [], defaultLanguage: 'en',
-      orientation: null,
+      orientation: null, artCropVersion: null,
       localizations: { en: { name: 'Ron', text: null, flavorText: null, imageVersion: null } },
     }
     const doc = buildCardDocument(data, 'en')

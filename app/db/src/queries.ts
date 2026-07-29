@@ -297,6 +297,7 @@ export async function getCardIndexData(db: DB, cardId: string): Promise<CardInde
     subTypes: subTypeRows.map((t) => t.subTypeCode),
     defaultLanguage: card.defaultLanguage,
     orientation: card.orientation,
+    artCropVersion: card.artCropVersion ?? null,
     localizations,
   }
 }

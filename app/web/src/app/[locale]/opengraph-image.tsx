@@ -1,13 +1,18 @@
-import { getTranslations } from 'next-intl/server'
-import { OG_SIZE, OG_CONTENT_TYPE } from '@/lib/seo'
-import { renderBrandOgImage } from '@/lib/og-image'
+import { ogImageMetadata, renderDefaultOgImage } from '@/lib/og-image'
 
-export const size = OG_SIZE
-export const contentType = OG_CONTENT_TYPE
-export const alt = 'Revelio — Harry Potter TCG card database'
+// Rendered per request: the image render resolves translations from the request
+// locale, so it must not be prerendered at build (no request scope / no DB there).
+export const dynamic = 'force-dynamic'
+
+// generateImageMetadata (not the static `alt`/`size`/`contentType` exports) so the
+// image `alt` can follow the request locale. It runs at build time, so it resolves
+// `alt` from imported messages inside ogImageMetadata — no request-scoped APIs here.
+export async function generateImageMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  return ogImageMetadata(locale)
+}
 
 export default async function Image({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  const t = await getTranslations({ locale, namespace: 'home' })
-  return renderBrandOgImage({ title: t('tagline'), subtitle: 'revelio.cards' })
+  return renderDefaultOgImage(locale)
 }

@@ -1,6 +1,7 @@
 {
   "meta": {
-    "description": "A searchable Harry Potter TCG card database."
+    "description": "A searchable Harry Potter TCG card database.",
+    "ogImageAlt": "Revelio — Harry Potter TCG card database"
   },
   "home": {
     "titleSuffix": "Harry Potter TCG card search",

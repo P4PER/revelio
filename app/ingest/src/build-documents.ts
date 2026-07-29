@@ -63,6 +63,7 @@ export async function buildDocuments(db: DB): Promise<Record<string, SearchDocum
       subTypes: subTypesByCard.get(c.id) ?? [],
       defaultLanguage: c.defaultLanguage,
       orientation: c.orientation,
+      artCropVersion: c.artCropVersion ?? null,
       localizations,
     }
   })

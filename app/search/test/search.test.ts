@@ -9,9 +9,9 @@ const lang = uniqueLang()
 const uid = cardsIndex(lang)
 
 const docs: SearchDocument[] = [
-  { id: 'a', setCode: 'BS', number: '1', numberSort: '0:000001', name: 'Harry Potter', text: 'The boy who lived', flavorText: null, types: ['character'], subTypes: ['wizard', 'gryffindor'], lesson: null, rarity: 'rare', finishes: ['normal'], legality: 'legal', cost: null, damage: null, isOfficial: true, imageLang: 'en', imageVersion: 100, defaultLanguage: 'en', orientation: 'horizontal' },
-  { id: 'b', setCode: 'BS', number: '2', numberSort: '0:000002', name: 'Flobberworm', text: 'A dull creature', flavorText: null, types: ['creature'], subTypes: [], lesson: null, rarity: 'common', finishes: ['normal'], legality: 'legal', cost: 2, damage: null, isOfficial: true, imageLang: null, imageVersion: null, defaultLanguage: 'en', orientation: 'vertical' },
-  { id: 'c', setCode: 'QC', number: '1', numberSort: '0:000001', name: 'The Snitch', text: 'Golden', flavorText: null, types: ['match'], subTypes: [], lesson: null, rarity: 'uncommon', finishes: ['normal'], legality: 'legal', cost: null, damage: null, isOfficial: false, imageLang: null, imageVersion: null, defaultLanguage: 'en', orientation: 'horizontal' },
+  { id: 'a', setCode: 'BS', number: '1', numberSort: '0:000001', name: 'Harry Potter', text: 'The boy who lived', flavorText: null, types: ['character'], subTypes: ['wizard', 'gryffindor'], lesson: null, rarity: 'rare', finishes: ['normal'], legality: 'legal', cost: null, damage: null, isOfficial: true, imageLang: 'en', imageVersion: 100, artCropVersion: 5, defaultLanguage: 'en', orientation: 'horizontal' },
+  { id: 'b', setCode: 'BS', number: '2', numberSort: '0:000002', name: 'Flobberworm', text: 'A dull creature', flavorText: null, types: ['creature'], subTypes: [], lesson: null, rarity: 'common', finishes: ['normal'], legality: 'legal', cost: 2, damage: null, isOfficial: true, imageLang: null, imageVersion: null, artCropVersion: null, defaultLanguage: 'en', orientation: 'vertical' },
+  { id: 'c', setCode: 'QC', number: '1', numberSort: '0:000001', name: 'The Snitch', text: 'Golden', flavorText: null, types: ['match'], subTypes: [], lesson: null, rarity: 'uncommon', finishes: ['normal'], legality: 'legal', cost: null, damage: null, isOfficial: false, imageLang: null, imageVersion: null, artCropVersion: null, defaultLanguage: 'en', orientation: 'horizontal' },
 ]
 
 beforeAll(async () => {
@@ -89,7 +89,7 @@ describe('sorting by card number', () => {
   const cards: CardIndexData[] = numbers.map((n) => ({
     id: `n-${n}`, setCode: 'BS', number: n, name: `Card ${n}`,
     lesson: null, rarity: null, finishes: [], legality: null, cost: null, damage: null,
-    isOfficial: true, types: [], subTypes: [], defaultLanguage: 'en', orientation: null,
+    isOfficial: true, types: [], subTypes: [], defaultLanguage: 'en', orientation: null, artCropVersion: null,
     localizations: { en: { name: `Card ${n}`, text: null, flavorText: null, imageVersion: null } },
   }))
 

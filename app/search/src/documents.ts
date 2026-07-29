@@ -20,6 +20,7 @@ export type SearchDocument = {
   isOfficial: boolean
   imageLang: string | null
   imageVersion: number | null
+  artCropVersion: number | null
   defaultLanguage: string
   orientation: string | null
 }
@@ -78,6 +79,9 @@ export type CardIndexData = {
   subTypes: string[]
   defaultLanguage: string
   orientation: string | null
+  // Card-level (default-language) art-crop version; not per-language, so it's
+  // copied verbatim onto every language document.
+  artCropVersion: number | null
   localizations: Record<string, LocalizationFields>
 }
 
@@ -103,6 +107,7 @@ export function buildCardDocument(d: CardIndexData, lang: string): SearchDocumen
     isOfficial: d.isOfficial,
     imageLang,
     imageVersion: imageLang ? d.localizations[imageLang]!.imageVersion : null,
+    artCropVersion: d.artCropVersion,
     defaultLanguage: d.defaultLanguage,
     orientation: d.orientation,
   }

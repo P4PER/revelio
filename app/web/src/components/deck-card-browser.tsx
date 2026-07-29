@@ -50,7 +50,9 @@ function toAddView(hit: SearchDocument): Omit<DeckCardView, 'zone' | 'quantity'>
     // renders a no-lang thumb key). The hit only carries the effective image lang, so
     // only adopt its version when that lang is the default; otherwise leave it null.
     imageVersion: hit.imageLang === hit.defaultLanguage ? hit.imageVersion : null,
-    artCropVersion: null,
+    // Card-level crop version carried on every language document; drives the
+    // starting-character art in the deck panel (DeckArt gates on it being non-null).
+    artCropVersion: hit.artCropVersion,
   }
 }
 

@@ -39,7 +39,8 @@ describe('seo helpers', () => {
     expect(meta.twitter).toMatchObject({ card: 'summary_large_image', description: 'A test description.' })
   })
 
-  it('formats a set OG subtitle as "CODE · N cards"', () => {
-    expect(setOgSubtitle({ code: 'BASE', cardCount: 116 })).toBe('BASE · 116 cards')
+  it('joins a set code with a localized card-count label', () => {
+    expect(setOgSubtitle('BASE', '116 cards')).toBe('BASE · 116 cards')
+    expect(setOgSubtitle('PROMO', '1 Karte')).toBe('PROMO · 1 Karte')
   })
 })

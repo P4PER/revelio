@@ -40,7 +40,11 @@ export function buildSiteMetadata(opts: { locale: string; description: string })
   }
 }
 
-/** Subtitle line for a set's generated OG image, e.g. "BASE · 116 cards". */
-export function setOgSubtitle(set: { code: string; cardCount: number }): string {
-  return `${set.code} · ${set.cardCount} cards`
+/**
+ * Subtitle line for a set's generated OG image, e.g. "BASE · 116 cards".
+ * `cardsLabel` is the already-localized count (e.g. "116 cards" / "116 Karten"),
+ * so the subtitle follows the request locale.
+ */
+export function setOgSubtitle(code: string, cardsLabel: string): string {
+  return `${code} · ${cardsLabel}`
 }

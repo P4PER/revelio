@@ -133,7 +133,8 @@ export function AdminSetsTable({ sets, imageBase }: { sets: SetDTO[]; imageBase:
             onChange={(e) => setGlobalFilter(e.target.value)}
             placeholder={t('sets.searchPlaceholder')}
             aria-label={t('sets.searchPlaceholder')}
-            className="h-8 w-full pr-8"
+            size="sm"
+            className="w-full pr-8"
           />
           {globalFilter && (
             <button

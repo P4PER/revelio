@@ -7,13 +7,13 @@ import type { DeckFormat } from '@revelio/core'
 import { useRouter } from '@/../i18n/navigation'
 import { type BrowseState, browseToQuery } from '@/lib/browse-params'
 import { DECK_VIEW_COOKIE, type DeckView } from '@/lib/deck-view'
-import { LessonFilterChips } from '@/components/lesson-filter-chips'
+import { LessonFilter } from '@/components/lesson-filter'
 import { ClearFiltersButton } from '@/components/clear-filters-button'
 import { PaginationNav } from '@/components/pagination-nav'
 import { DeckHeroCard } from '@/components/deck-hero-card'
 import { DeckDiscoverRow } from '@/components/deck-discover-row'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchField } from '@/components/search-field'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -68,43 +68,47 @@ export function DeckBrowse({
         <p className="mt-1 text-sm text-muted-foreground">{t('explore.subtitle')}</p>
       </div>
 
-      {/* Controls */}
-      <div className="flex flex-wrap items-center gap-3">
-        <Input
-          type="search"
-          defaultValue={state.q}
-          placeholder={t('explore.searchPlaceholder')}
-          className="h-9 min-w-56 flex-1"
-          onChange={(e) => onSearchChange(e.target.value)}
-        />
-        <Select value={state.sort} onValueChange={(v) => push({ sort: v as PublicDeckSort })}>
-          <SelectTrigger aria-label={t('explore.sort.label')} className="h-9 w-auto min-w-36">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {SORTS.map((s) => <SelectItem key={s} value={s}>{t(`explore.sort.${s}`)}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select
-          value={state.format ?? 'all'}
-          onValueChange={(v) => push({ format: v === 'all' ? null : (v as DeckFormat) })}
-        >
-          <SelectTrigger aria-label={t('explore.format.label')} className="h-9 w-auto min-w-36">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {/* Radix Select disallows an empty-string item value, so "all" is a
-                sentinel mapped back to null (no format filter). */}
-            <SelectItem value="all">{t('explore.format.all')}</SelectItem>
-            {FORMATS.map((f) => <SelectItem key={f} value={f}>{t(`explore.format.${f}`)}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <ClearFiltersButton active={Boolean(hasFilters)} onClear={() => push({ lessons: [], format: null })} size="default" />
-      </div>
+      {/* Search — owns its own row so it stays the prominent primary control. */}
+      <SearchField
+        primary
+        defaultValue={state.q}
+        placeholder={t('explore.searchPlaceholder')}
+        className="w-full"
+        onChange={(e) => onSearchChange(e.target.value)}
+      />
 
-      {/* Lesson chips — shared with the search page and deck builder. */}
-      <div className="flex flex-wrap gap-2" aria-label={t('explore.lessonsLabel')}>
-        <LessonFilterChips selected={state.lessons} onToggle={toggleLesson} />
+      {/* Lesson chips + sort / format / clear — grouped below the search like
+          the deck builder, so the compact (32px) filter controls sit under the
+          36px search rather than beside it (where they'd read as undersized). */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap gap-2" aria-label={t('explore.lessonsLabel')}>
+          <LessonFilter selected={state.lessons} onToggle={toggleLesson} />
+        </div>
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <Select value={state.sort} onValueChange={(v) => push({ sort: v as PublicDeckSort })}>
+            <SelectTrigger aria-label={t('explore.sort.label')} size="sm" className="w-auto min-w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SORTS.map((s) => <SelectItem key={s} value={s}>{t(`explore.sort.${s}`)}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select
+            value={state.format ?? 'all'}
+            onValueChange={(v) => push({ format: v === 'all' ? null : (v as DeckFormat) })}
+          >
+            <SelectTrigger aria-label={t('explore.format.label')} size="sm" className="w-auto min-w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {/* Radix Select disallows an empty-string item value, so "all" is a
+                  sentinel mapped back to null (no format filter). */}
+              <SelectItem value="all">{t('explore.format.all')}</SelectItem>
+              {FORMATS.map((f) => <SelectItem key={f} value={f}>{t(`explore.format.${f}`)}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <ClearFiltersButton active={Boolean(hasFilters)} onClear={() => push({ lessons: [], format: null })} />
+        </div>
       </div>
 
       {/* Header row: count + view toggle */}

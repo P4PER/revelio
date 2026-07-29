@@ -4,8 +4,8 @@ import { useRouter, usePathname } from '@/../i18n/navigation'
 import { TYPES } from '@revelio/core'
 import { withParams, parseSearchParams } from '@/lib/search-params'
 import { attrLabel } from '@/lib/attribute-labels'
-import { Button } from '@/components/ui/button'
-import { LessonFilterChips } from '@/components/lesson-filter-chips'
+import { Segmented, SegmentedItem } from '@/components/ui/segmented'
+import { LessonFilter } from '@/components/lesson-filter'
 
 export function QuickFilters({ locale }: { locale: string }) {
   const router = useRouter()
@@ -25,23 +25,26 @@ export function QuickFilters({ locale }: { locale: string }) {
 
   return (
     <div className="flex flex-wrap gap-2">
-      {TYPES.map((t) => {
-        const active = state.types.includes(t.code)
-        return (
-          <Button
-            key={t.code}
-            type="button"
-            size="sm"
-            variant={active ? 'default' : 'outline'}
-            aria-pressed={active}
-            onClick={() => toggle('type', state.types, t.code)}
-            className="rounded-full"
-          >
-            {attrLabel('types', t.code, locale)}
-          </Button>
-        )
-      })}
-      <LessonFilterChips
+      <Segmented>
+        {TYPES.map((t) => {
+          const active = state.types.includes(t.code)
+          return (
+            <SegmentedItem
+              key={t.code}
+              active={active}
+              onClick={() => toggle('type', state.types, t.code)}
+              className={
+                active
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-white/5'
+              }
+            >
+              {attrLabel('types', t.code, locale)}
+            </SegmentedItem>
+          )
+        })}
+      </Segmented>
+      <LessonFilter
         selected={state.lessons}
         onToggle={(code) => toggle('lesson', state.lessons, code)}
       />

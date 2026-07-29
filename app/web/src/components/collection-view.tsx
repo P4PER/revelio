@@ -100,7 +100,7 @@ export function CollectionView({
   return (
     <Tabs value={mode} onValueChange={onTab}>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <TabsList className="h-9 p-0.5">
+        <TabsList className="p-0.5">
           <TabsTrigger value="sets" className="px-5 text-sm">{t('bySets')}</TabsTrigger>
           <TabsTrigger value="browse" className="px-5 text-sm">{t('browseAll')}</TabsTrigger>
         </TabsList>
@@ -138,9 +138,9 @@ export function CollectionView({
 
       <TabsContent value="browse">
         <div className="mb-4 flex flex-wrap items-center gap-3">
-          <SearchBox placeholder={t('searchPlaceholder')} className="h-9 w-full sm:w-1/2" />
+          <SearchBox placeholder={t('searchPlaceholder')} className="w-full sm:w-1/2" />
           <div className="ml-auto flex items-center gap-2">
-            <ClearFiltersButton active={hasFilters} onClear={clearFilters} size="default" />
+            <ClearFiltersButton active={hasFilters} onClear={clearFilters} />
             <CollectionFilterDrawer sets={sets} locale={locale} />
           </div>
         </div>

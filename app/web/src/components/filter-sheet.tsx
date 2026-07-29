@@ -61,7 +61,7 @@ const ALL_GROUPS: Grp[] = [
 // local state (DeckFilterDrawer). `show` toggles the sections only some callers
 // need (lessons group; official/fan split).
 export function FilterSheet({
-  sets, value, locale, onApply, show = {}, size = 'sm',
+  sets, value, locale, onApply, show = {},
 }: {
   sets: SetDTO[]
   value: FilterSelection
@@ -70,8 +70,6 @@ export function FilterSheet({
   // `ownership` shows the collection-only owned/missing/dupes facet, drafted and
   // committed as `FilterSelection.owned` like every other filter.
   show?: { lessons?: boolean; official?: boolean; ownership?: boolean }
-  // Trigger button height tier — matches the toolbar it sits in.
-  size?: 'sm' | 'default'
 }) {
   const t = useTranslations('filters')
   const tv = useTranslations('validation')
@@ -134,7 +132,7 @@ export function FilterSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
-        <Button variant="outline" size={size} className="gap-1.5">
+        <Button variant="outline" size="sm" className="gap-1.5">
           <SlidersHorizontal className="size-3.5" />
           {t('button')}
           {count > 0 && (
@@ -199,7 +197,7 @@ export function FilterSheet({
               <legend className="mb-2 text-sm font-medium">{tc('ownership')}</legend>
               <div className="flex flex-wrap gap-2">
                 {(['owned', 'missing', 'dupes'] as const).map((v) => (
-                  <Button key={v} type="button" size="sm"
+                  <Button key={v} type="button"
                     variant={draft.owned === v ? 'default' : 'outline'}
                     onClick={() => setDraft((d) => ({ ...d, owned: d.owned === v ? '' : v }))}>
                     {tc(v === 'owned' ? 'filterOwned' : v === 'missing' ? 'filterMissing' : 'filterDupes')}

@@ -50,7 +50,6 @@ export function CollectionFilterDrawer({ sets, locale }: { sets: SetDTO[]; local
       value={value}
       locale={locale}
       show={{ lessons: true, official: true, ownership: true }}
-      size="default"
       onApply={handleApply}
     />
   )

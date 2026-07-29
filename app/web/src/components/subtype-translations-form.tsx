@@ -84,7 +84,8 @@ export function SubTypeTranslationsForm({ locales, rows }: { locales: string[]; 
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t('searchPlaceholder')}
             aria-label={t('searchPlaceholder')}
-            className="h-8 w-full pr-8"
+            size="sm"
+            className="w-full pr-8"
           />
           {query && (
             <button

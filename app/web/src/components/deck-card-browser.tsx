@@ -1,15 +1,15 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { Info, Search } from 'lucide-react'
+import { Info } from 'lucide-react'
 import { deckCardMeta, imageUrl, thumbKey } from '@revelio/core'
 import type { DeckCardView, DeckFormat, DeckZone, SetDTO } from '@revelio/core'
 import type { SearchDocument, SearchResult } from '@revelio/search'
 import { searchDeckCards } from '@/lib/deck-actions'
-import { LessonFilterChips } from '@/components/lesson-filter-chips'
+import { LessonFilter } from '@/components/lesson-filter'
 import { ClearFiltersButton } from '@/components/clear-filters-button'
 import { cn } from '@/lib/utils'
-import { Input } from '@/components/ui/input'
+import { SearchField } from '@/components/search-field'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -152,18 +152,14 @@ export function DeckCardBrowser({
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-col gap-2.5 border-b border-border/60 px-4 py-3">
-        <div className="relative">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-          <Input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('browse.searchPlaceholder', { format: t(`format.${format}`) })}
-            className="pl-9"
-          />
-        </div>
+        <SearchField
+          primary
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t('browse.searchPlaceholder', { format: t(`format.${format}`) })}
+        />
         <div className="flex flex-wrap items-center gap-1.5">
-          <LessonFilterChips selected={lessons} onToggle={toggleLesson} size="sm" />
+          <LessonFilter selected={lessons} onToggle={toggleLesson} />
           <div className="ml-auto flex items-center gap-1.5">
             <ClearFiltersButton active={filtersActive} onClear={clearFilters} />
             <DeckFilterDrawer sets={sets} value={filters} onApply={setFilters} />

@@ -1,0 +1,162 @@
+# Control-Size Standard — Design
+
+**Date:** 2026-07-28
+**Status:** Approved, pending implementation
+**Scope:** Web workspace (`app/web`) — buttons, inputs, selects, textareas, filter chips, tabs.
+
+## Problem
+
+The shadcn primitives define a clean size scale, but application code overrides
+it inconsistently, so **five competing control heights are live at once** with no
+rule mapping context to size. Every author picks a height by eye.
+
+Current de-facto heights:
+
+| Height | Token | Where |
+|--------|-------|-------|
+| 24px | `h-6` (button `xs`) | tiny icon buttons |
+| 28px | `h-7` | filter chips (`sm`), deck-panel steppers — *not a primitive token* |
+| 32px | `h-8` (button/select `sm`, tabs) | toolbars, header search, admin table inputs |
+| 36px | `h-9` (**default** for button/input/select) | most controls, date-picker, page search |
+| 40px | `h-10` (button `lg`) | auth form inputs+buttons, contact form inputs+buttons |
+
+Concrete inconsistencies:
+
+1. **Forms disagree on the baseline.** `auth-form.tsx` and `contact-form.tsx`
+   force inputs to `h-10` and buttons to `size="lg"` (40px); the card editor,
+   admin, and subtype forms use 32–36px. No rule says which applies where.
+2. **Search inputs vary:** header search is `h-8`; deck-browse and collection
+   search are `h-9`.
+3. **`h-7` chips/steppers** are hand-rolled heights with no matching button
+   token, so they can't stay in sync.
+4. **Admin table inputs** hard-code `h-8`, diverging from the `h-9` input default.
+
+The root cause is not the primitives — it is the missing **context → size** rule.
+
+## The tier system
+
+Three density tiers, mapped onto shadcn's existing `sm` / `default` / `lg` size
+vocabulary. The tier becomes a real `size` prop on every form control, never a
+hand-typed height class.
+
+| Tier | `size` prop | Height | Text | Use for |
+|------|-------------|--------|------|---------|
+| **Compact** | `sm` | 32px (`h-8`) | `text-sm` | dense contexts — data tables, inline toolbars (incl. the site header), filter chips, tabs |
+| **Default** | `default` | 36px (`h-9`) | `text-sm` | the norm — page controls, page/section search, editor & admin form fields |
+| **Comfortable** | `lg` | 40px (`h-10`) | `text-base` | standalone forms that *are* the page's primary task — auth (login/register), contact |
+
+**Governing rule — a control inherits the density of its container.** Everything
+in one row / toolbar / form shares a single tier. Pick the tier from the context,
+not per-control by eye.
+
+**Override — a shared control keeps ONE tier across every page it appears on.**
+Container-density decides the tier for a *bespoke* row, but the moment the same
+reusable component (or component family) renders on multiple pages, cross-page
+consistency wins: it must be the same size everywhere, and no per-call-site
+`size` prop may exist to let it drift. If two pages would push it to different
+tiers, that is a signal the pages disagree about the pattern — resolve it by
+picking one tier for the family, not by parameterising the component.
+
+The **card/deck filter toolbar** is the worked example. The search page,
+collection "Browse all" tab, deck builder, and deck-browse all render the same
+family, split into **two roles by a deliberate visual hierarchy** — but each
+control type is still ONE size across every page:
+
+- **Search text input → default (36px).** The primary control; stays prominent
+  and reads well for typing.
+- **Filter chrome → compact (32px):** lesson/type chips, the Clear button, the
+  Sort select, deck-browse's sort/format selects, and the Advanced
+  (`FilterSheet`) trigger. These sit one tier *below* the search so they read as
+  secondary controls rather than competing with it — the chrome under the search
+  was too heavy at 36px, especially in the deck builder.
+
+Consequence: on rows where a 36px search input sits beside 32px chrome
+(collection browse, deck-browse), the input is intentionally a touch taller than
+its neighbours — a standard search-bar look, and the price of keeping Clear/Sort/
+Advanced the same size on the pages where they instead sit *under* the search
+(deck builder, search page).
+
+The **Advanced sheet's internals** (set select, ownership toggles, cost inputs,
+Apply/Clear) are a **form panel**, a different context — they stay at **default
+(36px)**, matching each other.
+
+No per-call-site `size` prop is exposed on `FilterSheet`, `ClearFiltersButton`,
+`LessonFilterChips`, `SortSelect`, or the quick-filter chips — each is hardcoded
+to its role's tier so the family cannot diverge across pages again. Compact
+(32px) also remains the tier for the genuinely dense contexts: the site header
+and admin data tables.
+
+Icon buttons use the parallel scale already present in `button.tsx`:
+`icon-sm` / `icon` / `icon-lg` = 32 / 36 / 40, with `icon-xs` = 24 for truly tiny
+affordances. The 24px `xs` text button remains available for micro-affordances but
+sits **below** the three main tiers and is not part of the standard density map.
+
+## Primitive changes
+
+Make the tiers enforceable in code so a call-site expresses intent (`size="lg"`),
+not a magic number (`className="h-10"`).
+
+1. **`Input`** — add a `size` variant `sm | default | lg`:
+   - `sm` → `h-8`, `text-sm`, `px-2.5`
+   - `default` → `h-9` (current behavior, unchanged), `px-3`
+   - `lg` → `h-10`, `text-base` (i.e. `md:text-base` to keep the current
+     responsive behavior auth hand-rolls), `px-3`
+   - Default variant stays `default`, so existing `<Input>` call-sites are
+     unaffected.
+2. **`SelectTrigger`** — add `lg` (h-10) alongside the existing `sm | default`.
+3. **`AutoTextarea`** — add a `size` prop that drives padding/text only (height
+   still auto-grows): `lg` → `text-base`, matching a comfortable form. Default
+   unchanged.
+4. **`Button` / `Tabs` / `Badge` / `Checkbox`** — no new tokens. Button's
+   `sm/default/lg` already *are* the three tiers; this is documented, not changed.
+
+Variant text/padding values follow the existing shadcn button rhythm and the
+current input styling; they are intentionally modest so the visual change is
+limited to height alignment, not a restyle.
+
+## Call-site refactors
+
+| File | Change |
+|------|--------|
+| `auth-form.tsx` | inputs `className="h-10 md:text-base"` → `size="lg"` (buttons already `size="lg"`) |
+| `contact-form.tsx` | inputs `className="h-10"` → `size="lg"`; `AutoTextarea` → `size="lg"` (button already `lg`) |
+| `admin-sets-table.tsx` | filter input `className="h-8 w-full pr-8"` → `size="sm"` + keep `w-full pr-8` |
+| `admin-users-table.tsx` | filter input `className="h-8 w-full pr-8"` → `size="sm"` + keep `w-full pr-8` |
+| `subtype-translations-form.tsx` | input `className="h-8 w-full pr-8"` → `size="sm"` + keep `w-full pr-8` |
+| `deck-browse.tsx` | drop redundant `h-9` on search input and selects (default already h-9) |
+| `collection-view.tsx` | `SearchBox` drop `h-9` (default); drop `h-9` TabsList override |
+| `lesson-filter-chips.tsx` | no `size` prop — one canonical chip at the **compact tier** (button `sm`: `h-8`, `text-sm`, 16px icon) so every call site renders identically. `deck-card-browser.tsx` passes none. Kills the orphan 28px height and the `text-xs`/`text-sm` fork |
+| `filter-sheet.tsx` + adapters | no `size` prop on `FilterSheet`; the Advanced **trigger** is compact (`h-8`) on every page. `collection-filter-drawer.tsx` passes none. The in-sheet **ownership toggles** are default (`h-9`) to match the sheet's set-select and cost inputs (form-panel context) |
+| `clear-filters-button.tsx` | no `size` prop; Clear is compact (`h-8`) everywhere. `collection-view.tsx` and `deck-browse.tsx` pass none |
+| `sort-select.tsx` | trigger is `size="sm"` (compact, `h-8`) |
+| `quick-filters.tsx` | type chips are `size="sm"` (compact, `h-8`), matching the lesson chips beside them |
+| `deck-browse.tsx` | sort + format selects are `size="sm"` (compact, `h-8`); the search input stays default (`h-9`) |
+
+`search-box.tsx` needs no change itself — it forwards `className`; call-sites stop
+passing heights so it renders at the `Input` default (36px), except where a
+compact container overrides via the standard.
+
+## Deliberate exceptions (documented, not "fixed")
+
+- **`header-search.tsx`** stays compact (`h-8`) to match the compact header nav
+  row (container-density rule), overriding the "page search = 36px" default.
+- **Tabs** standardize at compact 32px; `collection-view.tsx`'s `h-9` TabsList
+  override is dropped.
+- **`deck-panel.tsx` quantity steppers** (`h-7 w-6`) — bespoke, non-square
+  micro-control; left as-is and noted here so it is not mistaken for drift.
+
+## Verification
+
+- `npm run typecheck` green across workspaces.
+- `npm test -w web` green — existing auth, contact, and search-box tests must
+  pass unchanged (auth/contact tests query by label; search-box test does not
+  assert height).
+- Manual visual pass: login, register, contact, admin sets/users tables, site
+  header, deck-browse, collection view.
+
+## Out of scope
+
+- No restyling beyond height/text alignment (colors, radii, variants untouched).
+- No new component library or design-token infrastructure; this reuses the
+  existing shadcn `size` prop convention.
+- `card-data/`, `ingest`, and non-web workspaces are unaffected.

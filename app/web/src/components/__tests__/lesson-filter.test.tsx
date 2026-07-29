@@ -2,17 +2,17 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
-import { LessonFilterChips } from '@/components/lesson-filter-chips'
+import { LessonFilter } from '@/components/lesson-filter'
 
-function renderChips(props: React.ComponentProps<typeof LessonFilterChips>) {
+function renderChips(props: React.ComponentProps<typeof LessonFilter>) {
   return render(
     <NextIntlClientProvider locale="en" messages={{}}>
-      <LessonFilterChips {...props} />
+      <LessonFilter {...props} />
     </NextIntlClientProvider>,
   )
 }
 
-describe('LessonFilterChips', () => {
+describe('LessonFilter', () => {
   it('renders a chip per lesson, each with an icon and a translated label', () => {
     const { container } = renderChips({ selected: [], onToggle: () => {} })
     expect(screen.getAllByRole('button')).toHaveLength(5)

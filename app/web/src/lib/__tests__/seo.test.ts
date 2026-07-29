@@ -6,7 +6,14 @@ import {
   OG_CONTENT_TYPE,
   buildSiteMetadata,
   setOgSubtitle,
+  ogImageAlt,
+  hasOgAltForAllLocales,
+  ogImageMetadata,
+  clampOgTitle,
 } from '../seo'
+import { routing } from '@/../i18n/routing'
+import en from '@/../messages/en.json'
+import de from '@/../messages/de.json'
 
 describe('seo helpers', () => {
   it('exposes the canonical origin as metadataBase', () => {
@@ -42,5 +49,32 @@ describe('seo helpers', () => {
   it('joins a set code with a localized card-count label', () => {
     expect(setOgSubtitle('BASE', '116 cards')).toBe('BASE · 116 cards')
     expect(setOgSubtitle('PROMO', '1 Karte')).toBe('PROMO · 1 Karte')
+  })
+
+  it('resolves the OG alt per locale from messages', () => {
+    expect(ogImageAlt('en')).toBe(en.meta.ogImageAlt)
+    expect(ogImageAlt('de')).toBe(de.meta.ogImageAlt)
+    expect(ogImageAlt('en')).not.toBe(ogImageAlt('de'))
+  })
+
+  it('has an OG alt for every configured locale (no silent fallback)', () => {
+    expect(hasOgAltForAllLocales()).toBe(true)
+    for (const locale of routing.locales) {
+      expect(ogImageAlt(locale)).toBeTruthy()
+    }
+  })
+
+  it('builds the OG image metadata shape with the given alt', () => {
+    expect(ogImageMetadata('Base')).toEqual([
+      { id: 'og', alt: 'Base', size: OG_SIZE, contentType: OG_CONTENT_TYPE },
+    ])
+  })
+
+  it('clamps only over-long titles, appending an ellipsis', () => {
+    expect(clampOgTitle('Base Set')).toBe('Base Set')
+    const long = 'A'.repeat(60)
+    const clamped = clampOgTitle(long)
+    expect(clamped.length).toBe(42)
+    expect(clamped.endsWith('…')).toBe(true)
   })
 })

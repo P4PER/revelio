@@ -8,6 +8,7 @@ import en from '@/../messages/en.json'
 // it stays in sync with the site's default metadata.
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: '/',
     name: BRAND_NAME,
     short_name: BRAND_NAME,
     description: en.meta.description,

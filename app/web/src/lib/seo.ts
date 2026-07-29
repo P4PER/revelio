@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import { SITE_URL } from '@/lib/site'
 import { BRAND_NAME } from '@/lib/brand'
+import { routing } from '@/../i18n/routing'
+import en from '@/../messages/en.json'
+import de from '@/../messages/de.json'
 
 /** Absolute origin used to resolve relative OG/icon URLs in metadata. */
 export const METADATA_BASE = new URL(SITE_URL)
@@ -47,4 +50,37 @@ export function buildSiteMetadata(opts: { locale: string; description: string })
  */
 export function setOgSubtitle(code: string, cardsLabel: string): string {
   return `${code} · ${cardsLabel}`
+}
+
+// Per-locale OG image alt strings. Read from directly-imported messages rather
+// than getTranslations: generateImageMetadata runs at build time (to enumerate
+// image ids) with no request scope, so it must not call headers()-backed APIs.
+// Keyed by every configured locale — see the parity test — so adding a locale
+// without an entry is caught rather than silently falling back.
+const OG_IMAGE_ALT: Record<string, string> = {
+  en: en.meta.ogImageAlt,
+  de: de.meta.ogImageAlt,
+}
+
+/** The localized alt text for the default (brand) OG image. */
+export function ogImageAlt(locale: string): string {
+  return OG_IMAGE_ALT[locale] ?? OG_IMAGE_ALT[routing.defaultLocale]
+}
+
+/** True if every configured locale has an OG alt string (guards the map). */
+export function hasOgAltForAllLocales(): boolean {
+  return routing.locales.every((l) => typeof OG_IMAGE_ALT[l] === 'string')
+}
+
+/**
+ * The `generateImageMetadata` return shape shared by every OG image route: a
+ * single image carrying the standard size/type and the given `alt`.
+ */
+export function ogImageMetadata(alt: string) {
+  return [{ id: 'og', alt, size: OG_SIZE, contentType: OG_CONTENT_TYPE }]
+}
+
+/** Clamp an OG image title so a long name can't overflow the 1200x630 canvas. */
+export function clampOgTitle(title: string, max = 42): string {
+  return title.length > max ? `${title.slice(0, max - 1).trimEnd()}…` : title
 }

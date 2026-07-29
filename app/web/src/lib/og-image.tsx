@@ -2,17 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { ImageResponse } from 'next/og'
 import { getTranslations } from 'next-intl/server'
-import { OG_SIZE, OG_CONTENT_TYPE } from '@/lib/seo'
-import en from '@/../messages/en.json'
-import de from '@/../messages/de.json'
-
-// The image `alt` is resolved here from directly-imported messages rather than
-// getTranslations: generateImageMetadata runs at build time (to enumerate image
-// ids) with no request scope, so it must not call headers()-backed APIs.
-const OG_IMAGE_ALT: Record<string, string> = {
-  en: en.meta.ogImageAlt,
-  de: de.meta.ogImageAlt,
-}
+import { OG_SIZE, clampOgTitle } from '@/lib/seo'
 
 // The wand-and-star mark, inlined from logos/revelio-icon.svg and embedded as a
 // data URI so the renderer makes no external image request.
@@ -61,7 +51,9 @@ export async function renderBrandOgImage(opts: {
           <span style={{ fontSize: 40, color: '#FBF3DC', letterSpacing: '-1px' }}>revelio</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <span style={{ fontSize: 76, color: '#FBF3DC', lineHeight: 1.05 }}>{opts.title}</span>
+          <span style={{ fontSize: 76, color: '#FBF3DC', lineHeight: 1.05 }}>
+            {clampOgTitle(opts.title)}
+          </span>
           <span style={{ fontSize: 36, color: '#E8B23A' }}>{opts.subtitle}</span>
         </div>
       </div>
@@ -72,16 +64,6 @@ export async function renderBrandOgImage(opts: {
       fonts: [{ name: 'Poppins', data: font, weight: 600, style: 'normal' }],
     },
   )
-}
-
-/**
- * The `generateImageMetadata` return shape shared by every OG image route: a
- * single image carrying the standard size/type and a locale-resolved `alt`.
- * Build-safe — resolves `alt` from imported messages, not request-scoped APIs.
- */
-export function ogImageMetadata(locale: string) {
-  const alt = OG_IMAGE_ALT[locale] ?? OG_IMAGE_ALT.en
-  return [{ id: 'og', alt, size: OG_SIZE, contentType: OG_CONTENT_TYPE }]
 }
 
 /** The default site share card (localized tagline + domain), reused as the

@@ -11,6 +11,7 @@ describe('web app manifest', () => {
     expect(m.short_name).toBe('Revelio')
     expect(m.display).toBe('standalone')
     expect(m.start_url).toBe('/')
+    expect(m.id).toBe('/')
   })
 
   it('reuses the English meta description', () => {

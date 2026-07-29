@@ -4,7 +4,7 @@ import { useRouter, usePathname } from '@/../i18n/navigation'
 import { TYPES } from '@revelio/core'
 import { withParams, parseSearchParams } from '@/lib/search-params'
 import { attrLabel } from '@/lib/attribute-labels'
-import { Segmented, SegmentedItem } from '@/components/ui/segmented'
+import { Chip } from '@/components/ui/chip'
 import { LessonFilter } from '@/components/lesson-filter'
 
 export function QuickFilters({ locale }: { locale: string }) {
@@ -25,25 +25,25 @@ export function QuickFilters({ locale }: { locale: string }) {
 
   return (
     <div className="flex flex-wrap gap-2">
-      <Segmented>
+      <div className="flex flex-wrap gap-2">
         {TYPES.map((t) => {
           const active = state.types.includes(t.code)
           return (
-            <SegmentedItem
+            <Chip
               key={t.code}
               active={active}
               onClick={() => toggle('type', state.types, t.code)}
               className={
                 active
-                  ? 'bg-primary text-primary-foreground'
+                  ? 'border-primary bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:bg-white/5'
               }
             >
               {attrLabel('types', t.code, locale)}
-            </SegmentedItem>
+            </Chip>
           )
         })}
-      </Segmented>
+      </div>
       <LessonFilter
         selected={state.lessons}
         onToggle={(code) => toggle('lesson', state.lessons, code)}

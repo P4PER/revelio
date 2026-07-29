@@ -55,8 +55,9 @@ export function setOgSubtitle(code: string, cardsLabel: string): string {
 // Per-locale OG image alt strings. Read from directly-imported messages rather
 // than getTranslations: generateImageMetadata runs at build time (to enumerate
 // image ids) with no request scope, so it must not call headers()-backed APIs.
-// Keyed by every configured locale — see the parity test — so adding a locale
-// without an entry is caught rather than silently falling back.
+// The parity test (hasOgAltForAllLocales) fails CI if a configured locale has no
+// entry here; at runtime ogImageAlt falls back to the default locale, so a missing
+// entry degrades to the wrong-language alt rather than throwing.
 const OG_IMAGE_ALT: Record<string, string> = {
   en: en.meta.ogImageAlt,
   de: de.meta.ogImageAlt,

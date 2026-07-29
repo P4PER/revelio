@@ -11,11 +11,16 @@ import { renderBrandOgImage, renderDefaultOgImage } from '@/lib/og-image'
 // runs per request, where the DB read for the alt is available.
 export const dynamic = 'force-dynamic'
 
-// Deduped per request: generateImageMetadata + the image render share one DB read.
+// cache() dedupes the two loadSet calls WITHIN the image request (generateImageMetadata
+// resolves the alt, then the render reads the set again). It does not dedupe with the
+// set *page* render, which reads the set separately via getSetByCode in page.tsx — that
+// is one extra lightweight indexed read per set-page view, the cost of a set-name alt.
 const loadSet = cache((code: string, locale: string) => getSetByCode(getDb(), code, locale))
 
 // generateImageMetadata (not static exports) so `alt` follows the request locale —
-// the localized set name, or the default site alt when the set is missing.
+// the localized set name, or the default site alt when the set is missing/unnamed.
+// The alt is the full (unclamped) name on purpose: the visible title is clamped for
+// layout, but a screen reader should still get the complete name.
 export async function generateImageMetadata({
   params,
 }: {
@@ -27,7 +32,8 @@ export async function generateImageMetadata({
   // alt; force-dynamic re-runs it per request, where the DB yields the set name.
   let setName: string | null = null
   try {
-    setName = (await loadSet(code, locale))?.name ?? null
+    // `|| null`, not `?? null`: an empty localized name must fall back too.
+    setName = (await loadSet(code, locale))?.name?.trim() || null
   } catch {
     setName = null
   }
@@ -41,7 +47,7 @@ export default async function Image({
 }) {
   const { locale, code } = await params
   const set = await loadSet(code, locale)
-  if (!set) return renderDefaultOgImage(locale)
+  if (!set?.name?.trim()) return renderDefaultOgImage(locale)
   const t = await getTranslations({ locale, namespace: 'search' })
   return renderBrandOgImage({
     title: set.name,

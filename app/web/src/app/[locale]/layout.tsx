@@ -1,10 +1,10 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Poppins } from 'next/font/google'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
 import { notFound } from 'next/navigation'
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
 import { routing } from '@/../i18n/routing'
-import { BRAND_NAME } from '@/lib/brand'
+import { buildSiteMetadata, THEME_COLOR } from '@/lib/seo'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { Toaster } from '@/components/ui/sonner'
@@ -19,13 +19,11 @@ export async function generateMetadata({
   const { locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations('meta')
-  return {
-    title: {
-      default: BRAND_NAME,
-      template: `%s · ${BRAND_NAME}`,
-    },
-    description: t('description'),
-  }
+  return buildSiteMetadata({ locale, description: t('description') })
+}
+
+export const viewport: Viewport = {
+  themeColor: THEME_COLOR,
 }
 
 const poppins = Poppins({

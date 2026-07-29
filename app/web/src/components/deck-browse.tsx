@@ -77,22 +77,16 @@ export function DeckBrowse({
         onChange={(e) => onSearchChange(e.target.value)}
       />
 
-      {/* Lesson chips + sort / format / clear — grouped below the search like
-          the deck builder, so the compact (32px) filter controls sit under the
-          36px search rather than beside it (where they'd read as undersized). */}
+      {/* Lesson chips + format / clear — the narrowing filters, grouped below
+          the search like the deck builder, so the compact (32px) filter
+          controls sit under the 36px search rather than beside it (where
+          they'd read as undersized). Sort is not here — it lives in the
+          results header below. */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex flex-wrap gap-2" aria-label={t('explore.lessonsLabel')}>
           <LessonFilter selected={state.lessons} onToggle={toggleLesson} />
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
-          <Select value={state.sort} onValueChange={(v) => push({ sort: v as PublicDeckSort })}>
-            <SelectTrigger aria-label={t('explore.sort.label')} size="sm" className="w-auto min-w-36">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SORTS.map((s) => <SelectItem key={s} value={s}>{t(`explore.sort.${s}`)}</SelectItem>)}
-            </SelectContent>
-          </Select>
           <Select
             value={state.format ?? 'all'}
             onValueChange={(v) => push({ format: v === 'all' ? null : (v as DeckFormat) })}
@@ -111,16 +105,27 @@ export function DeckBrowse({
         </div>
       </div>
 
-      {/* Header row: count + view toggle */}
+      {/* Header row: count + sort + view toggle. Sort lives here (with the
+          results it orders), not in the filter row above. */}
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted-foreground">{t('explore.count', { count: total })}</span>
-        <div className="flex gap-1">
-          <Button variant={view === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setView('list')} aria-label="List view">
-            <List className="size-4" />
-          </Button>
-          <Button variant={view === 'gallery' ? 'secondary' : 'ghost'} size="icon" onClick={() => setView('gallery')} aria-label="Grid view">
-            <LayoutGrid className="size-4" />
-          </Button>
+        <div className="flex items-center gap-2">
+          <Select value={state.sort} onValueChange={(v) => push({ sort: v as PublicDeckSort })}>
+            <SelectTrigger aria-label={t('explore.sort.label')} size="sm" className="w-auto min-w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SORTS.map((s) => <SelectItem key={s} value={s}>{t(`explore.sort.${s}`)}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <div className="flex gap-1">
+            <Button variant={view === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setView('list')} aria-label="List view">
+              <List className="size-4" />
+            </Button>
+            <Button variant={view === 'gallery' ? 'secondary' : 'ghost'} size="icon" onClick={() => setView('gallery')} aria-label="Grid view">
+              <LayoutGrid className="size-4" />
+            </Button>
+          </div>
         </div>
       </div>
 

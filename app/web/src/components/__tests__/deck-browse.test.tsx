@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
 
@@ -32,5 +33,16 @@ describe('DeckBrowse instant search', () => {
     expect(push).not.toHaveBeenCalled()          // not yet (debounced)
     act(() => { vi.advanceTimersByTime(300) })
     expect(push).toHaveBeenCalledWith(expect.stringContaining('q=aggro'))
+  })
+})
+
+describe('DeckBrowse sort control', () => {
+  it('changing sort pushes a sort param', async () => {
+    vi.useRealTimers()                        // userEvent needs real timers
+    const user = userEvent.setup()
+    renderBrowse()
+    await user.click(screen.getByLabelText(en.decks.explore.sort.label))
+    await user.click(await screen.findByRole('option', { name: en.decks.explore.sort.newest }))
+    expect(push).toHaveBeenCalledWith(expect.stringContaining('sort=newest'))
   })
 })

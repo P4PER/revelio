@@ -1,0 +1,61 @@
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { pickStarterArt, deckLessonCodes, fetchAsDataUri } from '../deck-og'
+
+const starter = { isStartingCharacter: true, cardId: 'c1', artCropVersion: 3 }
+const other = { isStartingCharacter: false, cardId: 'c2', artCropVersion: 9 }
+
+describe('pickStarterArt', () => {
+  it('builds the art-crop URL for the starting character', () => {
+    const url = pickStarterArt([other, starter], 'https://img.example')
+    expect(url).toContain('https://img.example')
+    expect(url).toContain('c1')
+  })
+  it('returns null when there is no starting character', () => {
+    expect(pickStarterArt([other], 'https://img.example')).toBeNull()
+  })
+  it('returns null when the starter has no art crop', () => {
+    expect(pickStarterArt([{ ...starter, artCropVersion: null }], 'https://img.example')).toBeNull()
+  })
+  it('returns null when the image base is empty', () => {
+    expect(pickStarterArt([starter], '')).toBeNull()
+  })
+})
+
+describe('deckLessonCodes', () => {
+  it('returns distinct, non-null lesson codes in order', () => {
+    const views = [{ lesson: 'charms' }, { lesson: null }, { lesson: 'charms' }, { lesson: 'potions' }]
+    expect(deckLessonCodes(views)).toEqual(['charms', 'potions'])
+  })
+})
+
+describe('fetchAsDataUri', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('encodes a successful response as a data URI with its content type', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(new Uint8Array([1, 2, 3]), {
+            status: 200,
+            headers: { 'content-type': 'image/webp' },
+          }),
+      ),
+    )
+    const uri = await fetchAsDataUri('https://img.example/x')
+    expect(uri).toMatch(/^data:image\/webp;base64,/)
+  })
+  it('returns null on a non-ok response', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 404 })))
+    expect(await fetchAsDataUri('https://img.example/x')).toBeNull()
+  })
+  it('returns null when fetch throws', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new Error('network')
+      }),
+    )
+    expect(await fetchAsDataUri('https://img.example/x')).toBeNull()
+  })
+})

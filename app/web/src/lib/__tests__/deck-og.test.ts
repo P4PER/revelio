@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { pickStarterArt, deckLessonCodes, fetchAsDataUri } from '../deck-og'
+import sharp from 'sharp'
+import { pickStarterArt, deckLessonCodes, fetchArtCropPng } from '../deck-og'
 
 const starter = { isStartingCharacter: true, cardId: 'c1', artCropVersion: 3 }
 const other = { isStartingCharacter: false, cardId: 'c2', artCropVersion: 9 }
@@ -28,26 +29,28 @@ describe('deckLessonCodes', () => {
   })
 })
 
-describe('fetchAsDataUri', () => {
+describe('fetchArtCropPng', () => {
   afterEach(() => vi.unstubAllGlobals())
 
-  it('encodes a successful response as a data URI with its content type', async () => {
+  it('transcodes a fetched WebP art crop into a PNG data URI', async () => {
+    const webp = await sharp({
+      create: { width: 4, height: 4, channels: 3, background: { r: 10, g: 20, b: 30 } },
+    })
+      .webp()
+      .toBuffer()
     vi.stubGlobal(
       'fetch',
-      vi.fn(
-        async () =>
-          new Response(new Uint8Array([1, 2, 3]), {
-            status: 200,
-            headers: { 'content-type': 'image/webp' },
-          }),
-      ),
+      vi.fn(async () => new Response(webp, { status: 200, headers: { 'content-type': 'image/webp' } })),
     )
-    const uri = await fetchAsDataUri('https://img.example/x')
-    expect(uri).toMatch(/^data:image\/webp;base64,/)
+    const uri = await fetchArtCropPng('https://img.example/x.webp')
+    expect(uri).toMatch(/^data:image\/png;base64,/)
+    // Decode the result back and confirm satori would receive a real PNG.
+    const meta = await sharp(Buffer.from(uri!.split(',')[1], 'base64')).metadata()
+    expect(meta.format).toBe('png')
   })
   it('returns null on a non-ok response', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 404 })))
-    expect(await fetchAsDataUri('https://img.example/x')).toBeNull()
+    expect(await fetchArtCropPng('https://img.example/x')).toBeNull()
   })
   it('returns null when fetch throws', async () => {
     vi.stubGlobal(
@@ -56,6 +59,10 @@ describe('fetchAsDataUri', () => {
         throw new Error('network')
       }),
     )
-    expect(await fetchAsDataUri('https://img.example/x')).toBeNull()
+    expect(await fetchArtCropPng('https://img.example/x')).toBeNull()
+  })
+  it('returns null when the bytes are not a decodable image', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(new Uint8Array([1, 2, 3]), { status: 200 })))
+    expect(await fetchArtCropPng('https://img.example/x')).toBeNull()
   })
 })

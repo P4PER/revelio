@@ -1,3 +1,4 @@
+import sharp from 'sharp'
 import { artCropKey, imageUrl, type DeckCardView } from '@revelio/core'
 
 /**
@@ -20,17 +21,19 @@ export function deckLessonCodes(views: Pick<DeckCardView, 'lesson'>[]): string[]
 }
 
 /**
- * Fetch a remote image and return it as a base64 data URI, or null on any
- * failure. Fetching here (rather than letting satori fetch inside the render)
- * lets the caller fall back cleanly instead of the image stream throwing.
+ * Fetch the art crop and return it as a base64 PNG data URI, or null on any
+ * failure. Art crops are stored as WebP, which satori (next/og) cannot decode,
+ * so transcode to PNG here. Fetching + transcoding in the route (rather than
+ * letting satori fetch inside the render) lets the caller fall back cleanly
+ * instead of the image stream throwing.
  */
-export async function fetchAsDataUri(url: string): Promise<string | null> {
+export async function fetchArtCropPng(url: string): Promise<string | null> {
   try {
     const res = await fetch(url)
     if (!res.ok) return null
-    const type = res.headers.get('content-type') ?? 'image/jpeg'
-    const buf = Buffer.from(await res.arrayBuffer())
-    return `data:${type};base64,${buf.toString('base64')}`
+    const input = Buffer.from(await res.arrayBuffer())
+    const png = await sharp(input).png().toBuffer()
+    return `data:image/png;base64,${png.toString('base64')}`
   } catch {
     return null
   }

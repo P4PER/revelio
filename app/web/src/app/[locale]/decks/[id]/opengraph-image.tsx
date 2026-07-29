@@ -41,7 +41,9 @@ export default async function Image({
   params: Promise<{ locale: string; id: string }>
 }) {
   const { locale, id } = await params
-  const res = await loadDeck(id)
+  // Guarded like generateImageMetadata: a transient DB error falls back to the
+  // default branded card rather than throwing a broken image.
+  const res = await loadDeck(id).catch(() => null)
   const artUrl = res ? pickStarterArt(res.views, IMAGE_BASE) : null
   // Any missing piece (private/not-found deck, no name, no starter art) falls
   // back to the default branded card — never a broken or leaking image.

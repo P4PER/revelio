@@ -21,12 +21,17 @@ test('the default Open Graph image renders as a real PNG', async ({ page, reques
 
 test('a public deck OG image renders as a real PNG when decks exist', async ({ page, request }) => {
   await page.goto('/decks')
-  const firstDeck = page.locator('a[href*="/decks/"]').first()
+  // Scope to actual deck-detail cards — exclude the nav's /decks/new and
+  // /decks/mine links, which would otherwise navigate off the deck OG route.
+  const firstDeck = page
+    .locator('a[href*="/decks/"]:not([href$="/new"]):not([href$="/mine"])')
+    .first()
   if (!(await firstDeck.isVisible().catch(() => false))) {
     test.skip(true, 'No public decks seeded — run against a seeded stack to verify fully')
   }
   await firstDeck.click()
-  await expect(page).toHaveURL(/\/decks\//)
+  // A deck detail URL ends in a UUID — proves we exercised the deck OG route.
+  await expect(page).toHaveURL(/\/decks\/[0-9a-f-]{36}/)
 
   const ogUrl = await page.locator('meta[property="og:image"]').getAttribute('content')
   expect(ogUrl, 'deck og:image is present').toBeTruthy()

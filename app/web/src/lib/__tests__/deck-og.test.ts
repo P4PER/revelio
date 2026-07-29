@@ -23,9 +23,14 @@ describe('pickStarterArt', () => {
 })
 
 describe('deckLessonCodes', () => {
-  it('returns distinct, non-null lesson codes in order', () => {
+  it('returns distinct, non-null lesson codes', () => {
     const views = [{ lesson: 'charms' }, { lesson: null }, { lesson: 'charms' }, { lesson: 'potions' }]
     expect(deckLessonCodes(views)).toEqual(['charms', 'potions'])
+  })
+  it('orders by the canonical lesson list, not card insertion order', () => {
+    // canonical: care_of_magical_creatures, charms, potions, transfiguration, quidditch
+    const views = [{ lesson: 'quidditch' }, { lesson: 'charms' }, { lesson: 'potions' }]
+    expect(deckLessonCodes(views)).toEqual(['charms', 'potions', 'quidditch'])
   })
 })
 

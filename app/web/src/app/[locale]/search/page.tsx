@@ -5,6 +5,7 @@ import { parseSearchParams, toURLSearchParams } from '@/lib/search-params'
 import { CardGrid } from '@/components/card-grid'
 import { Pagination } from '@/components/pagination'
 import { SearchControls } from '@/components/search-controls'
+import { SortSelect } from '@/components/sort-select'
 import { getDb } from '@/lib/db'
 import { listSets } from '@revelio/db'
 
@@ -42,9 +43,14 @@ export default async function SearchPage({
   return (
     <main className="mx-auto max-w-[76rem] px-6 py-8">
       <SearchControls locale={locale} sets={sets} />
-      <p className="mb-4 text-sm text-muted-foreground" role="status">
-        {t('results', { count: results.total })}
-      </p>
+      {/* Results header: count on the left, Sort right-aligned above the grid
+          (Sort orders results, so it lives here — not in the filter toolbar). */}
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground" role="status">
+          {t('results', { count: results.total })}
+        </p>
+        <SortSelect />
+      </div>
       <CardGrid hits={results.hits} imageBase={IMAGE_BASE} />
       <Pagination
         page={results.page}

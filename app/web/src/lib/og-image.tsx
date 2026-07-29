@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
 import { ImageResponse } from 'next/og'
 import { getTranslations } from 'next-intl/server'
 import { OG_SIZE, OG_CONTENT_TYPE } from '@/lib/seo'
@@ -17,12 +19,14 @@ const OG_IMAGE_ALT: Record<string, string> = {
 const MARK_SVG = `<svg width="80" height="80" viewBox="16 15 68 68" xmlns="http://www.w3.org/2000/svg"><g transform="translate(-7,2.5)"><polygon points="26.51,72.70 33.49,79.30 65.16,41.10 62.84,38.90" fill="#3B3194"/><line x1="40.12" y1="73.30" x2="32.12" y2="65.74" stroke="#C8881E" stroke-width="2.6" stroke-linecap="round"/><path d="M70,16 Q73.4,30.6 88,34 Q73.4,37.4 70,52 Q66.6,37.4 52,34 Q66.6,30.6 70,16 Z" fill="#E8B23A"/><path d="M70,26 Q71.6,32.4 78,34 Q71.6,35.6 70,42 Q68.4,35.6 62,34 Q68.4,32.4 70,26 Z" fill="#F6D58B"/><path d="M52,14 Q53.2,18.8 58,20 Q53.2,21.2 52,26 Q50.8,21.2 46,20 Q50.8,18.8 52,14 Z" fill="#E8B23A"/><path d="M78,53.5 Q78.9,57.1 82.5,58 Q78.9,58.9 78,62.5 Q77.1,58.9 73.5,58 Q77.1,57.1 78,53.5 Z" fill="#E8B23A"/></g></svg>`
 const MARK_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(MARK_SVG).toString('base64')}`
 
-let fontPromise: Promise<ArrayBuffer> | null = null
-function loadFont(): Promise<ArrayBuffer> {
+// Read the font from disk (not fetch): on the Node runtime `new URL(…,
+// import.meta.url)` is a file:// URL, which undici's fetch rejects with
+// "not implemented yet". Anchoring to import.meta.url still lets Next trace and
+// bundle the .ttf into the build output.
+let fontPromise: Promise<Buffer> | null = null
+function loadFont(): Promise<Buffer> {
   if (!fontPromise) {
-    fontPromise = fetch(new URL('./fonts/Poppins-SemiBold.ttf', import.meta.url)).then((r) =>
-      r.arrayBuffer(),
-    )
+    fontPromise = readFile(fileURLToPath(new URL('./fonts/Poppins-SemiBold.ttf', import.meta.url)))
   }
   return fontPromise
 }

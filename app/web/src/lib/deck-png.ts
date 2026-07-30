@@ -5,9 +5,9 @@ import { groupMainEntries } from './deck-groups'
 // Pure layout model for the PNG deck sheet: grouping + geometry only, no canvas.
 // Reuses the deck view's type-based main-zone grouping (groupMainEntries) so the
 // exported sheet matches the builder — Creatures / Spells / Items / … with
-// Lessons pinned last. Kept English-only, like @revelio/core's toText: the image
-// is a shareable artifact, not a localized UI surface, so the group labels are a
-// local English map rather than the app's next-intl strings.
+// Lessons pinned last. Section labels are supplied by the caller (DeckSheetLabels,
+// resolved from next-intl in deck-export-menu.tsx) so the sheet is localized while
+// this module stays free of any next-intl dependency.
 export type DeckPngCard = {
   cardId: string
   quantity: number
@@ -97,6 +97,10 @@ const BORDER = '#2E2A50'
 const PARCHMENT = '#FBF3DC'
 
 const SCALE = 2
+// Upper bound for either canvas dimension (device px). Browsers cap canvas size
+// (desktop ~16k+, some mobile ~4k); past the cap toBlob() yields a blank image.
+// Very tall decks scale below SCALE rather than clip to nothing.
+const MAX_CANVAS_DIM = 8192
 const WIDTH = 980
 const PADDING = 36
 const TITLE_FONT = '600 28px system-ui, sans-serif'
@@ -284,20 +288,25 @@ export async function renderDeckPng(
   const layout = layoutDeckSheet(deck, entries, labels)
   const geom = computeSheetGeometry(layout)
 
-  // Preload every thumbnail concurrently; a failed/absent image becomes a
-  // placeholder (loadThumb resolves null, never rejects).
-  const allCards = geom.sections.flatMap((s) => s.cards.map((pc) => pc.card))
+  // Preload each distinct card image once (a card can appear in both main and
+  // sideboard); a failed/absent image becomes a placeholder (loadCardImage
+  // resolves null, never rejects).
+  const uniqueCards = new Map<string, DeckPngCard>()
+  for (const s of geom.sections) for (const pc of s.cards) uniqueCards.set(pc.card.cardId, pc.card)
   const images = new Map<string, HTMLImageElement | null>()
   await Promise.all(
-    allCards.map(async (card) => { images.set(card.cardId, await loadCardImage(card)) }),
+    [...uniqueCards.values()].map(async (card) => { images.set(card.cardId, await loadCardImage(card)) }),
   )
 
+  // Clamp the device scale so a tall deck never exceeds the browser's max canvas
+  // dimension, which would make toBlob() silently return a blank image.
+  const scale = Math.min(SCALE, MAX_CANVAS_DIM / geom.width, MAX_CANVAS_DIM / geom.height)
   const canvas = document.createElement('canvas')
-  canvas.width = geom.width * SCALE
-  canvas.height = geom.height * SCALE
+  canvas.width = Math.round(geom.width * scale)
+  canvas.height = Math.round(geom.height * scale)
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Canvas 2D context is unavailable')
-  ctx.scale(SCALE, SCALE)
+  ctx.scale(scale, scale)
 
   // Background sheet: midnight frame around a card-colored panel
   ctx.fillStyle = BG

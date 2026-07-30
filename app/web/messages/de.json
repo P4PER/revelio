@@ -47,6 +47,7 @@
     "random": "Zufällig",
     "browse": "Decks entdecken",
     "collection": "Sammlung",
+    "settings": "Einstellungen",
     "menu": "Menü"
   },
   "search": {
@@ -597,6 +598,72 @@
       "homeCta": "Zur Startseite"
     },
     "digestLabel": "Referenz"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "lead": "Verwalte dein Revelio-Konto",
+    "menuTitle": "Einstellungen",
+    "nav": {
+      "profile": "Profil",
+      "email": "E-Mail",
+      "data": "Deine Daten",
+      "danger": "Gefahrenzone"
+    },
+    "profile": {
+      "title": "Profil",
+      "hint": "Dein Benutzername ist dein öffentlicher Name und erscheint auf den Decks, die du veröffentlichst. Er muss eindeutig sein.",
+      "usernameLabel": "Benutzername",
+      "checking": "Verfügbarkeit wird geprüft…",
+      "available": "Verfügbar",
+      "taken": "Dieser Benutzername ist vergeben. Bitte wähle einen anderen.",
+      "unchanged": "Das ist bereits dein Benutzername.",
+      "save": "Speichern",
+      "saved": "Benutzername aktualisiert.",
+      "saveError": "Benutzername konnte nicht aktualisiert werden. Bitte versuche es erneut.",
+      "emailLabel": "E-Mail",
+      "roleLabel": "Rolle",
+      "joinedLabel": "Beigetreten"
+    },
+    "email": {
+      "title": "E-Mail",
+      "hint": "Die Adresse, mit der du dich anmeldest. Bei einer Änderung senden wir einen 6-stelligen Code an die neue Adresse.",
+      "currentLabel": "Aktuelle E-Mail",
+      "newLabel": "Neue E-Mail",
+      "sendCode": "Code senden",
+      "codeSent": "Wir haben einen 6-stelligen Code an {email} gesendet. Gib ihn ein, um die Änderung zu bestätigen.",
+      "codeLabel": "Bestätigungscode",
+      "confirm": "Änderung bestätigen",
+      "cancel": "Abbrechen",
+      "resend": "Code erneut senden",
+      "updated": "E-Mail geändert zu {email}.",
+      "sameEmail": "Das ist bereits deine E-Mail-Adresse.",
+      "emailTaken": "Ein Konto verwendet diese E-Mail-Adresse bereits.",
+      "requestError": "Code konnte nicht gesendet werden. Bitte versuche es erneut.",
+      "invalidCode": "Dieser Code ist falsch oder abgelaufen. Bitte versuche es erneut."
+    },
+    "data": {
+      "title": "Deine Daten",
+      "hint": "Lade alles, was Revelio über dich speichert, als einzelne JSON-Datei herunter — dein Profil, Decks, Sammlung und Likes.",
+      "export": "Als JSON exportieren",
+      "exporting": "Wird vorbereitet…",
+      "exportError": "Export konnte nicht vorbereitet werden. Bitte versuche es erneut."
+    },
+    "danger": {
+      "title": "Gefahrenzone",
+      "hint": "Das Löschen deines Kontos ist endgültig. Ebenfalls entfernt werden:",
+      "item1": "Alle deine Decks und ihre Karten",
+      "item2": "Deine Sammlung und deine Karteneinträge",
+      "item3": "Deine Likes und Aufrufe",
+      "deleteAction": "Konto löschen…",
+      "dialogTitle": "Kontolöschung bestätigen",
+      "dialogBody": "Wir haben einen 6-stelligen Code an {email} gesendet. Gib ihn ein, um dein Konto endgültig zu löschen.",
+      "codeLabel": "Bestätigungscode",
+      "sendError": "Code konnte nicht gesendet werden. Bitte versuche es erneut.",
+      "confirmDelete": "Endgültig löschen",
+      "cancel": "Abbrechen",
+      "deleted": "Dein Konto wurde gelöscht.",
+      "invalidCode": "Dieser Code ist falsch oder abgelaufen. Bitte versuche es erneut."
+    }
   },
   "about": {
     "metaTitle": "Über",

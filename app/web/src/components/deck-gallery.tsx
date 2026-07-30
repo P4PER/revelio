@@ -7,6 +7,7 @@ import type { DeckCardView } from '@revelio/core'
 import { CardRotate } from '@/components/card-rotate'
 import { CardDetailSheet } from '@/components/card-detail-sheet'
 import { groupColor, groupLabel, groupMainEntries } from '@/lib/deck-groups'
+import { MAIN_TARGET } from '@/lib/deck-legality'
 
 function GalleryTile({
   entry,
@@ -73,18 +74,25 @@ export function DeckGallery({ entries, imageBase }: { entries: DeckCardView[]; i
   const character = entries.filter((e) => e.zone === 'character')
   const main = entries.filter((e) => e.zone === 'main')
   const sideboard = entries.filter((e) => e.zone === 'sideboard')
+  const mainCount = main.reduce((n, e) => n + e.quantity, 0)
+  const sideCount = sideboard.reduce((n, e) => n + e.quantity, 0)
   const mainGroups = groupMainEntries(main)
 
   return (
-    <div className="space-y-6">
-      {character.length > 0 && (
-        <section>
-          <h3 className="mb-2 text-xs font-semibold tracking-widest text-primary uppercase">{t('panel.character')}</h3>
-          <Grid entries={character} imageBase={imageBase} onInfo={setDetailId} />
-        </section>
-      )}
+    <div className="space-y-4">
       <section>
-        <h3 className="mb-2 text-xs font-semibold tracking-widest text-primary uppercase">{t('panel.main')}</h3>
+        <h3 className="mb-2 text-xs font-semibold tracking-widest text-primary uppercase">{t('panel.character')}</h3>
+        {character.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t('panel.noCharacter')}</p>
+        ) : (
+          <Grid entries={character} imageBase={imageBase} onInfo={setDetailId} />
+        )}
+      </section>
+      <section>
+        <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-widest text-primary uppercase">
+          <span>{t('panel.main')}</span>
+          <span className="ml-auto font-semibold text-foreground tabular-nums">{mainCount} / {MAIN_TARGET}</span>
+        </h3>
         {main.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('panel.emptyMain')}</p>
         ) : (
@@ -104,12 +112,17 @@ export function DeckGallery({ entries, imageBase }: { entries: DeckCardView[]; i
           </div>
         )}
       </section>
-      {sideboard.length > 0 && (
-        <section>
-          <h3 className="mb-2 text-xs font-semibold tracking-widest text-primary uppercase">{t('panel.sideboard')}</h3>
+      <section>
+        <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-widest text-primary uppercase">
+          <span>{t('panel.sideboard')}</span>
+          <span className="ml-auto font-semibold text-foreground tabular-nums">{sideCount} / 15</span>
+        </h3>
+        {sideboard.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t('panel.emptySideboard')}</p>
+        ) : (
           <Grid entries={sideboard} imageBase={imageBase} onInfo={setDetailId} />
-        </section>
-      )}
+        )}
+      </section>
 
       <CardDetailSheet
         cardId={detailId}

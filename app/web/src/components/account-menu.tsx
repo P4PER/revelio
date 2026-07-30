@@ -1,5 +1,5 @@
 'use client'
-import { CircleUser, LogOut, Shield } from 'lucide-react'
+import { CircleUser, LogOut, Settings, Shield } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/../i18n/navigation'
 import { Button } from '@/components/ui/button'
@@ -52,6 +52,10 @@ export function AccountMenu({
             <DropdownMenuSeparator />
           </>
         )}
+        <DropdownMenuItem asChild>
+          <Link href="/settings"><Settings />{tNav('settings')}</Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={() => signOut()}
           className="text-destructive focus:bg-destructive/20 focus:text-destructive"

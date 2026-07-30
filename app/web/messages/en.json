@@ -656,10 +656,7 @@
       "unchanged": "This is already your username.",
       "save": "Save",
       "saved": "Username updated.",
-      "saveError": "Couldn’t update your username. Please try again.",
-      "emailLabel": "Email",
-      "roleLabel": "Role",
-      "joinedLabel": "Joined"
+      "saveError": "Couldn’t update your username. Please try again."
     },
     "email": {
       "title": "Email",

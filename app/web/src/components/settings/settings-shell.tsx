@@ -12,7 +12,7 @@ export function SettingsShell({ user }: { user: SettingsUser }) {
   const [active, setActive] = useState<SettingsSection>('profile')
   const t = useTranslations('settings')
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-8">
+    <div className="mx-auto max-w-[76rem] px-6 py-8">
       <h1 className="text-2xl font-semibold tracking-tight">{t('title')}</h1>
       <p className="mt-1 text-sm text-muted-foreground">{t('lead')}</p>
       <div className="mt-6 flex flex-col gap-6 min-[1024px]:flex-row min-[1024px]:gap-8">

@@ -68,12 +68,6 @@ export function ProfilePane({ user }: { user: SettingsUser }) {
           <Button type="submit" disabled={pending || checking}>{t('save')}</Button>
         </form>
       </Form>
-
-      <dl className="mt-6 space-y-1 border-t border-border pt-4 text-sm text-muted-foreground">
-        <div className="flex gap-2"><dt className="font-medium">{t('emailLabel')}:</dt><dd>{user.email}</dd></div>
-        <div className="flex gap-2"><dt className="font-medium">{t('roleLabel')}:</dt><dd>{user.role ?? 'user'}</dd></div>
-        <div className="flex gap-2"><dt className="font-medium">{t('joinedLabel')}:</dt><dd>{new Date(user.createdAt).toLocaleDateString()}</dd></div>
-      </dl>
     </section>
   )
 }

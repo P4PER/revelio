@@ -20,7 +20,7 @@ function NavList({ active, onSelect }: { active: SettingsSection; onSelect: (s: 
             onClick={() => onSelect(s)}
             data-active={on}
             className={cn(
-              'rounded-lg px-3 py-2 text-left text-sm transition-colors',
+              'cursor-pointer rounded-lg px-3 py-2 text-left text-sm transition-colors',
               on
                 ? cn(
                     'font-semibold text-foreground',

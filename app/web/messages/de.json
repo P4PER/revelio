@@ -619,10 +619,7 @@
       "unchanged": "Das ist bereits dein Benutzername.",
       "save": "Speichern",
       "saved": "Benutzername aktualisiert.",
-      "saveError": "Benutzername konnte nicht aktualisiert werden. Bitte versuche es erneut.",
-      "emailLabel": "E-Mail",
-      "roleLabel": "Rolle",
-      "joinedLabel": "Beigetreten"
+      "saveError": "Benutzername konnte nicht aktualisiert werden. Bitte versuche es erneut."
     },
     "email": {
       "title": "E-Mail",

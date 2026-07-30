@@ -6,6 +6,7 @@ import { toJson, toText } from '@revelio/core'
 import type { DeckDTO } from '@revelio/core'
 import type { BuilderState } from '@/lib/deck-model'
 import { renderDeckPng } from '@/lib/deck-png'
+import { OTHER_GROUP } from '@/lib/deck-groups'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -78,7 +79,13 @@ export function DeckExportMenu({
   async function exportPng() {
     try {
       const name = state.name.trim() || t('namePlaceholder')
-      const blob = await renderDeckPng({ name, format: state.format }, state.entries)
+      const blob = await renderDeckPng({ name, format: state.format }, state.entries, {
+        formatLabel: { classic: t('format.classic'), revival: t('format.revival') },
+        character: t('panel.characterBadge'),
+        mainDeck: t('panel.main'),
+        sideboard: t('panel.sideboard'),
+        group: (key) => t(`group.${key === OTHER_GROUP ? 'other' : key}`),
+      })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url

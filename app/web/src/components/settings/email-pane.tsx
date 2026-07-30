@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
+import { Separator } from '@/components/ui/separator'
 import type { SettingsUser } from './types'
 
 const errKey = (e: string) =>
@@ -79,6 +80,8 @@ export function EmailPane({ user }: { user: SettingsUser }) {
       {step === 'collapsed' && (
         <Button type="button" onClick={() => setStep('idle')}>{t('updateEmail')}</Button>
       )}
+
+      {step !== 'collapsed' && <Separator className="my-4" />}
 
       {step === 'idle' && (
         <Form {...form}>

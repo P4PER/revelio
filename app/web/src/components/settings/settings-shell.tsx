@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { SettingsNav } from './settings-nav'
 import { ProfilePane } from './profile-pane'
 import { EmailPane } from './email-pane'
+import { DataPane } from './data-pane'
 import type { SettingsSection, SettingsUser } from './types'
 
 export function SettingsShell({ user }: { user: SettingsUser }) {
@@ -18,7 +19,7 @@ export function SettingsShell({ user }: { user: SettingsUser }) {
         <div className="min-w-0 flex-1">
           {active === 'profile' && <ProfilePane user={user} />}
           {active === 'email' && <EmailPane user={user} />}
-          {active === 'data' && <section aria-labelledby="s-data"><h2 id="s-data">{t('data.title')}</h2></section>}
+          {active === 'data' && <DataPane user={user} />}
           {active === 'danger' && <section aria-labelledby="s-danger"><h2 id="s-danger">{t('danger.title')}</h2></section>}
         </div>
       </div>

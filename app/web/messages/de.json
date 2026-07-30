@@ -623,11 +623,10 @@
     },
     "email": {
       "title": "E-Mail",
-      "hint": "Die Adresse, mit der du dich anmeldest. Bei einer Änderung senden wir einen 6-stelligen Code an die neue Adresse.",
-      "currentLabel": "Aktuelle E-Mail",
+      "currentLabel": "Du meldest dich bei Revelio mit dieser E-Mail-Adresse an:",
       "updateEmail": "E-Mail ändern",
       "newLabel": "Neue E-Mail",
-      "sendCode": "Code senden",
+      "sendCode": "Neue E-Mail bestätigen",
       "codeSent": "Wir haben einen 6-stelligen Code an {email} gesendet. Gib ihn ein, um die Änderung zu bestätigen.",
       "codeLabel": "Bestätigungscode",
       "confirm": "Änderung bestätigen",

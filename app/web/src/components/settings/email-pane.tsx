@@ -72,9 +72,9 @@ export function EmailPane({ user }: { user: SettingsUser }) {
   return (
     <section aria-labelledby="s-email" className="rounded-xl border border-border bg-card p-5">
       <h2 id="s-email" className="text-lg font-semibold">{t('title')}</h2>
-      <p className="mt-1 mb-5 text-sm text-muted-foreground">{t('hint')}</p>
 
-      <p className="mb-4 text-sm"><span className="text-muted-foreground">{t('currentLabel')}: </span>{user.email}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{t('currentLabel')}</p>
+      <p className="mb-4 text-sm font-medium">{user.email}</p>
 
       {step === 'collapsed' && (
         <Button type="button" onClick={() => setStep('idle')}>{t('updateEmail')}</Button>

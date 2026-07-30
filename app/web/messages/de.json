@@ -651,7 +651,7 @@
       "item1": "Alle deine Decks und ihre Karten",
       "item2": "Deine Sammlung und deine Karteneinträge",
       "item3": "Deine Likes und Aufrufe",
-      "deleteAction": "Konto löschen…",
+      "deleteAction": "Konto löschen",
       "dialogTitle": "Kontolöschung bestätigen",
       "dialogBody": "Wir haben einen 6-stelligen Code an {email} gesendet. Gib ihn ein, um dein Konto endgültig zu löschen.",
       "codeLabel": "Bestätigungscode",

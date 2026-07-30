@@ -688,7 +688,7 @@
       "item1": "All your decks and their cards",
       "item2": "Your collection and owned-card records",
       "item3": "Your likes and views",
-      "deleteAction": "Delete account…",
+      "deleteAction": "Delete account",
       "dialogTitle": "Confirm account deletion",
       "dialogBody": "We emailed a 6-digit code to {email}. Enter it to permanently delete your account.",
       "codeLabel": "Confirmation code",

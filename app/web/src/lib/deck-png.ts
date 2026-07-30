@@ -128,6 +128,43 @@ const LINE_HEIGHT = 21
 const SECTION_GAP = 12
 const SWATCH_SIZE = 12
 
+// Image-grid layout: portrait thumbnails (5:7) in a fixed-column grid.
+const THUMB_W = 132
+const THUMB_H = 185 // round(THUMB_W * 7 / 5)
+const GRID_GAP = 12
+const COLS = 6 // floor((WIDTH - 2*PADDING + GRID_GAP) / (THUMB_W + GRID_GAP)) = floor(920/144)
+const SECTION_HEADER_H = 30
+const GRID_SECTION_GAP = 16
+
+export type PositionedCard = { card: DeckPngCard; x: number; y: number }
+export type PositionedSection = { title: string; color: string; headerY: number; cards: PositionedCard[] }
+export type SheetGeometry = { width: number; height: number; sections: PositionedSection[] }
+
+// Positions each card cell into a fixed-column grid and computes the total
+// canvas height. Pure arithmetic — no canvas — so it is unit-tested. Content
+// starts below the title; each section contributes a header plus its wrapped
+// rows of thumbnails; a card-less section (e.g. the "Main deck (N)" heading)
+// contributes only its header.
+export function computeSheetGeometry(layout: DeckPngLayout): SheetGeometry {
+  const sections: PositionedSection[] = []
+  let y = PADDING + TITLE_HEIGHT
+  for (const s of layout.sections) {
+    const headerY = y
+    const gridTop = y + SECTION_HEADER_H
+    const cards: PositionedCard[] = s.cards.map((card, i) => ({
+      card,
+      x: PADDING + (i % COLS) * (THUMB_W + GRID_GAP),
+      y: gridTop + Math.floor(i / COLS) * (THUMB_H + GRID_GAP),
+    }))
+    const rows = Math.ceil(s.cards.length / COLS)
+    const gridH = rows > 0 ? rows * THUMB_H + (rows - 1) * GRID_GAP : 0
+    sections.push({ title: s.title, color: s.color, headerY, cards })
+    y = gridTop + gridH + GRID_SECTION_GAP
+  }
+  const height = y - GRID_SECTION_GAP + PADDING
+  return { width: WIDTH, height, sections }
+}
+
 type TextSection = { title: string; color: string; lines: string[] }
 
 function sectionHeight(section: TextSection): number {

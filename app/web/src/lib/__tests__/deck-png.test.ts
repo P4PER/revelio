@@ -1,6 +1,6 @@
 import { it, expect } from 'vitest'
 import type { DeckCardView } from '@revelio/core'
-import { layoutDeckSheet } from '../deck-png'
+import { layoutDeckSheet, computeSheetGeometry } from '../deck-png'
 
 const harry: DeckCardView = {
   cardId: 'bs-harry', zone: 'character', quantity: 1,
@@ -70,4 +70,47 @@ it('groups the main zone into a heading plus lesson/type buckets, and lists the 
 it('omits Main deck / Sideboard sections entirely when those zones are empty', () => {
   const { sections } = layoutDeckSheet({ name: 'D', format: 'classic' }, [harry])
   expect(sections.map((s) => s.title)).toEqual(['Character'])
+})
+
+const cell = (cardId: string): import('../deck-png').DeckPngCard => ({
+  cardId, quantity: 1, name: cardId, setCode: 'BS', imageVersion: 1, orientation: null,
+})
+
+it('positions a single-card section and sizes the canvas to fit', () => {
+  const geom = computeSheetGeometry({
+    title: 'D',
+    sections: [{ title: 'Character', color: '#E8B23A', cards: [cell('a')] }],
+  })
+  expect(geom.width).toBe(980)
+  // content top = PADDING(36)+TITLE_HEIGHT(48)=84; header 84; gridTop 114
+  expect(geom.sections[0].headerY).toBe(84)
+  expect(geom.sections[0].cards[0]).toEqual({ card: cell('a'), x: 36, y: 114 })
+  // gridH = 185; y = 114+185+16 = 315; height = 315 - 16 + 36 = 335
+  expect(geom.height).toBe(335)
+})
+
+it('wraps cards past COLS onto the next row', () => {
+  const cards = Array.from({ length: 7 }, (_, i) => cell(`c${i}`))
+  const geom = computeSheetGeometry({
+    title: 'D',
+    sections: [{ title: 'Charms (7)', color: '#0069A9', cards }],
+  })
+  // 6 columns → 7th card (index 6) is row 1, col 0
+  expect(geom.sections[0].cards[6]).toEqual({ card: cards[6], x: 36, y: 311 }) // 114 + (185+12)
+  // rows=2 → gridH = 2*185 + 12 = 382; y = 114+382+16 = 512; height = 512-16+36 = 532
+  expect(geom.height).toBe(532)
+})
+
+it('advances past a header-only section (Main deck heading with no cards)', () => {
+  const geom = computeSheetGeometry({
+    title: 'D',
+    sections: [
+      { title: 'Main deck (4)', color: '#E8B23A', cards: [] },
+      { title: 'Charms (4)', color: '#0069A9', cards: [cell('a')] },
+    ],
+  })
+  expect(geom.sections[0].headerY).toBe(84)
+  // header-only: gridTop 114, gridH 0, y = 114+0+16 = 130 → next headerY 130
+  expect(geom.sections[1].headerY).toBe(130)
+  expect(geom.sections[1].cards[0]).toEqual({ card: cell('a'), x: 36, y: 160 }) // 130+30
 })

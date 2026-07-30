@@ -625,6 +625,7 @@
       "title": "E-Mail",
       "hint": "Die Adresse, mit der du dich anmeldest. Bei einer Änderung senden wir einen 6-stelligen Code an die neue Adresse.",
       "currentLabel": "Aktuelle E-Mail",
+      "updateEmail": "E-Mail ändern",
       "newLabel": "Neue E-Mail",
       "sendCode": "Code senden",
       "codeSent": "Wir haben einen 6-stelligen Code an {email} gesendet. Gib ihn ein, um die Änderung zu bestätigen.",

@@ -25,8 +25,11 @@ beforeEach(() => {
   m.confirmEmailChange.mockReset().mockResolvedValue({ ok: true })
 })
 
-it('requests a code, then reveals the OTP step', async () => {
+it('reveals the input on Update email, requests a code, then reveals the OTP step', async () => {
   renderPane()
+  // Input is hidden until the user opts in.
+  expect(screen.queryByLabelText(en.settings.email.newLabel)).not.toBeInTheDocument()
+  await userEvent.click(screen.getByRole('button', { name: en.settings.email.updateEmail }))
   await userEvent.type(screen.getByLabelText(en.settings.email.newLabel), 'new@owl.post')
   await userEvent.click(screen.getByRole('button', { name: en.settings.email.sendCode }))
   await waitFor(() => expect(m.requestEmailChange).toHaveBeenCalledWith('new@owl.post'))

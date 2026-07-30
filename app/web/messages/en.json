@@ -662,6 +662,7 @@
       "title": "Email",
       "hint": "The address you use to sign in. Changing it sends a 6-digit code to the new address to confirm.",
       "currentLabel": "Current email",
+      "updateEmail": "Update email",
       "newLabel": "New email",
       "sendCode": "Send code",
       "codeSent": "We emailed a 6-digit code to {email}. Enter it to confirm the change.",

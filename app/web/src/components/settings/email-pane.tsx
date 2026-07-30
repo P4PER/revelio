@@ -20,7 +20,7 @@ const errKey = (e: string) =>
 export function EmailPane({ user }: { user: SettingsUser }) {
   const t = useTranslations('settings.email')
   const tv = useTranslations('validation')
-  const [step, setStep] = useState<'idle' | 'code'>('idle')
+  const [step, setStep] = useState<'collapsed' | 'idle' | 'code'>('collapsed')
   const [target, setTarget] = useState('')
   const [code, setCode] = useState('')
   const [codeError, setCodeError] = useState<string | null>(null)
@@ -58,7 +58,7 @@ export function EmailPane({ user }: { user: SettingsUser }) {
         const res = await confirmEmailChange(code)
         if (res.ok) {
           toast.success(t('updated', { email: target }))
-          setStep('idle')
+          setStep('collapsed')
           form.reset()
         } else {
           setCodeError(t('invalidCode'))
@@ -76,20 +76,29 @@ export function EmailPane({ user }: { user: SettingsUser }) {
 
       <p className="mb-4 text-sm"><span className="text-muted-foreground">{t('currentLabel')}: </span>{user.email}</p>
 
-      {step === 'idle' ? (
+      {step === 'collapsed' && (
+        <Button type="button" onClick={() => setStep('idle')}>{t('updateEmail')}</Button>
+      )}
+
+      {step === 'idle' && (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onRequest)} className="max-w-sm space-y-4">
             <FormField control={form.control} name="email" render={({ field }) => (
               <FormItem>
                 <Label htmlFor="new-email">{t('newLabel')}</Label>
-                <FormControl><Input id="new-email" type="email" autoComplete="off" {...field} /></FormControl>
+                <FormControl><Input id="new-email" type="email" autoComplete="off" autoFocus {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
-            <Button type="submit" disabled={pending}>{t('sendCode')}</Button>
+            <div className="flex gap-2">
+              <Button type="submit" disabled={pending}>{t('sendCode')}</Button>
+              <Button type="button" variant="outline" onClick={() => { setStep('collapsed'); form.reset() }}>{t('cancel')}</Button>
+            </div>
           </form>
         </Form>
-      ) : (
+      )}
+
+      {step === 'code' && (
         <div className="max-w-sm space-y-4">
           <p className="text-sm text-muted-foreground">{t('codeSent', { email: target })}</p>
           <div className="space-y-2">

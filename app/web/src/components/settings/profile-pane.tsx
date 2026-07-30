@@ -65,7 +65,7 @@ export function ProfilePane({ user }: { user: SettingsUser }) {
               <FormMessage />
             </FormItem>
           )} />
-          <Button type="submit" disabled={pending || checking}>{t('save')}</Button>
+          <Button type="submit" size="sm" disabled={pending || checking}>{t('save')}</Button>
         </form>
       </Form>
     </section>

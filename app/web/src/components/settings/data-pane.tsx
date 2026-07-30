@@ -37,7 +37,7 @@ export function DataPane({ user }: { user: SettingsUser }) {
     <section aria-labelledby="s-data" className="rounded-xl border border-border bg-card p-5">
       <h2 id="s-data" className="text-lg font-semibold">{t('title')}</h2>
       <p className="mt-1 mb-5 text-sm text-muted-foreground">{t('hint')}</p>
-      <Button type="button" onClick={onExport} disabled={pending}>{pending ? t('exporting') : t('export')}</Button>
+      <Button type="button" size="sm" onClick={onExport} disabled={pending}>{pending ? t('exporting') : t('export')}</Button>
     </section>
   )
 }

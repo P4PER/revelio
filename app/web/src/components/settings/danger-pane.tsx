@@ -71,7 +71,7 @@ export function DangerPane({ user }: { user: SettingsUser }) {
         <li>{t('item2')}</li>
         <li>{t('item3')}</li>
       </ul>
-      <Button type="button" variant="destructive" onClick={openDialog}>{t('deleteAction')}</Button>
+      <Button type="button" size="sm" variant="destructive" onClick={openDialog}>{t('deleteAction')}</Button>
 
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
@@ -97,8 +97,8 @@ export function DangerPane({ user }: { user: SettingsUser }) {
             {codeError && <p className="text-sm text-destructive">{codeError}</p>}
           </div>
           <AlertDialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={pending}>{t('cancel')}</Button>
-            <Button type="button" variant="destructive" onClick={onConfirm} disabled={pending || code.length !== 6} className="disabled:pointer-events-auto disabled:cursor-not-allowed">{t('confirmDelete')}</Button>
+            <Button type="button" size="sm" variant="outline" onClick={() => setOpen(false)} disabled={pending}>{t('cancel')}</Button>
+            <Button type="button" size="sm" variant="destructive" onClick={onConfirm} disabled={pending || code.length !== 6} className="disabled:pointer-events-auto disabled:cursor-not-allowed">{t('confirmDelete')}</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -78,7 +78,7 @@ export function EmailPane({ user }: { user: SettingsUser }) {
       <p className="mb-4 text-sm font-medium">{user.email}</p>
 
       {step === 'collapsed' && (
-        <Button type="button" onClick={() => setStep('idle')}>{t('updateEmail')}</Button>
+        <Button type="button" size="sm" onClick={() => setStep('idle')}>{t('updateEmail')}</Button>
       )}
 
       {step !== 'collapsed' && <Separator className="my-4" />}
@@ -94,8 +94,8 @@ export function EmailPane({ user }: { user: SettingsUser }) {
               </FormItem>
             )} />
             <div className="flex gap-2">
-              <Button type="submit" disabled={pending}>{t('sendCode')}</Button>
-              <Button type="button" variant="outline" onClick={() => { setStep('collapsed'); form.reset() }}>{t('cancel')}</Button>
+              <Button type="submit" size="sm" disabled={pending}>{t('sendCode')}</Button>
+              <Button type="button" size="sm" variant="outline" onClick={() => { setStep('collapsed'); form.reset() }}>{t('cancel')}</Button>
             </div>
           </form>
         </Form>
@@ -122,8 +122,8 @@ export function EmailPane({ user }: { user: SettingsUser }) {
             {codeError && <p className="text-sm text-destructive">{codeError}</p>}
           </div>
           <div className="flex gap-2">
-            <Button type="button" onClick={onConfirm} disabled={pending || code.length !== 6}>{t('confirm')}</Button>
-            <Button type="button" variant="outline" onClick={() => setStep('idle')}>{t('cancel')}</Button>
+            <Button type="button" size="sm" onClick={onConfirm} disabled={pending || code.length !== 6}>{t('confirm')}</Button>
+            <Button type="button" size="sm" variant="outline" onClick={() => setStep('idle')}>{t('cancel')}</Button>
           </div>
         </div>
       )}

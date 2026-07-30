@@ -95,7 +95,7 @@ export function DangerPane({ user }: { user: SettingsUser }) {
           </div>
           <AlertDialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={pending}>{t('cancel')}</Button>
-            <Button type="button" variant="destructive" onClick={onConfirm} disabled={pending || code.length !== 6}>{t('confirmDelete')}</Button>
+            <Button type="button" variant="destructive" onClick={onConfirm} disabled={pending || code.length !== 6} className="disabled:pointer-events-auto disabled:cursor-not-allowed">{t('confirmDelete')}</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

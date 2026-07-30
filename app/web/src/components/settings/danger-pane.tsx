@@ -52,7 +52,10 @@ export function DangerPane({ user }: { user: SettingsUser }) {
         }
         toast.success(t('deleted'))
         await signOut().catch(() => {})
+        // Refresh the server tree so the header (which reads the server session)
+        // drops the signed-in state — matches useSignOut.
         router.push('/')
+        router.refresh()
       } catch {
         setCodeError(t('invalidCode'))
       }

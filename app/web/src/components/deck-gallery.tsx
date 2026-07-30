@@ -77,12 +77,14 @@ export function DeckGallery({ entries, imageBase }: { entries: DeckCardView[]; i
 
   return (
     <div className="space-y-6">
-      {character.length > 0 && (
-        <section>
-          <h3 className="mb-2 text-xs font-semibold tracking-widest text-primary uppercase">{t('panel.character')}</h3>
+      <section>
+        <h3 className="mb-2 text-xs font-semibold tracking-widest text-primary uppercase">{t('panel.character')}</h3>
+        {character.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t('panel.noCharacter')}</p>
+        ) : (
           <Grid entries={character} imageBase={imageBase} onInfo={setDetailId} />
-        </section>
-      )}
+        )}
+      </section>
       <section>
         <h3 className="mb-2 text-xs font-semibold tracking-widest text-primary uppercase">{t('panel.main')}</h3>
         {main.length === 0 ? (
@@ -104,12 +106,14 @@ export function DeckGallery({ entries, imageBase }: { entries: DeckCardView[]; i
           </div>
         )}
       </section>
-      {sideboard.length > 0 && (
-        <section>
-          <h3 className="mb-2 text-xs font-semibold tracking-widest text-primary uppercase">{t('panel.sideboard')}</h3>
+      <section>
+        <h3 className="mb-2 text-xs font-semibold tracking-widest text-primary uppercase">{t('panel.sideboard')}</h3>
+        {sideboard.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t('panel.emptySideboard')}</p>
+        ) : (
           <Grid entries={sideboard} imageBase={imageBase} onInfo={setDetailId} />
-        </section>
-      )}
+        )}
+      </section>
 
       <CardDetailSheet
         cardId={detailId}

@@ -1,8 +1,13 @@
-import { it, expect } from 'vitest'
+import { it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
+
+// The shell mounts every pane; DangerPane calls the locale-aware router, which
+// needs the app router mounted — stub it so the shell can render in isolation.
+vi.mock('@/../i18n/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
+
 import { SettingsShell } from '../settings-shell'
 
 const user = { id: 'u1', username: 'alice', displayUsername: 'alice', email: 'alice@owl.post', role: 'user', createdAt: '2026-01-01T00:00:00.000Z' }

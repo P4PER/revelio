@@ -5,10 +5,18 @@ import type { DeckCardView, DeckFormat } from '@revelio/core'
 // or a synthetic "Lessons"/"Items" bucket) so the exported sheet matches what
 // the builder shows. Kept English-only, like @revelio/core's toText — the
 // image is a shareable artifact, not a localized UI surface.
+export type DeckPngCard = {
+  cardId: string
+  quantity: number
+  name: string
+  setCode: string
+  imageVersion: number | null
+  orientation: string | null
+}
 export type DeckPngSection = {
   title: string
   color: string
-  lines: string[]
+  cards: DeckPngCard[]
 }
 export type DeckPngLayout = {
   title: string
@@ -54,11 +62,22 @@ function groupLabel(key: string): string {
   return LESSON_LABEL[key] ?? key
 }
 
-function cardLine(v: DeckCardView): string {
+function cardLine(v: DeckPngCard): string {
   return `${v.quantity}x ${v.name} (${v.setCode})`
 }
 
-export function layoutDeckLines(
+function cardCell(v: DeckCardView): DeckPngCard {
+  return {
+    cardId: v.cardId,
+    quantity: v.quantity,
+    name: v.name,
+    setCode: v.setCode,
+    imageVersion: v.imageVersion ?? null,
+    orientation: v.orientation ?? null,
+  }
+}
+
+export function layoutDeckSheet(
   deck: { name: string; format: DeckFormat },
   entries: DeckCardView[],
 ): DeckPngLayout {
@@ -66,24 +85,24 @@ export function layoutDeckLines(
   const sections: DeckPngSection[] = []
 
   const character = entries.find((e) => e.zone === 'character')
-  if (character) sections.push({ title: 'Character', color: GOLD, lines: [cardLine(character)] })
+  if (character) sections.push({ title: 'Character', color: GOLD, cards: [cardCell(character)] })
 
   const main = entries.filter((e) => e.zone === 'main')
   if (main.length) {
     const mainCount = main.reduce((n, e) => n + e.quantity, 0)
-    sections.push({ title: `Main deck (${mainCount})`, color: GOLD, lines: [] })
+    sections.push({ title: `Main deck (${mainCount})`, color: GOLD, cards: [] })
     const groups = new Map<string, DeckCardView[]>()
     for (const e of main) groups.set(groupKey(e), [...(groups.get(groupKey(e)) ?? []), e])
     for (const [key, list] of groups) {
       const count = list.reduce((n, e) => n + e.quantity, 0)
-      sections.push({ title: `${groupLabel(key)} (${count})`, color: groupColor(key), lines: list.map(cardLine) })
+      sections.push({ title: `${groupLabel(key)} (${count})`, color: groupColor(key), cards: list.map(cardCell) })
     }
   }
 
   const sideboard = entries.filter((e) => e.zone === 'sideboard')
   if (sideboard.length) {
     const sideCount = sideboard.reduce((n, e) => n + e.quantity, 0)
-    sections.push({ title: `Sideboard (${sideCount})`, color: GOLD, lines: sideboard.map(cardLine) })
+    sections.push({ title: `Sideboard (${sideCount})`, color: GOLD, cards: sideboard.map(cardCell) })
   }
 
   return { title, sections }
@@ -109,18 +128,20 @@ const LINE_HEIGHT = 21
 const SECTION_GAP = 12
 const SWATCH_SIZE = 12
 
-function sectionHeight(section: DeckPngSection): number {
+type TextSection = { title: string; color: string; lines: string[] }
+
+function sectionHeight(section: TextSection): number {
   return SECTION_TITLE_HEIGHT + section.lines.length * LINE_HEIGHT + SECTION_GAP
 }
 
 // Splits sections across 1 or 2 columns. Sections stay intact (never split
 // mid-list) — a simple greedy "shortest column first" bin-pack keeps the two
 // columns roughly balanced without needing to break up a lesson group.
-function columnize(sections: DeckPngSection[]): DeckPngSection[][] {
+function columnize(sections: TextSection[]): TextSection[][] {
   const totalLines = sections.reduce((n, s) => n + s.lines.length, 0)
   if (totalLines <= 24 || sections.length < 2) return [sections]
 
-  const columns: DeckPngSection[][] = [[], []]
+  const columns: TextSection[][] = [[], []]
   const heights = [0, 0]
   for (const section of sections) {
     const col = heights[0] <= heights[1] ? 0 : 1
@@ -153,7 +174,8 @@ export async function renderDeckPng(
 ): Promise<Blob> {
   if (typeof document === 'undefined') throw new Error('renderDeckPng can only run in a browser')
 
-  const { title, sections } = layoutDeckLines(deck, entries)
+  const { title, sections: cardSections } = layoutDeckSheet(deck, entries)
+  const sections: TextSection[] = cardSections.map((s) => ({ title: s.title, color: s.color, lines: s.cards.map(cardLine) }))
   const columns = columnize(sections)
   const columnWidth = columns.length === 2 ? (WIDTH - PADDING * 2 - COLUMN_GAP) / 2 : WIDTH - PADDING * 2
   const columnHeights = columns.map((col) => col.reduce((n, s) => n + sectionHeight(s), 0))

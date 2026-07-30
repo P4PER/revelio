@@ -76,7 +76,7 @@ export function DeckGallery({ entries, imageBase }: { entries: DeckCardView[]; i
   const mainGroups = groupMainEntries(main)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <section>
         <h3 className="mb-2 text-xs font-semibold tracking-widest text-primary uppercase">{t('panel.character')}</h3>
         {character.length === 0 ? (

@@ -1,26 +1,30 @@
 'use client'
 import { useTranslations } from 'next-intl'
+import { Link, usePathname } from '@/../i18n/navigation'
 import { ResponsiveSidebar } from '@/components/responsive-sidebar'
 import { cn } from '@/lib/utils'
 import type { SettingsSection } from './types'
 
 const SECTIONS: SettingsSection[] = ['profile', 'email', 'data', 'danger']
 
-function NavList({ active, onSelect }: { active: SettingsSection; onSelect: (s: SettingsSection) => void }) {
+function NavList({ onSelect }: { onSelect?: () => void }) {
   const t = useTranslations('settings.nav')
+  const pathname = usePathname() // locale-stripped, e.g. /settings/email
+  const active = SECTIONS.find((s) => pathname === `/settings/${s}`) ?? 'profile'
   return (
     <nav className="flex flex-col gap-1">
       {SECTIONS.map((s) => {
         const on = s === active
         const danger = s === 'danger'
         return (
-          <button
+          <Link
             key={s}
-            type="button"
-            onClick={() => onSelect(s)}
+            href={`/settings/${s}`}
+            onClick={onSelect}
             data-active={on}
+            aria-current={on ? 'page' : undefined}
             className={cn(
-              'cursor-pointer rounded-lg px-3 py-2 text-left text-sm transition-colors',
+              'rounded-lg px-3 py-2 text-sm transition-colors',
               on
                 ? cn(
                     'font-semibold text-foreground',
@@ -32,22 +36,22 @@ function NavList({ active, onSelect }: { active: SettingsSection; onSelect: (s: 
             )}
           >
             {t(s)}
-          </button>
+          </Link>
         )
       })}
     </nav>
   )
 }
 
-export function SettingsNav({ active, onSelect }: { active: SettingsSection; onSelect: (s: SettingsSection) => void }) {
+export function SettingsNav() {
   const t = useTranslations('settings')
   return (
     <ResponsiveSidebar
       title={t('menuTitle')}
       railClassName="w-64"
       drawerClassName="w-72"
-      rail={<NavList active={active} onSelect={onSelect} />}
-      drawer={(close) => <NavList active={active} onSelect={(s) => { onSelect(s); close() }} />}
+      rail={<NavList />}
+      drawer={(close) => <NavList onSelect={close} />}
     />
   )
 }

@@ -47,6 +47,7 @@
     "random": "Random",
     "browse": "Discover decks",
     "collection": "Collection",
+    "settings": "Settings",
     "menu": "Menu"
   },
   "search": {
@@ -603,17 +604,20 @@
       "subject": {
         "sign-in": "{code} is your Revelio sign-in code",
         "email-verification": "{code} is your Revelio verification code",
-        "change-email": "{code} is your Revelio email change code"
+        "change-email": "{code} is your Revelio email change code",
+        "delete-account": "Your Revelio account-deletion code: {code}"
       },
       "heading": {
         "sign-in": "Confirm it’s you",
         "email-verification": "Verify your email",
-        "change-email": "Confirm your new email"
+        "change-email": "Confirm your new email",
+        "delete-account": "Confirm account deletion"
       },
       "intro": {
         "sign-in": "Enter this code to finish signing in to Revelio. It works once and only for you.",
         "email-verification": "Enter this code to verify your email address. It works once and only for you.",
-        "change-email": "Enter this code to confirm your new email address for Revelio. It works once and only for you."
+        "change-email": "Enter this code to confirm your new email address for Revelio. It works once and only for you.",
+        "delete-account": "Use this code to permanently delete your Revelio account. If you didn’t request this, ignore this email and your account stays safe."
       },
       "expiry": "Expires in {minutes} minutes",
       "textExpiry": "This code expires in {minutes} minutes and can be used once.",
@@ -630,6 +634,69 @@
       "emailLabel": "Email",
       "subjectLabel": "Subject",
       "messageLabel": "Message"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "lead": "Manage your Revelio account",
+    "menuTitle": "Settings",
+    "nav": {
+      "profile": "Profile",
+      "email": "Email",
+      "data": "Your data",
+      "danger": "Danger zone"
+    },
+    "profile": {
+      "title": "Profile",
+      "hint": "Your username is your public name, shown on the decks you publish. It must be unique.",
+      "usernameLabel": "Username",
+      "checking": "Checking availability…",
+      "available": "Available",
+      "taken": "That username is taken. Please choose another.",
+      "unchanged": "This is already your username.",
+      "save": "Save",
+      "saved": "Username updated.",
+      "saveError": "Couldn’t update your username. Please try again."
+    },
+    "email": {
+      "title": "Email",
+      "currentLabel": "You sign in to Revelio with the email address:",
+      "updateEmail": "Update email",
+      "newLabel": "New email",
+      "sendCode": "Verify new email",
+      "codeSent": "We emailed a 6-digit code to {email}. Enter it to confirm the change.",
+      "codeLabel": "Confirmation code",
+      "confirm": "Confirm change",
+      "cancel": "Cancel",
+      "resend": "Resend code",
+      "updated": "Email updated to {email}.",
+      "sameEmail": "That’s already your email.",
+      "emailTaken": "An account already uses that email.",
+      "requestError": "Couldn’t send the code. Please try again.",
+      "invalidCode": "That code isn’t right, or it expired. Try again."
+    },
+    "data": {
+      "title": "Your data",
+      "hint": "Download everything Revelio holds about you as a single JSON file — your profile, decks, collection and likes.",
+      "export": "Export as JSON",
+      "exporting": "Preparing…",
+      "exportError": "Couldn’t prepare your export. Please try again."
+    },
+    "danger": {
+      "title": "Danger zone",
+      "hint": "Deleting your account is permanent. It also removes:",
+      "item1": "All your decks and their cards",
+      "item2": "Your collection and owned-card records",
+      "item3": "Your likes and views",
+      "deleteAction": "Delete account",
+      "dialogTitle": "Confirm account deletion",
+      "dialogBody": "We emailed a 6-digit code to {email}. Enter it to permanently delete your account.",
+      "codeLabel": "Confirmation code",
+      "sendError": "Couldn’t send the code. Please try again.",
+      "confirmDelete": "Delete forever",
+      "cancel": "Cancel",
+      "deleted": "Your account has been deleted.",
+      "invalidCode": "That code isn’t right, or it expired. Try again."
     }
   },
   "about": {

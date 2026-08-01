@@ -292,7 +292,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
           <AlertDialogFooter>
             <AlertDialogCancel>{t('list.deleteDialog.cancel')}</AlertDialogCancel>
             <AlertDialogAction
-              className={buttonVariants({ variant: 'destructive' })}
+              className={buttonVariants({ variant: 'destructive', size: 'sm' })}
               onClick={confirmDelete}
             >
               {t('list.deleteDialog.confirm')}

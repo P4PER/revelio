@@ -19,7 +19,7 @@ import {
 import en from '@/../messages/en.json'
 import type { RenderedEmail } from './types'
 
-export type OtpEmailType = 'sign-in' | 'email-verification' | 'change-email'
+export type OtpEmailType = 'sign-in' | 'email-verification' | 'change-email' | 'delete-account'
 
 interface OtpEmailInput {
   otp: string

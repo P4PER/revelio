@@ -109,9 +109,23 @@ export function MobileNav({
 
         {user ? (
           <div className="flex flex-col">
-            <span className="truncate px-3 py-1 text-xs text-muted-foreground">
-              {user.email}
-            </span>
+            <div className="flex items-center gap-2.5 px-3 py-2">
+              <span
+                aria-hidden
+                className="grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold text-primary ring-1 ring-inset ring-primary/40"
+              >
+                {(user.displayUsername ?? user.username ?? user.email).charAt(0).toUpperCase()}
+              </span>
+              <div className="min-w-0">
+                {(user.displayUsername ?? user.username) && (
+                  <div className="truncate text-sm font-semibold">
+                    <span className="relative bottom-px text-primary">@</span>
+                    {user.displayUsername ?? user.username}
+                  </div>
+                )}
+                <div className="truncate text-xs text-muted-foreground">{user.email}</div>
+              </div>
+            </div>
             {isEditor && (
               <Link href="/admin" onClick={close} className={rowClass}>
                 <Shield className="size-4 opacity-70" />

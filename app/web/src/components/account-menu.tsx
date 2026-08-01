@@ -45,12 +45,9 @@ export function AccountMenu({
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {isEditor && (
-          <>
-            <DropdownMenuItem asChild>
-              <Link href="/admin"><Shield />{tNav('admin')}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </>
+          <DropdownMenuItem asChild>
+            <Link href="/admin"><Shield />{tNav('admin')}</Link>
+          </DropdownMenuItem>
         )}
         <DropdownMenuItem asChild>
           <Link href="/settings"><Settings />{tNav('settings')}</Link>

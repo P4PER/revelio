@@ -7,6 +7,7 @@ import {
   Dices,
   Globe,
   Shield,
+  Settings,
   LogOut,
 } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
@@ -117,6 +118,10 @@ export function MobileNav({
                 {t('admin')}
               </Link>
             )}
+            <Link href="/settings" onClick={close} className={rowClass}>
+              <Settings className="size-4 opacity-70" />
+              {t('settings')}
+            </Link>
             <button
               type="button"
               onClick={() => {

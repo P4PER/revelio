@@ -53,6 +53,9 @@ export const CARD_INDEX_SETTINGS: Settings = {
   sortableAttributes: ['numberSort', 'name', 'cost'],
   rankingRules: ['words', 'typo', 'proximity', 'attribute', 'sort', 'exactness'],
   typoTolerance: { enabled: true },
+  // Default maxTotalHits is 1000, which caps the reported total and makes cards
+  // past #1000 unreachable via pagination. The dataset is ~1098 cards; leave headroom.
+  pagination: { maxTotalHits: 5000 },
 }
 
 export type LocalizationFields = {

@@ -8,7 +8,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import { useSignOut } from './use-sign-out'
@@ -31,7 +30,9 @@ export function AccountMenu({
       </Button>
     )
   }
-  const name = user.displayUsername ?? user.username ?? user.email
+  const handle = user.displayUsername ?? user.username
+  const name = handle ?? user.email
+  const initial = name.charAt(0).toUpperCase()
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -40,17 +41,28 @@ export function AccountMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
-        <DropdownMenuLabel className="font-normal text-muted-foreground">
-          {user.email}
-        </DropdownMenuLabel>
+        <div className="flex items-center gap-2.5 px-2 py-1.5">
+          <span
+            aria-hidden
+            className="grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold text-primary ring-1 ring-inset ring-primary/40"
+          >
+            {initial}
+          </span>
+          <div className="min-w-0">
+            {handle && (
+              <div className="truncate text-sm font-semibold">
+                <span className="relative bottom-px text-primary">@</span>
+                {handle}
+              </div>
+            )}
+            <div className="truncate text-xs text-muted-foreground">{user.email}</div>
+          </div>
+        </div>
         <DropdownMenuSeparator />
         {isEditor && (
-          <>
-            <DropdownMenuItem asChild>
-              <Link href="/admin"><Shield />{tNav('admin')}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </>
+          <DropdownMenuItem asChild>
+            <Link href="/admin"><Shield />{tNav('admin')}</Link>
+          </DropdownMenuItem>
         )}
         <DropdownMenuItem asChild>
           <Link href="/settings"><Settings />{tNav('settings')}</Link>

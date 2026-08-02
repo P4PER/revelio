@@ -7,6 +7,7 @@ import {
   Dices,
   Globe,
   Shield,
+  Settings,
   LogOut,
 } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
@@ -87,36 +88,70 @@ export function MobileNav({
 
         <div className="my-2 border-t border-border/60" />
 
+        <div className="flex items-center gap-2 px-3 pb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <Globe className="size-3.5 opacity-70" />
+          {t('language')}
+        </div>
         <div className="flex flex-col">
-          {routing.locales.map((l) => (
-            <button
-              key={l}
-              type="button"
-              onClick={() => {
-                switchLocale(l)
-                close()
-              }}
-              className={`${rowClass}${l === locale ? ' text-primary' : ''}`}
-            >
-              <Globe className="size-4 opacity-70" />
-              {LOCALE_NAMES[l] ?? l.toUpperCase()}
-            </button>
-          ))}
+          {routing.locales.map((l) => {
+            const active = l === locale
+            return (
+              <button
+                key={l}
+                type="button"
+                aria-current={active ? 'true' : undefined}
+                onClick={() => {
+                  switchLocale(l)
+                  close()
+                }}
+                className={
+                  active
+                    ? `${rowClass} bg-primary/10 font-semibold text-primary hover:bg-primary/15 hover:text-primary`
+                    : rowClass
+                }
+              >
+                <span
+                  className={`grid size-4 shrink-0 place-items-center rounded-full border ${active ? 'border-primary' : 'border-border'}`}
+                >
+                  {active && <span className="size-2 rounded-full bg-primary" />}
+                </span>
+                {LOCALE_NAMES[l] ?? l.toUpperCase()}
+              </button>
+            )
+          })}
         </div>
 
         <div className="my-2 border-t border-border/60" />
 
         {user ? (
           <div className="flex flex-col">
-            <span className="truncate px-3 py-1 text-xs text-muted-foreground">
-              {user.email}
-            </span>
+            <div className="flex items-center gap-2.5 px-3 py-2">
+              <span
+                aria-hidden
+                className="grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold text-primary ring-1 ring-inset ring-primary/40"
+              >
+                {(user.displayUsername ?? user.username ?? user.email).charAt(0).toUpperCase()}
+              </span>
+              <div className="min-w-0">
+                {(user.displayUsername ?? user.username) && (
+                  <div className="truncate text-sm font-semibold">
+                    <span className="relative bottom-px text-primary">@</span>
+                    {user.displayUsername ?? user.username}
+                  </div>
+                )}
+                <div className="truncate text-xs text-muted-foreground">{user.email}</div>
+              </div>
+            </div>
             {isEditor && (
               <Link href="/admin" onClick={close} className={rowClass}>
                 <Shield className="size-4 opacity-70" />
                 {t('admin')}
               </Link>
             )}
+            <Link href="/settings" onClick={close} className={rowClass}>
+              <Settings className="size-4 opacity-70" />
+              {t('settings')}
+            </Link>
             <button
               type="button"
               onClick={() => {

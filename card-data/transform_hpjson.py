@@ -15,7 +15,7 @@ SET_CODES = {
     "Lost Magic 1": "LM1", "Prisoner of Azkaban": "POA",
     "Heir of Slytherin": "HOS", "Streets of Hogsmeade": "SOH",
     "Goblet of Fire": "GOF", "Quidditch World Finals": "QWF",
-    "Promotional": "PROMO",
+    "Triwizard Tournament": "TT", "Promotional": "PROMO",
 }
 # Original Wizards of the Coast sets (2001–2003)
 OFFICIAL = {"Base", "Quidditch Cup", "Diagon Alley",

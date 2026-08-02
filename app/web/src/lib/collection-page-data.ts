@@ -17,6 +17,13 @@ import type { CollectionCard } from '@/components/collection-card-tile'
 // (~140 cards) so the By-set view renders the whole set in one page.
 const FULL_SET_LIMIT = 250
 
+// Browse-grid page size. The grid (collection-view.tsx) renders 2/3/4/5 columns
+// across its breakpoints, so the page size must be divisible by all of them for
+// the final row to fill at every width — LCM(2,3,4,5) = 60. Keep this in sync if
+// the grid's column counts change. Overrides the shared HITS_PER_PAGE default
+// (24), which stays right for the 4-column search/set grids.
+const BROWSE_PAGE_SIZE = 60
+
 export type CollectionPageData = {
   sets: SetDTO[]
   progress: SetProgress[]
@@ -55,13 +62,13 @@ export async function loadCollectionPage(
   // the grid isn't truncated at the default 24. The largest set is ~140 cards.
   // `set` is user-controlled, so build the params object-form (no interpolation).
   const setRes = tab === 'sets' && selectedSet
-    ? await runSearch(client, locale, parseSearchParams(new URLSearchParams({ set: selectedSet })), { hitsPerPage: FULL_SET_LIMIT })
+    ? await runSearch(client, locale, parseSearchParams(new URLSearchParams({ set: selectedSet, sort: 'number' })), { hitsPerPage: FULL_SET_LIMIT })
     : { hits: [], total: 0, page: 1, hitsPerPage: FULL_SET_LIMIT }
 
   const { query, options } = toSearchOptions(parseSearchParams(sp))
   const browseRes = tab === 'browse'
-    ? await searchCards(client, locale, query, applyOwnership(options, parseOwnership(sp), ownedIds, dupeIds))
-    : { hits: [], total: 0, page: 1, hitsPerPage: options.hitsPerPage ?? 24 }
+    ? await searchCards(client, locale, query, applyOwnership({ ...options, hitsPerPage: BROWSE_PAGE_SIZE }, parseOwnership(sp), ownedIds, dupeIds))
+    : { hits: [], total: 0, page: 1, hitsPerPage: BROWSE_PAGE_SIZE }
 
   const quantities = await getOwnedQuantities(
     db, ownerId, [...setRes.hits, ...browseRes.hits].map((h) => h.id),

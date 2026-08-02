@@ -24,16 +24,26 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 _OV_PATH = os.path.join(HERE, "card_overrides.json")
 CARD_OVERRIDES = json.load(open(_OV_PATH, encoding="utf-8")) if os.path.exists(_OV_PATH) else {}
 DIST = os.path.join(HERE, "dist")
-HPJSON_REPO = "https://github.com/Tressley/hpjson.git"
+HPJSON_REPO = "https://github.com/P4PER/hpjson.git"
 TRANSLATIONS = os.path.join(HERE, "translations")
 
-# Set symbols (Revival community art); names/dates are derived from the source data.
-SYMBOLS = {c: f"https://harrypottertcg.com/images/{f}" for c, f in {
-    "BS": "logoBS.png", "QC": "logoQC.png", "DA": "logoDA.png", "AAH": "logoAAH.png",
-    "COS": "logoCOS.png", "HAH": "hah.png", "EOTP": "eotp.png", "SOH": "logoSOH.png",
-    "POA": "logoPOA.png", "HOS": "logoHOS.png", "GOF": "logoGOF.png", "QWF": "logoQWF.png",
-    "LM1": "logoLM1.png",
-}.items()}
+# Set symbols, mostly from accio.cards (same source as the card art). accio's filenames
+# are `logo<CODE>.png` except EOTP (lowercase). accio only serves HAH and QWF as SVG, so
+# those two keep the Revival raster source — everything ends up as a WebP raster. Full
+# URLs so link mode (dist/sets.json) and download mode (accio_images.py) share one map.
+# PROMO has no symbol. names/dates are derived from the source data.
+_ACCIO_SYM = "https://accio.cards/Images/Icons/Set%20Symbols/"
+_REVIVAL_SYM = "https://harrypottertcg.com/images/"
+SYMBOLS = {
+    "BS": _ACCIO_SYM + "logoBS.png", "QC": _ACCIO_SYM + "logoQC.png",
+    "DA": _ACCIO_SYM + "logoDA.png", "AAH": _ACCIO_SYM + "logoAAH.png",
+    "COS": _ACCIO_SYM + "logoCOS.png", "POA": _ACCIO_SYM + "logoPOA.png",
+    "HOS": _ACCIO_SYM + "logoHOS.png", "SOH": _ACCIO_SYM + "logoSOH.png",
+    "GOF": _ACCIO_SYM + "logoGOF.png", "LM1": _ACCIO_SYM + "logoLM1.png",
+    "TT": _ACCIO_SYM + "logoTT.png", "EOTP": _ACCIO_SYM + "logoeotp.png",
+    # accio has these two as SVG only; use the Revival raster source instead.
+    "HAH": _REVIVAL_SYM + "hah.png", "QWF": _REVIVAL_SYM + "logoQWF.png",
+}
 OFFICIAL_CODES = {SET_CODES[n] for n in OFFICIAL}
 
 def fold(s):

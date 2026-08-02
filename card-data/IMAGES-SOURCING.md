@@ -11,8 +11,11 @@ covers **every** set (incl. Chamber of Secrets).
   `cardimages3/`.
 - A few source filenames have typos/mismatches → `image_overrides.json` maps the
   card `id` to the correct accio filename (e.g. `Leakey`→`Leaky`, `&`→`And`).
-- Set symbols: from the Revival site (`https://harrypottertcg.com/images/...`), all
-  **PNG** (incl. HAH and QWF). Saved as `assets/symbols/<code>.png`.
+- Set symbols: mostly from accio (`https://accio.cards/Images/Icons/Set Symbols/logo<CODE>.png`,
+  `EOTP` is lowercase). accio serves **HAH** and **QWF** as SVG only, so those two keep the
+  Revival raster source (`https://harrypottertcg.com/images/...`). All are rasters, saved as
+  `assets/symbols/<code>.webp`. The single map lives in `build_dataset.py` (`SYMBOLS`) and is
+  imported by `accio_images.py`. `PROMO` has no symbol.
 
 ## Download (run locally)
 

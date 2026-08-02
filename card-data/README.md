@@ -48,8 +48,9 @@ against the schemas (0 errors expected).
 
 ## Dataset at a glance
 
-- **1,035 cards** across **14 sets**.
-- **504** official WotC cards (2001–2003), **531** fan/Revival cards. Each set's
+- **1,098 cards** across **15 sets** (built dataset; premium variants collapse into a
+  card's `finishes[]` rather than counting as separate rows — see the finishes note below).
+- **498** official WotC cards (2001–2003), **600** fan/Revival cards. Each set's
   `isOfficial` flag lives in `sets.json` → to get "the 2001 game" filter cards whose
   `setCode` is official (BS, QC, DA, AAH, COS).
 - Card types: Spell, Item, Creature, Character, Adventure, Location, Event,
@@ -93,7 +94,7 @@ Plan: ship machine translations now (clearly flagged), replace with
 `official`/`community` over time. The UI shows a badge and falls back to
 `defaultLanguage` when a translation is missing.
 
-Currently **`en`** = official (all 1,035 cards), **`de`** = machine (Base Set, 118).
+Currently **`en`** = official (all 1,098 cards), **`de`** = machine (Base Set, 118).
 
 ## Adding a language
 
@@ -122,4 +123,4 @@ the source files are saved as-is.
 - `image_overrides.json` maps ids to the correct accio filename where the source data
   has typos/name mismatches.
 - `--link` mode instead sets `image.url` to the remote accio URL (no download).
-- Coverage: 1,035/1,035 card images, 13/13 set symbols (WebP lossless).
+- Coverage: 1,098/1,098 card images, 14/14 set symbols (WebP lossless; PROMO has none).

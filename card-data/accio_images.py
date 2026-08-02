@@ -21,6 +21,7 @@ Note: card art is © Warner Bros. We use it under the unofficial-fan-project ter
 (disclaimer, non-commercial, takedown). For production prefer --download + CDN.
 """
 import json, os, sys
+from build_dataset import SYMBOLS   # single accio-based set-symbol map (full URLs)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DIST = os.path.join(HERE, "dist")
@@ -146,22 +147,15 @@ def download_mode(cards, workers=WORKERS):
     print(f"  saved {n}, skipped {skipped} (existing), failed {failed} [workers={workers}]")
     return n
 
-# Set symbols from the Revival site – all PNG (incl. HAH and QWF).
-SYMBOL_BASE = "https://harrypottertcg.com/images/"
-SYMBOL_FILES = {
-    "BS": "logoBS.png", "QC": "logoQC.png", "DA": "logoDA.png", "AAH": "logoAAH.png",
-    "COS": "logoCOS.png", "POA": "logoPOA.png", "HOS": "logoHOS.png", "SOH": "logoSOH.png",
-    "EOTP": "eotp.png", "GOF": "logoGOF.png", "LM1": "logoLM1.png",
-    "HAH": "hah.png", "QWF": "logoQWF.png",
-}
-
 def download_symbols():
-    """Download set symbols and save as WebP lossless: assets/symbols/<code>.webp.
+    """Download set symbols into assets/symbols/<code>.webp and point sets.json at the
+    local copies.
 
-    Symbols are flat-colour logos with transparency, so lossless keeps edges crisp
-    and the alpha intact. Falls back to the source PNG if Pillow isn't available.
+    Symbols are flat-colour raster logos with transparency, so lossless WebP keeps edges
+    crisp and the alpha intact. Source URLs come from the shared SYMBOLS map in
+    build_dataset. Falls back to the source PNG if Pillow isn't available.
     """
-    import urllib.request, urllib.error, io
+    import urllib.request, io
     try:
         from PIL import Image
     except ImportError:
@@ -172,11 +166,11 @@ def download_symbols():
     os.makedirs(out_dir, exist_ok=True)
     n = failed = 0
     for code, s in sets.items():
-        fname = SYMBOL_FILES.get(code)
-        if not fname:
+        url = SYMBOLS.get(code)
+        if not url:
             continue
         try:
-            req = urllib.request.Request(SYMBOL_BASE + fname, headers={"User-Agent": "revelio.cards/0.1"})
+            req = urllib.request.Request(url, headers={"User-Agent": "revelio.cards/0.1"})
             raw = urllib.request.urlopen(req, timeout=30).read()
             if Image is not None:
                 sym = Image.open(io.BytesIO(raw))
@@ -184,7 +178,7 @@ def download_symbols():
                 sym.save(os.path.join(out_dir, f"{code}.webp"), "WEBP", lossless=True, method=WEBP_METHOD)
                 s["symbol"] = f"/assets/symbols/{code}.webp"
             else:
-                ext = os.path.splitext(fname)[1].lower()
+                ext = os.path.splitext(url)[1].lower() or ".png"
                 with open(os.path.join(out_dir, f"{code}{ext}"), "wb") as fh:
                     fh.write(raw)
                 s["symbol"] = f"/assets/symbols/{code}{ext}"

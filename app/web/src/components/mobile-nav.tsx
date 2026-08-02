@@ -88,21 +88,37 @@ export function MobileNav({
 
         <div className="my-2 border-t border-border/60" />
 
+        <div className="flex items-center gap-2 px-3 pb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <Globe className="size-3.5 opacity-70" />
+          {t('language')}
+        </div>
         <div className="flex flex-col">
-          {routing.locales.map((l) => (
-            <button
-              key={l}
-              type="button"
-              onClick={() => {
-                switchLocale(l)
-                close()
-              }}
-              className={`${rowClass}${l === locale ? ' text-primary' : ''}`}
-            >
-              <Globe className="size-4 opacity-70" />
-              {LOCALE_NAMES[l] ?? l.toUpperCase()}
-            </button>
-          ))}
+          {routing.locales.map((l) => {
+            const active = l === locale
+            return (
+              <button
+                key={l}
+                type="button"
+                aria-current={active ? 'true' : undefined}
+                onClick={() => {
+                  switchLocale(l)
+                  close()
+                }}
+                className={
+                  active
+                    ? `${rowClass} bg-primary/10 font-semibold text-primary hover:bg-primary/15 hover:text-primary`
+                    : rowClass
+                }
+              >
+                <span
+                  className={`grid size-4 shrink-0 place-items-center rounded-full border ${active ? 'border-primary' : 'border-border'}`}
+                >
+                  {active && <span className="size-2 rounded-full bg-primary" />}
+                </span>
+                {LOCALE_NAMES[l] ?? l.toUpperCase()}
+              </button>
+            )
+          })}
         </div>
 
         <div className="my-2 border-t border-border/60" />

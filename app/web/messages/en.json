@@ -346,7 +346,6 @@
       "pngError": "Could not generate the PNG."
     },
     "overview": {
-      "back": "Back",
       "edit": "Edit",
       "publish": "Publish",
       "published": "Published",
@@ -354,6 +353,7 @@
       "copyLink": "Copy link",
       "linkCopied": "Link copied to clipboard.",
       "duplicate": "Copy this deck",
+      "viewLabel": "View",
       "viewList": "List",
       "viewGallery": "Gallery",
       "cardCount": "{count} cards",

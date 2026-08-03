@@ -48,16 +48,8 @@ describe('DeckOverview', () => {
 
   it('switches to the gallery view and persists the choice to a cookie', () => {
     renderWithIntl(<DeckOverview {...props} />)
-    fireEvent.click(screen.getByText('Gallery'))
+    fireEvent.click(screen.getByRole('button', { name: 'Gallery' }))
     expect(screen.getByTestId('gallery-view')).toBeInTheDocument()
     expect(document.cookie).toContain('revelio.deck-view=gallery')
-  })
-
-  it('shows the back link only to logged-in viewers', () => {
-    const { unmount } = renderWithIntl(<DeckOverview {...props} loggedIn />)
-    expect(screen.getByText('Back')).toBeInTheDocument()
-    unmount()
-    renderWithIntl(<DeckOverview {...props} loggedIn={false} />)
-    expect(screen.queryByText('Back')).not.toBeInTheDocument()
   })
 })

@@ -1,9 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { ChevronLeft, Eye, LayoutGrid, List } from 'lucide-react'
+import { Eye, LayoutGrid, List } from 'lucide-react'
 import type { DeckCardView, DeckFormat } from '@revelio/core'
-import { useRouter } from '@/../i18n/navigation'
 import { deckStats } from '@/lib/deck-stats'
 import { DeckPanel } from '@/components/deck-panel'
 import { DeckGallery } from '@/components/deck-gallery'
@@ -39,15 +38,7 @@ export function DeckOverview(props: DeckOverviewProps) {
   const { deckId, name, format, visibility, updatedAt, views, isOwner, loggedIn, imageBase } = props
   const t = useTranslations('decks')
   const locale = useLocale()
-  const router = useRouter()
   const [view, setView] = useState<View>(props.initialView ?? 'list')
-
-  // Go back to wherever the user came from (public list, My Decks, …). Falls
-  // back to My Decks when the deck was opened directly with no in-app history.
-  function goBack() {
-    if (window.history.length > 1) router.back()
-    else router.push('/decks/mine')
-  }
 
   function changeView(next: View) {
     setView(next)
@@ -71,17 +62,6 @@ export function DeckOverview(props: DeckOverviewProps) {
 
   return (
     <div className="space-y-4">
-      {loggedIn && (
-        <button
-          type="button"
-          onClick={goBack}
-          className="inline-flex cursor-pointer items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ChevronLeft className="size-4" />
-          {t('overview.back')}
-        </button>
-      )}
-
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-4xl font-bold">{name}</h1>
@@ -111,14 +91,14 @@ export function DeckOverview(props: DeckOverviewProps) {
           isOwner={isOwner}
           loggedIn={loggedIn}
         />
-        <div className="inline-flex rounded-md border border-border p-0.5">
-          <Button size="sm" variant={view === 'list' ? 'secondary' : 'ghost'} onClick={() => changeView('list')}>
+        <div className="flex items-center gap-1" role="group" aria-label={t('overview.viewLabel')}>
+          <Button size="icon-sm" variant={view === 'list' ? 'secondary' : 'ghost'}
+            onClick={() => changeView('list')} aria-label={t('overview.viewList')} title={t('overview.viewList')}>
             <List className="size-4" />
-            {t('overview.viewList')}
           </Button>
-          <Button size="sm" variant={view === 'gallery' ? 'secondary' : 'ghost'} onClick={() => changeView('gallery')}>
+          <Button size="icon-sm" variant={view === 'gallery' ? 'secondary' : 'ghost'}
+            onClick={() => changeView('gallery')} aria-label={t('overview.viewGallery')} title={t('overview.viewGallery')}>
             <LayoutGrid className="size-4" />
-            {t('overview.viewGallery')}
           </Button>
         </div>
       </div>

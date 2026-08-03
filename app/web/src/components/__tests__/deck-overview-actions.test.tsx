@@ -2,16 +2,18 @@ import { describe, it, expect, vi } from 'vitest'
 import { screen, fireEvent, within, waitFor } from '@testing-library/react'
 import type { DeckCardView } from '@revelio/core'
 import { renderWithIntl } from '@/test/intl'
-import { updateDeckMetaAction } from '@/lib/deck-actions'
+import { updateDeckMetaAction, deleteDeckAction } from '@/lib/deck-actions'
 import { DeckOverviewActions } from '@/components/deck-overview-actions'
 
+const push = vi.fn()
 vi.mock('@/../i18n/navigation', () => ({
   Link: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a>,
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push }),
 }))
 vi.mock('@/lib/deck-actions', () => ({
   updateDeckMetaAction: vi.fn(async () => ({ ok: true, id: 'd1' })),
   duplicateDeckAction: vi.fn(async () => ({ ok: true, id: 'copy1' })),
+  deleteDeckAction: vi.fn(async () => ({ ok: true, id: 'd1' })),
 }))
 
 const views: DeckCardView[] = [
@@ -39,8 +41,20 @@ describe('DeckOverviewActions visibility', () => {
     expect(screen.queryByText('Edit')).not.toBeInTheDocument()
     expect(screen.queryByText('Publish')).not.toBeInTheDocument()
     expect(screen.queryByText('Published')).not.toBeInTheDocument()
+    expect(screen.queryByText('Delete')).not.toBeInTheDocument()
     expect(screen.getByText('Export')).toBeInTheDocument()
     expect(screen.getByText('Copy this deck')).toBeInTheDocument()
+  })
+
+  it('asks for confirmation before deleting, then deletes and redirects', async () => {
+    renderWithIntl(<DeckOverviewActions {...base} visibility="private" isOwner loggedIn />)
+    // Clicking Delete opens a confirm dialog rather than deleting immediately.
+    fireEvent.click(screen.getByText('Delete'))
+    expect(await screen.findByText('Delete deck?')).toBeInTheDocument()
+    const dialog = screen.getByRole('alertdialog')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete' }))
+    await waitFor(() => expect(deleteDeckAction).toHaveBeenCalledWith('d1'))
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/decks/mine'))
   })
 
   it('asks for confirmation before publishing and publishes on confirm', async () => {

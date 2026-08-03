@@ -346,7 +346,6 @@
       "pngError": "PNG konnte nicht erstellt werden."
     },
     "overview": {
-      "back": "Zurück",
       "edit": "Bearbeiten",
       "publish": "Veröffentlichen",
       "published": "Veröffentlicht",
@@ -354,6 +353,7 @@
       "copyLink": "Link kopieren",
       "linkCopied": "Link in die Zwischenablage kopiert.",
       "duplicate": "Dieses Deck kopieren",
+      "viewLabel": "Ansicht",
       "viewList": "Liste",
       "viewGallery": "Galerie",
       "cardCount": "{count} Karten",

@@ -2,13 +2,13 @@
 import { useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { ChevronDown, Copy, Globe, Link2, Lock, Pencil } from 'lucide-react'
+import { ChevronDown, Copy, Globe, Link2, Lock, Pencil, Trash2 } from 'lucide-react'
 import type { DeckCardView, DeckFormat } from '@revelio/core'
 import { Link, useRouter } from '@/../i18n/navigation'
-import { duplicateDeckAction, updateDeckMetaAction } from '@/lib/deck-actions'
+import { deleteDeckAction, duplicateDeckAction, updateDeckMetaAction } from '@/lib/deck-actions'
 import { saveDraft, type BuilderState } from '@/lib/deck-model'
 import { DeckExportMenu } from '@/components/deck-export-menu'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,6 +65,18 @@ export function DeckOverviewActions({
     }
   }
 
+  function remove() {
+    startTransition(async () => {
+      const res = await deleteDeckAction(deckId)
+      if (res.ok) {
+        toast.success(t('list.deleted'))
+        router.push('/decks/mine')
+      } else {
+        toast.error(t('list.deleteError'))
+      }
+    })
+  }
+
   function duplicate() {
     if (loggedIn) {
       startTransition(async () => {
@@ -81,7 +93,7 @@ export function DeckOverviewActions({
   return (
     <div className="flex flex-wrap items-center gap-2">
       {isOwner && (
-        <Button asChild>
+        <Button size="sm" asChild>
           <Link href={`/decks/${deckId}/edit`}>
             <Pencil className="size-4" />
             {t('overview.edit')}
@@ -93,7 +105,7 @@ export function DeckOverviewActions({
         (visibility === 'private' ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="outline" disabled={pending}>
+              <Button size="sm" variant="outline" disabled={pending}>
                 <Globe className="size-4" />
                 {t('overview.publish')}
               </Button>
@@ -114,7 +126,7 @@ export function DeckOverviewActions({
         ) : (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" disabled={pending}>
+              <Button size="sm" variant="outline" disabled={pending}>
                 <Globe className="size-4" />
                 {t('overview.published')}
                 <ChevronDown className="size-4" />
@@ -133,12 +145,45 @@ export function DeckOverviewActions({
           </DropdownMenu>
         ))}
 
-      <DeckExportMenu state={state} align="start" variant="outline" size="default" />
+      <DeckExportMenu state={state} align="start" variant="outline" size="sm" />
 
-      <Button variant="outline" disabled={pending} onClick={duplicate}>
+      <Button size="sm" variant="outline" disabled={pending} onClick={duplicate}>
         <Copy className="size-4" />
         {t('overview.duplicate')}
       </Button>
+
+      {isOwner && (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={pending}
+              className="text-destructive hover:text-destructive focus-visible:ring-destructive/20"
+            >
+              <Trash2 className="size-4" />
+              {t('list.actions.delete')}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('list.deleteDialog.title')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('list.deleteDialog.description', { name })}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('list.deleteDialog.cancel')}</AlertDialogCancel>
+              <AlertDialogAction
+                className={buttonVariants({ variant: 'destructive', size: 'sm' })}
+                onClick={remove}
+              >
+                {t('list.deleteDialog.confirm')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   )
 }

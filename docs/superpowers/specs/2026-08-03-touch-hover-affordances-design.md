@@ -65,7 +65,7 @@ Sites (presentational reveals):
 
 | File | Line | Control | Change |
 |---|---|---|---|
-| `deck-card-browser.tsx` | 216 | hover scrim behind Add | `touch:opacity-100` (wrapper already `pointer-events-none`) |
+| `deck-card-browser.tsx` | 216 | hover scrim behind Add | leave hover-only — always-on would dim the whole browse grid on touch; the Add button's own shadow keeps it legible |
 | `deck-card-browser.tsx` | 227 | **"Add to deck"** button | `touch:opacity-100` |
 | `deck-card-browser.tsx` | 253 | info button | `touch:opacity-100` |
 | `deck-panel.tsx` | 121 | card info button | `touch:opacity-100` |

@@ -54,9 +54,8 @@ type DeckHeaderProps = {
   liked: boolean
   loggedIn: boolean
   imageBase: string
-  // owner
-  ownerName: string            // display label (displayUsername ?? username ?? name)
-  ownerUsername: string | null // @handle for the link; null → name is plain text
+  // owner: the @handle, shown and linked. null → owner element is omitted.
+  ownerUsername: string | null
   // starter art + lessons, derived from views by the caller
   starterCardId: string | null
   starterArtCropVersion: number | null
@@ -86,12 +85,18 @@ type DeckHeaderProps = {
 
 **Owner element**
 
-- No avatar. Text only: the display name followed by `@username`
-  (e.g. `Grindelwald @grindlewald`), styled light-on-scrim.
-- When `ownerUsername` is non-null: wrap in a locale-aware `Link` to
-  `/decks?q=@${ownerUsername}` (the deck browse already treats a leading `@` as a
-  username filter — `queries.ts` `listPublicDecks`). When null: render as plain
-  text (no link).
+- No avatar, no separate display name. Just the handle `@username`, styled
+  **identically to the account dropdown name** (`account-menu.tsx`): the handle in
+  `text-sm font-semibold`, preceded by a gold `@` nudged up a pixel —
+  `<span className="relative bottom-px text-primary">@</span>{handle}`. The handle
+  text inherits the banner's light-on-scrim colour (+ the shared `text-shadow`);
+  the `@` stays `text-primary` (gold), which reads on the dark art.
+- Wrapped in a locale-aware `Link` to `/decks?q=@${ownerUsername}` (the deck
+  browse treats a leading `@` as a username filter — `queries.ts`
+  `listPublicDecks`; the filter is case-insensitive `ilike`, so the display
+  casing is fine to link with).
+- When `ownerUsername` is null (user has no username), the owner element is
+  omitted entirely — nothing is shown.
 
 ### `DeckLikeButton` change
 
@@ -102,19 +107,15 @@ art. No behavioural change.
 
 ### Data plumbing (owner name/username)
 
-The one new piece of data is the owner's name + username.
+The one new piece of data is the owner's username.
 
 1. **`@revelio/db` — `getDeck`** (`queries.ts`): add an inner join to `user` and
-   return an `owner` field:
-   ```ts
-   owner: { name: string; username: string | null }
-   ```
-   where `name = user.displayUsername ?? user.username ?? user.name ?? '—'` and
-   `username = user.username` (mirrors `listPublicDecks`'s `author`). Update the
-   return type of `getDeck` and `getDeckForViewer` accordingly.
-2. **Page** (`decks/[id]/page.tsx`): pass `ownerName={existing.owner.name}` and
-   `ownerUsername={existing.owner.username}` into `DeckOverview`.
-3. **`DeckOverview`**: accept `ownerName`/`ownerUsername` props; derive starter
+   return `ownerUsername: user.displayUsername ?? user.username` (`string | null`)
+   — the same `handle` the account dropdown shows. Update the return type of
+   `getDeck` and `getDeckForViewer` accordingly.
+2. **Page** (`decks/[id]/page.tsx`): pass
+   `ownerUsername={existing.ownerUsername}` into `DeckOverview`.
+3. **`DeckOverview`**: accept `ownerUsername`; derive starter
    art + lessons from `views` and forward everything to `DeckHeader`:
    - `const starter = views.find((v) => v.zone === 'character')`
    - `starterCardId = starter?.cardId ?? null`,
@@ -126,8 +127,8 @@ No schema change, no migration.
 ### Localization
 
 - New `decks.overview.viewAuthorDecks` (aria-label for the owner link), e.g.
-  `"View decks by {name}"` / German equivalent. Added to `messages/en.json` and
-  `messages/de.json`.
+  `"View decks by @{username}"` / German equivalent. Added to `messages/en.json`
+  and `messages/de.json`.
 - Deck-name art `alt` reuses the deck name (as `DeckHeroCard` does). No hardcoded
   user-facing strings.
 
@@ -150,9 +151,9 @@ No schema change, no migration.
   lives in the banner; assert the owner name renders and (with a username) links
   to `/decks?q=@…`, and that the visibility badge still appears. Keep assertions
   for the actions row + view switcher.
-- **`deck-header.test.tsx`** (new): renders name/meta/owner; owner links when a
-  username is present and is plain text when null; renders `DeckArt` fallback
-  when `starterCardId` is null.
+- **`deck-header.test.tsx`** (new): renders name/meta; the `@username` link
+  points to `/decks?q=@…` when a username is present and is omitted when null;
+  renders `DeckArt` fallback when `starterCardId` is null.
 - **`deck-like-button`**: existing tests must still pass with the new optional
   `className` (default path unchanged).
 - **db query test** (if `getDeck`/`getDeckForViewer` is covered): assert the new

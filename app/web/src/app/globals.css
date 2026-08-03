@@ -4,6 +4,9 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Touch devices (no hover): reveal controls that are otherwise hover-only. */
+@custom-variant touch (@media (hover: none));
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

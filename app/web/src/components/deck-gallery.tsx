@@ -42,7 +42,7 @@ function GalleryTile({
         type="button"
         aria-label={t('browse.infoAria', { name: entry.name })}
         onClick={onInfo}
-        className="absolute top-2 right-2 z-30 cursor-pointer rounded-full border border-white/40 bg-black/60 p-2.5 text-white opacity-0 shadow-md backdrop-blur-sm transition hover:bg-black/75 focus-visible:opacity-100 group-hover:opacity-100"
+        className="absolute top-2 right-2 z-30 cursor-pointer rounded-full border border-white/40 bg-black/60 p-2.5 text-white opacity-0 shadow-md backdrop-blur-sm transition hover:bg-black/75 focus-visible:opacity-100 group-hover:opacity-100 touch:opacity-100"
       >
         <Info className="size-5" />
       </button>

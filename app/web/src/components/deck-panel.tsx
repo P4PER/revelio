@@ -118,7 +118,7 @@ export function DeckPanel({
           type="button"
           aria-label={t('browse.infoAria', { name: e.name })}
           onClick={() => setDetailId(e.cardId)}
-          className="-mr-1 grid size-7 shrink-0 cursor-pointer place-items-center rounded-md text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-background hover:text-primary focus-visible:opacity-100"
+          className="-mr-1 grid size-7 shrink-0 cursor-pointer place-items-center rounded-md text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-background hover:text-primary focus-visible:opacity-100 touch:opacity-100"
         >
           <Info className="size-5" />
         </button>

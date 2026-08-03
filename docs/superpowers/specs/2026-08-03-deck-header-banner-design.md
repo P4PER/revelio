@@ -86,11 +86,8 @@ type DeckHeaderProps = {
 
 **Owner element**
 
-- Small initials avatar (a local, single-use element — not a shared component,
-  per the `types.ts`/single-use convention): a rounded chip with a
-  gradient background and the owner's initials. No user image is fetched
-  (Better Auth `image` is out of scope; initials keep this change self-contained).
-- Display name + `@username`, styled light-on-scrim.
+- No avatar. Text only: the display name followed by `@username`
+  (e.g. `Grindelwald @grindlewald`), styled light-on-scrim.
 - When `ownerUsername` is non-null: wrap in a locale-aware `Link` to
   `/decks?q=@${ownerUsername}` (the deck browse already treats a leading `@` as a
   username filter — `queries.ts` `listPublicDecks`). When null: render as plain
@@ -164,7 +161,7 @@ No schema change, no migration.
 ## Out of scope
 
 - Merging stats/legality into the banner (that was Option C).
-- User avatar images (initials only).
+- Owner avatar of any kind (text name + `@username` only).
 - Any change to the actions row, view switcher, stats panel, legality bar, or
   card list.
 - Schema/migration changes.

@@ -111,8 +111,10 @@ export function CollectionView({
           <TabsTrigger value="sets" className="px-5 text-sm">{t('bySets')}</TabsTrigger>
           <TabsTrigger value="browse" className="px-5 text-sm">{t('browseAll')}</TabsTrigger>
         </TabsList>
-        {editable && hasHover && (
-          <div className="flex items-center gap-1" role="group" aria-label={t('layoutLabel')}>
+        {/* Hidden on touch via CSS (not the JS hook) so it never flashes in
+            before hydration — `touch:hidden` applies on the first paint. */}
+        {editable && (
+          <div className="flex items-center gap-1 touch:hidden" role="group" aria-label={t('layoutLabel')}>
             <Button variant={layout === 'panel' ? 'secondary' : 'ghost'} size="icon-sm"
               onClick={() => setLayoutPref('panel')} aria-label={t('layoutUnder')} title={t('layoutUnder')}>
               <PanelBottom className="size-4" />

@@ -117,15 +117,25 @@ export function useHasHover() {
 Rationale for the `useSyncExternalStore` + noop-subscribe + `true` server
 snapshot: it is the pattern already proven in `kbd-hint.tsx`, hover capability
 does not meaningfully change at runtime, and assuming desktop keeps the common
-SSR case flash-free. The only flash is a touch user whose saved preference is
-overlay seeing one frame before it snaps to panel — acceptable and owner-only.
+SSR case flash-free.
 
 `collection-view.tsx` changes:
 
 - `const hasHover = useHasHover()`
 - `const effectiveLayout = hasHover ? layout : 'panel'` → passed to every
   `CollectionCardTile` instead of `layout`.
-- Selector wrapper gate becomes `{editable && hasHover && ( … )}`.
+- The **selector is hidden with CSS**, not the hook: keep the `{editable && ( … )}`
+  gate and add `touch:hidden` to the wrapper. CSS applies on the first paint, so
+  the selector never flashes in before hydration on touch (a JS `hasHover` gate
+  would render it server-side and hide it a frame later). The hook is used only
+  for the layout branch, which CSS cannot switch.
+
+**Residual flash.** With the default `panel` cookie there is none — server and
+client agree on panel. Only a touch user whose saved preference is `overlay` sees
+a brief reflow as the (invisible, `opacity-0`) overlay steppers give way to the
+panel after hydration. It's a subtle layout shift, not a visible control, and is
+owner-only; fully removing it would require restructuring the tile to express
+both layouts in CSS, which is out of scope.
 
 `collection-card-tile.tsx`, the cookie, and `collection-prefs.ts` are unchanged.
 `collection-card-tile.tsx:75` (the overlay stepper reveal) needs **no** `touch:`

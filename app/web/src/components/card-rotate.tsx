@@ -89,7 +89,7 @@ export function CardRotate({
           type="button"
           aria-label={t('rotate')}
           onClick={toggle}
-          className="absolute top-2 left-2 z-30 cursor-pointer rounded-full border border-white/40 bg-black/60 p-2.5 text-white opacity-0 shadow-md backdrop-blur-sm transition hover:bg-black/75 focus-visible:opacity-100 group-hover:opacity-100"
+          className="absolute top-2 left-2 z-30 cursor-pointer rounded-full border border-white/40 bg-black/60 p-2.5 text-white opacity-0 shadow-md backdrop-blur-sm transition hover:bg-black/75 focus-visible:opacity-100 group-hover:opacity-100 touch:opacity-100"
         >
           <RotateCw className="size-5" />
         </button>

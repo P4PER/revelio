@@ -6,6 +6,7 @@ import { PanelBottom, Layers } from 'lucide-react'
 import { useRouter, usePathname } from '@/../i18n/navigation'
 import { parseSearchParams, withParams } from '@/lib/search-params'
 import { STEPPER_LAYOUT_COOKIE, type StepperLayout } from '@/lib/collection-prefs'
+import { useHasHover } from '@/hooks/use-has-hover'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { CollectionSetNav } from '@/components/collection-set-nav'
@@ -47,6 +48,12 @@ export function CollectionView({
     setLayout(next)
     document.cookie = `${STEPPER_LAYOUT_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`
   }
+
+  // On touch there is no hover, so the overlay layout (hover-revealed steppers)
+  // is unusable — force the panel (under-card) layout and hide the selector. The
+  // cookie is left untouched, so a later desktop visit still honors the choice.
+  const hasHover = useHasHover()
+  const effectiveLayout: StepperLayout = hasHover ? layout : 'panel'
 
   // Tabs are URL-driven so the search box and pagination (which write to the
   // URL) keep the browse tab active instead of snapping back to the default.
@@ -92,7 +99,7 @@ export function CollectionView({
     <ul className="grid grid-cols-2 gap-3 min-[640px]:grid-cols-3 min-[768px]:grid-cols-4 min-[1780px]:grid-cols-5">
       {list.map((c) => (
         <li key={c.id}>
-          <CollectionCardTile card={c} quantities={quantities[c.id] ?? {}} editable={editable} locale={locale} stepperLayout={layout} />
+          <CollectionCardTile card={c} quantities={quantities[c.id] ?? {}} editable={editable} locale={locale} stepperLayout={effectiveLayout} />
         </li>
       ))}
     </ul>
@@ -104,8 +111,10 @@ export function CollectionView({
           <TabsTrigger value="sets" className="px-5 text-sm">{t('bySets')}</TabsTrigger>
           <TabsTrigger value="browse" className="px-5 text-sm">{t('browseAll')}</TabsTrigger>
         </TabsList>
+        {/* Hidden on touch via CSS (not the JS hook) so it never flashes in
+            before hydration — `touch:hidden` applies on the first paint. */}
         {editable && (
-          <div className="flex items-center gap-1" role="group" aria-label={t('layoutLabel')}>
+          <div className="flex items-center gap-1 touch:hidden" role="group" aria-label={t('layoutLabel')}>
             <Button variant={layout === 'panel' ? 'secondary' : 'ghost'} size="icon-sm"
               onClick={() => setLayoutPref('panel')} aria-label={t('layoutUnder')} title={t('layoutUnder')}>
               <PanelBottom className="size-4" />

@@ -111,12 +111,23 @@ export function ImageUploader({
 
         <div
           className={cn(
-            'absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100',
+            'absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 touch:hidden',
             dragOver && 'opacity-100',
           )}
         >
           <ImagePlus className="size-6" />
           <span className="text-sm font-medium">{t('changeImage')}</span>
+        </div>
+
+        {/* Touch has no hover, so the full scrim above never shows; a small
+            persistent badge signals the tile is tap-to-change without darkening
+            the preview. The tile itself is the labelled button, so this is
+            decorative. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute right-2 bottom-2 hidden touch:flex items-center justify-center rounded-full bg-black/60 p-2 text-white shadow"
+        >
+          <ImagePlus className="size-5" />
         </div>
 
         {busy ? (

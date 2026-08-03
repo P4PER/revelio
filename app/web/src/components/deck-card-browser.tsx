@@ -224,7 +224,7 @@ export function DeckCardBrowser({
                     size="sm"
                     disabled={banned}
                     aria-label={t('browse.addAria', { name: hit.name })}
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-0 shadow transition-opacity focus-visible:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-0 shadow transition-opacity focus-visible:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100 touch:opacity-100"
                   >
                     {t('browse.add')}
                   </Button>
@@ -250,7 +250,7 @@ export function DeckCardBrowser({
                 variant="secondary"
                 aria-label={t('browse.infoAria', { name: hit.name })}
                 onClick={() => setDetailId(hit.id)}
-                className="absolute top-1.5 right-1.5 opacity-0 shadow transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
+                className="absolute top-1.5 right-1.5 opacity-0 shadow transition-opacity focus-visible:opacity-100 group-hover:opacity-100 touch:opacity-100"
               >
                 <Info />
               </Button>

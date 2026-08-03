@@ -121,8 +121,18 @@ export function SetSymbolUploader({
         ) : (
           <span className="px-2 text-center text-xs text-muted-foreground">{t('noSymbol')}</span>
         )}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 touch:hidden">
           <ImagePlus className="size-5" />
+        </div>
+
+        {/* Touch has no hover: show a small persistent tap-to-change badge
+            instead of the full scrim, which would hide the symbol. Decorative —
+            the tile itself is the labelled button. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute right-1.5 bottom-1.5 hidden touch:flex items-center justify-center rounded-full bg-black/60 p-1.5 text-white shadow"
+        >
+          <ImagePlus className="size-4" />
         </div>
         {busy ? (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50">

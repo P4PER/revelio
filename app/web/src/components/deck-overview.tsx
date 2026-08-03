@@ -1,17 +1,16 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { useLocale, useTranslations } from 'next-intl'
-import { Eye, LayoutGrid, List } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { LayoutGrid, List } from 'lucide-react'
 import type { DeckCardView, DeckFormat } from '@revelio/core'
 import { deckStats } from '@/lib/deck-stats'
+import { DeckHeader } from '@/components/deck-header'
 import { DeckPanel } from '@/components/deck-panel'
 import { DeckGallery } from '@/components/deck-gallery'
 import { DeckStatsPanel } from '@/components/deck-stats-panel'
 import { DeckLegalityBar } from '@/components/deck-legality-bar'
-import { DeckLikeButton } from '@/components/deck-like-button'
 import { DeckOverviewActions } from '@/components/deck-overview-actions'
 import { recordViewAction } from '@/lib/deck-actions'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DECK_VIEW_COOKIE, type DeckView as View } from '@/lib/deck-view'
 
@@ -29,6 +28,7 @@ export type DeckOverviewProps = {
   likeCount: number
   liked: boolean
   viewCount: number
+  ownerUsername: string | null
   // Persisted view preference, read from a cookie on the server so the correct
   // view renders on first paint (no list→gallery flash on reload).
   initialView?: View
@@ -37,7 +37,6 @@ export type DeckOverviewProps = {
 export function DeckOverview(props: DeckOverviewProps) {
   const { deckId, name, format, visibility, updatedAt, views, isOwner, loggedIn, imageBase } = props
   const t = useTranslations('decks')
-  const locale = useLocale()
   const [view, setView] = useState<View>(props.initialView ?? 'list')
 
   function changeView(next: View) {
@@ -58,28 +57,27 @@ export function DeckOverview(props: DeckOverviewProps) {
   }, [deckId])
 
   const { status, mainCount } = deckStats(views, format)
-  const updated = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(updatedAt))
+  const starter = views.find((v) => v.zone === 'character')
+  const lessons = [...new Set(views.map((v) => v.lesson).filter((l): l is string => Boolean(l)))]
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-4xl font-bold">{name}</h1>
-          <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-base text-muted-foreground">
-            <span>
-              {t(`format.${format}`)} · {t('overview.updatedAt', { date: updated })}
-            </span>
-            <span className="ml-3 inline-flex items-center gap-1" aria-label={t('overview.views', { count: props.viewCount })}>
-              <Eye className="size-5" />
-              {props.viewCount}
-            </span>
-            <DeckLikeButton deckId={deckId} initialLiked={props.liked} initialCount={props.likeCount} loggedIn={loggedIn} />
-          </div>
-        </div>
-        <Badge variant={visibility === 'public' ? 'default' : 'secondary'}>
-          {t(`list.visibility.${visibility}`)}
-        </Badge>
-      </div>
+      <DeckHeader
+        deckId={deckId}
+        name={name}
+        format={format}
+        updatedAt={updatedAt}
+        visibility={visibility}
+        viewCount={props.viewCount}
+        likeCount={props.likeCount}
+        liked={props.liked}
+        loggedIn={loggedIn}
+        imageBase={imageBase}
+        ownerUsername={props.ownerUsername}
+        starterCardId={starter?.cardId ?? null}
+        starterArtCropVersion={starter?.artCropVersion ?? null}
+        lessons={lessons}
+      />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <DeckOverviewActions

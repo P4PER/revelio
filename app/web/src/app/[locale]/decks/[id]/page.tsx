@@ -58,6 +58,7 @@ export default async function DeckOverviewPage({
         likeCount={likeState.likeCount}
         liked={likeState.liked}
         viewCount={existing.viewCount}
+        ownerUsername={existing.ownerUsername}
       />
     </main>
   )

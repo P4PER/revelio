@@ -12,11 +12,13 @@ export function DeckLikeButton({
   initialLiked,
   initialCount,
   loggedIn,
+  className,
 }: {
   deckId: string
   initialLiked: boolean
   initialCount: number
   loggedIn: boolean
+  className?: string
 }) {
   const t = useTranslations('decks')
   const router = useRouter()
@@ -55,7 +57,10 @@ export function DeckLikeButton({
       disabled={pending}
       aria-pressed={liked}
       aria-label={t('like.label')}
-      className="inline-flex cursor-pointer items-center gap-1 text-base text-muted-foreground transition-colors hover:text-foreground disabled:cursor-default disabled:opacity-60"
+      className={cn(
+        'inline-flex cursor-pointer items-center gap-1 text-base text-muted-foreground transition-colors hover:text-foreground disabled:cursor-default disabled:opacity-60',
+        className,
+      )}
     >
       <Heart className={cn('size-5', liked && 'fill-current text-primary')} />
       {count}

@@ -359,6 +359,7 @@
       "cardCount": "{count} cards",
       "updatedAt": "Updated {date}",
       "views": "{count} views",
+      "viewAuthorDecks": "View decks by @{username}",
       "publishDialog": {
         "title": "Publish this deck?",
         "description": "Anyone with the link will be able to view it. You can unpublish at any time.",

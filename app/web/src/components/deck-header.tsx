@@ -33,10 +33,31 @@ export function DeckHeader(props: DeckHeaderProps) {
   const updated = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(props.updatedAt))
 
   return (
-    <div className="relative flex min-h-[230px] overflow-hidden rounded-xl border border-border">
-      {/* Starter-character art fills the banner; DeckArt falls back to a
-          lesson-colour gradient (then bg-muted) when there's no starter. */}
-      <div className="absolute inset-0">
+    <div className="relative flex min-h-[180px] overflow-hidden rounded-xl border border-border bg-background sm:min-h-[230px]">
+      {/* Softly blurred full-bleed art under a wash, so the text side carries a
+          picture rather than flat colour. Falls back to a lesson gradient. */}
+      <div className="absolute inset-0 scale-110 blur-md">
+        <DeckArt
+          cardId={props.starterCardId}
+          version={props.starterArtCropVersion}
+          lessons={props.lessons}
+          imageBase={props.imageBase}
+          alt=""
+          className="h-full w-full"
+        />
+      </div>
+      <div className="pointer-events-none absolute inset-0 bg-background/45" />
+      <div className="pointer-events-none absolute inset-0 bg-secondary/35" />
+
+      {/* Crisp starter art on the right, masked so its left edge dissolves into
+          the field. Width capped near the crop's native size (520px) to stay sharp. */}
+      <div
+        className="absolute inset-y-0 right-0 hidden w-2/5 max-w-[620px] sm:block"
+        style={{
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.5) 40%, #000 72%)',
+          maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.5) 40%, #000 72%)',
+        }}
+      >
         <DeckArt
           cardId={props.starterCardId}
           version={props.starterArtCropVersion}
@@ -46,18 +67,9 @@ export function DeckHeader(props: DeckHeaderProps) {
           className="h-full w-full"
         />
       </div>
-      {/* Horizontal fade: the art dissolves into the app background on the left,
-          where the name/meta sit, and stays visible on the right. A gentle
-          bottom fade grounds the lower edge. Colours are the app's indigo
-          background (#13122A); the app is single-theme. */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            'linear-gradient(90deg, #13122A 0%, #13122A 22%, rgba(19,18,42,0.55) 56%, rgba(19,18,42,0) 88%)',
-        }}
-      />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/65 to-transparent" />
+
+      {/* gentle bottom grounding */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
 
       <div className="relative z-10 flex w-full flex-col justify-between gap-6 p-5">
         <div className="flex items-start justify-between gap-3">
@@ -100,7 +112,7 @@ export function DeckHeader(props: DeckHeaderProps) {
               className="text-white/90 hover:text-white"
             />
             {props.lessons.length > 0 && (
-              <span className="ml-auto">
+              <span className="ml-auto inline-flex items-center rounded-full bg-black/50 px-2 py-1">
                 <LessonIcons codes={props.lessons} size={20} />
               </span>
             )}

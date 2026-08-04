@@ -46,9 +46,18 @@ export function DeckHeader(props: DeckHeaderProps) {
           className="h-full w-full"
         />
       </div>
-      {/* Scrims keep overlaid text legible over any art. */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 to-transparent" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+      {/* Horizontal fade: the art dissolves into the app background on the left,
+          where the name/meta sit, and stays visible on the right. A gentle
+          bottom fade grounds the lower edge. Colours are the app's indigo
+          background (#13122A); the app is single-theme. */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(90deg, #13122A 0%, #13122A 22%, rgba(19,18,42,0.55) 56%, rgba(19,18,42,0) 88%)',
+        }}
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/65 to-transparent" />
 
       <div className="relative z-10 flex w-full flex-col justify-between gap-6 p-5">
         <div className="flex items-start justify-between gap-3">

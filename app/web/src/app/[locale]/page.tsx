@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { SetDTO } from '@revelio/core'
 import { routing } from '@/../i18n/routing'
@@ -9,14 +9,13 @@ import { listSets } from '@revelio/db'
 import { byReleaseDate } from '@/lib/set-sort'
 import { BRAND_NAME } from '@/lib/brand'
 import { SITE_URL as BASE_URL } from '@/lib/site'
+import { pickDailyExamples } from '@/lib/daily-examples'
 import { HomeSearch } from '@/components/home-search'
 import { StarField } from '@/components/star-field'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
-
-const EXAMPLE_SEARCHES = ['Harry Potter', 'Dumbledore', 'Quidditch', 'Snitch', 'Charms']
 
 export async function generateMetadata({
   params,
@@ -41,6 +40,8 @@ export async function generateMetadata({
 
 export function Home({ recentSets = [] }: { recentSets?: SetDTO[] }) {
   const t = useTranslations('home')
+  const locale = useLocale()
+  const examples = pickDailyExamples(locale, new Date())
   return (
     <main className="relative mx-auto flex min-h-[70vh] max-w-2xl flex-col items-center justify-center px-6 text-center">
       <StarField />
@@ -52,7 +53,7 @@ export function Home({ recentSets = [] }: { recentSets?: SetDTO[] }) {
       <HomeSearch placeholder={t('searchPlaceholder')} />
 
       <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-        {EXAMPLE_SEARCHES.map((ex) => (
+        {examples.map((ex) => (
           <Badge key={ex} asChild variant="outline" className="cursor-pointer font-normal">
             <Link href={`/search?q=${encodeURIComponent(ex)}`}>{ex}</Link>
           </Badge>

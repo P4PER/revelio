@@ -3,7 +3,19 @@ import { it, expect, vi } from 'vitest'
 
 vi.mock('next-intl', () => ({ useTranslations: () => (k: string) => k }))
 vi.mock('@/../i18n/navigation', () => ({
-  Link: ({ href, children, ...p }: any) => <a href={href} {...p}>{children}</a>,
+  Link: ({
+    href,
+    children,
+    'aria-label': ariaLabel,
+  }: {
+    href: string
+    children: React.ReactNode
+    'aria-label'?: string
+  }) => (
+    <a href={href} aria-label={ariaLabel}>
+      {children}
+    </a>
+  ),
 }))
 
 import { CardConstellation } from '../card-constellation'

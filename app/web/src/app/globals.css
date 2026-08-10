@@ -185,7 +185,3 @@ input[type='search']::-webkit-search-decoration {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
 }
-.card-bob { animation: card-bob var(--bob-dur, 7s) ease-in-out var(--bob-delay, 0s) infinite; }
-@media (prefers-reduced-motion: reduce) {
-  .card-bob { animation: none; }
-}

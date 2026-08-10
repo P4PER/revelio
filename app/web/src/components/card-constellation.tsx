@@ -61,7 +61,7 @@ export function CardConstellation({
   return (
     <section
       aria-label={t('showcaseLabel')}
-      className="pointer-events-none fixed inset-x-0 bottom-0 -z-[5] h-44 overflow-hidden sm:h-48"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-0 h-44 overflow-hidden sm:h-48"
     >
       <div ref={bandRef} className="relative mx-auto h-full max-w-5xl">
         {cards.map((card, i) => {
@@ -82,10 +82,8 @@ export function CardConstellation({
               }}
             >
               <span
-                className="card-bob block"
-                style={
-                  { '--bob-dur': `${6 + i * 0.5}s`, '--bob-delay': `${i * 0.4}s` } as React.CSSProperties
-                }
+                className="block motion-safe:animate-[card-bob_7s_ease-in-out_infinite]"
+                style={{ animationDelay: `${(-i * 0.9).toFixed(2)}s` }}
               >
                 <span className="block overflow-hidden rounded-lg border border-primary/40 shadow-lg shadow-black/40 transition duration-200 group-hover:scale-105 group-hover:border-primary group-focus-visible:scale-105">
                   <CardImage

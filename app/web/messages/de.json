@@ -14,7 +14,8 @@
     "advancedSearch": "Erweiterte Suche",
     "allSets": "Alle Editionen",
     "randomCard": "Zufallskarte",
-    "new": "Neu"
+    "new": "Neu",
+    "showcaseLabel": "Vorgestellte Karten"
   },
   "footer": {
     "tagline": "Eine durchsuchbare Datenbank für das Harry Potter Sammelkartenspiel.",

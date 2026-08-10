@@ -32,8 +32,10 @@
 **Interfaces:**
 - Produces: `type ShowcaseCandidate = { id: string; name: string; imageVersion: number }` and
   `getDailyShowcaseCandidates(db: DB, locale: string): Promise<ShowcaseCandidate[]>` — portrait
-  (`orientation` null or not `'horizontal'`), image-bearing (`imageVersion` not null) cards,
-  ordered by `id`, with `name` resolved to the locale (fallback to `cards.name`).
+  (`orientation` null or not `'horizontal'`) cards, ordered by `id`, with `name` resolved to the
+  locale (fallback to `cards.name`). **Note:** the card image lives on the per-language
+  `cardLocalizations.imageVersion`, not on `cards`; the showcase uses the **default-language**
+  localization's `imageVersion` (same as the search index) and keeps only cards that have one.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -43,21 +45,28 @@ Add to `app/ingest/test/queries.test.ts`. Import `getDailyShowcaseCandidates` in
 describe('getDailyShowcaseCandidates', () => {
   beforeAll(async () => {
     await ctx.db.insert(schema.cards).values([
-      { id: 'bs-2-owl', setCode: 'BS', number: '2', name: 'Owl', imageVersion: 3,
-        orientation: 'vertical', defaultLanguage: 'en', languages: ['en'] },
-      { id: 'bs-3-map', setCode: 'BS', number: '3', name: 'Map', imageVersion: 1,
+      { id: 'bs-2-owl', setCode: 'BS', number: '2', name: 'Owl',
+        orientation: 'vertical', defaultLanguage: 'en', languages: ['en', 'de'] },
+      { id: 'bs-3-map', setCode: 'BS', number: '3', name: 'Map',
         orientation: 'horizontal', defaultLanguage: 'en', languages: ['en'] },
     ])
-    await ctx.db.insert(schema.cardLocalizations).values({
-      cardId: 'bs-2-owl', lang: 'de', name: 'Eule', status: 'official', text: null, flavorText: null,
-    })
+    await ctx.db.insert(schema.cardLocalizations).values([
+      { cardId: 'bs-2-owl', lang: 'en', name: 'Owl', imageVersion: 3 },      // default-lang image
+      { cardId: 'bs-2-owl', lang: 'de', name: 'Eule', imageVersion: null },  // localized name only
+      { cardId: 'bs-3-map', lang: 'en', name: 'Map', imageVersion: 1 },      // has image but horizontal
+    ])
   })
 
-  it('returns only portrait, image-bearing cards', async () => {
+  it('returns only portrait cards that have a default-language image', async () => {
     const ids = (await getDailyShowcaseCandidates(ctx.db, 'en')).map((c) => c.id)
     expect(ids).toContain('bs-2-owl')
     expect(ids).not.toContain('bs-3-map')    // horizontal excluded
-    expect(ids).not.toContain('bs-1-fluffy') // no imageVersion excluded
+    expect(ids).not.toContain('bs-1-fluffy') // no default image excluded
+  })
+
+  it('resolves the default-language image version regardless of locale', async () => {
+    const de = await getDailyShowcaseCandidates(ctx.db, 'de')
+    expect(de.find((c) => c.id === 'bs-2-owl')?.imageVersion).toBe(3)
   })
 
   it('uses the localized name when present, else the base name', async () => {
@@ -76,33 +85,35 @@ Expected: FAIL — `getDailyShowcaseCandidates` is not exported / not a function
 
 - [ ] **Step 3: Add the query**
 
-In `app/db/src/queries.ts`, ensure the drizzle-orm import includes `and, or, eq, ne, isNull, isNotNull, asc` (add any missing to the existing `from 'drizzle-orm'` import), and that `cards` and `cardLocalizations` are imported from the schema (both are already used in this file). Append:
+In `app/db/src/queries.ts`, ensure the drizzle-orm import includes `and, or, eq, ne, isNull, isNotNull, asc` (add any missing), add `import { alias } from 'drizzle-orm/pg-core'`, and confirm `cards`/`cardLocalizations` are imported from the schema (both already used here). Append:
 
 ```ts
 export type ShowcaseCandidate = { id: string; name: string; imageVersion: number }
 
 // Portrait, image-bearing cards for the home showcase, locale name resolved.
-// Stable order (by id) so the daily picker is deterministic; selection itself is
-// locale-independent — locale only affects the resolved name.
+// The card image is the default-language localization's `imageVersion` (same as
+// the search index uses); `name` is the locale's localization, falling back to
+// the base card name. Stable order (by id) so the daily picker is deterministic;
+// selection is locale-independent — locale only affects the resolved name.
 export async function getDailyShowcaseCandidates(
   db: DB,
   locale: string,
 ): Promise<ShowcaseCandidate[]> {
+  const nameLoc = alias(cardLocalizations, 'showcase_name_loc')
+  const imgLoc = alias(cardLocalizations, 'showcase_img_loc')
   const rows = await db
     .select({
       id: cards.id,
       baseName: cards.name,
-      localName: cardLocalizations.name,
-      imageVersion: cards.imageVersion,
+      localName: nameLoc.name,
+      imageVersion: imgLoc.imageVersion,
     })
     .from(cards)
-    .leftJoin(
-      cardLocalizations,
-      and(eq(cardLocalizations.cardId, cards.id), eq(cardLocalizations.lang, locale)),
-    )
+    .leftJoin(nameLoc, and(eq(nameLoc.cardId, cards.id), eq(nameLoc.lang, locale)))
+    .innerJoin(imgLoc, and(eq(imgLoc.cardId, cards.id), eq(imgLoc.lang, cards.defaultLanguage)))
     .where(
       and(
-        isNotNull(cards.imageVersion),
+        isNotNull(imgLoc.imageVersion),
         or(isNull(cards.orientation), ne(cards.orientation, 'horizontal')),
       ),
     )

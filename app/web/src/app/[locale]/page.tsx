@@ -10,7 +10,9 @@ import { byReleaseDate } from '@/lib/set-sort'
 import { BRAND_NAME } from '@/lib/brand'
 import { SITE_URL as BASE_URL } from '@/lib/site'
 import { pickDailyExamples } from '@/lib/daily-examples'
+import { getHomeShowcase, type HomeShowcase } from '@/lib/showcase'
 import { HomeSearch } from '@/components/home-search'
+import { CardConstellation } from '@/components/card-constellation'
 import { StarField } from '@/components/star-field'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -38,7 +40,15 @@ export async function generateMetadata({
   }
 }
 
-export function Home({ recentSets = [] }: { recentSets?: SetDTO[] }) {
+export function Home({
+  recentSets = [],
+  showcase,
+  imageBase,
+}: {
+  recentSets?: SetDTO[]
+  showcase?: HomeShowcase
+  imageBase?: string
+}) {
   const t = useTranslations('home')
   const locale = useLocale()
   const examples = pickDailyExamples(locale, new Date())
@@ -82,6 +92,14 @@ export function Home({ recentSets = [] }: { recentSets?: SetDTO[] }) {
           ))}
         </ul>
       )}
+
+      {showcase && imageBase && showcase.cards.length > 0 && (
+        <CardConstellation
+          cards={showcase.cards}
+          positions={showcase.positions}
+          imageBase={imageBase}
+        />
+      )}
     </main>
   )
 }
@@ -93,7 +111,11 @@ export default async function HomePage({
 }) {
   const { locale } = await params
   setRequestLocale(locale)
-  const sets = await listSets(getDb(), locale)
+  const [sets, showcase] = await Promise.all([
+    listSets(getDb(), locale),
+    getHomeShowcase(locale, new Date()),
+  ])
   const recentSets = [...sets].sort((a, b) => byReleaseDate(b, a)).slice(0, 5)
-  return <Home recentSets={recentSets} />
+  const imageBase = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
+  return <Home recentSets={recentSets} showcase={showcase} imageBase={imageBase} />
 }

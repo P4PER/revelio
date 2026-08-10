@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { getCardById, listSets, getSetByCode, listCardsForSitemap, listSetsForSitemap, schema } from '@revelio/db'
+import { getCardById, listSets, getSetByCode, listCardsForSitemap, listSetsForSitemap, getDailyShowcaseCandidates, schema } from '@revelio/db'
 import { withMigratedDb } from './helpers'
 
 let ctx: Awaited<ReturnType<typeof withMigratedDb>>
@@ -80,5 +80,40 @@ describe('listCardsForSitemap / listSetsForSitemap', () => {
     const bs = rows.find((r) => r.id === 'BS')
     expect(bs).toBeDefined()
     expect(bs!.updatedAt).toBeInstanceOf(Date)
+  })
+})
+
+describe('getDailyShowcaseCandidates', () => {
+  beforeAll(async () => {
+    await ctx.db.insert(schema.cards).values([
+      { id: 'bs-2-owl', setCode: 'BS', number: '2', name: 'Owl',
+        orientation: 'vertical', defaultLanguage: 'en', languages: ['en', 'de'] },
+      { id: 'bs-3-map', setCode: 'BS', number: '3', name: 'Map',
+        orientation: 'horizontal', defaultLanguage: 'en', languages: ['en'] },
+    ])
+    await ctx.db.insert(schema.cardLocalizations).values([
+      { cardId: 'bs-2-owl', lang: 'en', name: 'Owl', imageVersion: 3 },      // default-lang image
+      { cardId: 'bs-2-owl', lang: 'de', name: 'Eule', imageVersion: null },  // localized name only
+      { cardId: 'bs-3-map', lang: 'en', name: 'Map', imageVersion: 1 },      // has image but horizontal
+    ])
+  })
+
+  it('returns only portrait cards that have a default-language image', async () => {
+    const ids = (await getDailyShowcaseCandidates(ctx.db, 'en')).map((c) => c.id)
+    expect(ids).toContain('bs-2-owl')
+    expect(ids).not.toContain('bs-3-map')    // horizontal excluded
+    expect(ids).not.toContain('bs-1-fluffy') // no default image excluded
+  })
+
+  it('resolves the default-language image version regardless of locale', async () => {
+    const de = await getDailyShowcaseCandidates(ctx.db, 'de')
+    expect(de.find((c) => c.id === 'bs-2-owl')?.imageVersion).toBe(3)
+  })
+
+  it('uses the localized name when present, else the base name', async () => {
+    const de = await getDailyShowcaseCandidates(ctx.db, 'de')
+    expect(de.find((c) => c.id === 'bs-2-owl')?.name).toBe('Eule')
+    const en = await getDailyShowcaseCandidates(ctx.db, 'en')
+    expect(en.find((c) => c.id === 'bs-2-owl')?.name).toBe('Owl')
   })
 })

@@ -1,8 +1,7 @@
-import { mulberry32 } from './random'
+import { mulberry32, dayNumber } from './random'
 
 export type ScatterSlot = { left: number; top: number; rot: number }
 
-const MS_PER_DAY = 86_400_000
 const EDGE = 6 // keep cards off the exact band edges (percent)
 const TOP_MIN = 38 // vertical band the card centers may occupy (percent)
 const TOP_MAX = 60
@@ -15,8 +14,7 @@ const ROT_MAX = 12 // max tilt (degrees)
  * so positions don't correlate with which cards were chosen.
  */
 export function scatterPositions(date: Date, count: number): ScatterSlot[] {
-  const day = Math.floor(date.getTime() / MS_PER_DAY)
-  const rng = mulberry32((day ^ 0x9e3779b9) >>> 0)
+  const rng = mulberry32((dayNumber(date) ^ 0x9e3779b9) >>> 0)
   const cell = (100 - EDGE * 2) / count
   const halfSpan = (TOP_MAX - TOP_MIN) / 2
   return Array.from({ length: count }, (_, i) => {

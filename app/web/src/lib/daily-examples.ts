@@ -1,4 +1,4 @@
-import { mulberry32 } from './random'
+import { mulberry32, shuffle, dayNumber } from './random'
 
 // Curated example-search terms per locale. These double as functional search
 // queries (rendered as chips linking to /search?q=...), so they live here as
@@ -73,17 +73,6 @@ const POOLS: Record<string, string[]> = {
   ],
 }
 
-const MS_PER_DAY = 86_400_000
-
-function shuffle<T>(items: readonly T[], rng: () => number): T[] {
-  const out = [...items]
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1))
-    ;[out[i], out[j]] = [out[j], out[i]]
-  }
-  return out
-}
-
 /**
  * Pick the example searches for a given locale and day. Deterministic: the
  * result depends only on the locale and the UTC calendar day of `date`, so it
@@ -91,6 +80,5 @@ function shuffle<T>(items: readonly T[], rng: () => number): T[] {
  */
 export function pickDailyExamples(locale: string, date: Date, count = 5): string[] {
   const pool = POOLS[locale] ?? POOLS.en
-  const day = Math.floor(date.getTime() / MS_PER_DAY)
-  return shuffle(pool, mulberry32(day)).slice(0, count)
+  return shuffle(pool, mulberry32(dayNumber(date))).slice(0, count)
 }

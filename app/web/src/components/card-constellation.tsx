@@ -5,6 +5,7 @@ import { imageUrl, thumbKey } from '@revelio/core'
 import type { ShowcaseCandidate } from '@revelio/db'
 import { Link } from '@/../i18n/navigation'
 import { CardImage } from '@/components/card-image'
+import { dayNumber } from '@/lib/random'
 import type { ScatterSlot } from '@/lib/card-scatter'
 
 const SEEN_KEY = 'revelio.constellation.day'
@@ -36,7 +37,7 @@ export function CardConstellation({
     // Cast once per daily set: the first time this browser sees today's cards
     // (persists across tabs/reloads via localStorage), then again after they
     // rotate at 00:00 UTC. Day number matches the server's UTC-day card pick.
-    const today = String(Math.floor(Date.now() / 86_400_000))
+    const today = String(dayNumber(new Date()))
     const cast =
       !reduce && localStorage.getItem(SEEN_KEY) !== today && typeof items[0]?.animate === 'function'
     if (cast) localStorage.setItem(SEEN_KEY, today)

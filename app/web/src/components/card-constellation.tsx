@@ -61,7 +61,7 @@ export function CardConstellation({
   return (
     <section
       aria-label={t('showcaseLabel')}
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-0 h-44 overflow-hidden sm:h-48"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-0 h-52 overflow-hidden sm:h-60"
     >
       <div ref={bandRef} className="relative mx-auto h-full max-w-5xl">
         {cards.map((card, i) => {
@@ -74,7 +74,7 @@ export function CardConstellation({
               data-card
               data-rot={String(pos.rot)}
               aria-label={card.name}
-              className="group pointer-events-auto absolute block w-[76px] sm:w-[84px]"
+              className="group pointer-events-auto absolute block w-[96px] sm:w-[112px]"
               style={{
                 left: `${pos.left}%`,
                 top: `${pos.top}%`,
@@ -89,7 +89,7 @@ export function CardConstellation({
                   <CardImage
                     src={imageUrl(imageBase, thumbKey(card.id, card.imageVersion))}
                     alt={card.name}
-                    sizes="84px"
+                    sizes="112px"
                     frameClassName="rounded-lg"
                   />
                 </span>

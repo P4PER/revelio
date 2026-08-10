@@ -4,7 +4,7 @@ export type ScatterSlot = { left: number; top: number; rot: number }
 
 const MS_PER_DAY = 86_400_000
 const EDGE = 6 // keep cards off the exact band edges (percent)
-const TOP_MIN = 30 // vertical band the card centers may occupy (percent)
+const TOP_MIN = 34 // vertical band the card centers may occupy (percent)
 const TOP_MAX = 60
 const ROT_MAX = 12 // max tilt (degrees)
 

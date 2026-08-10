@@ -7,12 +7,13 @@ import { Link } from '@/../i18n/navigation'
 import { CardImage } from '@/components/card-image'
 import type { ScatterSlot } from '@/lib/card-scatter'
 
-const SESSION_KEY = 'revelio.constellation.cast'
+const SEEN_KEY = 'revelio.constellation.day'
 
-// Daily card showcase pinned to the foot of the home hero. Cards are
-// server-rendered at rest (positioned + tilted); on first mount per session we
-// layer on a one-time "cast" from a spark at the band's base. Drift + hover are
-// CSS. Everything degrades to static links with no JS / reduced motion.
+// Daily card showcase at the foot of the home hero. Cards are server-rendered
+// hidden (opacity 0) so the settled layout never flashes before hydration; on
+// mount they fade in, and on the first visit per session a one-time "cast" flies
+// them up from a spark at the band's base. Drift + hover are CSS. A <noscript>
+// fallback reveals the cards (static links) when JavaScript is disabled.
 export function CardConstellation({
   cards,
   positions,
@@ -28,17 +29,24 @@ export function CardConstellation({
   useEffect(() => {
     const band = bandRef.current
     if (!band) return
+    const items = Array.from(band.querySelectorAll<HTMLElement>('[data-card]'))
     const reduce =
       typeof window.matchMedia === 'function' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduce || sessionStorage.getItem(SESSION_KEY)) return
-    sessionStorage.setItem(SESSION_KEY, '1')
+    // Cast once per daily set: the first time this browser sees today's cards
+    // (persists across tabs/reloads via localStorage), then again after they
+    // rotate at 00:00 UTC. Day number matches the server's UTC-day card pick.
+    const today = String(Math.floor(Date.now() / 86_400_000))
+    const cast =
+      !reduce && localStorage.getItem(SEEN_KEY) !== today && typeof items[0]?.animate === 'function'
+    if (cast) localStorage.setItem(SEEN_KEY, today)
 
     const rect = band.getBoundingClientRect()
     const sparkX = rect.left + rect.width / 2
     const sparkY = rect.bottom
-    band.querySelectorAll<HTMLElement>('[data-card]').forEach((el, i) => {
-      if (typeof el.animate !== 'function') return
+    items.forEach((el, i) => {
+      el.style.opacity = '1' // reveal (cards are hidden in SSR to avoid a settled-state flash)
+      if (!cast) return
       const r = el.getBoundingClientRect()
       const dx = sparkX - (r.left + r.width / 2)
       const dy = sparkY - (r.top + r.height / 2)
@@ -61,9 +69,12 @@ export function CardConstellation({
   return (
     <section
       aria-label={t('showcaseLabel')}
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-0 h-52 overflow-hidden sm:h-60"
+      className="pointer-events-none relative w-full h-60 overflow-hidden sm:h-72"
     >
-      <div ref={bandRef} className="relative mx-auto h-full max-w-5xl">
+      <noscript>
+        <style>{`[data-card]{opacity:1!important}`}</style>
+      </noscript>
+      <div ref={bandRef} className="relative mx-auto h-full w-full max-w-7xl">
         {cards.map((card, i) => {
           const pos = positions[i]
           if (!pos) return null
@@ -74,7 +85,7 @@ export function CardConstellation({
               data-card
               data-rot={String(pos.rot)}
               aria-label={card.name}
-              className="group pointer-events-auto absolute block w-[96px] sm:w-[112px]"
+              className="group pointer-events-auto absolute block w-[120px] opacity-0 transition-opacity duration-500 sm:w-[140px]"
               style={{
                 left: `${pos.left}%`,
                 top: `${pos.top}%`,
@@ -89,7 +100,7 @@ export function CardConstellation({
                   <CardImage
                     src={imageUrl(imageBase, thumbKey(card.id, card.imageVersion))}
                     alt={card.name}
-                    sizes="112px"
+                    sizes="140px"
                     frameClassName="rounded-lg"
                   />
                 </span>

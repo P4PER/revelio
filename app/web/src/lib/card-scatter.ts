@@ -4,7 +4,7 @@ export type ScatterSlot = { left: number; top: number; rot: number }
 
 const MS_PER_DAY = 86_400_000
 const EDGE = 6 // keep cards off the exact band edges (percent)
-const TOP_MIN = 34 // vertical band the card centers may occupy (percent)
+const TOP_MIN = 38 // vertical band the card centers may occupy (percent)
 const TOP_MAX = 60
 const ROT_MAX = 12 // max tilt (degrees)
 
@@ -18,9 +18,12 @@ export function scatterPositions(date: Date, count: number): ScatterSlot[] {
   const day = Math.floor(date.getTime() / MS_PER_DAY)
   const rng = mulberry32((day ^ 0x9e3779b9) >>> 0)
   const cell = (100 - EDGE * 2) / count
+  const halfSpan = (TOP_MAX - TOP_MIN) / 2
   return Array.from({ length: count }, (_, i) => {
-    const left = EDGE + i * cell + (0.2 + rng() * 0.6) * cell // jitter within [0.2,0.8] of the cell
-    const top = TOP_MIN + rng() * (TOP_MAX - TOP_MIN)
+    const left = EDGE + i * cell + (0.4 + rng() * 0.2) * cell // jitter within [0.4,0.6] of the cell → even spacing, no overlap
+    // alternate high / low so neighbours never sit at the same height, with jitter inside each half
+    const top =
+      i % 2 === 0 ? TOP_MIN + rng() * halfSpan * 0.7 : TOP_MAX - rng() * halfSpan * 0.7
     const rot = (rng() * 2 - 1) * ROT_MAX
     return {
       left: Number(left.toFixed(2)),

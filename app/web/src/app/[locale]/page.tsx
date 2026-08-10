@@ -53,7 +53,8 @@ export function Home({
   const locale = useLocale()
   const examples = pickDailyExamples(locale, new Date())
   return (
-    <main className="relative mx-auto flex min-h-[70vh] max-w-2xl flex-col items-center justify-center px-6 text-center">
+    <>
+      <main className="relative mx-auto flex min-h-[70vh] max-w-2xl flex-col items-center justify-center px-6 text-center">
       <StarField />
       <h1 className="text-3xl leading-tight text-muted-foreground sm:text-4xl">
         {t.rich('heading', {
@@ -93,6 +94,7 @@ export function Home({
         </ul>
       )}
 
+      </main>
       {showcase && imageBase && showcase.cards.length > 0 && (
         <CardConstellation
           cards={showcase.cards}
@@ -100,7 +102,7 @@ export function Home({
           imageBase={imageBase}
         />
       )}
-    </main>
+    </>
   )
 }
 

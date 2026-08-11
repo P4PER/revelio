@@ -1,4 +1,5 @@
-import { eq, asc, desc, sql, inArray, and, or, isNotNull, ilike, count, arrayOverlaps } from 'drizzle-orm'
+import { eq, ne, asc, desc, sql, inArray, and, or, isNull, isNotNull, ilike, count, arrayOverlaps } from 'drizzle-orm'
+import { alias } from 'drizzle-orm/pg-core'
 import { randomUUID } from 'node:crypto'
 import type { DB } from './client'
 import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations, setLocalizations, decks, deckCards, deckLikes, deckViews, collections, userCards, siteSettings } from './schema'
@@ -204,6 +205,39 @@ export async function getCardById(db: DB, id: string, locale?: string): Promise<
 export async function getRandomCardId(db: DB): Promise<string | null> {
   const [row] = await db.select({ id: cards.id }).from(cards).orderBy(sql`random()`).limit(1)
   return row?.id ?? null
+}
+
+export type ShowcaseCandidate = { id: string; name: string; imageVersion: number }
+
+// Portrait, image-bearing cards for the home showcase, locale name resolved.
+// The card image is the default-language localization's `imageVersion` (same as
+// the search index uses); `name` is the locale's localization, falling back to
+// the base card name. Stable order (by id) so the daily picker is deterministic;
+// selection is locale-independent — locale only affects the resolved name.
+export async function getDailyShowcaseCandidates(
+  db: DB,
+  locale: string,
+): Promise<ShowcaseCandidate[]> {
+  const nameLoc = alias(cardLocalizations, 'showcase_name_loc')
+  const imgLoc = alias(cardLocalizations, 'showcase_img_loc')
+  const rows = await db
+    .select({
+      id: cards.id,
+      baseName: cards.name,
+      localName: nameLoc.name,
+      imageVersion: imgLoc.imageVersion,
+    })
+    .from(cards)
+    .leftJoin(nameLoc, and(eq(nameLoc.cardId, cards.id), eq(nameLoc.lang, locale)))
+    .innerJoin(imgLoc, and(eq(imgLoc.cardId, cards.id), eq(imgLoc.lang, cards.defaultLanguage)))
+    .where(
+      and(
+        isNotNull(imgLoc.imageVersion),
+        or(isNull(cards.orientation), ne(cards.orientation, 'horizontal')),
+      ),
+    )
+    .orderBy(asc(cards.id))
+  return rows.map((r) => ({ id: r.id, name: r.localName ?? r.baseName, imageVersion: r.imageVersion! }))
 }
 
 export type SitemapEntry = { id: string; updatedAt: Date }

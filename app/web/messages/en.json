@@ -14,7 +14,8 @@
     "advancedSearch": "Advanced Search",
     "allSets": "All Sets",
     "randomCard": "Random Card",
-    "new": "New"
+    "new": "New",
+    "showcaseLabel": "Featured cards"
   },
   "footer": {
     "tagline": "A searchable database for the Harry Potter Trading Card Game.",

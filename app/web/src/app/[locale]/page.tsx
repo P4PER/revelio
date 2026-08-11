@@ -99,6 +99,7 @@ export function Home({
         <CardConstellation
           cards={showcase.cards}
           positions={showcase.positions}
+          positionsMobile={showcase.positionsMobile}
           imageBase={imageBase}
         />
       )}

@@ -5,9 +5,14 @@ import { getDb } from '@/lib/db'
 import { pickDailyCards } from '@/lib/daily-cards'
 import { scatterPositions, type ScatterSlot } from '@/lib/card-scatter'
 
-const SHOWCASE_COUNT = 6
+const SHOWCASE_COUNT = 6 // desktop
+const MOBILE_COUNT = 4 // narrow screens — fewer cards so they don't overlap
 
-export type HomeShowcase = { cards: ShowcaseCandidate[]; positions: ScatterSlot[] }
+export type HomeShowcase = {
+  cards: ShowcaseCandidate[]
+  positions: ScatterSlot[]
+  positionsMobile: ScatterSlot[]
+}
 
 function loadCandidates(locale: string): Promise<ShowcaseCandidate[]> {
   return getDailyShowcaseCandidates(getDb(), locale)
@@ -22,5 +27,9 @@ const getCachedCandidates = unstable_cache(loadCandidates, ['showcase-candidates
 
 export async function getHomeShowcase(locale: string, date: Date): Promise<HomeShowcase> {
   const cards = pickDailyCards(await getCachedCandidates(locale), date, SHOWCASE_COUNT)
-  return { cards, positions: scatterPositions(date, cards.length) }
+  return {
+    cards,
+    positions: scatterPositions(date, cards.length),
+    positionsMobile: scatterPositions(date, Math.min(MOBILE_COUNT, cards.length)),
+  }
 }

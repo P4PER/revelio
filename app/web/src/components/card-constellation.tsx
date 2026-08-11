@@ -6,22 +6,76 @@ import type { ShowcaseCandidate } from '@revelio/db'
 import { Link } from '@/../i18n/navigation'
 import { CardImage } from '@/components/card-image'
 import { dayNumber } from '@/lib/random'
+import { cn } from '@/lib/utils'
 import type { ScatterSlot } from '@/lib/card-scatter'
 
 const SEEN_KEY = 'revelio.constellation.day'
 
+// One scattered card. Rendered twice per card — a larger `desktop` variant
+// (shown at `sm` and up) and a smaller `mobile` variant (shown below `sm`) —
+// so narrow screens get fewer, smaller cards without overlap. Only one variant
+// is ever visible; the off-breakpoint one is `display:none`.
+function ConstellationCard({
+  card,
+  pos,
+  i,
+  imageBase,
+  variant,
+}: {
+  card: ShowcaseCandidate
+  pos: ScatterSlot
+  i: number
+  imageBase: string
+  variant: 'desktop' | 'mobile'
+}) {
+  const mobile = variant === 'mobile'
+  return (
+    <Link
+      href={`/card/${card.id}`}
+      data-card
+      data-rot={String(pos.rot)}
+      aria-label={card.name}
+      className={cn(
+        'group pointer-events-auto absolute opacity-0 transition-opacity duration-500 hover:z-20 focus-visible:z-20',
+        mobile ? 'block w-[128px] sm:hidden' : 'hidden w-[160px] sm:block',
+      )}
+      style={{
+        left: `${pos.left}%`,
+        top: `${pos.top}%`,
+        transform: `translate(-50%,-50%) rotate(${pos.rot}deg)`,
+      }}
+    >
+      <span
+        className="block motion-safe:animate-[card-bob_7s_ease-in-out_infinite]"
+        style={{ animationDelay: `${(-i * 0.9).toFixed(2)}s` }}
+      >
+        <span className="block overflow-hidden rounded-lg border border-primary/40 shadow-lg shadow-black/40 transition duration-200 group-hover:scale-105 group-hover:border-primary group-focus-visible:scale-105">
+          <CardImage
+            src={imageUrl(imageBase, thumbKey(card.id, card.imageVersion))}
+            alt={card.name}
+            sizes={mobile ? '128px' : '160px'}
+            frameClassName="rounded-lg"
+          />
+        </span>
+      </span>
+    </Link>
+  )
+}
+
 // Daily card showcase at the foot of the home hero. Cards are server-rendered
 // hidden (opacity 0) so the settled layout never flashes before hydration; on
-// mount they fade in, and on the first visit per session a one-time "cast" flies
+// mount they fade in, and on the first visit per day a one-time "cast" flies
 // them up from a spark at the band's base. Drift + hover are CSS. A <noscript>
 // fallback reveals the cards (static links) when JavaScript is disabled.
 export function CardConstellation({
   cards,
   positions,
+  positionsMobile,
   imageBase,
 }: {
   cards: ShowcaseCandidate[]
   positions: ScatterSlot[]
+  positionsMobile: ScatterSlot[]
   imageBase: string
 }) {
   const t = useTranslations('home')
@@ -49,6 +103,7 @@ export function CardConstellation({
       el.style.opacity = '1' // reveal (cards are hidden in SSR to avoid a settled-state flash)
       if (!cast) return
       const r = el.getBoundingClientRect()
+      if (r.width === 0) return // skip the off-breakpoint variant (display:none)
       const dx = sparkX - (r.left + r.width / 2)
       const dy = sparkY - (r.top + r.height / 2)
       const rot = el.dataset.rot ?? '0'
@@ -70,45 +125,36 @@ export function CardConstellation({
   return (
     <section
       aria-label={t('showcaseLabel')}
-      className="pointer-events-none relative w-full h-64 overflow-hidden sm:h-80"
+      className="pointer-events-none relative h-64 w-full overflow-hidden sm:h-80"
     >
       <noscript>
         <style>{`[data-card]{opacity:1!important}`}</style>
       </noscript>
       <div ref={bandRef} className="relative mx-auto h-full w-full max-w-[1340px]">
-        {cards.map((card, i) => {
-          const pos = positions[i]
-          if (!pos) return null
-          return (
-            <Link
-              key={card.id}
-              href={`/card/${card.id}`}
-              data-card
-              data-rot={String(pos.rot)}
-              aria-label={card.name}
-              className="group pointer-events-auto absolute block w-[120px] opacity-0 transition-opacity duration-500 hover:z-20 focus-visible:z-20 sm:w-[160px]"
-              style={{
-                left: `${pos.left}%`,
-                top: `${pos.top}%`,
-                transform: `translate(-50%,-50%) rotate(${pos.rot}deg)`,
-              }}
-            >
-              <span
-                className="block motion-safe:animate-[card-bob_7s_ease-in-out_infinite]"
-                style={{ animationDelay: `${(-i * 0.9).toFixed(2)}s` }}
-              >
-                <span className="block overflow-hidden rounded-lg border border-primary/40 shadow-lg shadow-black/40 transition duration-200 group-hover:scale-105 group-hover:border-primary group-focus-visible:scale-105">
-                  <CardImage
-                    src={imageUrl(imageBase, thumbKey(card.id, card.imageVersion))}
-                    alt={card.name}
-                    sizes="160px"
-                    frameClassName="rounded-lg"
-                  />
-                </span>
-              </span>
-            </Link>
-          )
-        })}
+        {positions.map((pos, i) =>
+          cards[i] ? (
+            <ConstellationCard
+              key={`d-${cards[i].id}`}
+              card={cards[i]}
+              pos={pos}
+              i={i}
+              imageBase={imageBase}
+              variant="desktop"
+            />
+          ) : null,
+        )}
+        {positionsMobile.map((pos, i) =>
+          cards[i] ? (
+            <ConstellationCard
+              key={`m-${cards[i].id}`}
+              card={cards[i]}
+              pos={pos}
+              i={i}
+              imageBase={imageBase}
+              variant="mobile"
+            />
+          ) : null,
+        )}
       </div>
     </section>
   )

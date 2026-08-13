@@ -1,3 +1,8 @@
+import type { MeiliSearch } from 'meilisearch'
+import type { CardDetailDTO } from '@revelio/core'
+import { searchCards } from '@revelio/search'
+import { contextHref, parseSearchParams, toSearchOptions } from './search-params'
+
 export type Neighbor = { id: string; href: string }
 export type NeighborContext = { params: URLSearchParams; index: number }
 
@@ -26,5 +31,43 @@ export function neighborsFromWindow(
   return {
     prevId: prev?.id ?? null, prevIndex: index - 1,
     nextId: next?.id ?? null, nextIndex: index + 1,
+  }
+}
+
+// Resolve prev/next for a card. With search context, walk the user's result set
+// via a 3-wide window; otherwise (or if the index went stale) walk the card's
+// own set ordered by numberSort.
+export async function getCardNeighbors(
+  client: MeiliSearch,
+  locale: string,
+  card: CardDetailDTO,
+  ctx: NeighborContext | null,
+): Promise<{ prev: Neighbor | null; next: Neighbor | null }> {
+  if (ctx) {
+    const offset = Math.max(0, ctx.index - 1)
+    const limit = ctx.index === 0 ? 2 : 3
+    const { query, options } = toSearchOptions(parseSearchParams(ctx.params))
+    const res = await searchCards(client, locale, query, { ...options, window: { offset, limit } })
+    const w = neighborsFromWindow(res.hits, card.id, ctx.index)
+    if (w) {
+      return {
+        prev: w.prevId ? { id: w.prevId, href: contextHref(w.prevId, ctx.params, w.prevIndex) } : null,
+        next: w.nextId ? { id: w.nextId, href: contextHref(w.nextId, ctx.params, w.nextIndex) } : null,
+      }
+    }
+    // stale index → fall through to set order
+  }
+
+  // Set-order fallback. Sets are small (<= ~200 cards); 500 is a safe ceiling.
+  const res = await searchCards(client, locale, '', {
+    filters: { setCode: [card.setCode] },
+    sort: ['numberSort:asc'],
+    hitsPerPage: 500,
+  })
+  const ids = res.hits.map((h) => h.id)
+  const idx = ids.indexOf(card.id)
+  return {
+    prev: idx > 0 ? { id: ids[idx - 1], href: `/card/${ids[idx - 1]}` } : null,
+    next: idx >= 0 && idx < ids.length - 1 ? { id: ids[idx + 1], href: `/card/${ids[idx + 1]}` } : null,
   }
 }

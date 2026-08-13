@@ -21,6 +21,7 @@ export type SearchOptions = {
   sort?: string[]
   page?: number
   hitsPerPage?: number
+  window?: { offset: number; limit: number } // raw window; overrides page/hitsPerPage
 }
 
 export type SearchResult = {
@@ -63,11 +64,13 @@ export async function searchCards(
 ): Promise<SearchResult> {
   const page = opts.page ?? 1
   const hitsPerPage = opts.hitsPerPage ?? 20
+  const limit = opts.window ? opts.window.limit : hitsPerPage
+  const offset = opts.window ? opts.window.offset : (page - 1) * hitsPerPage
   const res = await client.index(cardsIndex(lang)).search(query, {
     filter: buildFilter(opts.filters ?? {}),
     sort: opts.sort,
-    limit: hitsPerPage,
-    offset: (page - 1) * hitsPerPage,
+    limit,
+    offset,
   })
   return {
     hits: res.hits as SearchDocument[],

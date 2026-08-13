@@ -84,6 +84,17 @@ export function toSearchOptions(state: SearchState): { query: string; options: S
   }
 }
 
+// Build a card link that carries the current search context so the detail page
+// can walk the result set. `index` is the card's absolute position in the
+// results; `page` is dropped because the index is already absolute.
+export function contextHref(id: string, params: URLSearchParams, index: number): string {
+  const p = new URLSearchParams(params.toString())
+  p.delete('page')
+  p.set('i', String(index))
+  const qs = p.toString()
+  return qs ? `/card/${id}?${qs}` : `/card/${id}`
+}
+
 export function withParams(
   current: URLSearchParams,
   patch: Record<string, string | string[] | null>,

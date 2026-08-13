@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  parseSearchParams, toSearchOptions, withParams, toURLSearchParams,
+  parseSearchParams, toSearchOptions, withParams, toURLSearchParams, contextHref,
 } from '../search-params'
 
 describe('search-params', () => {
@@ -92,5 +92,22 @@ describe('search-params', () => {
   it('leaves cost null when absent or non-numeric', () => {
     expect(parseSearchParams(new URLSearchParams('costMin=abc')).costMin).toBeNull()
     expect(parseSearchParams(new URLSearchParams()).costMax).toBeNull()
+  })
+})
+
+describe('contextHref', () => {
+  it('carries search params, drops page, sets the absolute index', () => {
+    const params = new URLSearchParams('q=harry&type=character&page=2')
+    expect(contextHref('bs-3', params, 27)).toBe('/card/bs-3?q=harry&type=character&i=27')
+  })
+
+  it('overwrites any pre-existing i with the neighbor index', () => {
+    const params = new URLSearchParams('sort=cost&i=5')
+    expect(contextHref('bs-4', params, 6)).toBe('/card/bs-4?sort=cost&i=6')
+  })
+
+  it('yields a path with just i when there are no other params', () => {
+    expect(contextHref('bs-1', new URLSearchParams('i=0'), 1)).toBe('/card/bs-1?i=1')
+    expect(contextHref('bs-1', new URLSearchParams(''), 3)).toBe('/card/bs-1?i=3')
   })
 })

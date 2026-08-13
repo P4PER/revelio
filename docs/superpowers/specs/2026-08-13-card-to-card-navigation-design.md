@@ -10,11 +10,11 @@ On the card detail page (`/[locale]/card/[id]`), let the user move to the previo
 
 - **Arrow keys** (`←` / `→`) on desktop,
 - **Swipe** (horizontal) on mobile/touch,
-- **On-screen chevron buttons** as the always-visible, accessible, no-JS baseline.
+- **Chevron buttons overlaid on the card image**, revealed on hover / keyboard focus (invisible at rest), as the accessible, no-JS baseline.
 
 "Next card" is **context-aware**: when the user arrived from search, navigation follows the exact result list they were browsing (query + filters + sort), crossing pagination boundaries. From any other entry point (direct link, `/random`, home constellation, collection), navigation follows the card's **own set ordered by `numberSort`**.
 
-A one-time, per-browser hint teaches the affordance on first visit: **chevron pulse + key-cap flash on desktop**, **ghost swipe-finger sweep on touch**. The hint respects `prefers-reduced-motion`.
+A one-time, per-browser hint teaches the affordance on first visit: on desktop, the chevrons pulse, the `← →` key-caps flash, and a short **"← → to flip between cards"** caption sits under the card; on touch, a **ghost swipe-finger sweep** plays. After the first visit the caption and animations never appear again. The hint respects `prefers-reduced-motion`.
 
 ## Goals / non-goals
 
@@ -83,17 +83,16 @@ When there is no search context (or Source A fell back):
 
 Props: `prev: Neighbor | null`, `next: Neighbor | null`, and its `children` (the card image). Renders nothing if both neighbors are null.
 
-- **Chevron buttons** — shadcn `Button` (`variant="ghost"`, `asChild` → next-intl `<Link href>`), `ChevronLeft`/`ChevronRight` from lucide, flanking the card. These are the real, baseline control: keyboard-focusable, screen-reader-labelled (`aria-label` from messages), and functional with JS disabled. Absent when the corresponding neighbor is null.
+- **Chevron buttons (overlaid on the card)** — shadcn `Button` (`variant="ghost"`, `asChild` → next-intl `<Link href>`), `ChevronLeft`/`ChevronRight` from `lucide-react`, absolutely positioned over the left/right edges of the card image, each behind a soft edge scrim (gradient) so it stays legible over artwork. **Invisible at rest; revealed on `:hover` of the image wrapper OR `:focus-visible` of the button.** They remain the real, baseline control: keyboard-focusable, screen-reader-labelled (`aria-label` from messages), and functional with JS disabled. On touch (no hover), sighted users rely on swipe while assistive-tech users still reach the buttons via focus (focus reveals them). Absent when the corresponding neighbor is null.
 - **Arrow keys (desktop enhancement)** — a `window` `keydown` listener: `ArrowLeft` → prev, `ArrowRight` → next, via the next-intl router. Ignored when:
   - the event target is an `input` / `textarea` / `contenteditable`, or
   - any of `metaKey` / `ctrlKey` / `altKey` is held, or
   - the corresponding neighbor is null.
-  A small `Kbd` `←`/`→` hint sits by the chevrons, shown only `sm:` and up (mirrors the existing `KbdHint` touch-hiding pattern).
 - **Swipe (touch enhancement)** — touch handlers on the image wrapper. Record `touchstart` x/y; on `touchend`, if horizontal delta exceeds ~50px **and** dominates the vertical delta, navigate: swipe-left → next, swipe-right → prev.
-- **First-visit hint (chosen B + C)** — gated by a `localStorage` flag (e.g. `revelio.cardNav.hintSeen`). On a fresh visit only:
-  - **desktop:** chevrons pulse + `←`/`→` key-caps flash, one loop;
+- **First-visit hint** — gated by a `localStorage` flag (e.g. `revelio.cardNav.hintSeen`). On a fresh visit only:
+  - **desktop:** chevrons pulse + a `Kbd` `←`/`→` caption ("to flip between cards") flashes under the card, one loop, then the caption is removed;
   - **touch:** a translucent finger sweeps across the card once with a trailing streak.
-  Then the flag is set and the hint never plays again. **Skipped entirely** under `prefers-reduced-motion: reduce`.
+  Then the flag is set and the hint (and the under-card caption) never appears again. **Skipped entirely** under `prefers-reduced-motion: reduce`.
 - **Prefetch:** next-intl `<Link>` prefetches the chevron targets; the component also prefetches the neighbor hrefs on mount so key/swipe navigation is instant.
 
 ## URLs & SEO
@@ -113,7 +112,7 @@ Props: `prev: Neighbor | null`, `next: Neighbor | null`, and its `children` (the
 
 - **`getCardNeighbors` (unit, mocked search client):** window middle / first-index / last-index; stale-index → set fallback; set-order neighbors incl. set boundaries; no-context path.
 - **`searchCards` raw window (unit):** offset/limit precedence over page.
-- **`CardNav` (component):** `→`/`←` navigate; ignored while focus is in an input and when a modifier is held; swipe past/under threshold; boundary no-op when a neighbor is null; chevron hrefs correct; `prefers-reduced-motion` skips the hint; nothing renders when both neighbors null.
+- **`CardNav` (component):** `→`/`←` navigate; ignored while focus is in an input and when a modifier is held; swipe past/under threshold; boundary no-op / chevron absent when a neighbor is null; chevron hrefs + `aria-label`s correct; the under-card caption + hint show only when the `localStorage` flag is unset, then set it; `prefers-reduced-motion` skips the hint; nothing renders when both neighbors null. (Hover-reveal is pure CSS — verified visually, not unit-tested.)
 - **i18n:** new keys (`aria-label`s for previous/next) added to `messages/en.json` and `messages/de.json`.
 
 ## Rollout notes

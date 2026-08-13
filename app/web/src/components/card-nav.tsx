@@ -23,11 +23,14 @@ export function CardNav({
   const [hint, setHint] = useState(false)
   const touch = useRef<{ x: number; y: number } | null>(null)
 
-  // One-time first-visit hint, skipped under reduced-motion.
+  // One-time first-visit hint, skipped under reduced-motion. The decision reads
+  // client-only APIs (matchMedia, localStorage) that don't exist during SSR, so
+  // it can only run post-hydration — a legitimate one-shot setState in an effect.
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     if (localStorage.getItem(HINT_FLAG)) return
     localStorage.setItem(HINT_FLAG, '1')
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time client-only reveal
     setHint(true)
   }, [])
 

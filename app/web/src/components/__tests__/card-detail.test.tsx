@@ -5,12 +5,19 @@ import { CardDetail } from '../card-detail'
 import type { CardDetailDTO } from '@revelio/core'
 
 vi.mock('next/image', () => ({ default: (p: Record<string, unknown>) => <img alt={p.alt as string} /> }))
+vi.mock('@/../i18n/navigation', () => ({
+  Link: (p: { href: string; children: React.ReactNode; 'aria-label'?: string }) => (
+    <a href={p.href} aria-label={p['aria-label']}>{p.children}</a>
+  ),
+  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
+}))
 
 const messages = {
   card: {
     number: 'No. {number}', cost: 'Cost', machineTranslation: 'Machine translation',
     health: 'Health', damage: 'Damage/turn', legality: 'Legality',
     artist: 'Illustrated by', rulings: 'Rulings',
+    prevCard: 'Previous card', nextCard: 'Next card', flipHint: 'to flip between cards',
   },
 }
 

@@ -31,3 +31,20 @@ describe('CardGrid', () => {
     expect(screen.getByRole('status')).toHaveTextContent(/no cards found/i)
   })
 })
+
+describe('CardGrid context plumbing', () => {
+  it('gives each tile its absolute index when searchParams + startIndex are set', () => {
+    render(
+      <CardGrid
+        hits={[hit('a', 'Harry Potter'), hit('b', 'Flobberworm')]}
+        imageBase="http://img"
+        searchParams={new URLSearchParams('q=x')}
+        startIndex={24}
+      />,
+      { wrapper: Wrapper },
+    )
+    const hrefs = screen.getAllByRole('link').map((l) => l.getAttribute('href'))
+    expect(hrefs).toContain('/card/a?q=x&i=24')
+    expect(hrefs).toContain('/card/b?q=x&i=25')
+  })
+})

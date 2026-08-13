@@ -27,3 +27,20 @@ describe('CardTile rotate button', () => {
     expect(screen.queryByRole('button', { name: /rotate upright/i })).toBeNull()
   })
 })
+
+describe('CardTile href', () => {
+  it('links to the plain card page without context', () => {
+    wrap(base)
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/card/bs-1')
+  })
+
+  it('carries search context (params + absolute index) when given', () => {
+    render(
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <CardTile hit={base} imageBase="http://img"
+          context={{ params: new URLSearchParams('q=dean&page=2'), index: 30 }} />
+      </NextIntlClientProvider>,
+    )
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/card/bs-1?q=dean&i=30')
+  })
+})

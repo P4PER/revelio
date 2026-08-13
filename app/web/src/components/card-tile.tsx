@@ -2,10 +2,18 @@ import { Link } from '@/../i18n/navigation'
 import type { SearchDocument } from '@revelio/search'
 import { imageUrl, thumbKey } from '@revelio/core'
 import { CardRotate } from '@/components/card-rotate'
+import { contextHref } from '@/lib/search-params'
 
-export function CardTile({ hit, imageBase }: { hit: SearchDocument; imageBase: string }) {
+export function CardTile({
+  hit, imageBase, context,
+}: {
+  hit: SearchDocument
+  imageBase: string
+  context?: { params: URLSearchParams; index: number }
+}) {
+  const href = context ? contextHref(hit.id, context.params, context.index) : `/card/${hit.id}`
   return (
-    <Link href={`/card/${hit.id}`} className="block">
+    <Link href={href} className="block">
       <figure className="group rounded-lg border border-border/60 bg-card">
         <div className="relative aspect-[5/7] overflow-hidden rounded-t-lg bg-muted">
           {hit.imageLang ? (

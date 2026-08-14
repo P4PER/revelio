@@ -512,8 +512,8 @@
         "cta": "Deck bauen"
       },
       "loggedOut": {
-        "title": "Melde dich an, um deine Decks zu sehen",
-        "desc": "Erstelle ein Konto, um Decks in deinem Profil zu speichern und dort weiterzumachen, wo du aufgehört hast.",
+        "title": "Hier wohnen deine Decks",
+        "desc": "Melde dich an, um dort weiterzumachen, wo du aufgehört hast — oder bau direkt los, ganz ohne Konto.",
         "signIn": "Anmelden",
         "tryBuilder": "Builder ausprobieren"
       }

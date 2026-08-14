@@ -512,8 +512,8 @@
         "cta": "Build a deck"
       },
       "loggedOut": {
-        "title": "Sign in to see your decks",
-        "desc": "Create an account to save decks to your profile and pick up where you left off.",
+        "title": "Your decks live here",
+        "desc": "Sign in to pick up where you left off, or start building right now — no account needed.",
         "signIn": "Sign in",
         "tryBuilder": "Try the builder"
       }

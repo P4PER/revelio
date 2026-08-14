@@ -61,6 +61,36 @@ describe('CardNav', () => {
     expect(push).not.toHaveBeenCalled()
   })
 
+  it('ignores arrow keys inside a widget that owns them (open menu, listbox)', () => {
+    render(
+      <>
+        <div role="menu"><button data-testid="item">Deutsch</button></div>
+        <CardNav prev={prev} next={next} labels={labels}><div>card</div></CardNav>
+      </>,
+    )
+    fireEvent.keyDown(screen.getByTestId('item'), { key: 'ArrowRight' })
+    expect(push).not.toHaveBeenCalled()
+  })
+
+  it('ignores arrow keys already handled by something else', () => {
+    render(<CardNav prev={prev} next={next} labels={labels}><div>card</div></CardNav>)
+    const e = new KeyboardEvent('keydown', { key: 'ArrowRight', cancelable: true })
+    e.preventDefault()
+    window.dispatchEvent(e)
+    expect(push).not.toHaveBeenCalled()
+  })
+
+  it('ignores arrow keys in a native select', () => {
+    render(
+      <>
+        <select data-testid="sel"><option>a</option></select>
+        <CardNav prev={prev} next={next} labels={labels}><div>card</div></CardNav>
+      </>,
+    )
+    fireEvent.keyDown(screen.getByTestId('sel'), { key: 'ArrowRight' })
+    expect(push).not.toHaveBeenCalled()
+  })
+
   it('ignores arrow keys when a modifier is held', () => {
     render(<CardNav prev={prev} next={next} labels={labels}><div>card</div></CardNav>)
     fireEvent.keyDown(window, { key: 'ArrowRight', metaKey: true })

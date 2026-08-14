@@ -14,7 +14,7 @@ import { hasRequiredRole } from '@/lib/roles'
 import { getSubTypeLabelMap } from '@/lib/subtype-labels'
 import { SITE_URL as BASE_URL } from '@/lib/site'
 import { getSearchClient } from '@/lib/search-client'
-import { getCardNeighbors, parseNeighborContext } from '@/lib/card-neighbors'
+import { getCardNeighborsSafe, parseNeighborContext } from '@/lib/card-neighbors'
 import { toURLSearchParams } from '@/lib/search-params'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
@@ -68,7 +68,7 @@ export default async function CardPage({
     ? (await getOwnedQuantities(getDb(), userId, [card.id]))[card.id] ?? {}
     : {}
   const ctx = parseNeighborContext(toURLSearchParams(await searchParams))
-  const neighbors = await getCardNeighbors(getSearchClient(), locale, card, ctx)
+  const neighbors = await getCardNeighborsSafe(getSearchClient, locale, card, ctx)
   return (
     <CardDetail
       card={card}

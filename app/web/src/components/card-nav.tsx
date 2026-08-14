@@ -14,6 +14,16 @@ const HINT_FLAG = 'revelio.cardNav.hintSeen'
 // the animation length lives only in CSS - no duplicated duration constant here.
 const HINT_ANIMATIONS = new Set(['chevron-hint', 'swipe-hint'])
 const SWIPE_THRESHOLD = 50 // px
+// Things that own the arrow keys themselves. The keydown listener is on window
+// (arrows should work without focusing the card), and Radix menus/dialogs render
+// into a portal outside this component, so the guard has to look at the event
+// target: without it, arrowing through the open locale switcher would move its
+// selection and navigate away from the card at the same time.
+const TEXT_ENTRY_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT'])
+const ARROW_KEY_WIDGETS = [
+  'menu', 'menubar', 'listbox', 'combobox', 'dialog', 'alertdialog', 'grid',
+  'tablist', 'tree', 'radiogroup', 'slider', 'spinbutton',
+].map((r) => `[role="${r}"]`).join(',')
 
 // localStorage throws in some privacy modes; treat any failure as "not seen yet".
 function readHintSeen(): boolean {
@@ -82,12 +92,14 @@ export function CardNav({
     if (next) router.prefetch(next.href)
   }, [prev, next, router])
 
-  // Arrow-key navigation (ignored while typing or with a modifier held).
+  // Arrow-key navigation (ignored while typing, inside a widget that handles
+  // arrows itself, once something else has handled the key, or with a modifier).
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.metaKey || e.ctrlKey || e.altKey) return
-      const el = e.target as HTMLElement | null
-      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return
+      if (e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented) return
+      const el = e.target instanceof HTMLElement ? e.target : null
+      if (el && (TEXT_ENTRY_TAGS.has(el.tagName) || el.isContentEditable)) return
+      if (el?.closest(ARROW_KEY_WIDGETS)) return
       if (e.key === 'ArrowLeft' && prev) router.push(prev.href)
       else if (e.key === 'ArrowRight' && next) router.push(next.href)
     }

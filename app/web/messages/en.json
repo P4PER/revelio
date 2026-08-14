@@ -588,7 +588,13 @@
     "layoutLabel": "Quantity controls",
     "layoutUnder": "Controls under the card",
     "layoutHover": "Controls on hover",
-    "empty": "You don't own any cards yet."
+    "empty": "You don't own any cards yet.",
+    "loggedOut": {
+      "title": "Track what you own",
+      "desc": "Mark cards as owned, watch each set fill up, and share your collection with a single link.",
+      "signIn": "Sign in",
+      "browseSets": "Browse sets"
+    }
   },
   "errors": {
     "notFound": {

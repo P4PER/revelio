@@ -588,7 +588,13 @@
     "layoutLabel": "Mengensteuerung",
     "layoutUnder": "Steuerung unter der Karte",
     "layoutHover": "Steuerung beim Hover",
-    "empty": "Du besitzt noch keine Karten."
+    "empty": "Du besitzt noch keine Karten.",
+    "loggedOut": {
+      "title": "Behalte deine Sammlung im Blick",
+      "desc": "Markiere Karten als vorhanden, verfolge deinen Fortschritt Set für Set und teile deine Sammlung mit einem Link.",
+      "signIn": "Anmelden",
+      "browseSets": "Sets entdecken"
+    }
   },
   "errors": {
     "notFound": {

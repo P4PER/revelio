@@ -29,9 +29,16 @@ export function SignedOutTeaser({
 }) {
   return (
     <div className="relative isolate">
+      {/*
+        Two ghost-only overrides on the Skeleton primitive: it never animates
+        (see above), and it fills with bg-input rather than bg-muted. Muted sits
+        too close to the page background to survive the blur and the dimming -
+        the ghost has to stay readable as a layout for the teaser to mean
+        anything.
+      */}
       <div
         aria-hidden="true"
-        className="pointer-events-none max-h-[38rem] select-none overflow-hidden opacity-45 blur-[4px] [&_[data-slot=skeleton]]:animate-none"
+        className="pointer-events-none max-h-[38rem] select-none overflow-hidden opacity-60 blur-[4px] [mask-image:linear-gradient(to_bottom,#000_72%,transparent_100%)] [&_[data-slot=skeleton]]:animate-none [&_[data-slot=skeleton]]:bg-input"
       >
         {children}
       </div>

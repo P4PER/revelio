@@ -13,10 +13,12 @@ import { LessonCost } from '@/components/lesson-cost'
 import { LightningDivider } from '@/components/lightning-divider'
 import { humanize } from '@/lib/humanize'
 import { AddToCollection } from '@/components/add-to-collection'
+import { CardNav } from '@/components/card-nav'
+import type { Neighbor } from '@/lib/card-neighbors'
 
 export function CardDetail({
   card, locale, imageBase, canEdit = false, subTypeLabels = {},
-  canCollect = false, ownedQuantities = {},
+  canCollect = false, ownedQuantities = {}, prev = null, next = null,
 }: {
   card: CardDetailDTO
   locale: string
@@ -25,6 +27,8 @@ export function CardDetail({
   subTypeLabels?: Record<string, string>
   canCollect?: boolean
   ownedQuantities?: Record<string, number>
+  prev?: Neighbor | null
+  next?: Neighbor | null
 }) {
   const t = useTranslations('card')
   const tEdit = useTranslations('edit')
@@ -46,21 +50,27 @@ export function CardDetail({
   return (
     <article className="mx-auto grid max-w-[76rem] gap-8 px-6 py-8 md:grid-cols-[auto_1fr]">
       <div className={cn('w-full', horizontal ? 'md:w-[476px]' : 'md:w-[340px]')}>
-        {imgLang ? (
-          <CardImage
-            src={imageUrl(imageBase, imageKey(card.id, card.localizations[imgLang]!.imageVersion!, imgLang, card.defaultLanguage))}
-            alt={loc.name}
-            orientation={card.orientation}
-            upright
-            sizes="(min-width: 768px) 476px, 100vw"
-            priority
-            frameClassName="rounded-xl border border-border/60 bg-card"
-          />
-        ) : (
-          <div className={cn('relative flex items-center justify-center rounded-xl border border-border/60 bg-card p-4 text-center text-sm text-muted-foreground', horizontal ? 'aspect-[7/5]' : 'aspect-[5/7]')}>
-            {loc.name}
-          </div>
-        )}
+        <CardNav
+          prev={prev}
+          next={next}
+          labels={{ prev: t('prevCard'), next: t('nextCard'), hint: t('flipHint'), swipe: t('swipeHint') }}
+        >
+          {imgLang ? (
+            <CardImage
+              src={imageUrl(imageBase, imageKey(card.id, card.localizations[imgLang]!.imageVersion!, imgLang, card.defaultLanguage))}
+              alt={loc.name}
+              orientation={card.orientation}
+              upright
+              sizes="(min-width: 768px) 476px, 100vw"
+              priority
+              frameClassName="rounded-xl border border-border/60 bg-card"
+            />
+          ) : (
+            <div className={cn('relative flex items-center justify-center rounded-xl border border-border/60 bg-card p-4 text-center text-sm text-muted-foreground', horizontal ? 'aspect-[7/5]' : 'aspect-[5/7]')}>
+              {loc.name}
+            </div>
+          )}
+        </CardNav>
         {canCollect && (
           <AddToCollection cardId={card.id} finishes={card.finishes}
             quantities={ownedQuantities} locale={locale} className="mt-4" />

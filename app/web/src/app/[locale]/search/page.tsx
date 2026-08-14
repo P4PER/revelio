@@ -51,7 +51,12 @@ export default async function SearchPage({
         </p>
         <SortSelect />
       </div>
-      <CardGrid hits={results.hits} imageBase={IMAGE_BASE} />
+      <CardGrid
+        hits={results.hits}
+        imageBase={IMAGE_BASE}
+        searchParams={current}
+        startIndex={(results.page - 1) * results.hitsPerPage}
+      />
       <Pagination
         page={results.page}
         total={results.total}

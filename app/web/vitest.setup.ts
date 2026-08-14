@@ -39,6 +39,20 @@ if (typeof window !== 'undefined') {
   if (!document.elementFromPoint) {
     document.elementFromPoint = () => null
   }
+  // jsdom has no matchMedia; components reading media queries (e.g. CardNav's
+  // prefers-reduced-motion check) call it on mount. Default to "no match".
+  if (typeof window.matchMedia !== 'function') {
+    window.matchMedia = ((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia
+  }
   // Radix Checkbox (useSize) observes its control on mount; jsdom has no ResizeObserver.
   if (!('ResizeObserver' in window)) {
     ;(window as unknown as { ResizeObserver: unknown }).ResizeObserver = class {

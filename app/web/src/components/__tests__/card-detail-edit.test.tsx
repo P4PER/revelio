@@ -3,7 +3,10 @@ import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('@/../i18n/navigation', () => ({
-  Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,
+  Link: (p: { href: string; children: React.ReactNode; 'aria-label'?: string }) => (
+    <a href={p.href} aria-label={p['aria-label']}>{p.children}</a>
+  ),
+  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
 }))
 
 import { CardDetail } from '../card-detail'
@@ -87,6 +90,23 @@ describe('CardDetail edit link', () => {
       </NextIntlClientProvider>,
     )
     expect(screen.getByRole('img', { name: card.localizations.en.name })).toBeInTheDocument()
+  })
+
+  it('renders prev/next chevrons when neighbors are provided', () => {
+    render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        <CardDetail
+          card={card}
+          locale="en"
+          imageBase=""
+          canEdit={false}
+          prev={{ id: 'left', href: '/card/left' }}
+          next={{ id: 'right', href: '/card/right' }}
+        />
+      </NextIntlClientProvider>,
+    )
+    expect(screen.getByRole('link', { name: en.card.prevCard })).toHaveAttribute('href', '/card/left')
+    expect(screen.getByRole('link', { name: en.card.nextCard })).toHaveAttribute('href', '/card/right')
   })
 
 })

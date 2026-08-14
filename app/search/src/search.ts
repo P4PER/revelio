@@ -23,6 +23,16 @@ export type SearchOptions = {
   hitsPerPage?: number
 }
 
+// Raw offset/limit window for ids-only reads (searchCardIds). Deliberately not
+// part of SearchOptions: a windowed read has no meaningful page number, so
+// SearchResult would have to report one it cannot honour.
+export type IdWindowOptions = {
+  filters?: CardFilters
+  sort?: string[]
+  offset: number
+  limit: number
+}
+
 export type SearchResult = {
   hits: SearchDocument[]
   total: number
@@ -74,5 +84,27 @@ export async function searchCards(
     total: res.estimatedTotalHits ?? 0,
     page,
     hitsPerPage,
+  }
+}
+
+// Ids-only search over a raw window. Neighbor walks need order and identity,
+// not card content, so ask Meilisearch for a single attribute instead of whole
+// documents: a set walk then transfers 500 ids, not 500 full card records.
+export async function searchCardIds(
+  client: MeiliSearch,
+  lang: string,
+  query: string,
+  opts: IdWindowOptions,
+): Promise<{ ids: string[]; total: number }> {
+  const res = await client.index(cardsIndex(lang)).search(query, {
+    filter: buildFilter(opts.filters ?? {}),
+    sort: opts.sort,
+    limit: opts.limit,
+    offset: opts.offset,
+    attributesToRetrieve: ['id'],
+  })
+  return {
+    ids: (res.hits as { id: string }[]).map((h) => h.id),
+    total: res.estimatedTotalHits ?? 0,
   }
 }

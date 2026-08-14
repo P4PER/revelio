@@ -13,6 +13,9 @@ import { getSession } from '@/lib/session'
 import { hasRequiredRole } from '@/lib/roles'
 import { getSubTypeLabelMap } from '@/lib/subtype-labels'
 import { SITE_URL as BASE_URL } from '@/lib/site'
+import { getSearchClient } from '@/lib/search-client'
+import { getCardNeighborsSafe, parseNeighborContext } from '@/lib/card-neighbors'
+import { toURLSearchParams } from '@/lib/search-params'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
@@ -46,8 +49,10 @@ export async function generateMetadata({
 
 export default async function CardPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; id: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const { locale, id } = await params
   setRequestLocale(locale)
@@ -62,6 +67,8 @@ export default async function CardPage({
   const ownedQuantities = userId
     ? (await getOwnedQuantities(getDb(), userId, [card.id]))[card.id] ?? {}
     : {}
+  const ctx = parseNeighborContext(toURLSearchParams(await searchParams))
+  const neighbors = await getCardNeighborsSafe(getSearchClient, locale, card, ctx)
   return (
     <CardDetail
       card={card}
@@ -71,6 +78,8 @@ export default async function CardPage({
       subTypeLabels={subTypeLabels}
       canCollect={!!userId}
       ownedQuantities={ownedQuantities}
+      prev={neighbors.prev}
+      next={neighbors.next}
     />
   )
 }

@@ -44,6 +44,10 @@ export function cardNumberSortKey(number: string): string {
   return `0:${digits.padStart(6, '0')}${rest.toLowerCase()}`
 }
 
+// Hard ceiling Meilisearch puts on offset + limit: any read past it comes back
+// empty, so callers that page or window deep must clamp against this value.
+export const MAX_TOTAL_HITS = 5000
+
 // name is first in searchableAttributes so name matches outrank text/flavor matches.
 export const CARD_INDEX_SETTINGS: Settings = {
   searchableAttributes: ['name', 'text', 'flavorText'],
@@ -55,7 +59,7 @@ export const CARD_INDEX_SETTINGS: Settings = {
   typoTolerance: { enabled: true },
   // Default maxTotalHits is 1000, which caps the reported total and makes cards
   // past #1000 unreachable via pagination. The dataset is ~1098 cards; leave headroom.
-  pagination: { maxTotalHits: 5000 },
+  pagination: { maxTotalHits: MAX_TOTAL_HITS },
 }
 
 export type LocalizationFields = {

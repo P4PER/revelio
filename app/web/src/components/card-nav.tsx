@@ -115,9 +115,13 @@ export function CardNav({
   // so screen readers reach it regardless. No hover reveal over the card art.
   // Asymmetric timing: the resting state carries the slow duration (a smooth
   // 700ms fade-out, matching the caption), while focus-in stays snappy at 150ms.
+  // pointer-events-none at rest so the invisible chevron can't be mouse-clicked
+  // (which would navigate + flash the focus ring); re-enabled only when it's
+  // actually visible (keyboard focus, or during the hint). Keyboard/AT activation
+  // goes through the anchor href, unaffected by pointer-events.
   const chevron =
-    'absolute top-1/2 -translate-y-1/2 rounded-full bg-background/70 text-foreground opacity-0 backdrop-blur ' +
-    'transition-opacity duration-700 ease-out hover:bg-background/90 focus-visible:opacity-100 focus-visible:duration-150'
+    'pointer-events-none absolute top-1/2 -translate-y-1/2 rounded-full bg-background/70 text-foreground opacity-0 backdrop-blur ' +
+    'transition-opacity duration-700 ease-out hover:bg-background/90 focus-visible:opacity-100 focus-visible:pointer-events-auto focus-visible:duration-150'
   const scrim = 'pointer-events-none absolute inset-y-0 w-24 opacity-0 transition-opacity group-focus-within:opacity-100'
 
   return (
@@ -137,7 +141,7 @@ export function CardNav({
             variant="ghost"
             size="icon"
             aria-label={labels.prev}
-            className={cn(chevron, 'left-2', hintMode === 'keys' && !hintFading && 'opacity-100 animate-chevron-hint')}
+            className={cn(chevron, 'left-2', hintMode === 'keys' && !hintFading && 'opacity-100 animate-chevron-hint pointer-events-auto')}
           >
             <Link href={prev.href}><ChevronLeft className="size-5" /></Link>
           </Button>
@@ -151,7 +155,7 @@ export function CardNav({
             variant="ghost"
             size="icon"
             aria-label={labels.next}
-            className={cn(chevron, 'right-2', hintMode === 'keys' && !hintFading && 'opacity-100 animate-chevron-hint')}
+            className={cn(chevron, 'right-2', hintMode === 'keys' && !hintFading && 'opacity-100 animate-chevron-hint pointer-events-auto')}
           >
             <Link href={next.href}><ChevronRight className="size-5" /></Link>
           </Button>
@@ -170,7 +174,7 @@ export function CardNav({
           data-testid="card-nav-hint"
           onTransitionEnd={onHintFadeEnd}
           className={cn(
-            'pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 rounded-b-xl bg-gradient-to-t from-black/80 via-black/45 to-transparent px-3 pb-3 pt-8 text-xs text-white/90 transition-opacity duration-700 ease-out',
+            'pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 rounded-b-xl bg-gradient-to-t from-black/85 via-black/50 to-transparent px-3 pb-4 pt-9 text-sm font-medium text-white [text-shadow:0_1px_2px_rgb(0_0_0/0.6)] transition-opacity duration-700 ease-out',
             hintFading ? 'opacity-0' : 'opacity-100 animate-hint-in',
           )}
         >

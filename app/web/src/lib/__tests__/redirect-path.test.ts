@@ -25,6 +25,10 @@ describe('safeRedirectPath', () => {
     expect(safeRedirectPath('/collection\nSet-Cookie: x=1')).toBeNull()
   })
 
+  it('rejects a repeated query parameter, which Next hands back as an array', () => {
+    expect(safeRedirectPath(['/collection', '/decks/mine'])).toBeNull()
+  })
+
   it('rejects empty and missing values', () => {
     expect(safeRedirectPath('')).toBeNull()
     expect(safeRedirectPath(null)).toBeNull()

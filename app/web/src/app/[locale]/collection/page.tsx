@@ -41,6 +41,7 @@ export default async function CollectionPage({
   setRequestLocale(locale)
   const session = await getSession()
   const userId = session?.user?.id
+  const sp = toURLSearchParams(await searchParams)
   if (!userId) {
     // Signed out, this page still has a story to tell, so it shows a teaser over
     // a ghost of the real layout rather than bouncing to the login form.
@@ -48,6 +49,11 @@ export default async function CollectionPage({
       getTranslations({ locale, namespace: 'collection' }),
       getTranslations({ locale, namespace: 'collection.loggedOut' }),
     ])
+    // Carry the current view (tab, selected set, filters) into the redirect, so
+    // someone who followed a deep link is returned to it rather than to a bare
+    // /collection.
+    const qs = sp.toString()
+    const here = qs ? `/collection?${qs}` : '/collection'
     return (
       <main className="mx-auto max-w-[76rem] px-6 py-8">
         {/* Same heading, same position as the signed-in page: a visitor should
@@ -56,7 +62,7 @@ export default async function CollectionPage({
         <SignedOutTeaser
           title={tOut('title')}
           description={tOut('desc')}
-          primary={{ label: tOut('signIn'), href: loginHref('/collection') }}
+          primary={{ label: tOut('signIn'), href: loginHref(here) }}
           secondary={{ label: tOut('browseSets'), href: '/sets' }}
         >
           <CollectionSkeleton />
@@ -66,7 +72,6 @@ export default async function CollectionPage({
   }
 
   const db = getDb()
-  const sp = toURLSearchParams(await searchParams)
 
   const [data, visibility, cookieStore] = await Promise.all([
     loadCollectionPage(db, getSearchClient(), locale, userId, sp, IMAGE_BASE),

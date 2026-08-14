@@ -18,7 +18,7 @@ export async function generateMetadata({
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ redirect?: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   // Validated here, on the server, so an untrusted value never reaches the client.
   const redirectTo = safeRedirectPath((await searchParams).redirect)

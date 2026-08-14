@@ -12,8 +12,13 @@ export const REDIRECT_PARAM = 'redirect'
  *
  * Values are locale-FREE hrefs ("/collection"): the next-intl navigation
  * helpers add the locale prefix on the way out.
+ *
+ * Takes the raw searchParams shape rather than a plain string: Next.js hands
+ * back an array when a key repeats ("?redirect=/a&redirect=/b"), and a caller
+ * that assumed string would crash on it.
  */
-export function safeRedirectPath(value: string | null | undefined): string | null {
+export function safeRedirectPath(value: string | string[] | null | undefined): string | null {
+  if (typeof value !== 'string') return null
   if (!value || !value.startsWith('/')) return null
   if (value.startsWith('//') || value.startsWith('/\\')) return null
   for (let i = 0; i < value.length; i++) {
@@ -23,17 +28,17 @@ export function safeRedirectPath(value: string | null | undefined): string | nul
   return value
 }
 
-function withRedirect(base: '/login' | '/register', to?: string | null): string {
+function withRedirect(base: '/login' | '/register', to?: string | string[] | null): string {
   const target = safeRedirectPath(to)
   return target ? `${base}?${REDIRECT_PARAM}=${encodeURIComponent(target)}` : base
 }
 
 /** `/login`, carrying `to` as the post-login destination when it is safe. */
-export function loginHref(to?: string | null): string {
+export function loginHref(to?: string | string[] | null): string {
   return withRedirect('/login', to)
 }
 
 /** `/register`, carrying `to` so the cross-link does not lose the destination. */
-export function registerHref(to?: string | null): string {
+export function registerHref(to?: string | string[] | null): string {
   return withRedirect('/register', to)
 }

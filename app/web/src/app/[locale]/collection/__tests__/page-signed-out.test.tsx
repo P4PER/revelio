@@ -26,10 +26,10 @@ vi.mock('@/../i18n/navigation', () => ({
 
 import CollectionPage, { generateMetadata } from '../page'
 
-function renderPage() {
+function renderPage(searchParams: Record<string, string | string[] | undefined> = {}) {
   return CollectionPage({
     params: Promise.resolve({ locale: 'en' }),
-    searchParams: Promise.resolve({}),
+    searchParams: Promise.resolve(searchParams),
   })
 }
 
@@ -61,6 +61,14 @@ describe('signed-out /collection', () => {
     expect(screen.getByRole('link', { name: 'collection.loggedOut.signIn' })).toHaveAttribute(
       'href',
       '/login?redirect=%2Fcollection',
+    )
+  })
+
+  it('returns the visitor to the collection view they linked into', async () => {
+    render(await renderPage({ tab: 'browse', set: 'base' }))
+    expect(screen.getByRole('link', { name: 'collection.loggedOut.signIn' })).toHaveAttribute(
+      'href',
+      `/login?redirect=${encodeURIComponent('/collection?tab=browse&set=base')}`,
     )
   })
 

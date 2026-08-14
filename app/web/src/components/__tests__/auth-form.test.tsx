@@ -20,18 +20,19 @@ vi.mock('@/lib/auth-actions', () => ({
   emailHasAccount: (...a: unknown[]) => emailHasAccount(...a),
   usernameAvailable: (...a: unknown[]) => usernameAvailable(...a),
 }))
+const push = vi.fn()
 vi.mock('@/../i18n/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+  useRouter: () => ({ push, refresh: vi.fn() }),
   Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,
 }))
 
 import { AuthForm } from '../auth-form'
 import en from '@/../messages/en.json'
 
-function renderForm(mode: 'login' | 'register') {
+function renderForm(mode: 'login' | 'register', redirectTo?: string | null) {
   return render(
     <NextIntlClientProvider locale="en" messages={en}>
-      <AuthForm mode={mode} />
+      <AuthForm mode={mode} redirectTo={redirectTo} />
     </NextIntlClientProvider>,
   )
 }
@@ -42,7 +43,18 @@ beforeEach(() => {
   updateUser.mockClear()
   emailHasAccount.mockClear()
   usernameAvailable.mockClear()
+  push.mockClear()
 })
+
+async function signIn(redirectTo: string | null) {
+  renderForm('login', redirectTo)
+  await userEvent.type(screen.getByLabelText('Email'), 'known@example.com')
+  await userEvent.click(screen.getByRole('button', { name: 'Login' }))
+  fireEvent.change(await screen.findByLabelText('Verification code'), {
+    target: { value: '123456' },
+  })
+  await userEvent.click(screen.getByRole('button', { name: 'Verify' }))
+}
 
 describe('AuthForm', () => {
   it('register mode shows a username field and links to sign in', () => {
@@ -111,5 +123,23 @@ describe('AuthForm', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Login' }))
     await screen.findByLabelText('Verification code')
     expect(container.querySelectorAll('[data-slot="input-otp-slot"]')).toHaveLength(6)
+  })
+
+  it('lands on the destination after verifying when a redirect target came in', async () => {
+    await signIn('/collection')
+    expect(push).toHaveBeenCalledWith('/collection')
+  })
+
+  it('lands on the home page when no redirect target came in', async () => {
+    await signIn(null)
+    expect(push).toHaveBeenCalledWith('/')
+  })
+
+  it('carries the destination across to the register link', () => {
+    renderForm('login', '/decks/mine')
+    expect(screen.getByRole('link', { name: 'Register' })).toHaveAttribute(
+      'href',
+      '/register?redirect=%2Fdecks%2Fmine',
+    )
   })
 })

@@ -8,6 +8,7 @@ import { ArrowLeft } from 'lucide-react'
 import { authClient } from '@/lib/auth-client'
 import { emailHasAccount, usernameAvailable } from '@/lib/auth-actions'
 import { BRAND_NAME } from '@/lib/brand'
+import { loginHref, registerHref } from '@/lib/redirect-path'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -25,7 +26,13 @@ import { REGEXP_ONLY_DIGITS } from 'input-otp'
 // The code step is a controlled segmented OTP (InputOTP), so it is kept OUT of
 // react-hook-form entirely — the value lives in local useState and is validated
 // with makeCodeSchema on submit.
-export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
+export function AuthForm({
+  mode,
+  redirectTo,
+}: {
+  mode: 'login' | 'register'
+  redirectTo?: string | null
+}) {
   const t = useTranslations('auth')
   const tv = useTranslations('validation')
   const router = useRouter()
@@ -94,7 +101,8 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
     }
     // Refresh so server components (e.g. the header) re-render with the new
     // session cookie — without this the header keeps its logged-out state.
-    router.push('/')
+    // Back to wherever the visitor was headed before the sign-in wall.
+    router.push(redirectTo ?? '/')
     router.refresh()
   }
 
@@ -198,12 +206,12 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         {register ? (
           <>
             {t('haveAccount')}{' '}
-            <Link href="/login" className="text-foreground underline">{t('signIn')}</Link>
+            <Link href={loginHref(redirectTo)} className="text-foreground underline">{t('signIn')}</Link>
           </>
         ) : (
           <>
             {t('noAccount')}{' '}
-            <Link href="/register" className="text-foreground underline">{t('register')}</Link>
+            <Link href={registerHref(redirectTo)} className="text-foreground underline">{t('register')}</Link>
           </>
         )}
       </p>

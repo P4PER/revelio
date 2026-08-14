@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { AuthCard } from '@/components/auth-card'
+import { safeRedirectPath } from '@/lib/redirect-path'
 
 export async function generateMetadata({
   params,
@@ -14,6 +15,12 @@ export async function generateMetadata({
   return { title: t('title'), robots: { index: false } }
 }
 
-export default function LoginPage() {
-  return <AuthCard mode="login" />
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
+  // Validated here, on the server, so an untrusted value never reaches the client.
+  const redirectTo = safeRedirectPath((await searchParams).redirect)
+  return <AuthCard mode="login" redirectTo={redirectTo} />
 }

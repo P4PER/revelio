@@ -6,6 +6,9 @@ import { getDb } from '@/lib/db'
 import { getSession } from '@/lib/session'
 import { listDecksByUser } from '@revelio/db'
 import { DeckList } from '@/components/deck-list'
+import { DeckListSkeleton } from '@/components/deck-list-skeleton'
+import { SignedOutTeaser } from '@/components/signed-out-teaser'
+import { loginHref } from '@/lib/redirect-path'
 import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
@@ -34,17 +37,18 @@ export default async function DecksPage({
 
   if (!session?.user) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-semibold text-primary">{t('list.loggedOut.title')}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t('list.loggedOut.desc')}</p>
-        <div className="mt-6 flex items-center justify-center gap-3">
-          <Button asChild>
-            <Link href="/login">{t('list.loggedOut.signIn')}</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/decks/new">{t('list.loggedOut.tryBuilder')}</Link>
-          </Button>
-        </div>
+      <main className="mx-auto max-w-[76rem] px-6 py-8">
+        {/* Same heading, same position as the signed-in page: a visitor should
+            never have to guess which page they landed on. */}
+        <h1 className="mb-6 text-2xl font-semibold text-primary">{t('list.title')}</h1>
+        <SignedOutTeaser
+          title={t('list.loggedOut.title')}
+          description={t('list.loggedOut.desc')}
+          primary={{ label: t('list.loggedOut.signIn'), href: loginHref('/decks/mine') }}
+          secondary={{ label: t('list.loggedOut.tryBuilder'), href: '/decks/new' }}
+        >
+          <DeckListSkeleton />
+        </SignedOutTeaser>
       </main>
     )
   }

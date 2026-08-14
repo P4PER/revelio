@@ -512,8 +512,8 @@
         "cta": "Build a deck"
       },
       "loggedOut": {
-        "title": "Sign in to see your decks",
-        "desc": "Create an account to save decks to your profile and pick up where you left off.",
+        "title": "Your decks live here",
+        "desc": "Sign in to pick up where you left off, or start building right now — no account needed.",
         "signIn": "Sign in",
         "tryBuilder": "Try the builder"
       }
@@ -588,7 +588,13 @@
     "layoutLabel": "Quantity controls",
     "layoutUnder": "Controls under the card",
     "layoutHover": "Controls on hover",
-    "empty": "You don't own any cards yet."
+    "empty": "You don't own any cards yet.",
+    "loggedOut": {
+      "title": "Track what you own",
+      "desc": "Mark cards as owned, watch each set fill up, and share your collection with a single link.",
+      "signIn": "Sign in",
+      "browseSets": "Browse sets"
+    }
   },
   "errors": {
     "notFound": {

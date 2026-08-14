@@ -29,9 +29,14 @@ beforeEach(() => {
 })
 
 describe('signed-out /decks/mine', () => {
-  it('shows the teaser as the page heading', async () => {
+  it('names the page in the heading, not the teaser pitch', async () => {
     render(await renderPage())
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('decks.list.loggedOut.title')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('decks.list.title')
+  })
+
+  it('puts the teaser pitch below the page heading', async () => {
+    render(await renderPage())
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('decks.list.loggedOut.title')
   })
 
   it('offers a sign-in link that comes back here', async () => {

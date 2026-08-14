@@ -21,9 +21,10 @@ function renderTeaser() {
 }
 
 describe('SignedOutTeaser', () => {
-  it('makes the teaser title the page heading', () => {
+  it('states its pitch as a subheading, leaving the h1 to the page', () => {
     renderTeaser()
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Track what you own')
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Track what you own')
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument()
   })
 
   it('offers both calls to action', () => {

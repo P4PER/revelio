@@ -18,9 +18,18 @@ import { SITE_URL as BASE_URL } from '@/lib/site'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
-// A personal page, and renderable signed out since the teaser landed - keep it
-// out of search indexes either way.
-export const metadata: Metadata = { robots: { index: false } }
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations({ locale, namespace: 'collection' })
+  // A personal page, and renderable signed out since the teaser landed - keep
+  // it out of search indexes either way.
+  return { title: t('title'), robots: { index: false } }
+}
 
 export default async function CollectionPage({
   params, searchParams,
@@ -35,9 +44,15 @@ export default async function CollectionPage({
   if (!userId) {
     // Signed out, this page still has a story to tell, so it shows a teaser over
     // a ghost of the real layout rather than bouncing to the login form.
-    const tOut = await getTranslations({ locale, namespace: 'collection.loggedOut' })
+    const [t, tOut] = await Promise.all([
+      getTranslations({ locale, namespace: 'collection' }),
+      getTranslations({ locale, namespace: 'collection.loggedOut' }),
+    ])
     return (
       <main className="mx-auto max-w-[76rem] px-6 py-8">
+        {/* Same heading, same position as the signed-in page: a visitor should
+            never have to guess which page they landed on. */}
+        <h1 className="mb-6 text-2xl font-semibold text-primary">{t('title')}</h1>
         <SignedOutTeaser
           title={tOut('title')}
           description={tOut('desc')}

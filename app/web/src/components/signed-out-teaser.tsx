@@ -11,8 +11,12 @@ type Cta = { label: string; href: string }
  *
  * The ghost is decoration. It is hidden from assistive tech, non-interactive,
  * and deliberately NOT animated - a pulsing skeleton promises data that is on
- * its way, and nothing is on its way until the visitor signs in. The teaser
- * title carries the page's h1, since the ghost's own heading is hidden.
+ * its way, and nothing is on its way until the visitor signs in.
+ *
+ * Only personal data gets ghosted. The page keeps its real heading above this
+ * component: a page's name is the same for every visitor and is how they know
+ * where they are, so ghosting it would trade wayfinding for nothing. `title`
+ * here is the pitch, and renders as an h2 under that heading.
  */
 export function SignedOutTeaser({
   title,
@@ -44,7 +48,7 @@ export function SignedOutTeaser({
       </div>
       <div className="absolute inset-0 grid place-items-center p-4">
         <div className="w-full max-w-md rounded-xl border border-border bg-card p-7 shadow-2xl">
-          <h1 className="text-balance text-xl font-semibold text-foreground">{title}</h1>
+          <h2 className="text-balance text-xl font-semibold text-foreground">{title}</h2>
           <p className="mt-2 text-sm text-muted-foreground">{description}</p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Button asChild>

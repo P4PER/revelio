@@ -1,16 +1,14 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
-// Static ghost of the signed-in collection page: heading and summary, tab bar,
+// Static ghost of the signed-in collection page: owned/total summary, tab bar,
 // set rail, card grid. Column counts mirror CollectionView so the shape behind
-// the teaser is the shape the visitor gets after signing in.
+// the teaser is the shape the visitor gets after signing in. The page heading
+// is NOT part of this - the page renders it for real, above the ghost.
 export function CollectionSkeleton() {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-2">
-          <Skeleton className="h-7 w-52" />
-          <Skeleton className="h-4 w-64" />
-        </div>
+        <Skeleton className="h-4 w-64" />
         <Skeleton className="h-9 w-36 rounded-full" />
       </div>
       <div className="mb-4 flex items-center justify-between gap-3">

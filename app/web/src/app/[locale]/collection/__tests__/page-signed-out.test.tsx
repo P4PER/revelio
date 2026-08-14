@@ -24,7 +24,7 @@ vi.mock('@/../i18n/navigation', () => ({
   Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,
 }))
 
-import CollectionPage from '../page'
+import CollectionPage, { generateMetadata } from '../page'
 
 function renderPage() {
   return CollectionPage({
@@ -40,9 +40,20 @@ beforeEach(() => {
 })
 
 describe('signed-out /collection', () => {
-  it('shows the teaser as the page heading', async () => {
+  it('names the page in the heading, not the teaser pitch', async () => {
     render(await renderPage())
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('collection.loggedOut.title')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('collection.title')
+  })
+
+  it('puts the teaser pitch below the page heading', async () => {
+    render(await renderPage())
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('collection.loggedOut.title')
+  })
+
+  it('gives the tab a title and keeps the page out of the index', async () => {
+    const meta = await generateMetadata({ params: Promise.resolve({ locale: 'en' }) })
+    expect(meta.title).toBe('collection.title')
+    expect(meta.robots).toEqual({ index: false })
   })
 
   it('offers a sign-in link that comes back here', async () => {

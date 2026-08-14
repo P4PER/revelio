@@ -38,6 +38,9 @@ export default async function DecksPage({
   if (!session?.user) {
     return (
       <main className="mx-auto max-w-[76rem] px-6 py-8">
+        {/* Same heading, same position as the signed-in page: a visitor should
+            never have to guess which page they landed on. */}
+        <h1 className="mb-6 text-2xl font-semibold text-primary">{t('list.title')}</h1>
         <SignedOutTeaser
           title={t('list.loggedOut.title')}
           description={t('list.loggedOut.desc')}

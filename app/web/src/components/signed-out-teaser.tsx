@@ -39,10 +39,19 @@ export function SignedOutTeaser({
         too close to the page background to survive the blur and the dimming -
         the ghost has to stay readable as a layout for the teaser to mean
         anything.
+
+        The negative margins cancel the padding exactly, so the ghost sits where
+        it would anyway while its clip box reaches 1.5rem wider and 0.75rem
+        higher than its content. Without that gap the blur halo is sliced off at
+        the overflow boundary and the outermost cards look chopped down their
+        edge. -mx-6 matches the px-6 every calling page puts on its <main>, so
+        the box grows into that padding and never past the viewport. The bottom
+        needs no such room: the mask fades the ghost out well before the
+        max-height cuts it, so the cut itself is never visible.
       */}
       <div
         aria-hidden="true"
-        className="pointer-events-none max-h-[38rem] select-none overflow-hidden opacity-60 blur-[4px] [mask-image:linear-gradient(to_bottom,#000_72%,transparent_100%)] [&_[data-slot=skeleton]]:animate-none [&_[data-slot=skeleton]]:bg-input"
+        className="pointer-events-none -mx-6 -mt-3 max-h-[38rem] select-none overflow-hidden px-6 pt-3 opacity-60 blur-[4px] [mask-image:linear-gradient(to_bottom,#000_55%,transparent_100%)] [&_[data-slot=skeleton]]:animate-none [&_[data-slot=skeleton]]:bg-input"
       >
         {children}
       </div>

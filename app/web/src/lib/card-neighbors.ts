@@ -18,7 +18,7 @@ export function parseNeighborContext(sp: URLSearchParams): NeighborContext | nul
 
 // Turn a 3-wide (or 2-wide at the first index) window fetched at offset
 // max(0, index-1) into prev/next. Returns null if the window's center is not
-// the current card — the result list changed since the link was built.
+// the current card - the result list changed since the link was built.
 export function neighborsFromWindow(
   hits: { id: string }[],
   currentId: string,
@@ -55,7 +55,7 @@ export async function getCardNeighbors(
         next: w.nextId ? { id: w.nextId, href: contextHref(w.nextId, ctx.params, w.nextIndex) } : null,
       }
     }
-    // stale index → fall through to set order
+    // stale index -> fall through to set order
   }
 
   // Set-order fallback. Sets are small (<= ~200 cards); 500 is a safe ceiling.

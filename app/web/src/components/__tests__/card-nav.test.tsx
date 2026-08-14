@@ -135,4 +135,11 @@ describe('CardNav', () => {
     expect(screen.getByText('card')).toBeInTheDocument()
     expect(screen.queryByRole('link')).toBeNull()
   })
+
+  it('does not show or burn the hint when there are no neighbors', () => {
+    render(<CardNav prev={null} next={null} labels={labels}><div>card</div></CardNav>)
+    expect(screen.queryByText('to flip between cards')).toBeNull()
+    expect(screen.queryByText('Swipe to flip between cards')).toBeNull()
+    expect(localStorage.getItem('revelio.cardNav.hintSeen')).toBeNull()
+  })
 })

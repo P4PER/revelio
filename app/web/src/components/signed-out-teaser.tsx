@@ -51,7 +51,7 @@ export function SignedOutTeaser({
       */}
       <div
         aria-hidden="true"
-        className="pointer-events-none -mx-6 -mt-3 max-h-[38rem] select-none overflow-hidden px-6 pt-3 opacity-60 blur-[4px] [mask-image:linear-gradient(to_bottom,#000_55%,transparent_100%)] [&_[data-slot=skeleton]]:animate-none [&_[data-slot=skeleton]]:bg-input"
+        className="pointer-events-none -mx-6 -mt-3 max-h-[38rem] select-none overflow-hidden px-6 pt-3 opacity-60 blur-[3px] [mask-image:linear-gradient(to_bottom,#000_55%,transparent_100%)] [&_[data-slot=skeleton]]:animate-none [&_[data-slot=skeleton]]:bg-input"
       >
         {children}
       </div>

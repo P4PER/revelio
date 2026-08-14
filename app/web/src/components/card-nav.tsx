@@ -110,10 +110,15 @@ export function CardNav({
 
   if (!prev && !next) return <>{children}</>
 
+  // Chevrons stay hidden for mouse users (navigation is via ← → keys / swipe) and
+  // reveal only on keyboard focus — an opacity-0 element is still in the a11y tree,
+  // so screen readers reach it regardless. No hover reveal over the card art.
+  // Asymmetric timing: the resting state carries the slow duration (a smooth
+  // 700ms fade-out, matching the caption), while focus-in stays snappy at 150ms.
   const chevron =
     'absolute top-1/2 -translate-y-1/2 rounded-full bg-background/70 text-foreground opacity-0 backdrop-blur ' +
-    'transition-opacity hover:bg-background/90 focus-visible:opacity-100 group-hover:opacity-100'
-  const scrim = 'pointer-events-none absolute inset-y-0 w-24 opacity-0 transition-opacity group-hover:opacity-100'
+    'transition-opacity duration-700 ease-out hover:bg-background/90 focus-visible:opacity-100 focus-visible:duration-150'
+  const scrim = 'pointer-events-none absolute inset-y-0 w-24 opacity-0 transition-opacity group-focus-within:opacity-100'
 
   return (
     <div
@@ -132,7 +137,7 @@ export function CardNav({
             variant="ghost"
             size="icon"
             aria-label={labels.prev}
-            className={cn(chevron, 'left-2', hintMode === 'keys' && 'opacity-100 animate-chevron-hint')}
+            className={cn(chevron, 'left-2', hintMode === 'keys' && !hintFading && 'opacity-100 animate-chevron-hint')}
           >
             <Link href={prev.href}><ChevronLeft className="size-5" /></Link>
           </Button>
@@ -146,7 +151,7 @@ export function CardNav({
             variant="ghost"
             size="icon"
             aria-label={labels.next}
-            className={cn(chevron, 'right-2', hintMode === 'keys' && 'opacity-100 animate-chevron-hint')}
+            className={cn(chevron, 'right-2', hintMode === 'keys' && !hintFading && 'opacity-100 animate-chevron-hint')}
           >
             <Link href={next.href}><ChevronRight className="size-5" /></Link>
           </Button>

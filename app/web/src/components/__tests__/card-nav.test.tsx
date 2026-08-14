@@ -12,18 +12,23 @@ vi.mock('@/../i18n/navigation', () => ({
 
 import { CardNav } from '../card-nav'
 
-const labels = { prev: 'Previous card', next: 'Next card', hint: 'to flip between cards' }
+const labels = {
+  prev: 'Previous card', next: 'Next card',
+  hint: 'to flip between cards', swipe: 'Swipe to flip between cards',
+}
 const prev = { id: 'p', href: '/card/p?i=1' }
 const next = { id: 'n', href: '/card/n?i=3' }
 
-function setReducedMotion(reduce: boolean) {
-  window.matchMedia = vi.fn().mockReturnValue({
-    matches: reduce, addEventListener: vi.fn(), removeEventListener: vi.fn(),
-  }) as never
+// Query-aware matchMedia: the hint reads '(prefers-reduced-motion)' and '(hover: none)'.
+function mockMatchMedia({ reduce = false, touch = false } = {}) {
+  window.matchMedia = vi.fn((q: string) => ({
+    matches: q.includes('prefers-reduced-motion') ? reduce : q.includes('hover: none') ? touch : false,
+    media: q, addEventListener: vi.fn(), removeEventListener: vi.fn(),
+  })) as never
 }
 
 beforeEach(() => {
-  push.mockClear(); prefetch.mockClear(); localStorage.clear(); setReducedMotion(false)
+  push.mockClear(); prefetch.mockClear(); localStorage.clear(); mockMatchMedia()
 })
 
 function frame(el: HTMLElement) {
@@ -80,19 +85,48 @@ describe('CardNav', () => {
     expect(screen.getByLabelText('Next card')).toHaveAttribute('href', '/card/n?i=3')
   })
 
-  it('shows the one-time hint once, then marks it seen', () => {
+  it('shows the desktop keys hint once, then marks it seen', () => {
     const { unmount } = render(<CardNav prev={prev} next={next} labels={labels}><div>card</div></CardNav>)
     expect(screen.getByText('to flip between cards')).toBeInTheDocument()
+    expect(screen.queryByText('Swipe to flip between cards')).toBeNull()
     expect(localStorage.getItem('revelio.cardNav.hintSeen')).toBe('1')
     unmount()
     render(<CardNav prev={prev} next={next} labels={labels}><div>card</div></CardNav>)
     expect(screen.queryByText('to flip between cards')).toBeNull()
   })
 
+  it('shows the swipe hint (not the keys hint) on touch devices', () => {
+    mockMatchMedia({ touch: true })
+    render(<CardNav prev={prev} next={next} labels={labels}><div>card</div></CardNav>)
+    expect(screen.getByText('Swipe to flip between cards')).toBeInTheDocument()
+    expect(screen.queryByText('to flip between cards')).toBeNull()
+  })
+
+  it('fades the hint out when its animation ends, then unmounts on transitionend', () => {
+    const { container } = render(<CardNav prev={prev} next={next} labels={labels}><div>card</div></CardNav>)
+    const hint = () => container.querySelector('[data-testid="card-nav-hint"]')
+    expect(screen.getByText('to flip between cards')).toBeInTheDocument()
+
+    // Animation done → start fading (still mounted, now opacity-0).
+    // jsdom's AnimationEvent.animationName is read-only, so build the event by hand.
+    const ae = new Event('animationend', { bubbles: true })
+    Object.defineProperty(ae, 'animationName', { value: 'chevron-hint' })
+    fireEvent(frame(container), ae)
+    expect(hint()).toBeInTheDocument()
+    expect(hint()).toHaveClass('opacity-0')
+
+    // Fade finished → unmounts.
+    const te = new Event('transitionend', { bubbles: true })
+    Object.defineProperty(te, 'propertyName', { value: 'opacity' })
+    fireEvent(hint()!, te)
+    expect(screen.queryByText('to flip between cards')).toBeNull()
+  })
+
   it('skips the hint under prefers-reduced-motion', () => {
-    setReducedMotion(true)
+    mockMatchMedia({ reduce: true })
     render(<CardNav prev={prev} next={next} labels={labels}><div>card</div></CardNav>)
     expect(screen.queryByText('to flip between cards')).toBeNull()
+    expect(screen.queryByText('Swipe to flip between cards')).toBeNull()
     expect(localStorage.getItem('revelio.cardNav.hintSeen')).toBeNull()
   })
 

@@ -59,11 +59,38 @@
   --color-lesson-quidditch: #E2AE37;
 
   --animate-caret-blink: caret-blink 1.25s ease-out infinite;
+  --animate-swipe-hint: swipe-hint 2s ease-in-out 0.2s 2 both;
+  --animate-chevron-hint: chevron-hint 1.5s ease-in-out 2;
+  --animate-hint-in: hint-in 0.6s ease-out;
 }
 
 @keyframes caret-blink {
   0%, 70%, 100% { opacity: 1; }
   20%, 50% { opacity: 0; }
+}
+
+/* First-visit hint caption easing in (it mounts a tick after the page, so it
+   would otherwise pop). Fade-out is handled by a CSS opacity transition. */
+@keyframes hint-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* First-visit desktop hint: the chevrons blink a finite number of times, then
+   stop (unlike Tailwind's infinite animate-pulse). Opacity-only so it doesn't
+   disturb the chevron's -translate-y-1/2 centring. */
+@keyframes chevron-hint {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* First-visit touch hint: a ghost finger sweeps right-to-left across the card a
+   couple of times (finite), teaching the swipe gesture. Centred via -50%. */
+@keyframes swipe-hint {
+  0% { opacity: 0; transform: translate(calc(-50% + 46px), -50%); }
+  18%, 24% { opacity: 1; }
+  70% { opacity: 1; transform: translate(calc(-50% - 46px), -50%); }
+  100% { opacity: 0; transform: translate(calc(-50% - 58px), -50%); }
 }
 
 /* ─── Reveal-Glow dark palette (dark-first: values live in :root) ─── */

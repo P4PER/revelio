@@ -53,7 +53,7 @@ export function CardDetail({
         <CardNav
           prev={prev}
           next={next}
-          labels={{ prev: t('prevCard'), next: t('nextCard'), hint: t('flipHint') }}
+          labels={{ prev: t('prevCard'), next: t('nextCard'), hint: t('flipHint'), swipe: t('swipeHint') }}
         >
           {imgLang ? (
             <CardImage

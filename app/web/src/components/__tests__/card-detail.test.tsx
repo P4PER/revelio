@@ -18,6 +18,7 @@ const messages = {
     health: 'Health', damage: 'Damage/turn', legality: 'Legality',
     artist: 'Illustrated by', rulings: 'Rulings',
     prevCard: 'Previous card', nextCard: 'Next card', flipHint: 'to flip between cards',
+    swipeHint: 'Swipe to flip between cards',
   },
 }
 

@@ -69,7 +69,8 @@
     "rotateBack": "Close rotated view",
     "prevCard": "Previous card",
     "nextCard": "Next card",
-    "flipHint": "to flip between cards"
+    "flipHint": "to flip between cards",
+    "swipeHint": "Swipe to flip between cards"
   },
   "sets": {
     "title": "Sets",

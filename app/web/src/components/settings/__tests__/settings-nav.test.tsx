@@ -13,10 +13,10 @@ vi.mock('@/../i18n/navigation', () => ({
 
 import { SettingsNav } from '../settings-nav'
 
-function renderNav() {
+function renderNav(isLoggedIn = true) {
   return render(
     <NextIntlClientProvider locale="en" messages={en}>
-      <SettingsNav />
+      <SettingsNav isLoggedIn={isLoggedIn} />
     </NextIntlClientProvider>,
   )
 }
@@ -31,4 +31,16 @@ it('marks the current section active from the pathname', () => {
   renderNav()
   expect(screen.getByRole('link', { name: en.settings.nav.email })).toHaveAttribute('aria-current', 'page')
   expect(screen.getByRole('link', { name: en.settings.nav.profile })).not.toHaveAttribute('aria-current')
+})
+
+// Appearance is a device preference, so it is the one section a guest can use;
+// the account sections would bounce straight to /login.
+it('offers a signed-out visitor only the appearance section', () => {
+  renderNav(false)
+  expect(screen.getByRole('link', { name: en.settings.nav.appearance })).toHaveAttribute(
+    'href',
+    '/settings/appearance',
+  )
+  expect(screen.queryByRole('link', { name: en.settings.nav.profile })).toBeNull()
+  expect(screen.queryByRole('link', { name: en.settings.nav.danger })).toBeNull()
 })

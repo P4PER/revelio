@@ -10,20 +10,19 @@ describe('theme + shadcn', () => {
     expect(screen.getByText('Rare')).toBeInTheDocument()
   })
 
-  // Genuine config guard: assert the five lesson-color tokens are actually
-  // registered in globals.css with the correct hex (a typo would fail here,
-  // unlike a class-attribute string check).
-  it('registers all five lesson colors as theme tokens', async () => {
+  // Config guard: a typo in either theme's lesson palette fails here.
+  it('registers all five lesson colors in both themes', async () => {
     const css = await readFile(resolve(process.cwd(), 'src/app/globals.css'), 'utf8')
-    const expected: Record<string, string> = {
-      care_of_magical_creatures: '#836444',
-      charms: '#0069A9',
-      potions: '#00A661',
-      transfiguration: '#BC3E4D',
-      quidditch: '#E2AE37',
+    const expected: Record<string, { light: string; dark: string }> = {
+      cmc: { light: '#6B4F35', dark: '#836444' },
+      charms: { light: '#005A90', dark: '#0069A9' },
+      potions: { light: '#00784A', dark: '#00A661' },
+      transfiguration: { light: '#A32F3D', dark: '#BC3E4D' },
+      quidditch: { light: '#8F6510', dark: '#E2AE37' },
     }
-    for (const [code, hex] of Object.entries(expected)) {
-      expect(css).toMatch(new RegExp(`--color-lesson-${code}\\s*:\\s*${hex}`, 'i'))
+    for (const [code, { light, dark }] of Object.entries(expected)) {
+      expect(css).toMatch(new RegExp(`--light-lesson-${code}\\s*:\\s*${light}`, 'i'))
+      expect(css).toMatch(new RegExp(`--dark-lesson-${code}\\s*:\\s*${dark}`, 'i'))
     }
   })
 })

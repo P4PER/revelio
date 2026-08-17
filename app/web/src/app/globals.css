@@ -2,7 +2,14 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/* Fires on both dark paths: an explicit choice, and the OS setting when the
+   visitor has not chosen. Keeps every existing dark: utility working. */
+@custom-variant dark {
+  &:where([data-theme='dark'], [data-theme='dark'] *) { @slot }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme='light']), :root:not([data-theme='light']) *) { @slot }
+  }
+}
 
 /* Touch devices (no hover): reveal controls that are otherwise hover-only. */
 @custom-variant touch (@media (hover: none));
@@ -51,12 +58,21 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
-  /* Lesson subject colors — bg-lesson-charms, text-lesson-charms, etc. */
-  --color-lesson-care_of_magical_creatures: #836444;
-  --color-lesson-charms: #0069A9;
-  --color-lesson-potions: #00A661;
-  --color-lesson-transfiguration: #BC3E4D;
-  --color-lesson-quidditch: #E2AE37;
+  /* Lesson subject colors - bg-lesson-charms, text-lesson-charms, etc.
+     Values are per-theme: the dark set is the WotC card-frame palette, the
+     light set is darkened so it clears AA on parchment. */
+  --color-lesson-care_of_magical_creatures: var(--lesson-cmc);
+  --color-lesson-charms: var(--lesson-charms);
+  --color-lesson-potions: var(--lesson-potions);
+  --color-lesson-transfiguration: var(--lesson-transfiguration);
+  --color-lesson-quidditch: var(--lesson-quidditch);
+
+  /* Decorative star-field colors (see star-field.tsx). */
+  --color-star-1: var(--star-1);
+  --color-star-2: var(--star-2);
+  --color-star-3: var(--star-3);
+  --color-star-4: var(--star-4);
+  --color-star-5: var(--star-5);
 
   --animate-caret-blink: caret-blink 1.25s ease-out infinite;
   --animate-swipe-hint: swipe-hint 2s ease-in-out 0.2s 2 both;
@@ -93,78 +109,243 @@
   100% { opacity: 0; transform: translate(calc(-50% - 58px), -50%); }
 }
 
-/* ─── Reveal-Glow dark palette (dark-first: values live in :root) ─── */
+/* Palette. Every hex appears exactly once, in the value sets below; the
+   alias blocks that follow only ever point at those values. */
 :root {
-  --background: #13122A;
-  --foreground: #FBF3DC;
-  --card: #1C1838;
-  --card-foreground: #FBF3DC;
-  --popover: #1C1838;
-  --popover-foreground: #FBF3DC;
-  --primary: #E8B23A;
-  --primary-foreground: #13122A;
-  --secondary: #3B3194;
-  --secondary-foreground: #FBF3DC;
-  --muted: #252246;
-  --muted-foreground: #C5BAA0;
-  --accent: #6E66C9;
-  --accent-foreground: #FBF3DC;
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: #2E2A50;
-  --input: #403A6E;
-  --input-fill: #201C3E;
-  --ring: #E8B23A;
-  --chart-1: #E8B23A;
-  --chart-2: #6E66C9;
-  --chart-3: #3B3194;
-  --chart-4: #5CB878;
-  --chart-5: #5B8DEF;
+  /* Reveal-Glow dark */
+  --dark-background: #13122A;
+  --dark-foreground: #FBF3DC;
+  --dark-card: #1C1838;
+  --dark-card-foreground: #FBF3DC;
+  --dark-popover: #1C1838;
+  --dark-popover-foreground: #FBF3DC;
+  --dark-primary: #E8B23A;
+  --dark-primary-foreground: #13122A;
+  --dark-secondary: #3B3194;
+  --dark-secondary-foreground: #FBF3DC;
+  --dark-muted: #252246;
+  --dark-muted-foreground: #C5BAA0;
+  --dark-accent: #6E66C9;
+  --dark-accent-foreground: #FBF3DC;
+  --dark-hover-bg: color-mix(in srgb, var(--dark-accent) 40%, transparent);
+  --dark-destructive: #FF6467;
+  --dark-border: #2E2A50;
+  --dark-input: #403A6E;
+  --dark-input-fill: #201C3E;
+  --dark-ring: #E8B23A;
+  --dark-chart-1: #E8B23A;
+  --dark-chart-2: #6E66C9;
+  --dark-chart-3: #3B3194;
+  --dark-chart-4: #5CB878;
+  --dark-chart-5: #5B8DEF;
+  --dark-sidebar: #1C1838;
+  --dark-sidebar-foreground: #FBF3DC;
+  --dark-sidebar-primary: #E8B23A;
+  --dark-sidebar-primary-foreground: #13122A;
+  --dark-sidebar-accent: #252246;
+  --dark-sidebar-accent-foreground: #FBF3DC;
+  --dark-sidebar-border: #2E2A50;
+  --dark-sidebar-ring: #E8B23A;
+  --dark-lesson-cmc: #836444;
+  --dark-lesson-charms: #0069A9;
+  --dark-lesson-potions: #00A661;
+  --dark-lesson-transfiguration: #BC3E4D;
+  --dark-lesson-quidditch: #E2AE37;
+  --dark-star-1: #E8B23A;
+  --dark-star-2: #6E66C9;
+  --dark-star-3: #7B8FD4;
+  --dark-star-4: #E0AEE0;
+  --dark-star-5: #7BC96F;
+
+  /* Warm parchment light */
+  --light-background: #FBF6EA;
+  --light-foreground: #1C1838;
+  --light-card: #FFFDF7;
+  --light-card-foreground: #1C1838;
+  --light-popover: #FFFDF7;
+  --light-popover-foreground: #1C1838;
+  --light-primary: #F0C458;
+  --light-primary-foreground: #1C1838;
+  --light-secondary: #3B3194;
+  --light-secondary-foreground: #FBF3DC;
+  --light-muted: #F1E9D6;
+  --light-muted-foreground: #5B5478;
+  --light-accent: #E7E0F7;
+  --light-accent-foreground: #1C1838;
+  --light-hover-bg: var(--light-accent);
+  --light-destructive: #B3261E;
+  --light-border: #E4D9C0;
+  --light-input: #D8CBAA;
+  --light-input-fill: #FFFDF7;
+  --light-ring: #F0C458;
+  --light-chart-1: #B8801C;
+  --light-chart-2: #5B4FC0;
+  --light-chart-3: #3B3194;
+  --light-chart-4: #2E9455;
+  --light-chart-5: #3F6FD8;
+  --light-sidebar: #FFFDF7;
+  --light-sidebar-foreground: #1C1838;
+  --light-sidebar-primary: #F0C458;
+  --light-sidebar-primary-foreground: #1C1838;
+  --light-sidebar-accent: #F1E9D6;
+  --light-sidebar-accent-foreground: #1C1838;
+  --light-sidebar-border: #E4D9C0;
+  --light-sidebar-ring: #F0C458;
+  --light-lesson-cmc: #6B4F35;
+  --light-lesson-charms: #005A90;
+  --light-lesson-potions: #00784A;
+  --light-lesson-transfiguration: #A32F3D;
+  --light-lesson-quidditch: #8F6510;
+  --light-star-1: #C8881E;
+  --light-star-2: #5B4FC0;
+  --light-star-3: #4A63B8;
+  --light-star-4: #B06BB0;
+  --light-star-5: #3F9455;
+
   --radius: 0.6rem;
-  --sidebar: #1C1838;
-  --sidebar-foreground: #FBF3DC;
-  --sidebar-primary: #E8B23A;
-  --sidebar-primary-foreground: #13122A;
-  --sidebar-accent: #252246;
-  --sidebar-accent-foreground: #FBF3DC;
-  --sidebar-border: #2E2A50;
-  --sidebar-ring: #E8B23A;
+
+  /* Default aliases: light. */
+  --background: var(--light-background);
+  --foreground: var(--light-foreground);
+  --card: var(--light-card);
+  --card-foreground: var(--light-card-foreground);
+  --popover: var(--light-popover);
+  --popover-foreground: var(--light-popover-foreground);
+  --primary: var(--light-primary);
+  --primary-foreground: var(--light-primary-foreground);
+  --secondary: var(--light-secondary);
+  --secondary-foreground: var(--light-secondary-foreground);
+  --muted: var(--light-muted);
+  --muted-foreground: var(--light-muted-foreground);
+  --accent: var(--light-accent);
+  --accent-foreground: var(--light-accent-foreground);
+  --hover-bg: var(--light-hover-bg);
+  --destructive: var(--light-destructive);
+  --border: var(--light-border);
+  --input: var(--light-input);
+  --input-fill: var(--light-input-fill);
+  --ring: var(--light-ring);
+  --chart-1: var(--light-chart-1);
+  --chart-2: var(--light-chart-2);
+  --chart-3: var(--light-chart-3);
+  --chart-4: var(--light-chart-4);
+  --chart-5: var(--light-chart-5);
+  --sidebar: var(--light-sidebar);
+  --sidebar-foreground: var(--light-sidebar-foreground);
+  --sidebar-primary: var(--light-sidebar-primary);
+  --sidebar-primary-foreground: var(--light-sidebar-primary-foreground);
+  --sidebar-accent: var(--light-sidebar-accent);
+  --sidebar-accent-foreground: var(--light-sidebar-accent-foreground);
+  --sidebar-border: var(--light-sidebar-border);
+  --sidebar-ring: var(--light-sidebar-ring);
+  --lesson-cmc: var(--light-lesson-cmc);
+  --lesson-charms: var(--light-lesson-charms);
+  --lesson-potions: var(--light-lesson-potions);
+  --lesson-transfiguration: var(--light-lesson-transfiguration);
+  --lesson-quidditch: var(--light-lesson-quidditch);
+  --star-1: var(--light-star-1);
+  --star-2: var(--light-star-2);
+  --star-3: var(--light-star-3);
+  --star-4: var(--light-star-4);
+  --star-5: var(--light-star-5);
 }
 
-/* .dark mirrors :root so Tailwind dark: variants fire correctly when
-   className="dark" is on <html> (which it always is in this app). */
-.dark {
-  --background: #13122A;
-  --foreground: #FBF3DC;
-  --card: #1C1838;
-  --card-foreground: #FBF3DC;
-  --popover: #1C1838;
-  --popover-foreground: #FBF3DC;
-  --primary: #E8B23A;
-  --primary-foreground: #13122A;
-  --secondary: #3B3194;
-  --secondary-foreground: #FBF3DC;
-  --muted: #252246;
-  --muted-foreground: #C5BAA0;
-  --accent: #6E66C9;
-  --accent-foreground: #FBF3DC;
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: #2E2A50;
-  --input: #403A6E;
-  --input-fill: #201C3E;
-  --ring: #E8B23A;
-  --chart-1: #E8B23A;
-  --chart-2: #6E66C9;
-  --chart-3: #3B3194;
-  --chart-4: #5CB878;
-  --chart-5: #5B8DEF;
-  --sidebar: #1C1838;
-  --sidebar-foreground: #FBF3DC;
-  --sidebar-primary: #E8B23A;
-  --sidebar-primary-foreground: #13122A;
-  --sidebar-accent: #252246;
-  --sidebar-accent-foreground: #FBF3DC;
-  --sidebar-border: #2E2A50;
-  --sidebar-ring: #E8B23A;
+/* No explicit choice: follow the OS. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --background: var(--dark-background);
+    --foreground: var(--dark-foreground);
+    --card: var(--dark-card);
+    --card-foreground: var(--dark-card-foreground);
+    --popover: var(--dark-popover);
+    --popover-foreground: var(--dark-popover-foreground);
+    --primary: var(--dark-primary);
+    --primary-foreground: var(--dark-primary-foreground);
+    --secondary: var(--dark-secondary);
+    --secondary-foreground: var(--dark-secondary-foreground);
+    --muted: var(--dark-muted);
+    --muted-foreground: var(--dark-muted-foreground);
+    --accent: var(--dark-accent);
+    --accent-foreground: var(--dark-accent-foreground);
+    --hover-bg: var(--dark-hover-bg);
+    --destructive: var(--dark-destructive);
+    --border: var(--dark-border);
+    --input: var(--dark-input);
+    --input-fill: var(--dark-input-fill);
+    --ring: var(--dark-ring);
+    --chart-1: var(--dark-chart-1);
+    --chart-2: var(--dark-chart-2);
+    --chart-3: var(--dark-chart-3);
+    --chart-4: var(--dark-chart-4);
+    --chart-5: var(--dark-chart-5);
+    --sidebar: var(--dark-sidebar);
+    --sidebar-foreground: var(--dark-sidebar-foreground);
+    --sidebar-primary: var(--dark-sidebar-primary);
+    --sidebar-primary-foreground: var(--dark-sidebar-primary-foreground);
+    --sidebar-accent: var(--dark-sidebar-accent);
+    --sidebar-accent-foreground: var(--dark-sidebar-accent-foreground);
+    --sidebar-border: var(--dark-sidebar-border);
+    --sidebar-ring: var(--dark-sidebar-ring);
+    --lesson-cmc: var(--dark-lesson-cmc);
+    --lesson-charms: var(--dark-lesson-charms);
+    --lesson-potions: var(--dark-lesson-potions);
+    --lesson-transfiguration: var(--dark-lesson-transfiguration);
+    --lesson-quidditch: var(--dark-lesson-quidditch);
+    --star-1: var(--dark-star-1);
+    --star-2: var(--dark-star-2);
+    --star-3: var(--dark-star-3);
+    --star-4: var(--dark-star-4);
+    --star-5: var(--dark-star-5);
+  }
+}
+
+/* An explicit choice beats the OS, in both directions. Identical to the block
+   above; CSS cannot share declarations across a media-query boundary, so
+   theme-tokens.test.ts asserts the two stay in sync. */
+:root[data-theme='dark'] {
+  --background: var(--dark-background);
+  --foreground: var(--dark-foreground);
+  --card: var(--dark-card);
+  --card-foreground: var(--dark-card-foreground);
+  --popover: var(--dark-popover);
+  --popover-foreground: var(--dark-popover-foreground);
+  --primary: var(--dark-primary);
+  --primary-foreground: var(--dark-primary-foreground);
+  --secondary: var(--dark-secondary);
+  --secondary-foreground: var(--dark-secondary-foreground);
+  --muted: var(--dark-muted);
+  --muted-foreground: var(--dark-muted-foreground);
+  --accent: var(--dark-accent);
+  --accent-foreground: var(--dark-accent-foreground);
+  --hover-bg: var(--dark-hover-bg);
+  --destructive: var(--dark-destructive);
+  --border: var(--dark-border);
+  --input: var(--dark-input);
+  --input-fill: var(--dark-input-fill);
+  --ring: var(--dark-ring);
+  --chart-1: var(--dark-chart-1);
+  --chart-2: var(--dark-chart-2);
+  --chart-3: var(--dark-chart-3);
+  --chart-4: var(--dark-chart-4);
+  --chart-5: var(--dark-chart-5);
+  --sidebar: var(--dark-sidebar);
+  --sidebar-foreground: var(--dark-sidebar-foreground);
+  --sidebar-primary: var(--dark-sidebar-primary);
+  --sidebar-primary-foreground: var(--dark-sidebar-primary-foreground);
+  --sidebar-accent: var(--dark-sidebar-accent);
+  --sidebar-accent-foreground: var(--dark-sidebar-accent-foreground);
+  --sidebar-border: var(--dark-sidebar-border);
+  --sidebar-ring: var(--dark-sidebar-ring);
+  --lesson-cmc: var(--dark-lesson-cmc);
+  --lesson-charms: var(--dark-lesson-charms);
+  --lesson-potions: var(--dark-lesson-potions);
+  --lesson-transfiguration: var(--dark-lesson-transfiguration);
+  --lesson-quidditch: var(--dark-lesson-quidditch);
+  --star-1: var(--dark-star-1);
+  --star-2: var(--dark-star-2);
+  --star-3: var(--dark-star-3);
+  --star-4: var(--dark-star-4);
+  --star-5: var(--dark-star-5);
 }
 
 @layer base {

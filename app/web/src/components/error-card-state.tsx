@@ -35,7 +35,10 @@ export function ErrorCardState({
         <div
           className={cn(
             'relative grid aspect-[5/7] h-80 place-items-center overflow-hidden rounded-2xl border border-border',
-            'shadow-xl',
+            // Light gets the scale's own shadow; dark keeps the original heavy
+            // one, which is built for a midnight page and would be too much on
+            // parchment.
+            'shadow-xl dark:shadow-[0_18px_42px_rgba(0,0,0,0.55)]',
             mask && '[mask-image:linear-gradient(115deg,#000_55%,transparent_92%)]',
           )}
           style={{

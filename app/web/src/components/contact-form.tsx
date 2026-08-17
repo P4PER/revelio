@@ -169,7 +169,13 @@ export function ContactForm({
               <FormItem>
                 <FormLabel>{t('name')}</FormLabel>
                 <FormControl>
-                  <Input type="text" size="lg" {...field} />
+                  <Input
+                    type="text"
+                    size="lg"
+                    autoComplete="name"
+                    placeholder={t('namePlaceholder')}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -182,7 +188,13 @@ export function ContactForm({
               <FormItem>
                 <FormLabel>{t('email')}</FormLabel>
                 <FormControl>
-                  <Input type="email" size="lg" {...field} />
+                  <Input
+                    type="email"
+                    size="lg"
+                    autoComplete="email"
+                    placeholder={t('emailPlaceholder')}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -196,7 +208,12 @@ export function ContactForm({
               <FormItem>
                 <FormLabel>{t('subject')}</FormLabel>
                 <FormControl>
-                  <Input type="text" size="lg" {...field} />
+                  <Input
+                    type="text"
+                    size="lg"
+                    placeholder={t('subjectPlaceholder')}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -216,6 +233,7 @@ export function ContactForm({
                     onBlur={field.onBlur}
                     ref={field.ref}
                     size="lg"
+                    placeholder={t('messagePlaceholder')}
                     className="min-h-32 mb-0"
                   />
                 </FormControl>

@@ -30,9 +30,9 @@ function NavList({ onSelect }: { onSelect?: () => void }) {
                     'font-semibold text-foreground',
                     danger
                       ? 'bg-gradient-to-r from-destructive/20 to-destructive/5 shadow-[inset_3px_0_0_var(--color-destructive)]'
-                      : 'bg-gradient-to-r from-accent/25 to-accent/10 shadow-[inset_3px_0_0_var(--color-primary)]',
+                      : 'bg-gradient-to-r from-(--hover-bg) to-transparent shadow-[inset_3px_0_0_var(--color-primary)]',
                   )
-                : cn('font-medium hover:bg-accent/50', danger && 'text-destructive'),
+                : cn('font-medium hover:bg-(--hover-bg)', danger && 'text-destructive'),
             )}
           >
             {t(s)}

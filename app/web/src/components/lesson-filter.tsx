@@ -35,7 +35,7 @@ export function LessonFilter({
                 ? { backgroundColor: l.color, borderColor: l.color, color: '#fff' }
                 : { color: l.color }
             }
-            className="hover:bg-white/5"
+            className="hover:bg-(--hover-bg)"
           >
             {/* Icon is filled with the lesson colour; force white on the active
                 (colour-filled) chip so it stays legible. */}

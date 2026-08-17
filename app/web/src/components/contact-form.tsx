@@ -106,7 +106,7 @@ export function ContactForm({
             <rect x="58" y="38" width="24" height="17" rx="3" fill="currentColor" />
             <path
               d="M58.5 40.5 L70 49 L81.5 40.5"
-              stroke="#1b1836"
+              stroke="var(--color-primary-foreground)"
               strokeWidth="1.6"
               strokeLinecap="round"
               strokeLinejoin="round"

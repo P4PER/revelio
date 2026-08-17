@@ -8,8 +8,8 @@ const VARIANTS: Record<
   { symbol: string; color: string; mask: boolean }
 > = {
   missing: { symbol: '?', color: 'text-primary', mask: false },
-  dissolving: { symbol: '✦', color: 'text-accent', mask: true },
-  dark: { symbol: '✦', color: 'text-accent', mask: false },
+  dissolving: { symbol: '✦', color: 'text-secondary', mask: true },
+  dark: { symbol: '✦', color: 'text-secondary', mask: false },
 }
 
 export function ErrorCardState({
@@ -35,15 +35,15 @@ export function ErrorCardState({
         <div
           className={cn(
             'relative grid aspect-[5/7] h-80 place-items-center overflow-hidden rounded-2xl border border-border',
-            'shadow-[0_18px_42px_rgba(0,0,0,0.55)]',
+            'shadow-xl',
             mask && '[mask-image:linear-gradient(115deg,#000_55%,transparent_92%)]',
           )}
           style={{
             backgroundImage:
-              'repeating-linear-gradient(135deg,#1d1942 0 9px,#191537 9px 18px)',
+              'repeating-linear-gradient(135deg,var(--color-muted) 0 9px,var(--color-card) 9px 18px)',
           }}
         >
-          <div className="pointer-events-none absolute inset-4 rounded-lg border border-dashed border-[#3a3568]" />
+          <div className="pointer-events-none absolute inset-4 rounded-lg border border-dashed border-border" />
           <span
             aria-hidden="true"
             className={cn(

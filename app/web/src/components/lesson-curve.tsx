@@ -26,7 +26,7 @@ export function LessonCurve({ entries }: { entries: DeckCardView[] }) {
           <div
             key={i}
             data-testid="curve-bar"
-            className="relative min-h-1 flex-1 rounded-t-sm bg-gradient-to-b from-accent to-secondary"
+            className="relative min-h-1 flex-1 rounded-t-sm bg-gradient-to-b from-chart-2 to-chart-3"
             style={{ height: `${Math.max(4, Math.round((count / max) * 100))}%` }}
           >
             <span className="absolute inset-x-0 -top-4 text-center text-[0.6rem] tabular-nums text-muted-foreground">

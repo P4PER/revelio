@@ -61,8 +61,10 @@ drop shadow. **This is an accepted, deliberate trade-off, recorded here so it is
 
 ## Palette
 
-Dark values are unchanged from what ships today. `destructive` is currently an `oklch()`
-literal; it becomes a hex for consistency with every other token (same rendered colour).
+Dark values are unchanged from what ships today. `destructive` is currently the `oklch()`
+literal `oklch(0.704 0.191 22.216)`; it becomes the hex `#FF6467`, which is the exact sRGB
+value that literal rasterizes to (verified by rendering it to a canvas), so dark mode is
+pixel-identical.
 
 | Token | Light (parchment) | Dark (current) |
 |---|---|---|
@@ -78,7 +80,7 @@ literal; it becomes a hex for consistency with every other token (same rendered 
 | `muted-foreground` | `#5B5478` | `#C5BAA0` |
 | `accent` | `#E7E0F7` | `#6E66C9` |
 | `accent-foreground` | `#1C1838` | `#FBF3DC` |
-| `destructive` | `#B3261E` | `#F26D6D` |
+| `destructive` | `#B3261E` | `#FF6467` |
 | `border` | `#E4D9C0` | `#2E2A50` |
 | `input` | `#D8CBAA` | `#403A6E` |
 | `input-fill` | `#FFFDF7` | `#201C3E` |
@@ -297,6 +299,7 @@ The app is almost entirely token-driven, so this list is short and specific.
 | `components/settings/settings-nav.tsx:33` | same gradient pattern | same |
 | `components/contact-form.tsx` | hardcoded hex | tokens |
 | `lib/seo.ts` | single `THEME_COLOR` | export both, feed `generateViewport` |
+| `components/ui/sonner.tsx` | hardcoded `theme="dark"` | take the resolved `ThemeChoice` as a prop; `system` makes sonner follow `prefers-color-scheme`, matching the CSS |
 
 ### Deliberately unchanged
 
@@ -310,6 +313,11 @@ does not "fix" them:
 `deck-card-browser.tsx`, `lesson-cost.tsx` (white on a lesson-coloured pill),
 `ui/alert-dialog.tsx` + `ui/sheet.tsx` (`bg-black/50` modal overlays),
 `ui/button.tsx` + `ui/badge.tsx` (`text-white` on `destructive`).
+
+`app/manifest.ts` also keeps `THEME_COLOR` (midnight) for both `theme_color` and
+`background_color`: a PWA manifest carries a single value and cannot vary by media query,
+so the installed app stays on brand. Only the in-page `themeColor` viewport meta becomes a
+light/dark media pair.
 
 Also unchanged: `lib/og-image.tsx`, `lib/deck-png.ts`, `lib/email/*` — fixed-surface server
 rendering, per non-goals.

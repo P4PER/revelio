@@ -2,7 +2,15 @@ import { mulberry32 } from '@/lib/random'
 
 // Decorative twinkling stars echoing the holofoil cards. Deterministic
 // positions (seeded PRNG) so SSR and client render identically.
-const COLORS = ['#E8B23A', '#6E66C9', '#7B8FD4', '#E0AEE0', '#7BC96F']
+// Per-theme via CSS custom properties: the dark set is bright on midnight, the
+// light set is darker so the stars stay visible on parchment.
+const COLORS = [
+  'var(--color-star-1)',
+  'var(--color-star-2)',
+  'var(--color-star-3)',
+  'var(--color-star-4)',
+  'var(--color-star-5)',
+]
 const rand = mulberry32(1337)
 const STARS = Array.from({ length: 24 }, () => ({
   top: `${(rand() * 100).toFixed(2)}%`,

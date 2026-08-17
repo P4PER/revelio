@@ -13,7 +13,7 @@ describe('HeaderBrandMark', () => {
     render(<HeaderBrandMark />)
     const logos = screen.getAllByAltText(BRAND_NAME)
     expect(logos).toHaveLength(1)
-    expect(logos[0]).toHaveAttribute('src', expect.stringContaining('revelio-logo-dark.svg'))
+    expect(logos[0]).toHaveAttribute('src', expect.stringContaining('revelio-logo-primary.svg'))
   })
 
   it('renders the icon for phones and the wordmark for >=640px off the home page', () => {
@@ -21,7 +21,7 @@ describe('HeaderBrandMark', () => {
     render(<HeaderBrandMark />)
     const logos = screen.getAllByAltText(BRAND_NAME)
     const icon = logos.find((l) => l.getAttribute('src')?.includes('revelio-icon.svg'))
-    const wordmark = logos.find((l) => l.getAttribute('src')?.includes('revelio-logo-dark.svg'))
+    const wordmark = logos.find((l) => l.getAttribute('src')?.includes('revelio-logo-primary.svg'))
     expect(icon).toBeTruthy()
     expect(wordmark).toBeTruthy()
     // Icon shows on phones, hides at >=640px; wordmark is the inverse.

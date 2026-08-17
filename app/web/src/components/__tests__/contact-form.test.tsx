@@ -64,6 +64,16 @@ describe('ContactForm', () => {
     expect(sendContactMessage).not.toHaveBeenCalled()
   })
 
+  it('shows a placeholder hint on every visible field', () => {
+    renderForm()
+    for (const key of ['name', 'email', 'subject', 'message'] as const) {
+      expect(screen.getByLabelText(en.contact[key])).toHaveAttribute(
+        'placeholder',
+        en.contact[`${key}Placeholder`],
+      )
+    }
+  })
+
   it('prefills name and email from the provided defaults', () => {
     render(
       <NextIntlClientProvider locale="en" messages={en}>

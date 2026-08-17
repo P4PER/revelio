@@ -5,7 +5,7 @@ import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
 import { routing } from '@/../i18n/routing'
-import { buildSiteMetadata, THEME_COLOR } from '@/lib/seo'
+import { buildSiteMetadata, THEME_COLOR, THEME_COLOR_LIGHT } from '@/lib/seo'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { Toaster } from '@/components/ui/sonner'
@@ -24,8 +24,16 @@ export async function generateMetadata({
   return buildSiteMetadata({ locale, description: t('description') })
 }
 
-export const viewport: Viewport = {
-  themeColor: THEME_COLOR,
+// Browser chrome follows the OS setting. An explicit cookie choice is not
+// reflected here: themeColor is static metadata, and the media-query pair is
+// right for the overwhelmingly common case.
+export function generateViewport(): Viewport {
+  return {
+    themeColor: [
+      { media: '(prefers-color-scheme: light)', color: THEME_COLOR_LIGHT },
+      { media: '(prefers-color-scheme: dark)', color: THEME_COLOR },
+    ],
+  }
 }
 
 const poppins = Poppins({
@@ -68,7 +76,7 @@ export default async function LocaleLayout({
             <div className="flex-1">{children}</div>
           </div>
           <SiteFooter />
-          <Toaster />
+          <Toaster theme={theme} />
           <SearchHotkey />
         </NextIntlClientProvider>
       </body>

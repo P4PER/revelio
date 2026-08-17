@@ -11,6 +11,9 @@ export const METADATA_BASE = new URL(SITE_URL)
 /** Brand midnight — used for the PWA theme color and manifest background. */
 export const THEME_COLOR = '#13122A'
 
+/** Parchment - the light theme's page background, for the PWA theme color. */
+export const THEME_COLOR_LIGHT = '#FBF6EA'
+
 /** Standard Open Graph / Twitter large-image card dimensions. */
 export const OG_SIZE = { width: 1200, height: 630 } as const
 

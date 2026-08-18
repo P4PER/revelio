@@ -17,6 +17,13 @@ describe('light-mode sweep', () => {
     expect(await read('error-card-state.tsx')).not.toMatch(/text-accent\b/)
   })
 
+  // text-white is only safe over card art, a black scrim or a destructive
+  // fill. Here it sat on bg-card, so the count was white on near-white and
+  // only showed up when a text selection highlighted it.
+  it('add-to-collection does not paint the count white', async () => {
+    expect(await read('add-to-collection.tsx')).not.toMatch(/text-white/)
+  })
+
   it.each(['contact-form.tsx', 'error-card-state.tsx'])(
     '%s has no hardcoded hex colours',
     async (file) => {

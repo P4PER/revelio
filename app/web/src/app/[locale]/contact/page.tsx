@@ -32,7 +32,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
     <main className="relative mx-auto max-w-2xl px-6 pt-16 pb-20">
       <div className="flex flex-col items-center text-center">
         <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-          {t('titlePrefix')} <span className="text-primary">{t('titleAccent')}</span>
+          {t('titlePrefix')} <span className="text-primary-ink">{t('titleAccent')}</span>
         </h1>
         <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground">
           {t('intro')}

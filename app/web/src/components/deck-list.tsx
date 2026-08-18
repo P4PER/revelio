@@ -180,7 +180,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
               ) : (
                 <Link
                   href={`/decks/${deck.id}`}
-                  className="line-clamp-2 flex-1 font-semibold text-foreground transition-colors group-hover:text-primary after:absolute after:inset-0 after:rounded-xl"
+                  className="line-clamp-2 flex-1 font-semibold text-foreground transition-colors group-hover:text-primary-ink after:absolute after:inset-0 after:rounded-xl"
                 >
                   {deck.name}
                 </Link>
@@ -240,7 +240,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
                   className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"
                   aria-label={t('list.startingCharacter', { name: deck.characterName })}
                 >
-                  <Star className="size-3.5 shrink-0 text-primary/70" aria-hidden />
+                  <Star className="size-3.5 shrink-0 text-primary-ink/70" aria-hidden />
                   <span className="truncate">{deck.characterName}</span>
                 </p>
               )}

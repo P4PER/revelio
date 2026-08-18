@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-const PARCHMENT = 'rgb(251, 246, 234)' // #FBF6EA
+const PARCHMENT = 'rgb(248, 245, 237)' // #F8F5ED
 const MIDNIGHT = 'rgb(19, 18, 42)' // #13122A
 
 // Serialized into the page by page.evaluate, so the browser globals are fine.

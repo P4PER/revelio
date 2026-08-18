@@ -12,7 +12,7 @@ export const METADATA_BASE = new URL(SITE_URL)
 export const THEME_COLOR = '#13122A'
 
 /** Parchment - the light theme's page background, for the PWA theme color. */
-export const THEME_COLOR_LIGHT = '#FBF6EA'
+export const THEME_COLOR_LIGHT = '#F8F5ED'
 
 /** Standard Open Graph / Twitter large-image card dimensions. */
 export const OG_SIZE = { width: 1200, height: 630 } as const

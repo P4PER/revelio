@@ -35,6 +35,11 @@ describe('light theme contrast', () => {
     ['muted text', '--light-muted-foreground', '--light-background'],
     ['muted text on card', '--light-muted-foreground', '--light-card'],
     ['primary button label', '--light-primary-foreground', '--light-primary'],
+    // --primary is a FILL (dark ink sits on it). Gold used as text needs its
+    // own darker value: #F0C458 on parchment is 1.51:1, effectively invisible.
+    ['gold ink on page', '--light-primary-ink', '--light-background'],
+    ['gold ink on card', '--light-primary-ink', '--light-card'],
+    ['gold ink on muted', '--light-primary-ink', '--light-muted'],
     ['secondary button label', '--light-secondary-foreground', '--light-secondary'],
     ['accent hover label', '--light-accent-foreground', '--light-accent'],
     ['destructive text', '--light-destructive', '--light-background'],

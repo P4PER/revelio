@@ -19,7 +19,7 @@ export default async function NewSetPage({ params }: { params: Promise<{ locale:
         <ChevronLeft className="size-4" />
         {t('back')}
       </Link>
-      <h1 className="mb-6 text-2xl font-semibold text-primary">{t('new')}</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-primary-ink">{t('new')}</h1>
       <SetForm
         mode="create"
         locales={[...routing.locales]}

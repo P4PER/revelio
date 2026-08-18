@@ -106,7 +106,7 @@ export function MobileNav({
                 }}
                 className={
                   active
-                    ? `${rowClass} bg-primary/10 font-semibold text-primary hover:bg-primary/15 hover:text-primary`
+                    ? `${rowClass} bg-primary/10 font-semibold text-primary-ink hover:bg-primary/15 hover:text-primary-ink`
                     : rowClass
                 }
               >
@@ -135,7 +135,7 @@ export function MobileNav({
               <div className="min-w-0">
                 {(user.displayUsername ?? user.username) && (
                   <div className="truncate text-sm font-semibold">
-                    <span className="relative bottom-px text-primary">@</span>
+                    <span className="relative bottom-px text-primary-ink">@</span>
                     {user.displayUsername ?? user.username}
                   </div>
                 )}

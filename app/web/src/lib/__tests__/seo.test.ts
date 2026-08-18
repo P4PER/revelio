@@ -28,7 +28,7 @@ describe('seo helpers', () => {
   })
 
   it('exposes the light theme color', () => {
-    expect(THEME_COLOR_LIGHT).toBe('#FBF6EA')
+    expect(THEME_COLOR_LIGHT).toBe('#F8F5ED')
   })
 
   it('uses the standard 1200x630 PNG social card', () => {

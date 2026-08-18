@@ -45,6 +45,7 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-ink: var(--primary-ink);
   --color-primary: var(--primary);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
@@ -121,6 +122,7 @@
   --dark-popover-foreground: #FBF3DC;
   --dark-primary: #E8B23A;
   --dark-primary-foreground: #13122A;
+  --dark-primary-ink: #E8B23A;
   --dark-secondary: #3B3194;
   --dark-secondary-foreground: #FBF3DC;
   --dark-muted: #252246;
@@ -158,7 +160,7 @@
   --dark-star-5: #7BC96F;
 
   /* Warm parchment light */
-  --light-background: #FBF6EA;
+  --light-background: #F8F5ED;
   --light-foreground: #1C1838;
   --light-card: #FFFDF7;
   --light-card-foreground: #1C1838;
@@ -166,16 +168,17 @@
   --light-popover-foreground: #1C1838;
   --light-primary: #F0C458;
   --light-primary-foreground: #1C1838;
+  --light-primary-ink: #875D0D;
   --light-secondary: #3B3194;
   --light-secondary-foreground: #FBF3DC;
-  --light-muted: #F1E9D6;
+  --light-muted: #ECE7DB;
   --light-muted-foreground: #5B5478;
   --light-accent: #E7E0F7;
   --light-accent-foreground: #1C1838;
   --light-hover-bg: var(--light-accent);
   --light-destructive: #B3261E;
-  --light-border: #E4D9C0;
-  --light-input: #D8CBAA;
+  --light-border: #DDD6C7;
+  --light-input: #CFC7B3;
   --light-input-fill: #FFFDF7;
   --light-ring: #F0C458;
   --light-chart-1: #B8801C;
@@ -187,9 +190,9 @@
   --light-sidebar-foreground: #1C1838;
   --light-sidebar-primary: #F0C458;
   --light-sidebar-primary-foreground: #1C1838;
-  --light-sidebar-accent: #F1E9D6;
+  --light-sidebar-accent: #ECE7DB;
   --light-sidebar-accent-foreground: #1C1838;
-  --light-sidebar-border: #E4D9C0;
+  --light-sidebar-border: #DDD6C7;
   --light-sidebar-ring: #F0C458;
   --light-lesson-cmc: #6B4F35;
   --light-lesson-charms: #005A90;
@@ -213,6 +216,7 @@
   --popover-foreground: var(--light-popover-foreground);
   --primary: var(--light-primary);
   --primary-foreground: var(--light-primary-foreground);
+  --primary-ink: var(--light-primary-ink);
   --secondary: var(--light-secondary);
   --secondary-foreground: var(--light-secondary-foreground);
   --muted: var(--light-muted);
@@ -261,6 +265,7 @@
     --popover-foreground: var(--dark-popover-foreground);
     --primary: var(--dark-primary);
     --primary-foreground: var(--dark-primary-foreground);
+    --primary-ink: var(--dark-primary-ink);
     --secondary: var(--dark-secondary);
     --secondary-foreground: var(--dark-secondary-foreground);
     --muted: var(--dark-muted);
@@ -311,6 +316,7 @@
   --popover-foreground: var(--dark-popover-foreground);
   --primary: var(--dark-primary);
   --primary-foreground: var(--dark-primary-foreground);
+  --primary-ink: var(--dark-primary-ink);
   --secondary: var(--dark-secondary);
   --secondary-foreground: var(--dark-secondary-foreground);
   --muted: var(--dark-muted);

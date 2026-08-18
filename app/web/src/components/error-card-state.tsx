@@ -7,7 +7,7 @@ const VARIANTS: Record<
   ErrorCardVariant,
   { symbol: string; color: string; mask: boolean }
 > = {
-  missing: { symbol: '?', color: 'text-primary', mask: false },
+  missing: { symbol: '?', color: 'text-primary-ink', mask: false },
   dissolving: { symbol: '✦', color: 'text-secondary', mask: true },
   dark: { symbol: '✦', color: 'text-secondary', mask: false },
 }
@@ -59,13 +59,13 @@ export function ErrorCardState({
         </div>
         <span
           aria-hidden="true"
-          className="absolute -left-3 -top-2 text-xl text-primary [filter:drop-shadow(0_0_8px_rgba(246,213,139,0.85))]"
+          className="absolute -left-3 -top-2 text-xl text-primary-ink [filter:drop-shadow(0_0_8px_rgba(246,213,139,0.85))]"
         >
           ✦
         </span>
         <span
           aria-hidden="true"
-          className="absolute -bottom-1 -right-3 text-sm text-primary [filter:drop-shadow(0_0_6px_rgba(246,213,139,0.8))]"
+          className="absolute -bottom-1 -right-3 text-sm text-primary-ink [filter:drop-shadow(0_0_6px_rgba(246,213,139,0.8))]"
         >
           ✦
         </span>

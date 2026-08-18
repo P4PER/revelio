@@ -51,7 +51,7 @@ export function AccountMenu({
           <div className="min-w-0">
             {handle && (
               <div className="truncate text-sm font-semibold">
-                <span className="relative bottom-px text-primary">@</span>
+                <span className="relative bottom-px text-primary-ink">@</span>
                 {handle}
               </div>
             )}

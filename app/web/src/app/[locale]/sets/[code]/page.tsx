@@ -57,7 +57,7 @@ export default async function SetPage({
   return (
     <main className="mx-auto max-w-[76rem] px-6 py-8">
       <header className="mb-6">
-        <h1 className="text-2xl font-semibold text-primary">{set.name}</h1>
+        <h1 className="text-2xl font-semibold text-primary-ink">{set.name}</h1>
         <p className="text-sm text-muted-foreground">
           {t('meta', { count: set.cardCount, date: formatReleaseMonth(set.releaseDate) })}
         </p>

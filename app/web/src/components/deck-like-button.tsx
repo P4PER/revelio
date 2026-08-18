@@ -62,7 +62,7 @@ export function DeckLikeButton({
         className,
       )}
     >
-      <Heart className={cn('size-5', liked && 'fill-current text-primary')} />
+      <Heart className={cn('size-5', liked && 'fill-current text-primary-ink')} />
       {count}
     </button>
   )

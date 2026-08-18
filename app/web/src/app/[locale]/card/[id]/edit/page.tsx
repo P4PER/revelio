@@ -113,7 +113,7 @@ export default async function EditCardPage({
           ))}
         </div>
       </div>
-      <h1 className="text-2xl font-semibold text-primary">{t('title')}</h1>
+      <h1 className="text-2xl font-semibold text-primary-ink">{t('title')}</h1>
       <p className="mb-8 text-sm text-muted-foreground">{card.name} · {id}</p>
       <div className="grid gap-8 md:grid-cols-[minmax(0,340px)_1fr]">
         <div className="md:sticky md:top-6 md:self-start">

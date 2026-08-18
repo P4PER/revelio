@@ -11,7 +11,7 @@ export default async function AdminSubTypesPage({ params }: { params: Promise<{ 
   const rows = await listSubTypesWithTranslations(getDb())
   return (
     <div>
-      <h1 className="mb-2 text-2xl font-semibold text-primary">{t('subTypes')}</h1>
+      <h1 className="mb-2 text-2xl font-semibold text-primary-ink">{t('subTypes')}</h1>
       <p className="mb-6 text-sm text-muted-foreground">{t('subTypesDesc')}</p>
       <SubTypeTranslationsForm locales={[...routing.locales]} rows={rows} />
     </div>

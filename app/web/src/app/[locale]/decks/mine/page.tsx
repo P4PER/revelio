@@ -40,7 +40,7 @@ export default async function DecksPage({
       <main className="mx-auto max-w-[76rem] px-6 py-8">
         {/* Same heading, same position as the signed-in page: a visitor should
             never have to guess which page they landed on. */}
-        <h1 className="mb-6 text-2xl font-semibold text-primary-ink">{t('list.title')}</h1>
+        <h1 className="mb-6 text-2xl font-semibold text-heading">{t('list.title')}</h1>
         <SignedOutTeaser
           title={t('list.loggedOut.title')}
           description={t('list.loggedOut.desc')}
@@ -58,7 +58,7 @@ export default async function DecksPage({
   return (
     <main className="mx-auto max-w-[76rem] px-6 py-8">
       <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-primary-ink">{t('list.title')}</h1>
+        <h1 className="text-2xl font-semibold text-heading">{t('list.title')}</h1>
         <Button asChild>
           <Link href="/decks/new" className="gap-1.5">
             <Plus className="size-4" />

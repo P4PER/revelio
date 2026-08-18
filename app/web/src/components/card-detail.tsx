@@ -79,7 +79,7 @@ export function CardDetail({
       <div>
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-semibold text-primary-ink">{loc.name}</h1>
+            <h1 className="text-3xl font-semibold text-heading">{loc.name}</h1>
             {card.lesson && (
               <LessonCost
                 lesson={card.lesson}

@@ -60,6 +60,8 @@ describe('light theme contrast', () => {
     ['primary button label', '--light-primary-foreground', '--light-primary'],
     // --primary is a FILL (dark ink sits on it). Gold used as text needs its
     // own darker value: #F0C458 on parchment is 1.51:1, effectively invisible.
+    ['heading on page', '--light-heading', '--light-background'],
+    ['heading on card', '--light-heading', '--light-card'],
     ['gold ink on page', '--light-primary-ink', '--light-background'],
     ['gold ink on card', '--light-primary-ink', '--light-card'],
     ['gold ink on muted', '--light-primary-ink', '--light-muted'],
@@ -126,5 +128,13 @@ describe('dark theme ink', () => {
   it('gold ink clears AA on the page and on cards', () => {
     expect(contrast(hex('--dark-primary-ink'), hex('--dark-background'))).toBeGreaterThanOrEqual(4.5)
     expect(contrast(hex('--dark-primary-ink'), hex('--dark-card'))).toBeGreaterThanOrEqual(4.5)
+  })
+
+  // Headings deliberately differ per theme: each takes whichever brand colour
+  // works on its own ground. Indigo is 1.79:1 on midnight and gold is 1.51:1
+  // on parchment, so neither one can serve both.
+  it('headings clear AA on the page and on cards', () => {
+    expect(contrast(hex('--dark-heading'), hex('--dark-background'))).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(hex('--dark-heading'), hex('--dark-card'))).toBeGreaterThanOrEqual(4.5)
   })
 })

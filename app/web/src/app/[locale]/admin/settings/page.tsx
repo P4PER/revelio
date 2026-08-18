@@ -34,7 +34,7 @@ export default async function AdminSettingsPage({
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-semibold text-primary-ink">{t('title')}</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-heading">{t('title')}</h1>
       <SiteSettingsForm initial={settings} />
     </div>
   )

@@ -58,7 +58,7 @@ export default async function CollectionPage({
       <main className="mx-auto max-w-[76rem] px-6 py-8">
         {/* Same heading, same position as the signed-in page: a visitor should
             never have to guess which page they landed on. */}
-        <h1 className="mb-6 text-2xl font-semibold text-primary-ink">{t('title')}</h1>
+        <h1 className="mb-6 text-2xl font-semibold text-heading">{t('title')}</h1>
         <SignedOutTeaser
           title={tOut('title')}
           description={tOut('desc')}
@@ -90,7 +90,7 @@ export default async function CollectionPage({
     <main className="mx-auto max-w-[76rem] px-6 py-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-primary-ink">{t('title')}</h1>
+          <h1 className="text-2xl font-semibold text-heading">{t('title')}</h1>
           <CollectionSummary summary={data.summary} />
         </div>
         <CollectionVisibilityToggle initial={visibility} shareUrl={shareUrl} />

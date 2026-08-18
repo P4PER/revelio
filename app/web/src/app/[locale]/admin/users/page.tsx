@@ -20,7 +20,7 @@ export default async function AdminUsersPage({ params }: { params: Promise<{ loc
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-primary-ink">{t('title')}</h1>
+        <h1 className="text-2xl font-semibold text-heading">{t('title')}</h1>
         <p className="text-sm text-muted-foreground">{t('desc')}</p>
       </div>
       <AdminUsersTable users={users} />

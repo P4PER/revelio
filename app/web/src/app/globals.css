@@ -48,6 +48,7 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-ink: var(--primary-ink);
+  --color-heading: var(--heading);
   --color-primary: var(--primary);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
@@ -125,6 +126,7 @@
   --dark-primary: #E8B23A;
   --dark-primary-foreground: #13122A;
   --dark-primary-ink: #E8B23A;
+  --dark-heading: #E8B23A;
   --dark-secondary: #3B3194;
   --dark-secondary-foreground: #FBF3DC;
   --dark-secondary-ink: #6E66C9;
@@ -173,6 +175,7 @@
   --light-primary: #F0C458;
   --light-primary-foreground: #1C1838;
   --light-primary-ink: #875D0D;
+  --light-heading: #3B3194;
   --light-secondary: #D9D2F0;
   --light-secondary-foreground: #2A2270;
   --light-secondary-ink: #3B3194;
@@ -223,6 +226,7 @@
   --primary: var(--light-primary);
   --primary-foreground: var(--light-primary-foreground);
   --primary-ink: var(--light-primary-ink);
+  --heading: var(--light-heading);
   --secondary: var(--light-secondary);
   --secondary-foreground: var(--light-secondary-foreground);
   --secondary-ink: var(--light-secondary-ink);
@@ -274,6 +278,7 @@
     --primary: var(--dark-primary);
     --primary-foreground: var(--dark-primary-foreground);
     --primary-ink: var(--dark-primary-ink);
+    --heading: var(--dark-heading);
     --secondary: var(--dark-secondary);
     --secondary-foreground: var(--dark-secondary-foreground);
     --secondary-ink: var(--dark-secondary-ink);
@@ -327,6 +332,7 @@
   --primary: var(--dark-primary);
   --primary-foreground: var(--dark-primary-foreground);
   --primary-ink: var(--dark-primary-ink);
+  --heading: var(--dark-heading);
   --secondary: var(--dark-secondary);
   --secondary-foreground: var(--dark-secondary-foreground);
   --secondary-ink: var(--dark-secondary-ink);

@@ -136,7 +136,7 @@ export function DeckPanel({
           className="border-b border-border/60 px-4 py-3"
         />
       )}
-      <div className="px-4 pt-3 pb-1.5 text-xs font-semibold tracking-widest text-primary-ink uppercase">
+      <div className="px-4 pt-3 pb-1.5 text-xs font-semibold tracking-widest text-heading uppercase">
         {t('panel.character')}
       </div>
       {character ? (
@@ -169,7 +169,7 @@ export function DeckPanel({
         <p className="mx-4 mb-2 text-sm text-muted-foreground">{t('panel.noCharacter')}</p>
       )}
 
-      <div className="flex items-center gap-2 px-4 pt-3 pb-1.5 text-xs font-semibold tracking-widest text-primary-ink uppercase">
+      <div className="flex items-center gap-2 px-4 pt-3 pb-1.5 text-xs font-semibold tracking-widest text-heading uppercase">
         <span>{t('panel.main')}</span>
         <span className="ml-auto font-semibold text-foreground tabular-nums">{mainCount} / {MAIN_TARGET}</span>
       </div>
@@ -187,7 +187,7 @@ export function DeckPanel({
         </div>
       ))}
 
-      <div className="flex items-center gap-2 px-4 pt-4 pb-1.5 text-xs font-semibold tracking-widest text-primary-ink uppercase">
+      <div className="flex items-center gap-2 px-4 pt-4 pb-1.5 text-xs font-semibold tracking-widest text-heading uppercase">
         <span>{t('panel.sideboard')}</span>
         <span className="ml-auto font-semibold text-foreground tabular-nums">{sideCount} / 15</span>
       </div>

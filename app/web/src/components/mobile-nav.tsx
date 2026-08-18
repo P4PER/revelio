@@ -128,7 +128,7 @@ export function MobileNav({
             <div className="flex items-center gap-2.5 px-3 py-2">
               <span
                 aria-hidden
-                className="grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold text-primary ring-1 ring-inset ring-primary/40"
+                className="grid size-9 shrink-0 place-items-center rounded-full bg-brand-indigo text-sm font-semibold text-primary ring-1 ring-inset ring-primary/40"
               >
                 {(user.displayUsername ?? user.username ?? user.email).charAt(0).toUpperCase()}
               </span>

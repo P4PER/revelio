@@ -56,6 +56,17 @@ describe('light theme contrast', () => {
     })
   }
 
+  // Not a WCAG rule - a hierarchy one. --secondary is a quiet surface: on
+  // midnight it sits 1.79:1 off the page while the gold primary shouts at
+  // 9.46:1. Reusing the dark indigo on parchment inverted that, making every
+  // secondary badge ~6x louder than the primary button.
+  it('the secondary fill stays quieter than the primary fill', () => {
+    const secondary = contrast(hex('--light-secondary'), hex('--light-background'))
+    const primary = contrast(hex('--light-primary'), hex('--light-background'))
+    expect(secondary).toBeLessThan(primary)
+    expect(secondary).toBeLessThan(2)
+  })
+
   // Graphical fills only need 3:1 (WCAG 1.4.11).
   it('chart fills clear 3:1 against the page', () => {
     for (const n of [1, 2, 3, 4, 5]) {

@@ -47,7 +47,7 @@ export function DeckHeader(props: DeckHeaderProps) {
         />
       </div>
       <div className="pointer-events-none absolute inset-0 bg-background/45" />
-      <div className="pointer-events-none absolute inset-0 bg-secondary/35" />
+      <div className="pointer-events-none absolute inset-0 bg-brand-indigo/35" />
 
       {/* Crisp starter art on the right, masked so its left edge dissolves into
           the field. Width capped near the crop's native size (520px) to stay sharp. */}

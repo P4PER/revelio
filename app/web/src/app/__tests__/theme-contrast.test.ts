@@ -42,6 +42,14 @@ function lab(h: string): [number, number, number] {
   return [116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))]
 }
 
+/** `bg-x/20` composites x at 20% over whatever is behind it. */
+function over(fg: string, bg: string, alpha: number): string {
+  const f = [1, 3, 5].map((i) => parseInt(fg.slice(i, i + 2), 16))
+  const b = [1, 3, 5].map((i) => parseInt(bg.slice(i, i + 2), 16))
+  const mix = f.map((v, i) => Math.round(v * alpha + b[i] * (1 - alpha)))
+  return '#' + mix.map((v) => v.toString(16).padStart(2, '0')).join('')
+}
+
 function deltaE(a: string, b: string): number {
   const [l1, a1, b1] = lab(a)
   const [l2, a2, b2] = lab(b)
@@ -106,6 +114,16 @@ describe('light theme contrast', () => {
     expect(vsMuted).toBeGreaterThan(5)
   })
 
+  // The progress bar draws its own track as the fill at 20%, so the pair that
+  // matters is fill-vs-track, not fill-vs-page. Gold was 1.48:1 here on the
+  // sidebar card and 1.24:1 once the row was hovered - a bar you could not read.
+  it('the progress fill separates from its own track, on card and on a hovered row', () => {
+    const fill = hex('--light-progress')
+    for (const ground of [hex('--light-card'), hex('--light-accent')]) {
+      expect(contrast(fill, over(fill, ground, 0.2))).toBeGreaterThanOrEqual(3)
+    }
+  })
+
   // Graphical fills only need 3:1 (WCAG 1.4.11).
   it('chart fills clear 3:1 against the page', () => {
     for (const n of [1, 2, 3, 4, 5]) {
@@ -136,5 +154,10 @@ describe('dark theme ink', () => {
   it('headings clear AA on the page and on cards', () => {
     expect(contrast(hex('--dark-heading'), hex('--dark-background'))).toBeGreaterThanOrEqual(4.5)
     expect(contrast(hex('--dark-heading'), hex('--dark-card'))).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('the progress fill separates from its own track', () => {
+    const fill = hex('--dark-progress')
+    expect(contrast(fill, over(fill, hex('--dark-card'), 0.2))).toBeGreaterThanOrEqual(3)
   })
 })

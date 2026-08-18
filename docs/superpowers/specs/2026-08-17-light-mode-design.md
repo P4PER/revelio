@@ -78,7 +78,7 @@ pixel-identical.
 | `secondary-foreground` | `#2A2270` | `#FBF3DC` |
 | `muted` | `#ECE7DB` | `#252246` |
 | `muted-foreground` | `#5B5478` | `#C5BAA0` |
-| `accent` | `#F6EBD2` | `#6E66C9` |
+| `accent` | `#F2E4C4` | `#6E66C9` |
 | `accent-foreground` | `#1C1838` | `#FBF3DC` |
 | `destructive` | `#B3261E` | `#FF6467` |
 | `border` | `#DDD6C7` | `#2E2A50` |
@@ -97,6 +97,8 @@ pixel-identical.
 | `primary-ink` | `#875D0D` | `#E8B23A` |
 | `secondary-ink` | `#3B3194` | `#6E66C9` |
 | `brand-indigo` | `#3B3194` | `#3B3194` |
+| `heading` | `#3B3194` | `#E8B23A` |
+| `progress` | `#3B3194` | `#E8B23A` |
 
 The last three were added during review, after the first light renderings; the sections
 below explain why each is needed. `brand-indigo` is deliberately identical in both themes.
@@ -138,7 +140,7 @@ This is the one token whose *meaning* differs per theme, and it drives several d
 fixes:
 
 - **Dark:** a saturated indigo (`#6E66C9`) used as a hover fill and as a foreground colour.
-- **Light:** a pale **gold** wash (`#F6EBD2`) with ink text.
+- **Light:** a pale **gold** wash (`#F2E4C4`) with ink text.
 
 A saturated accent with white text is illegible as a light-mode hover; a pale wash with ink
 text is correct. Consequently any component that used `accent` as a *saturated* colour
@@ -148,9 +150,15 @@ The light value is **gold**, not a pale indigo, and that was a deliberate second
 `accent` is what `--hover-bg` resolves to, it is the colour of every hover in the app, and a
 lilac hover on a parchment page sat **ΔE 17.3** from the page — while `muted`, the ordinary
 raised surface, sits at 5.3. Hover was jumping roughly three times further than any other
-surface step, and changing hue family to do it. The gold wash lands at ΔE 9.8 from the page
-and 7.2 from `muted`: a clear step, one warm family, and hover now relates to the gold that
-already means "interactive" here. Ink on it measures 14.3:1.
+surface step, and changing hue family to do it. The gold wash lands at ΔE 14.3 from the page
+and 10.9 from `muted`: a clear step, one warm family, and hover now relates to the gold that
+already means "interactive" here. Ink on it measures 13.5:1.
+
+**Opacity modifiers defeat this.** `dropdown-menu.tsx`, `select.tsx` and `deck-stats-panel.tsx`
+diluted the fill unconditionally with `bg-accent/50`, which is right only for dark, where the
+accent is saturated. A dropdown item therefore painted at half the intended step and hover was
+weakest exactly where it is used most. The correct pattern is already in `ui/button.tsx` and
+`language-switcher.tsx`: full strength in light, `dark:bg-accent/50` for dark.
 
 Contrast ratio is the wrong instrument for this judgement — it only sees lightness, so it
 scores a lilac and a parchment of equal lightness as identical. The guard added for it uses
@@ -199,6 +207,46 @@ the hierarchy was.
 Light therefore gets a quiet surface — `#D9D2F0` with `#2A2270` ink — which sits 1.34:1 off
 the page, mirroring dark's 1.79:1, and stays 1.14:1 clear of `accent` so the two pale surfaces
 remain distinguishable.
+
+### New token: `--heading`
+
+Headings take whichever brand colour actually reads on their theme's ground — indigo on
+parchment, gold on midnight:
+
+| | light | dark |
+|---|---|---|
+| `--heading` | `#3B3194` | `#E8B23A` |
+
+Neither colour can serve both: indigo is **1.79:1** on midnight and gold is **1.51:1** on
+parchment. `#875D0D` was a WCAG-forced darkening of brand gold, and next to the real thing it
+reads brown rather than gold. `#3B3194` is the unmodified brand indigo at 9.39:1 — the same
+value the OTP and contact mail templates already use for headings, and one of the two colours
+in the primary logo.
+
+It also unloads gold, which was doing three jobs at once: the primary fill, the hover wash, and
+heading ink. The split is now **gold means interactive, indigo means structure**, which is what
+the mail templates were already doing.
+
+Scope is headings and section labels only. The decorative and interactive marks stay on
+`--primary-ink`: the contact-form owl (an indigo body under its gold `drop-shadow` halo would
+clash), the liked heart, the deck-list star, the 404's `?` glyph on its gold-glow card, the
+admin sidebar's active item on a `bg-primary/15` gold pill, and inline prose links.
+
+### New token: `--progress`
+
+The progress bar draws its own track as the fill at 20% opacity, so the pair that matters is
+**fill against track**, not fill against page. On gold that measured **1.48:1** on the sidebar
+card and **1.24:1** once the row was hovered — under the 3:1 WCAG 1.4.11 wants for a meaningful
+graphic, and effectively unreadable.
+
+| | light | dark |
+|---|---|---|
+| `--progress` | `#3B3194` | `#E8B23A` |
+
+Light gets indigo (7.04:1 against its own track); dark keeps gold, where it already measured
+5.85:1 and needed no change. The values match `--heading` today, but the token is deliberately
+separate: a progress fill is data, and changing the heading colour should not silently repaint
+every progress bar.
 
 ### New token: `--brand-indigo`
 
@@ -396,7 +444,11 @@ The app is almost entirely token-driven, so this list is short and specific.
 | `components/deck-header.tsx:50` | hero tint uses `bg-secondary/35`, which goes pale under white text | `bg-brand-indigo/35` |
 | `components/add-to-collection.tsx` | the copies badge is `text-white` on `bg-card` — white on `#FFFDF7` | `text-foreground` |
 
-The last five were found during review rather than in the original sweep. `add-to-collection.tsx`
+| `ui/dropdown-menu.tsx`, `ui/select.tsx`, `deck-stats-panel.tsx` | `bg-accent/50` diluted the hover in both themes | full strength in light, `dark:bg-accent/50` |
+| `ui/progress.tsx` | gold fill on a gold track is 1.48:1 | `bg-progress` / `bg-progress/20` |
+| 25 heading and section-label sites | gold headings read brown, and gold was overloaded | `text-heading` |
+
+The last eight were found during review rather than in the original sweep. `add-to-collection.tsx`
 was on the "deliberately unchanged" list below on the assumption its `text-white` sat on card art
 like its neighbours'; it does not, which is why the badge was invisible until a text selection
 highlighted it.
@@ -443,6 +495,13 @@ rendering, per non-goals.
     midnight — which is exactly what happened to the error-card glyph;
   - a **hierarchy** guard asserting the secondary fill stays quieter than the primary fill. Not
     a WCAG rule; no contrast check would have caught the inversion.
+  - a **ΔE** guard on the hover fill, with a floor *and* a ceiling. Contrast ratio is the wrong
+    instrument for two pale surfaces — it only sees lightness, so it scores a lilac and a
+    parchment of equal lightness as identical, which is why the original hover passed every
+    check that existed.
+  - a **composited** guard for the progress bar: the test mixes the fill at 20% to reconstruct
+    the track, because the rendered pair is fill-vs-track and neither colour appears in the CSS
+    on its own. Verified to fail at 1.48:1 on the old gold before being committed.
 - **Component sweep (vitest):** read the source of the swept components and assert the
   dark-only idioms (`hover:bg-white/5`, `text-accent`, raw hex, the collection badge's
   `text-white`) do not come back.
@@ -462,8 +521,11 @@ rendering, per non-goals.
 - **Light-mode primary sits at ~1.5:1 against the page** (see Decisions). Accepted for the
   *fill*; the ink role is what `--primary-ink` exists for.
 - **Ink tokens cut both ways.** A value picked to read on parchment can disappear on midnight.
-  Both ink tokens are now guarded on the dark side too, and any *future* ink token needs the
-  same pair of assertions.
+  All four per-theme mark tokens (`--primary-ink`, `--secondary-ink`, `--heading`, `--progress`)
+  are guarded on both sides, and any *future* one needs the same pair of assertions.
+- **`--heading` and `--progress` hold identical values today.** That is intentional, not a
+  missed de-duplication — they are separate roles that happen to agree. If a third such token
+  appears with the same values, collapsing them into one `--brand-mark` is the better shape.
 - **The deck hero is washed out in light** — `bg-background/45` lightens the card art before
   the indigo tint darkens it, and white title text sits on the result. Known, **not fixed**:
   the first scrim needs to become theme-invariant dark, which is its own change.

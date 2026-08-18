@@ -68,7 +68,7 @@ export function DeckStatsPanel({ entries }: { entries: DeckCardView[] }) {
           type="button"
           onClick={() => setOpen(false)}
           aria-label={t('stats.hide')}
-          className="ml-auto grid size-7 cursor-pointer place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
+          className="ml-auto grid size-7 cursor-pointer place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent dark:hover:bg-accent/50 hover:text-foreground"
         >
           <ChevronUp className="size-4" />
         </button>

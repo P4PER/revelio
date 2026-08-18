@@ -27,13 +27,23 @@ export type DeckHeaderProps = {
 
 const SHADOW = { textShadow: '0 1px 3px rgba(0,0,0,0.9)' } as const
 
+// Directional scrim: heaviest under the text on the left, nearly clear on the
+// right so the starter art stays vivid. Deliberately built on --dark-background
+// rather than --background: the latter is parchment in light mode, so it
+// LIGHTENED the art under white text and the banner washed out (2.50:1 on pale
+// art, 1.74:1 once the old bottom gradient landed).
+const MIX = (pct: number) => `color-mix(in srgb, var(--dark-background) ${pct}%, transparent)`
+const SCRIM = {
+  backgroundImage: `linear-gradient(100deg, ${MIX(92)} 0%, ${MIX(78)} 34%, ${MIX(28)} 66%, ${MIX(6)} 100%)`,
+} as const
+
 export function DeckHeader(props: DeckHeaderProps) {
   const t = useTranslations('decks')
   const locale = useLocale()
   const updated = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(props.updatedAt))
 
   return (
-    <div className="relative flex min-h-[180px] overflow-hidden rounded-xl border border-border bg-background sm:min-h-[230px]">
+    <div className="relative flex min-h-[180px] overflow-hidden rounded-xl border border-border bg-(--dark-background) sm:min-h-[230px]">
       {/* Softly blurred full-bleed art under a wash, so the text side carries a
           picture rather than flat colour. Falls back to a lesson gradient. */}
       <div className="absolute inset-0 scale-110 blur-md">
@@ -46,8 +56,8 @@ export function DeckHeader(props: DeckHeaderProps) {
           className="h-full w-full"
         />
       </div>
-      <div className="pointer-events-none absolute inset-0 bg-background/45" />
-      <div className="pointer-events-none absolute inset-0 bg-brand-indigo/35" />
+      <div className="pointer-events-none absolute inset-0" style={SCRIM} />
+      <div className="pointer-events-none absolute inset-0 bg-brand-indigo/12" />
 
       {/* Crisp starter art on the right, masked so its left edge dissolves into
           the field. Width capped near the crop's native size (520px) to stay sharp. */}
@@ -67,9 +77,6 @@ export function DeckHeader(props: DeckHeaderProps) {
           className="h-full w-full"
         />
       </div>
-
-      {/* gentle bottom grounding */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
 
       <div className="relative z-10 flex w-full flex-col justify-between gap-6 p-5">
         <div className="flex items-start justify-between gap-3">

@@ -529,9 +529,19 @@ rendering, per non-goals.
 - **`--heading` and `--progress` hold identical values today.** That is intentional, not a
   missed de-duplication — they are separate roles that happen to agree. If a third such token
   appears with the same values, collapsing them into one `--brand-mark` is the better shape.
-- **The deck hero is washed out in light** — `bg-background/45` lightens the card art before
-  the indigo tint darkens it, and white title text sits on the result. Known, **not fixed**:
-  the first scrim needs to become theme-invariant dark, which is its own change.
+- **The deck hero used `--background` for two scrims**, which inverted their job in light: a
+  45% wash over the blurred art and a 40% bottom gradient both *lightened* it under white
+  title text. Worst case measured 2.50:1 on pale art, and 1.74:1 once the bottom gradient
+  landed — under even the 3:1 for large text, and art-dependent, so some decks looked fine
+  and others were unreadable. **Fixed** by replacing both with one directional scrim built on
+  `--dark-background`: heaviest under the text on the left, nearly clear on the right, so the
+  starter art is more visible than before. The indigo tint drops from 35% to 12% and the
+  bottom gradient is gone. The container's own `bg-background` had to move to
+  `--dark-background` as well — the blurred art does not reach the container edges, so
+  parchment showed through the top and bottom bands in light where midnight showed in dark.
+  A full pixel diff of the two themes fell from 9.31% to 1.62%, the remainder being the 1px
+  border (which follows the page it sits against) and the gold visibility badge. Rendered
+  contrast in the text column is 13.66:1 in both themes, against 2.50:1 before.
 - **Card images are light, warm scans.** On parchment they have less separation than on
   midnight. Mitigated by tiles using `card` (`#FFFDF7`) plus a border and shadow, which is how
   the reviewed renderings looked.

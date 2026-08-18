@@ -10,6 +10,43 @@
 
 **Spec:** `docs/superpowers/specs/2026-08-17-light-mode-design.md`
 
+## Status: complete, with post-review changes
+
+All ten tasks were executed on `feat/light-mode`. The task bodies below are kept as the
+**historical record of what was planned**; five follow-up commits then changed the palette and
+fixed defects that only surfaced once the theme was rendered. Where the two disagree, **the
+spec is authoritative** — it has been synced to the shipped code.
+
+| Commit | Change | Why it was not in the plan |
+|---|---|---|
+| `6ed3996` | error card keeps its heavy shadow behind `dark:` | Task 6's token swap shifted dark; the plan's own "dark must stay pixel-identical" constraint won |
+| `9a5d3a1` | Profile listed before Appearance; theme rows are full-width labels with a pointer | review feedback |
+| `d711b9a` | warm neutrals desaturated ~40%; `--primary-ink` added and 50 `text-primary` sites swept | the first parchment read too yellow, and `--primary` is a *fill* — as text it measured 1.51:1 |
+| `8044191` | collection copies badge `text-white` -> `text-foreground` | the plan listed `add-to-collection.tsx` as do-not-touch, assuming its `text-white` sat on card art; it sits on `bg-card` |
+| `78531be` | error-card glyph gets `--secondary-ink` | Task 6's `text-accent` -> `text-secondary` swap fixed light but dropped dark to 1.66:1 |
+| `ee72679` | light `secondary` becomes a quiet surface; `--brand-indigo` added | `#3B3194` in both themes inverted the fill hierarchy in light |
+
+**Corrections to the task bodies below**, so they do not mislead on a re-read:
+
+- **Palette hexes (Task 2) are superseded.** `background` is `#F8F5ED` (not `#FBF6EA`), and
+  `muted`, `border`, `input`, `secondary`, `secondary-foreground` and the sidebar twins all
+  moved. Three tokens the plan never had — `--primary-ink`, `--secondary-ink`, `--brand-indigo`
+  — now exist. See the spec's palette table.
+- **Contrast figures (Task 3) shifted** with the background; the spec carries the current ones.
+- **No new dependency was needed (Task 8).** `@radix-ui/react-radio-group` was *not* installed:
+  the `radix-ui` umbrella package already in the tree re-exports `RadioGroup`, which is what
+  every other `ui/` primitive imports. The install was made and reverted.
+- **`USER_SECTIONS` order (Task 8) is `['profile', 'appearance', ...]`**, so Profile stays the
+  default landing section for signed-in users.
+- **Two files the plan did not mention needed changes:** `app/global-error.tsx` (also hardcoded
+  `className="dark"`, so it would have rendered light once `.dark` stopped being a selector) and
+  `components/__tests__/header-brand-mark.test.tsx` (asserts which wordmark carries the alt text).
+- **Known and not fixed:** the deck hero is washed out in light, because `bg-background/45`
+  lightens the card art under white title text. Recorded in the spec's Risks.
+
+**Task 10's verification stands:** dark mode is unchanged. The remaining screenshot diffs were
+the random card-fan artwork (which differs against *itself* by ~100k px) and SVG antialiasing.
+
 ## Global Constraints
 
 - **Working directory is `app/`** for every command. There is no root-level `package.json`.
@@ -1184,7 +1221,9 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "feat(web): add theme prefere
 - [ ] **Step 1: Add the Radix radio-group dependency and primitive**
 
 ```bash
-cd app && /usr/local/bin/npm i @radix-ui/react-radio-group -w web
+# NOT NEEDED - see "Status" at the top. The `radix-ui` umbrella package already
+# in the tree re-exports RadioGroup, and is what every other ui/ primitive imports.
+# cd app && /usr/local/bin/npm i @radix-ui/react-radio-group -w web
 ```
 
 Create `app/web/src/components/ui/radio-group.tsx` with the standard shadcn new-york implementation (`RadioGroup`, `RadioGroupItem` wrapping `RadioGroupPrimitive.Root` / `.Item` with an `Indicator` containing a `CircleIcon` from lucide). Match the local conventions in `src/components/ui/checkbox.tsx`: same `data-slot` attributes, same `cn()` import, same focus-visible ring classes, `bg-input-fill` for the unchecked surface.
@@ -1386,7 +1425,8 @@ In `app/web/src/components/settings/settings-nav.tsx`, replace the `SECTIONS` co
 // Appearance is the only section that works signed out; showing the others to
 // a guest would offer links that bounce straight to /login.
 const GUEST_SECTIONS: SettingsSection[] = ['appearance']
-const USER_SECTIONS: SettingsSection[] = ['appearance', 'profile', 'email', 'data', 'danger']
+// Shipped order is profile-first, so Profile stays the default landing section.
+const USER_SECTIONS: SettingsSection[] = ['profile', 'appearance', 'email', 'data', 'danger']
 ```
 
 `NavList` takes `{ isLoggedIn, onSelect }` and computes `const sections = isLoggedIn ? USER_SECTIONS : GUEST_SECTIONS`, then maps over `sections` instead of `SECTIONS`. Its `active` lookup becomes `sections.find(...) ?? sections[0]`. `SettingsNav` takes `{ isLoggedIn }: { isLoggedIn: boolean }` and passes it to both `rail` and `drawer` renders.

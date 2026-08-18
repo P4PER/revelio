@@ -52,7 +52,7 @@ questions:
 | Button rim | **No rim.** Light mode matches dark's borderless treatment |
 | Control placement | `/settings/appearance` only; no header control |
 
-The rim was considered because `#F0C458` on `#FBF6EA` is only 1.53:1, so the button's edge is
+The rim was considered because `#F0C458` on the page is only 1.51:1, so the button's edge is
 weakly delineated against the page (WCAG 1.4.11 suggests 3:1 for control boundaries). It was
 declined for visual consistency with dark mode, where the same gold sits at 9.5:1 against
 midnight and needs no help. The control is still identified by its label at 10.30:1 and by a
@@ -68,41 +68,52 @@ pixel-identical.
 
 | Token | Light (parchment) | Dark (current) |
 |---|---|---|
-| `background` | `#FBF6EA` | `#13122A` |
+| `background` | `#F8F5ED` | `#13122A` |
 | `foreground` | `#1C1838` | `#FBF3DC` |
 | `card`, `popover` | `#FFFDF7` | `#1C1838` |
 | `card-foreground`, `popover-foreground` | `#1C1838` | `#FBF3DC` |
 | `primary` | `#F0C458` | `#E8B23A` |
 | `primary-foreground` | `#1C1838` | `#13122A` |
-| `secondary` | `#3B3194` | `#3B3194` |
-| `secondary-foreground` | `#FBF3DC` | `#FBF3DC` |
-| `muted` | `#F1E9D6` | `#252246` |
+| `secondary` | `#D9D2F0` | `#3B3194` |
+| `secondary-foreground` | `#2A2270` | `#FBF3DC` |
+| `muted` | `#ECE7DB` | `#252246` |
 | `muted-foreground` | `#5B5478` | `#C5BAA0` |
 | `accent` | `#E7E0F7` | `#6E66C9` |
 | `accent-foreground` | `#1C1838` | `#FBF3DC` |
 | `destructive` | `#B3261E` | `#FF6467` |
-| `border` | `#E4D9C0` | `#2E2A50` |
-| `input` | `#D8CBAA` | `#403A6E` |
+| `border` | `#DDD6C7` | `#2E2A50` |
+| `input` | `#CFC7B3` | `#403A6E` |
 | `input-fill` | `#FFFDF7` | `#201C3E` |
 | `ring` | `#F0C458` | `#E8B23A` |
 | `sidebar` | `#FFFDF7` | `#1C1838` |
 | `sidebar-foreground` | `#1C1838` | `#FBF3DC` |
 | `sidebar-primary` | `#F0C458` | `#E8B23A` |
 | `sidebar-primary-foreground` | `#1C1838` | `#13122A` |
-| `sidebar-accent` | `#F1E9D6` | `#252246` |
+| `sidebar-accent` | `#ECE7DB` | `#252246` |
 | `sidebar-accent-foreground` | `#1C1838` | `#FBF3DC` |
-| `sidebar-border` | `#E4D9C0` | `#2E2A50` |
+| `sidebar-border` | `#DDD6C7` | `#2E2A50` |
 | `sidebar-ring` | `#F0C458` | `#E8B23A` |
 | `chart-1`…`chart-5` | `#B8801C`, `#5B4FC0`, `#3B3194`, `#2E9455`, `#3F6FD8` | `#E8B23A`, `#6E66C9`, `#3B3194`, `#5CB878`, `#5B8DEF` |
+| `primary-ink` | `#875D0D` | `#E8B23A` |
+| `secondary-ink` | `#3B3194` | `#6E66C9` |
+| `brand-indigo` | `#3B3194` | `#3B3194` |
+
+The last three were added during review, after the first light renderings; the sections
+below explain why each is needed. `brand-indigo` is deliberately identical in both themes.
 
 Chart colours are graphical fills, so the relevant threshold is 3:1, not 4.5:1. Against the
-light page they measure 3.17 / 5.86 / 9.49 / 3.55 / 4.35 — all clear it. (`chart-1` is
-`#B8801C` rather than the brand `#C8881E`, which lands at 2.78 and would just miss.)
+light page they measure 3.14 / 5.80 / 9.39 / 3.52 / 4.31 — all clear it. (`chart-1` is
+`#B8801C` rather than the brand `#C8881E`, which would just miss.)
 
-Measured contrast in light mode: body text 15.74:1, muted text 6.53:1 (6.92:1 on `card`),
-primary button label 10.30:1, accent-hover label 13.26:1, destructive text 6.06:1, secondary
-button label 9.23:1. All light lesson colours land between 4.82:1 and 6.97:1. Every
+Measured contrast in light mode: body text 15.58:1, muted text 6.46:1 (6.92:1 on `card`),
+primary button label 10.30:1, secondary button label 9.24:1, accent-hover label 13.26:1,
+destructive text 6.00:1, gold ink 5.35:1 on the page (5.73:1 on `card`, 4.73:1 on `muted`),
+glyph ink 10.06:1 on `card`. All light lesson colours land between 4.77:1 and 6.90:1. Every
 light-mode pair clears AA.
+
+The warm neutrals were desaturated ~40% after review (hue and lightness held) because the
+first parchment read too yellow: `background` `#FBF6EA` -> `#F8F5ED`, and `muted`, `border`,
+`input` and their sidebar twins moved with it so the family stayed coherent.
 
 ### Pre-existing contrast gaps in dark mode (found while measuring, out of scope)
 
@@ -133,11 +144,70 @@ A saturated accent with white text is illegible as a light-mode hover; a pale wa
 text is correct. Consequently any component that used `accent` as a *saturated* colour
 (`text-accent`, gradient stops) needs its own token — see the sweep below.
 
+### `primary` is a fill, not an ink
+
+`--primary` is chosen so dark ink reads **on top of it** (a gold button with an indigo label).
+Used as a *text* colour on parchment it measures **1.51:1** on the page, 1.34:1 on `muted` --
+effectively invisible. 53 call sites did exactly that (`text-primary` on headings, links, the
+admin nav's active item, the collection panel's labels).
+
+So gold gets a second token for the ink role:
+
+| role | light | dark |
+|---|---|---|
+| `--primary` — fill (buttons, dots, rails) | `#F0C458` | `#E8B23A` |
+| `--primary-ink` — text (headings, links, active nav) | `#875D0D` | `#E8B23A` |
+
+Dark's ink is today's gold, so dark mode is unchanged. `#875D0D` is the *lightest* gold that
+clears AA on all four light surfaces (page 5.35, `card` 5.73, `muted` 4.73, the admin nav's
+`bg-primary/15` pill 5.33), so it stays as close to brand gold as WCAG permits.
+
+Three of the 53 sites keep the fill gold, because they do not sit on parchment: the two avatar
+discs (gold on indigo) and the deck-hero `@` (over card art).
+
+### `secondary` changes weight between themes
+
+`--secondary` was `#3B3194` in both themes, which inverts its *weight* when the page flips:
+
+| | primary fill vs page | secondary fill vs page |
+|---|---|---|
+| dark | **9.46:1** (loud) | 1.79:1 (quiet lift) |
+| light (before) | 1.51:1 (quiet tint) | **9.39:1** (loud block) |
+
+On midnight that is the right hierarchy — gold shouts, indigo is a barely-lifted surface. On
+parchment it inverted: every `variant="secondary"` badge became a heavy dark block roughly 6x
+louder than the gold CTA. Legibility was never the issue (`#FBF3DC` on `#3B3194` is 9.23:1);
+the hierarchy was.
+
+Light therefore gets a quiet surface — `#D9D2F0` with `#2A2270` ink — which sits 1.34:1 off
+the page, mirroring dark's 1.79:1, and stays 1.14:1 clear of `accent` so the two pale surfaces
+remain distinguishable.
+
+### New token: `--brand-indigo`
+
+Making `secondary` pale breaks the places that used it as a **solid brand disc** rather than a
+quiet surface: the two avatar circles (gold initials sit *on* them) and the deck-hero tint
+(white text sits *over* it). Those move to `--brand-indigo`, `#3B3194` in **both** themes.
+
+It is the one deliberately theme-invariant pair in the palette. Keeping the discs deep is also
+what lets the avatars keep their gold initials — inking them instead reaches only 4.01:1 on the
+pale fill, under AA.
+
+### New token: `--secondary-ink`
+
+The error-card glyph needs a mid-indigo that reads on *both* grounds, which neither the fill nor
+the foreground provides:
+
+```css
+/* dark  */ --secondary-ink: #6E66C9;  /* 3.56:1 on the card motif */
+/* light */ --secondary-ink: #3B3194;  /* 10.06:1 on the card motif */
+```
+
 ### New token: `--hover-bg`
 
 Dark mode dilutes the saturated accent for hover (`dark:hover:bg-accent/50`); light mode needs
 it at full strength, because a pale wash at 40% opacity is indistinguishable from the page
-(measured `#F4EFF0` against a `#FBF6EA` page). Rather than scatter per-theme opacity modifiers,
+(measured `#F4EFF0` against the parchment page). Rather than scatter per-theme opacity modifiers,
 a single token carries it:
 
 ```css
@@ -202,7 +272,7 @@ which can drift silently).
 ```css
 :root {
   /* value sets — the only place a hex appears */
-  --light-background: #FBF6EA;  --dark-background: #13122A;
+  --light-background: #F8F5ED;  --dark-background: #13122A;
   /* ...one pair per token... */
 
   /* default alias: light */
@@ -254,13 +324,16 @@ requirement. This is the main reason for choosing cookie + media query over a
 ### `theme-color` meta
 
 `viewport.themeColor` is currently the single `THEME_COLOR` constant from `src/lib/seo.ts`.
-It becomes a `generateViewport()` that emits the cookie's colour when set, and otherwise a
-media-query pair so the browser chrome matches:
+It becomes a `generateViewport()` emitting a media-query pair, so the browser chrome follows
+the OS setting:
 
 ```ts
-[{ media: '(prefers-color-scheme: light)', color: '#FBF6EA' },
+[{ media: '(prefers-color-scheme: light)', color: '#F8F5ED' },
  { media: '(prefers-color-scheme: dark)',  color: '#13122A' }]
 ```
+
+An explicit cookie choice is deliberately **not** reflected here: `themeColor` is static
+metadata, and the media pair is right for the overwhelmingly common case.
 
 ## The control: `/settings/appearance`
 
@@ -291,15 +364,25 @@ The app is almost entirely token-driven, so this list is short and specific.
 |---|---|---|
 | `components/brand-mark.tsx` | hardcoded `/revelio-logo-dark.svg` | render both variants, hide one with `dark:` — CSS-only, so it works under the media query without JS |
 | `components/star-field.tsx` | `COLORS` hex array, invisible on parchment | per-theme `--star-*` tokens |
-| `components/error-card-state.tsx` | `text-accent` + hex; accent is a pale wash in light | switch to `text-secondary`; move hexes to tokens |
+| `components/error-card-state.tsx` | `text-accent` + hex; accent is a pale wash in light | `text-secondary-ink`; hexes to tokens; keep the heavy shadow behind `dark:` |
 | `components/quick-filters.tsx:39` | `hover:bg-white/5` — invisible on light | `hover:bg-(--hover-bg) hover:text-accent-foreground` |
 | `components/lesson-filter.tsx:38` | `hover:bg-white/5` — same | same |
 | `components/lesson-curve.tsx:29` | `from-accent to-secondary` bar washes out | chart tokens (`--chart-*` already exist) |
 | `components/collection-sidebar.tsx:37` | `from-accent/25 to-accent/10` on a pale accent is invisible | raise the stops or use `--hover-bg` |
 | `components/settings/settings-nav.tsx:33` | same gradient pattern | same |
-| `components/contact-form.tsx` | hardcoded hex | tokens |
+| `components/contact-form.tsx` | hardcoded hex on the envelope fold | `var(--color-background)` — the fold reads as a cut-out, so it tracks the page in both themes |
 | `lib/seo.ts` | single `THEME_COLOR` | export both, feed `generateViewport` |
 | `components/ui/sonner.tsx` | hardcoded `theme="dark"` | take the resolved `ThemeChoice` as a prop; `system` makes sonner follow `prefers-color-scheme`, matching the CSS |
+| `app/global-error.tsx` | hardcoded `className="dark"` | drop it — this boundary replaces the root layout and cannot read the cookie, so it follows the media query |
+| 50 sites using `text-primary` as ink | gold text is 1.51:1 on parchment | `text-primary-ink` (see the fill-vs-ink section) |
+| `components/account-menu.tsx`, `components/mobile-nav.tsx` | avatar discs use `bg-secondary`, which goes pale | `bg-brand-indigo`, so the gold initials still read |
+| `components/deck-header.tsx:50` | hero tint uses `bg-secondary/35`, which goes pale under white text | `bg-brand-indigo/35` |
+| `components/add-to-collection.tsx` | the copies badge is `text-white` on `bg-card` — white on `#FFFDF7` | `text-foreground` |
+
+The last five were found during review rather than in the original sweep. `add-to-collection.tsx`
+was on the "deliberately unchanged" list below on the assumption its `text-white` sat on card art
+like its neighbours'; it does not, which is why the badge was invisible until a text selection
+highlighted it.
 
 ### Deliberately unchanged
 
@@ -308,11 +391,14 @@ background. They are theme-independent and correct in both themes. Listing them 
 does not "fix" them:
 
 `card-nav.tsx` (image scrims, and the `Kbd` on its scrim), `deck-hero-card.tsx`,
-`deck-header.tsx` (banner overlay), `deck-gallery.tsx`, `card-rotate.tsx`,
-`image-uploader.tsx`, `set-symbol-uploader.tsx`, `add-to-collection.tsx`,
+`deck-header.tsx` (the `text-white` banner overlay — only its `bg-secondary/35` tint changed),
+`deck-gallery.tsx`, `card-rotate.tsx`, `image-uploader.tsx`, `set-symbol-uploader.tsx`,
 `deck-card-browser.tsx`, `lesson-cost.tsx` (white on a lesson-coloured pill),
 `ui/alert-dialog.tsx` + `ui/sheet.tsx` (`bg-black/50` modal overlays),
 `ui/button.tsx` + `ui/badge.tsx` (`text-white` on `destructive`).
+
+All 24 `text-white` occurrences were audited when the collection badge turned up; these are the
+ones genuinely over art, a scrim, or a destructive fill.
 
 `app/manifest.ts` also keeps `THEME_COLOR` (midnight) for both `theme_color` and
 `background_color`: a PWA manifest carries a single value and cannot vary by media query,
@@ -331,9 +417,18 @@ rendering, per non-goals.
 - **Lesson colours (vitest):** extend the existing guard in `components/__tests__/theme.test.tsx`
   to cover both themes' values.
 - **Cookie parsing (vitest):** `parseTheme` for `light` / `dark` / `undefined` / junk.
-- **Contrast (vitest):** compute WCAG ratios for the pairs that matter (foreground/background,
-  muted-foreground/background, primary-foreground/primary, accent-foreground/accent) and assert
-  AA. Cheap, and it pins the palette against well-meaning tweaks.
+- **Contrast (vitest):** compute WCAG ratios for the pairs that matter and assert AA. Cheap,
+  and it pins the palette against well-meaning tweaks. Extended during review with:
+  - the **ink** pairs (`primary-ink` on page / `card` / `muted`), the gap that let gold-as-text
+    ship at 1.51:1;
+  - **dark-side** guards (`secondary-ink` on the card motif ≥ 3:1, `primary-ink` ≥ AA), because
+    an ink value chosen to read on parchment is by construction at risk of vanishing on
+    midnight — which is exactly what happened to the error-card glyph;
+  - a **hierarchy** guard asserting the secondary fill stays quieter than the primary fill. Not
+    a WCAG rule; no contrast check would have caught the inversion.
+- **Component sweep (vitest):** read the source of the swept components and assert the
+  dark-only idioms (`hover:bg-white/5`, `text-accent`, raw hex, the collection badge's
+  `text-white`) do not come back.
 - **e2e (Playwright):** three cases — cookie `light` renders the parchment background; cookie
   `dark` renders midnight; **no cookie** under `emulateMedia({ colorScheme: 'light' })` renders
   parchment, which is the case a cookie-only test would miss.
@@ -347,7 +442,14 @@ rendering, per non-goals.
 - **`accent` flipping role** is the subtlest part of this change. Any *future* component using
   `text-accent` will be wrong in light mode. The sweep fixes today's single occurrence; a lint
   rule is possible but is deferred as YAGNI.
-- **Light-mode primary sits at 1.53:1 against the page** (see Decisions). Accepted.
+- **Light-mode primary sits at ~1.5:1 against the page** (see Decisions). Accepted for the
+  *fill*; the ink role is what `--primary-ink` exists for.
+- **Ink tokens cut both ways.** A value picked to read on parchment can disappear on midnight.
+  Both ink tokens are now guarded on the dark side too, and any *future* ink token needs the
+  same pair of assertions.
+- **The deck hero is washed out in light** — `bg-background/45` lightens the card art before
+  the indigo tint darkens it, and white title text sits on the result. Known, **not fixed**:
+  the first scrim needs to become theme-invariant dark, which is its own change.
 - **Card images are light, warm scans.** On parchment they have less separation than on
   midnight. Mitigated by tiles using `card` (`#FFFDF7`) plus a border and shadow, which is how
   the reviewed renderings looked.
@@ -355,8 +457,14 @@ rendering, per non-goals.
 ## Files
 
 **New:** `src/lib/theme.ts`, `src/lib/theme-actions.ts`,
-`src/app/[locale]/settings/appearance/page.tsx`, `src/components/settings/appearance-form.tsx`
+`src/app/[locale]/settings/appearance/page.tsx`, `src/components/settings/appearance-form.tsx`,
+`src/components/ui/radio-group.tsx` (built on the `radix-ui` umbrella package already in use,
+so no new dependency)
 
 **Changed:** `src/app/globals.css` (the bulk), `src/app/[locale]/layout.tsx`,
-`src/lib/seo.ts`, `src/components/settings/settings-nav.tsx`, `src/components/site-footer.tsx`,
-`messages/en.json`, `messages/de.json`, plus the ten components in the sweep table.
+`src/app/global-error.tsx`, `src/lib/seo.ts`, `src/components/settings/settings-nav.tsx`,
+`src/components/site-footer.tsx`, `messages/en.json`, `messages/de.json`, plus the components
+in the sweep table and the 50 `text-primary` call sites.
+
+`SettingsNav` lists **Profile first**, then Appearance — Profile stays the default landing
+section for signed-in users; signed-out visitors see Appearance alone.

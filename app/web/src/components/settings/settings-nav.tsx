@@ -8,7 +8,7 @@ import type { SettingsSection } from './types'
 // Appearance is the only section that works signed out; showing the others to
 // a guest would offer links that bounce straight to /login.
 const GUEST_SECTIONS: SettingsSection[] = ['appearance']
-const USER_SECTIONS: SettingsSection[] = ['appearance', 'profile', 'email', 'data', 'danger']
+const USER_SECTIONS: SettingsSection[] = ['profile', 'appearance', 'email', 'data', 'danger']
 
 function NavList({ isLoggedIn, onSelect }: { isLoggedIn: boolean; onSelect?: () => void }) {
   const t = useTranslations('settings.nav')

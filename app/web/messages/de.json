@@ -617,8 +617,8 @@
     "lead": "Verwalte dein Revelio-Konto",
     "menuTitle": "Einstellungen",
     "nav": {
-      "appearance": "Darstellung",
       "profile": "Profil",
+      "appearance": "Darstellung",
       "email": "E-Mail",
       "data": "Deine Daten",
       "danger": "Gefahrenzone"

@@ -40,16 +40,22 @@ export function AppearanceForm({ current }: { current: ThemeChoice }) {
         aria-label={t('legend')}
         className="mt-6 gap-3"
       >
+        {/* The whole row is the label, so the pointer and the click target
+            cover the card rather than just the dot and its caption. */}
         {CHOICES.map((value) => (
-          <div key={value} className="flex items-start gap-3 rounded-lg border p-3">
+          <Label
+            key={value}
+            htmlFor={`theme-${value}`}
+            className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-(--hover-bg)"
+          >
             <RadioGroupItem value={value} id={`theme-${value}`} className="mt-0.5" />
-            <Label htmlFor={`theme-${value}`} className="flex flex-col items-start gap-0.5">
+            <span className="flex flex-col items-start gap-0.5">
               <span className="font-medium">{t(value)}</span>
               <span className="text-sm font-normal text-muted-foreground">
                 {t(`${value}Hint`)}
               </span>
-            </Label>
-          </div>
+            </span>
+          </Label>
         ))}
       </RadioGroup>
     </section>

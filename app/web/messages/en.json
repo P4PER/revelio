@@ -654,8 +654,8 @@
     "lead": "Manage your Revelio account",
     "menuTitle": "Settings",
     "nav": {
-      "appearance": "Appearance",
       "profile": "Profile",
+      "appearance": "Appearance",
       "email": "Email",
       "data": "Your data",
       "danger": "Danger zone"

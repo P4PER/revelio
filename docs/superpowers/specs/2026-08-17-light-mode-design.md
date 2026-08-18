@@ -416,7 +416,10 @@ setting.
   a client component, so the flag is passed down from the layout.
 - **`SettingsLayout`:** the layout itself is not gated (each page gates itself), so it needs no
   change beyond passing that flag.
-- **Discovery when signed out:** a link in `SiteFooter`, since there is no header control.
+- **Discovery when signed out:** none in the UI. A `SiteFooter` link was added and then removed
+  on request, so `/settings/appearance` is reachable by direct URL, from the settings nav once
+  you are already under `/settings`, or by signing in. Worth revisiting if signed-out visitors
+  are expected to find the theme picker — overriding the OS setting is otherwise undiscoverable.
 - **Strings:** `settings.appearance.*` in `messages/en.json` and `messages/de.json`.
 
 ## Component sweep

@@ -78,7 +78,7 @@ pixel-identical.
 | `secondary-foreground` | `#2A2270` | `#FBF3DC` |
 | `muted` | `#ECE7DB` | `#252246` |
 | `muted-foreground` | `#5B5478` | `#C5BAA0` |
-| `accent` | `#E7E0F7` | `#6E66C9` |
+| `accent` | `#F6EBD2` | `#6E66C9` |
 | `accent-foreground` | `#1C1838` | `#FBF3DC` |
 | `destructive` | `#B3261E` | `#FF6467` |
 | `border` | `#DDD6C7` | `#2E2A50` |
@@ -138,11 +138,28 @@ This is the one token whose *meaning* differs per theme, and it drives several d
 fixes:
 
 - **Dark:** a saturated indigo (`#6E66C9`) used as a hover fill and as a foreground colour.
-- **Light:** a pale wash (`#E7E0F7`) with ink text, following the shadcn light convention.
+- **Light:** a pale **gold** wash (`#F6EBD2`) with ink text.
 
 A saturated accent with white text is illegible as a light-mode hover; a pale wash with ink
 text is correct. Consequently any component that used `accent` as a *saturated* colour
 (`text-accent`, gradient stops) needs its own token — see the sweep below.
+
+The light value is **gold**, not a pale indigo, and that was a deliberate second pass. Since
+`accent` is what `--hover-bg` resolves to, it is the colour of every hover in the app, and a
+lilac hover on a parchment page sat **ΔE 17.3** from the page — while `muted`, the ordinary
+raised surface, sits at 5.3. Hover was jumping roughly three times further than any other
+surface step, and changing hue family to do it. The gold wash lands at ΔE 9.8 from the page
+and 7.2 from `muted`: a clear step, one warm family, and hover now relates to the gold that
+already means "interactive" here. Ink on it measures 14.3:1.
+
+Contrast ratio is the wrong instrument for this judgement — it only sees lightness, so it
+scores a lilac and a parchment of equal lightness as identical. The guard added for it uses
+CIELAB ΔE, with **both** a floor and a ceiling: a hover has to be visible against the page,
+stay clear of `muted`, and not become an event.
+
+Brand indigo keeps its own jobs — `--brand-indigo` for the avatar discs and the deck-hero
+tint, and the headings in the OTP and contact email templates — so the family still reads as
+Revelio's; it simply is not what a hover means.
 
 ### `primary` is a fill, not an ink
 

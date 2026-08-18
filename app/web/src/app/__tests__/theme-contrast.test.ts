@@ -25,6 +25,29 @@ function contrast(a: string, b: string): number {
   return (hi + 0.05) / (lo + 0.05)
 }
 
+/**
+ * CIELAB coordinates. Contrast ratio is the wrong tool for comparing two pale
+ * surfaces - it only sees lightness, so it calls a lilac and a parchment of
+ * equal lightness identical. Perceptual distance is what "can you see the
+ * hover?" actually depends on.
+ */
+function lab(h: string): [number, number, number] {
+  const [r, g, b] = [1, 3, 5]
+    .map((i) => parseInt(h.slice(i, i + 2), 16) / 255)
+    .map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+  const x = (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047
+  const y = 0.2126 * r + 0.7152 * g + 0.0722 * b
+  const z = (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883
+  const f = (t: number) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116)
+  return [116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))]
+}
+
+function deltaE(a: string, b: string): number {
+  const [l1, a1, b1] = lab(a)
+  const [l2, a2, b2] = lab(b)
+  return Math.hypot(l1 - l2, a1 - a2, b1 - b2)
+}
+
 describe('light theme contrast', () => {
   // AA for normal text. Light mode is held to this in full; dark mode is
   // carried over as-is and has four known pre-existing gaps documented in
@@ -65,6 +88,20 @@ describe('light theme contrast', () => {
     const primary = contrast(hex('--light-primary'), hex('--light-background'))
     expect(secondary).toBeLessThan(primary)
     expect(secondary).toBeLessThan(2)
+  })
+
+  // The hover fill has to clear two different neighbours: the page it lifts
+  // off, and `muted`, the app's ordinary raised surface. Too close to the page
+  // and the hover is invisible; too close to muted and a hovered row reads like
+  // a resting panel. The upper bound is what the original lilac broke - it sat
+  // 17.3 from the page, roughly 3x any other surface step, and in a different
+  // hue family.
+  it('the hover fill reads as a step, not as a different colour', () => {
+    const vsPage = deltaE(hex('--light-accent'), hex('--light-background'))
+    const vsMuted = deltaE(hex('--light-accent'), hex('--light-muted'))
+    expect(vsPage).toBeGreaterThan(5)
+    expect(vsPage).toBeLessThan(15)
+    expect(vsMuted).toBeGreaterThan(5)
   })
 
   // Graphical fills only need 3:1 (WCAG 1.4.11).

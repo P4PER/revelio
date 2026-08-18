@@ -68,6 +68,7 @@ describe('light theme contrast', () => {
     ['primary button label', '--light-primary-foreground', '--light-primary'],
     // --primary is a FILL (dark ink sits on it). Gold used as text needs its
     // own darker value: #F0C458 on parchment is 1.51:1, effectively invisible.
+    ['hover border on card', '--light-secondary-ink', '--light-card'],
     ['heading on page', '--light-heading', '--light-background'],
     ['heading on card', '--light-heading', '--light-card'],
     ['gold ink on page', '--light-primary-ink', '--light-background'],
@@ -159,5 +160,12 @@ describe('dark theme ink', () => {
   it('the progress fill separates from its own track', () => {
     const fill = hex('--dark-progress')
     expect(contrast(fill, over(fill, hex('--dark-card'), 0.2))).toBeGreaterThanOrEqual(3)
+  })
+
+  // The card-tile hover border. It must be read at full strength: composited at
+  // /60 the dark value falls to 2.11:1 and at /40 to 1.61:1, which is how the
+  // old primary/40/accent/60 borders ended up nearly invisible.
+  it('the hover border clears 3:1 on a card', () => {
+    expect(contrast(hex('--dark-secondary-ink'), hex('--dark-card'))).toBeGreaterThanOrEqual(3)
   })
 })

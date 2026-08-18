@@ -43,6 +43,7 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-ink: var(--secondary-ink);
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-ink: var(--primary-ink);
@@ -125,6 +126,7 @@
   --dark-primary-ink: #E8B23A;
   --dark-secondary: #3B3194;
   --dark-secondary-foreground: #FBF3DC;
+  --dark-secondary-ink: #6E66C9;
   --dark-muted: #252246;
   --dark-muted-foreground: #C5BAA0;
   --dark-accent: #6E66C9;
@@ -171,6 +173,7 @@
   --light-primary-ink: #875D0D;
   --light-secondary: #3B3194;
   --light-secondary-foreground: #FBF3DC;
+  --light-secondary-ink: #3B3194;
   --light-muted: #ECE7DB;
   --light-muted-foreground: #5B5478;
   --light-accent: #E7E0F7;
@@ -219,6 +222,7 @@
   --primary-ink: var(--light-primary-ink);
   --secondary: var(--light-secondary);
   --secondary-foreground: var(--light-secondary-foreground);
+  --secondary-ink: var(--light-secondary-ink);
   --muted: var(--light-muted);
   --muted-foreground: var(--light-muted-foreground);
   --accent: var(--light-accent);
@@ -268,6 +272,7 @@
     --primary-ink: var(--dark-primary-ink);
     --secondary: var(--dark-secondary);
     --secondary-foreground: var(--dark-secondary-foreground);
+    --secondary-ink: var(--dark-secondary-ink);
     --muted: var(--dark-muted);
     --muted-foreground: var(--dark-muted-foreground);
     --accent: var(--dark-accent);
@@ -319,6 +324,7 @@
   --primary-ink: var(--dark-primary-ink);
   --secondary: var(--dark-secondary);
   --secondary-foreground: var(--dark-secondary-foreground);
+  --secondary-ink: var(--dark-secondary-ink);
   --muted: var(--dark-muted);
   --muted-foreground: var(--dark-muted-foreground);
   --accent: var(--dark-accent);

@@ -8,8 +8,8 @@ const VARIANTS: Record<
   { symbol: string; color: string; mask: boolean }
 > = {
   missing: { symbol: '?', color: 'text-primary-ink', mask: false },
-  dissolving: { symbol: '✦', color: 'text-secondary', mask: true },
-  dark: { symbol: '✦', color: 'text-secondary', mask: false },
+  dissolving: { symbol: '✦', color: 'text-secondary-ink', mask: true },
+  dark: { symbol: '✦', color: 'text-secondary-ink', mask: false },
 }
 
 export function ErrorCardState({

@@ -63,3 +63,20 @@ describe('light theme contrast', () => {
     }
   })
 })
+
+// The light theme is the one being introduced, so most guards above point at
+// it. These cover the dark side of the ink tokens: an ink value chosen to be
+// readable on parchment is, by construction, at risk of vanishing on midnight.
+describe('dark theme ink', () => {
+  const GRAPHIC = 3 // WCAG 1.4.11
+  it('the error-card glyph stays visible on the card motif', () => {
+    // Rendered on the muted/card stripes of error-card-state.tsx.
+    expect(contrast(hex('--dark-secondary-ink'), hex('--dark-card'))).toBeGreaterThanOrEqual(GRAPHIC)
+    expect(contrast(hex('--dark-secondary-ink'), hex('--dark-muted'))).toBeGreaterThanOrEqual(GRAPHIC)
+  })
+
+  it('gold ink clears AA on the page and on cards', () => {
+    expect(contrast(hex('--dark-primary-ink'), hex('--dark-background'))).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(hex('--dark-primary-ink'), hex('--dark-card'))).toBeGreaterThanOrEqual(4.5)
+  })
+})

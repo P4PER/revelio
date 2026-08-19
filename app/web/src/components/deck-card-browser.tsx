@@ -81,7 +81,7 @@ export function DeckCardBrowser({
   const [page, setPage] = useState(1)
   const [result, setResult] = useState<SearchResult>(EMPTY_RESULT)
   const [pending, setPending] = useState(false)
-  const [detailId, setDetailId] = useState<string | null>(null)
+  const [detail, setDetail] = useState<{ id: string; orientation?: string | null } | null>(null)
 
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reqId = useRef(0)
@@ -246,7 +246,7 @@ export function DeckCardBrowser({
 
               <CardInfoButton
                 label={t('browse.infoAria', { name: hit.name })}
-                onClick={() => setDetailId(hit.id)}
+                onClick={() => setDetail({ id: hit.id, orientation: hit.orientation })}
               />
             </div>
           )
@@ -263,9 +263,10 @@ export function DeckCardBrowser({
       />
 
       <CardDetailSheet
-        cardId={detailId}
+        cardId={detail?.id ?? null}
+        orientation={detail?.orientation}
         imageBase={imageBase}
-        onOpenChange={(open) => { if (!open) setDetailId(null) }}
+        onOpenChange={(open) => { if (!open) setDetail(null) }}
       />
     </div>
   )

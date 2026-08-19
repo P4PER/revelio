@@ -50,12 +50,12 @@ function Grid({
 }: {
   entries: DeckCardView[]
   imageBase: string
-  onInfo: (cardId: string) => void
+  onInfo: (entry: DeckCardView) => void
 }) {
   return (
     <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
       {entries.map((e) => (
-        <GalleryTile key={`${e.zone}-${e.cardId}`} entry={e} imageBase={imageBase} onInfo={() => onInfo(e.cardId)} />
+        <GalleryTile key={`${e.zone}-${e.cardId}`} entry={e} imageBase={imageBase} onInfo={() => onInfo(e)} />
       ))}
     </div>
   )
@@ -63,7 +63,8 @@ function Grid({
 
 export function DeckGallery({ entries, imageBase }: { entries: DeckCardView[]; imageBase: string }) {
   const t = useTranslations('decks')
-  const [detailId, setDetailId] = useState<string | null>(null)
+  const [detail, setDetail] = useState<{ id: string; orientation?: string | null } | null>(null)
+  const showDetail = (entry: DeckCardView) => setDetail({ id: entry.cardId, orientation: entry.orientation })
   const character = entries.filter((e) => e.zone === 'character')
   const main = entries.filter((e) => e.zone === 'main')
   const sideboard = entries.filter((e) => e.zone === 'sideboard')
@@ -78,7 +79,7 @@ export function DeckGallery({ entries, imageBase }: { entries: DeckCardView[]; i
         {character.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('panel.noCharacter')}</p>
         ) : (
-          <Grid entries={character} imageBase={imageBase} onInfo={setDetailId} />
+          <Grid entries={character} imageBase={imageBase} onInfo={showDetail} />
         )}
       </section>
       <section>
@@ -99,7 +100,7 @@ export function DeckGallery({ entries, imageBase }: { entries: DeckCardView[]; i
                     {list.reduce((n, e) => n + e.quantity, 0)}
                   </span>
                 </div>
-                <Grid entries={list} imageBase={imageBase} onInfo={setDetailId} />
+                <Grid entries={list} imageBase={imageBase} onInfo={showDetail} />
               </div>
             ))}
           </div>
@@ -113,14 +114,15 @@ export function DeckGallery({ entries, imageBase }: { entries: DeckCardView[]; i
         {sideboard.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('panel.emptySideboard')}</p>
         ) : (
-          <Grid entries={sideboard} imageBase={imageBase} onInfo={setDetailId} />
+          <Grid entries={sideboard} imageBase={imageBase} onInfo={showDetail} />
         )}
       </section>
 
       <CardDetailSheet
-        cardId={detailId}
+        cardId={detail?.id ?? null}
+        orientation={detail?.orientation}
         imageBase={imageBase}
-        onOpenChange={(open) => { if (!open) setDetailId(null) }}
+        onOpenChange={(open) => { if (!open) setDetail(null) }}
       />
     </div>
   )

@@ -33,7 +33,7 @@ export function DeckPanel({
 }) {
   const t = useTranslations('decks')
   const locale = useLocale()
-  const [detailId, setDetailId] = useState<string | null>(null)
+  const [detail, setDetail] = useState<{ id: string; orientation?: string | null } | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [flashKey, setFlashKey] = useState<string | null>(null)
 
@@ -117,7 +117,7 @@ export function DeckPanel({
         <button
           type="button"
           aria-label={t('browse.infoAria', { name: e.name })}
-          onClick={() => setDetailId(e.cardId)}
+          onClick={() => setDetail({ id: e.cardId, orientation: e.orientation })}
           className="-mr-1 grid size-7 shrink-0 cursor-pointer place-items-center rounded-md text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-background hover:text-primary-ink focus-visible:opacity-100 touch:opacity-100"
         >
           <Info className="size-5" />
@@ -198,9 +198,10 @@ export function DeckPanel({
       )}
 
       <CardDetailSheet
-        cardId={detailId}
+        cardId={detail?.id ?? null}
+        orientation={detail?.orientation}
         imageBase={imageBase}
-        onOpenChange={(open) => { if (!open) setDetailId(null) }}
+        onOpenChange={(open) => { if (!open) setDetail(null) }}
       />
     </div>
   )

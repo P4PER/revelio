@@ -137,6 +137,6 @@ describe('DeckCardBrowser', () => {
 
     await user.click(screen.getByRole('button', { name: 'View details for OK Card' }))
     expect(getCardDetailAction).toHaveBeenCalledWith('ok-card', 'en')
-    expect(await screen.findByText('Loading…')).toBeInTheDocument()
+    expect(await screen.findByRole('status', { name: 'Loading…' })).toBeInTheDocument()
   })
 })

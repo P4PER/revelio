@@ -377,6 +377,8 @@
       "title": "Deck importieren",
       "pasteLabel": "Deckliste einfügen",
       "pastePlaceholder": "Text- oder JSON-Deckdaten einfügen …",
+      "exampleLabel": "Erwartetes Format",
+      "exampleHint": "Überschriften bestimmen, in welchen Abschnitt Karten kommen — ohne sie landet jede Karte im Hauptdeck. Die (Set-Nummer) ist optional.",
       "fileLabel": "Oder Datei auswählen",
       "fileChoose": "Datei auswählen",
       "submit": "Importieren",

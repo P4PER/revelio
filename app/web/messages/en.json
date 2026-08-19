@@ -377,6 +377,8 @@
       "title": "Import deck",
       "pasteLabel": "Paste a deck list",
       "pastePlaceholder": "Paste plain-text or JSON deck data…",
+      "exampleLabel": "Expected format",
+      "exampleHint": "Headings decide which section cards go into — without them every card lands in the main deck. The (set number) is optional.",
       "fileLabel": "Or choose a file",
       "fileChoose": "Choose a file",
       "submit": "Import",

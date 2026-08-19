@@ -29,6 +29,7 @@ function hit(overrides: Partial<SearchDocument>): SearchDocument {
     legality: 'legal',
     cost: 2,
     isOfficial: true,
+    orientation: null,
     imageLang: null,
     defaultLanguage: 'en',
     ...overrides,
@@ -44,8 +45,9 @@ const FIXED_RESULT: SearchResult = {
     hit({ id: 'maxed-card', name: 'Maxed Card', legality: 'legal' }),
     hit({ id: 'ok-card', name: 'OK Card', legality: 'legal' }),
     hit({ id: 'char-card', name: 'Char Card', legality: 'legal', types: ['character'], subTypes: ['witch'] }),
+    hit({ id: 'wide-card', name: 'Wide Card', legality: 'legal', orientation: 'horizontal' }),
   ],
-  total: 4,
+  total: 5,
   page: 1,
   hitsPerPage: 24,
 }
@@ -73,7 +75,7 @@ describe('DeckCardBrowser', () => {
   it('disables the Add trigger for a banned card in Revival, but not for a plain legal card', async () => {
     renderBrowser(() => false)
 
-    await waitFor(() => expect(screen.getByText('4 cards')).toBeInTheDocument(), { timeout: 2000 })
+    await waitFor(() => expect(screen.getByText('5 cards')).toBeInTheDocument(), { timeout: 2000 })
 
     expect(screen.getByRole('button', { name: 'Add Banned Card' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Add OK Card' })).not.toBeDisabled()
@@ -85,14 +87,14 @@ describe('DeckCardBrowser', () => {
     expect(screen.getByRole('status', { name: 'Loading cards…' })).toBeInTheDocument()
     expect(screen.queryByText('No cards found.')).not.toBeInTheDocument()
 
-    await waitFor(() => expect(screen.getByText('4 cards')).toBeInTheDocument(), { timeout: 2000 })
+    await waitFor(() => expect(screen.getByText('5 cards')).toBeInTheDocument(), { timeout: 2000 })
     expect(screen.queryByRole('status', { name: 'Loading cards…' })).not.toBeInTheDocument()
   })
 
   it('keeps the results on screen while a refetch is in flight', async () => {
     const user = userEvent.setup()
     renderBrowser(() => false)
-    await waitFor(() => expect(screen.getByText('4 cards')).toBeInTheDocument(), { timeout: 2000 })
+    await waitFor(() => expect(screen.getByText('5 cards')).toBeInTheDocument(), { timeout: 2000 })
 
     await user.type(screen.getByRole('searchbox'), 'wand')
     expect(screen.getByRole('button', { name: 'Add OK Card' })).toBeInTheDocument()
@@ -102,7 +104,7 @@ describe('DeckCardBrowser', () => {
   it('offers Main/Sideboard items for any card, and a "starting character" item only for a character-eligible card', async () => {
     const user = userEvent.setup()
     renderBrowser(() => false)
-    await waitFor(() => expect(screen.getByText('4 cards')).toBeInTheDocument(), { timeout: 2000 })
+    await waitFor(() => expect(screen.getByText('5 cards')).toBeInTheDocument(), { timeout: 2000 })
 
     await user.click(screen.getByRole('button', { name: 'Add OK Card' }))
     expect(await screen.findByRole('menuitem', { name: 'Add to main deck' })).toBeInTheDocument()
@@ -121,7 +123,7 @@ describe('DeckCardBrowser', () => {
     const copyLimitReached = (cardId: string) => cardId === 'maxed-card'
     const onAdd = vi.fn()
     renderBrowser(copyLimitReached, onAdd)
-    await waitFor(() => expect(screen.getByText('4 cards')).toBeInTheDocument(), { timeout: 2000 })
+    await waitFor(() => expect(screen.getByText('5 cards')).toBeInTheDocument(), { timeout: 2000 })
 
     await user.click(screen.getByRole('button', { name: 'Add Maxed Card' }))
     const mainItem = await screen.findByRole('menuitem', { name: 'Add to main deck' })
@@ -138,7 +140,7 @@ describe('DeckCardBrowser', () => {
     const user = userEvent.setup()
     const onAdd = vi.fn()
     renderBrowser(() => false, onAdd)
-    await waitFor(() => expect(screen.getByText('4 cards')).toBeInTheDocument(), { timeout: 2000 })
+    await waitFor(() => expect(screen.getByText('5 cards')).toBeInTheDocument(), { timeout: 2000 })
 
     await user.click(screen.getByRole('button', { name: 'Add OK Card' }))
     await user.click(await screen.findByRole('menuitem', { name: 'Add to sideboard' }))
@@ -150,10 +152,36 @@ describe('DeckCardBrowser', () => {
     expect(onAdd).toHaveBeenCalledWith(expect.objectContaining({ cardId: 'char-card' }), 'character')
   })
 
+  // The deck panel sizes a card's detail skeleton from the entry's orientation,
+  // so a card added here has to carry it the way the server-loaded views do -
+  // otherwise a horizontal card jumps on open until the deck is saved.
+  it('carries the card orientation into the added view', async () => {
+    const user = userEvent.setup()
+    const onAdd = vi.fn()
+    renderBrowser(() => false, onAdd)
+    await waitFor(() => expect(screen.getByText('5 cards')).toBeInTheDocument(), { timeout: 2000 })
+
+    await user.click(screen.getByRole('button', { name: 'Add Wide Card' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Add to main deck' }))
+    expect(onAdd).toHaveBeenCalledWith(expect.objectContaining({ orientation: 'horizontal' }), 'main')
+  })
+
+  // A count that arrives in a freshly mounted live region goes unannounced by
+  // most screen readers, so the region has to outlive the loading state.
+  it('updates the result count in place rather than remounting its live region', async () => {
+    renderBrowser(() => false)
+
+    const countRegion = screen.getAllByRole('status').find((el) => !el.hasAttribute('aria-label'))
+    expect(countRegion).toBeDefined()
+
+    await waitFor(() => expect(screen.getByText('5 cards')).toBeInTheDocument(), { timeout: 2000 })
+    expect(countRegion).toHaveTextContent('5 cards')
+  })
+
   it('opens the card detail Sheet and fetches the card when the Info button is clicked', async () => {
     const user = userEvent.setup()
     renderBrowser(() => false)
-    await waitFor(() => expect(screen.getByText('4 cards')).toBeInTheDocument(), { timeout: 2000 })
+    await waitFor(() => expect(screen.getByText('5 cards')).toBeInTheDocument(), { timeout: 2000 })
 
     await user.click(screen.getByRole('button', { name: 'View details for OK Card' }))
     expect(getCardDetailAction).toHaveBeenCalledWith('ok-card', 'en')

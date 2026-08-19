@@ -27,6 +27,21 @@ export function maxQuantity(s: BuilderState, cardId: string, zone: DeckZone, isL
   return Math.max(0, COPY_LIMIT - (copies(s.entries, cardId) - here))
 }
 
+// The quantity a requested change should actually write, or null when it would
+// leave the entry where it is (including when there is no such entry). The
+// typed input can jump several copies at once, so a request is capped at what
+// the four-copy rule still allows - but never below where the entry already
+// sits: an imported entry can start above the limit, and there the cap must
+// only block increases rather than turn a step in either direction into a
+// silent drop back down to four.
+export function clampQuantity(s: BuilderState, cardId: string, zone: DeckZone, qty: number): number | null {
+  const current = s.entries.find((e) => e.cardId === cardId && e.zone === zone)
+  if (!current) return null
+  const ceiling = Math.max(current.quantity, maxQuantity(s, cardId, zone, current.isLesson))
+  const capped = Math.min(qty, ceiling)
+  return capped === current.quantity ? null : capped
+}
+
 export function addCard(s: BuilderState, view: Omit<DeckCardView, 'zone' | 'quantity'>, zone: DeckZone): BuilderState {
   if (zone === 'character') {
     const entries = s.entries.filter((e) => e.zone !== 'character')

@@ -102,11 +102,19 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
     if (!next) reset()
   }
 
+  // Every path that rewrites the box clears the error with it: the message and
+  // the aria-invalid it drives describe the text that was submitted, so leaving
+  // them up once that text is gone marks valid input as invalid.
+  function updateRaw(value: string) {
+    setRaw(value)
+    setInputError('')
+  }
+
   async function handleFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
-    setRaw(await file.text())
+    updateRaw(await file.text())
   }
 
   async function importJson(value: unknown) {
@@ -199,7 +207,7 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
             <AutoTextarea
               id={textareaId}
               value={raw}
-              onChange={(e) => setRaw(e.target.value)}
+              onChange={(e) => updateRaw(e.target.value)}
               placeholder={t('import.pastePlaceholder')}
               className="max-h-96 min-h-40 font-mono"
               aria-invalid={inputError ? true : undefined}

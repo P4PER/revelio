@@ -40,6 +40,24 @@ describe('DeckImportDialog', () => {
     expect(document.getElementById(describedBy!)).toHaveTextContent(en.decks.import.emptyInput)
   })
 
+  it('drops the error once the text it describes is replaced', async () => {
+    const user = userEvent.setup()
+    render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        <DeckImportDialog state={emptyDeck()} onImport={vi.fn()} />
+      </NextIntlClientProvider>,
+    )
+    await user.click(screen.getByRole('button', { name: en.decks.import.button }))
+    await user.click(open().getByRole('button', { name: en.decks.import.submit }))
+    const box = open().getByLabelText(en.decks.import.pasteLabel)
+    expect(box).toHaveAttribute('aria-invalid', 'true')
+
+    fireEvent.change(box, { target: { value: '4 Accio' } })
+    expect(box).not.toHaveAttribute('aria-invalid')
+    expect(box).not.toHaveAttribute('aria-describedby')
+    expect(screen.queryByText(en.decks.import.emptyInput)).not.toBeInTheDocument()
+  })
+
   it('shows the invalid-JSON error inline for a JSON object that is not a deck', async () => {
     const user = userEvent.setup()
     render(

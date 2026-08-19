@@ -48,6 +48,9 @@ function toAddView(hit: SearchDocument): Omit<DeckCardView, 'zone' | 'quantity'>
     legality: meta.legality,
     isLesson: meta.isLesson,
     isStartingCharacter: meta.isStartingCharacter,
+    // Carried so a card added in this session sizes its detail skeleton the
+    // same as one loaded from the server, where getCardViews supplies it.
+    orientation: hit.orientation,
     // DeckCardView.imageVersion is the *default-language* thumb version (deck-gallery
     // renders a no-lang thumb key). The hit only carries the effective image lang, so
     // only adopt its version when that lang is the default; otherwise leave it null.
@@ -180,13 +183,17 @@ export function DeckCardBrowser({
             <DeckFilterDrawer sets={sets} value={filters} onApply={setFilters} />
           </div>
         </div>
-        {showSkeleton ? (
-          <Skeleton className="h-4 w-20" />
-        ) : (
-          <p className="text-xs text-muted-foreground" role="status">
-            {t('browse.resultCount', { count: result.total })}
-          </p>
-        )}
+        {/* The live region stays mounted across a search so a new count reaches
+            screen readers as an update to its text; swapping it for the ghost
+            would remount it already populated, which most of them never
+            announce. A div rather than a p because the ghost is a block. */}
+        <div className="text-xs text-muted-foreground" role="status">
+          {showSkeleton ? (
+            <Skeleton className="h-4 w-20" />
+          ) : (
+            t('browse.resultCount', { count: result.total })
+          )}
+        </div>
       </div>
 
       <div

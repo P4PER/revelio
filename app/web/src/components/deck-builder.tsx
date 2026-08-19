@@ -8,9 +8,9 @@ import { evaluateDeck } from '@revelio/core'
 import {
   type BuilderState,
   addCard,
+  clampQuantity,
   copyLimitReached,
   loadDraft,
-  maxQuantity,
   saveDraft,
   clearDraft,
   setFormat,
@@ -91,16 +91,10 @@ export function DeckBuilder({
     if (!deckId && !loggedIn) saveDraft(state)
   }, [state, deckId, loggedIn])
 
-  // The typed quantity input can jump several copies at once, so cap the
-  // request against what the four-copy rule still allows instead of only
-  // rejecting a step that starts at the limit.
   function handleQuantityChange(cardId: string, zone: DeckZone, qty: number) {
     setState((s) => {
-      const current = s.entries.find((e) => e.cardId === cardId && e.zone === zone)
-      if (!current) return s
-      const capped = Math.min(qty, maxQuantity(s, cardId, zone, current.isLesson))
-      if (capped === current.quantity) return s
-      return setQuantity(s, cardId, zone, capped)
+      const next = clampQuantity(s, cardId, zone, qty)
+      return next === null ? s : setQuantity(s, cardId, zone, next)
     })
   }
 

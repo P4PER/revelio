@@ -126,13 +126,44 @@ Measuring the palette turned up three failures that exist **today**, unrelated t
 | `lesson-charms` `#0069A9` on `background` | 3.13:1 | 4.5:1 |
 | `lesson-care_of_magical_creatures` `#836444` on `background` | 3.37:1 | 4.5:1 |
 | `lesson-transfiguration` `#BC3E4D` on `background` | 3.43:1 | 4.5:1 |
-| `accent-foreground` on `accent` | 4.30:1 | 4.5:1 |
+| `accent-foreground` on **solid** `accent` | 4.30:1 | 4.5:1 |
+
+The `accent` row needs a qualifier: 4.30:1 is `#FBF3DC` on solid `#6E66C9`, and most of the app
+never paints accent solid in dark mode. shadcn damps it to `dark:...bg-accent/50` in
+`button.tsx`, `dropdown-menu.tsx`, `select.tsx` and `language-switcher.tsx` (8.81:1), and
+`--hover-bg` is accent at 40% (10.18:1). Both clear AA comfortably.
+
+Fixing the dead `dark` variant narrowed this from "every accent hover" to three sites that never
+got the damping: `calendar.tsx:112` (the `today` cell - the only persistent, non-hover case,
+reached through `DatePicker` on editor and admin surfaces), `badge.tsx:18` outline-on-anchor
+hover (live at `page.tsx:68`), and `mobile-nav.tsx:29` row hover. `calendar.tsx:203`'s
+`range-middle` also fails on paper, but `date-picker.tsx` passes `mode="single"`, so it never
+renders.
+
+Darkening `--accent` is the wrong lever - it is the base for `--hover-bg` at 40%, and weakening
+the dark hover wash would undo an earlier fix. The options are damping those three sites to
+`/50` like their siblings, or lifting `--accent-foreground` to `#FFFFFF` (4.77:1). Left alone
+here for the same reason as the lesson colours: it is a pre-existing dark-mode defect, and this
+branch already improved it.
+
+Two more surfaced later, when the lesson chips were routed through the theme tokens: the active
+chip paints `--lesson-on` (white) over the fill, which fails on the two lightest tints.
+
+| Pair (dark mode, shipping today) | Ratio | AA needs |
+|---|---|---|
+| `--lesson-on` `#FFFFFF` on `lesson-quidditch` `#E2AE37` | 2.03:1 | 4.5:1 |
+| `--lesson-on` `#FFFFFF` on `lesson-potions` `#00A661` | 3.17:1 | 4.5:1 |
 
 The lesson colours are the WotC card-frame colours, so changing them is a brand decision, not a
 mechanical fix. **Deliberately not addressed here** — fixing them would mean shipping a visible
-change to dark mode under a "add light mode" banner. Recorded so the contrast test added below
-asserts AA for light mode only, with these four pairs explicitly listed as known exceptions
-rather than silently skipped.
+change to dark mode under a "add light mode" banner. Reaffirmed after the light-mode fix, which
+made these tokens live as text for the first time: brightening `charms`, `care_of_magical_creatures`
+and `transfiguration` was measured (they clear 5:1 at the same hue) and then rejected on those
+grounds.
+
+`theme-contrast.test.ts` therefore asserts AA for light mode only, and pins the dark exception
+set exactly — a new lesson, or any tint nudged either way, changes the list and fails the test
+rather than quietly widening a documented exception into an undocumented one.
 
 ### `accent` changes role between themes
 
@@ -293,8 +324,26 @@ contrast on a light background, so they become per-theme:
 | Transfiguration | `#A32F3D` | `#BC3E4D` |
 | Quidditch | `#8F6510` | `#E2AE37` |
 
-They keep their `--color-lesson-*` names (so `text-lesson-charms` etc. still work) but resolve
-through a per-theme variable rather than a literal.
+They resolve through a per-theme `--lesson-<code>` variable rather than a literal, and the
+variable name is the domain code from `LESSONS` so `lessonVar()` in `lib/lesson-colors.ts` can
+build it without a hand-kept map.
+
+The `--color-lesson-*` entries in `@theme inline` were **removed**: they existed to generate
+`bg-lesson-*` / `text-lesson-*` utilities, no component ever used one, and the utilities did not
+reliably generate in this Tailwind v4 setup anyway. Components apply the tint inline from
+`lessonVar()` instead.
+
+Two companion tokens carry the rest of the chip:
+
+| Token | Light | Dark |
+|---|---|---|
+| `--lesson-on` — ink over a lesson fill | `#FFFFFF` | `#FFFFFF` |
+| `--lesson-icon-filter` — forces the flat SVG icon to match that ink | `brightness(0) invert(1)` | `brightness(0) invert(1)` |
+
+`LESSONS[].color` in `@revelio/core` stays a plain hex and must: `lib/deck-png.ts` paints it onto
+a canvas for the deck-image export, where there is no CSS to resolve a `var()`. The printed
+lesson SVGs under `public/lessons/` are likewise left alone — they are card iconography, not UI
+chrome, and are non-text under WCAG.
 
 ## Theme resolution
 

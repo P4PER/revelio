@@ -1,4 +1,7 @@
 'use client'
+/* eslint-disable @next/next/no-img-element -- the lesson icon is a static 16px public
+   SVG and the optimizer is off project-wide (images.unoptimized), so <Image> adds no
+   value here. */
 import { useLocale } from 'next-intl'
 import { LESSONS } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'

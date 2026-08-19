@@ -53,6 +53,8 @@ export function LocalizationForm({
     mode: 'onSubmit',
     reValidateMode: 'onChange',
   })
+  // React Compiler skips this component by design: react-hook-form watch() cannot be memoized.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const name = form.watch('name')
 
   const dirty =

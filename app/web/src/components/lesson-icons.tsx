@@ -1,6 +1,9 @@
 // Fixed-size row of lesson symbols for deck list entries. Plain component (no
 // 'use client') so it renders in both the server browse page and client entries.
 // Uses a plain <img> (SVGs are static public assets) to keep it framework-light.
+/* eslint-disable @next/next/no-img-element -- lesson symbols are static public SVGs
+   rendered at a fixed 18px, and the optimizer is off project-wide (images.unoptimized),
+   so <Image> adds no value here. */
 export function LessonIcons({
   codes,
   size = 18,

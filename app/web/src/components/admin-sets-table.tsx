@@ -108,6 +108,8 @@ export function AdminSetsTable({ sets, imageBase }: { sets: SetDTO[]; imageBase:
     [t, imageBase],
   )
 
+  // React Compiler skips this component by design: useReactTable returns unmemoizable functions.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,

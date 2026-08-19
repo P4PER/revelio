@@ -14,19 +14,31 @@ export function AppearanceForm({ current }: { current: ThemeChoice }) {
   const [choice, setChoice] = useState<ThemeChoice>(current)
   const [, startTransition] = useTransition()
 
-  function apply(next: string) {
-    const value = next as ThemeChoice
-    setChoice(value)
-    // Mirror onto <html> first so the page repaints instantly; the cookie
-    // write is what makes it survive a reload. Removing the attribute hands
-    // control back to the prefers-color-scheme media query.
+  // Mirror onto <html> so the page repaints instantly; the cookie write is what
+  // makes it survive a reload. Removing the attribute hands control back to the
+  // prefers-color-scheme media query.
+  function paint(value: ThemeChoice) {
     if (value === 'system') delete document.documentElement.dataset.theme
     else document.documentElement.dataset.theme = value
+  }
+
+  function apply(next: string) {
+    const value = next as ThemeChoice
+    const previous = choice
+    setChoice(value)
+    paint(value)
 
     startTransition(async () => {
       const result = await setTheme(value)
-      if (result.ok) toast.success(t('saved'))
-      else toast.error(t('error'))
+      if (result.ok) {
+        toast.success(t('saved'))
+        return
+      }
+      // The cookie was never written, so roll the optimistic paint back rather
+      // than leaving a switched-looking page that reverts on the next load.
+      setChoice(previous)
+      paint(previous)
+      toast.error(t('error'))
     })
   }
 

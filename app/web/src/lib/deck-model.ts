@@ -9,11 +9,22 @@ export function emptyDeck(): BuilderState {
   return { name: '', format: 'revival', visibility: 'private', entries: [] }
 }
 
+const COPY_LIMIT = 4
+
 function copies(entries: DeckCardView[], cardId: string): number {
   return entries.filter((e) => e.cardId === cardId && e.zone !== 'character').reduce((n, e) => n + e.quantity, 0)
 }
 export function copyLimitReached(s: BuilderState, cardId: string, isLesson: boolean): boolean {
-  return !isLesson && copies(s.entries, cardId) >= 4
+  return !isLesson && copies(s.entries, cardId) >= COPY_LIMIT
+}
+
+// Highest quantity a single entry may hold. The four-copy rule counts every
+// non-character zone, so this entry's allowance is what the same card does not
+// already occupy in the other zone. Lessons are exempt.
+export function maxQuantity(s: BuilderState, cardId: string, zone: DeckZone, isLesson: boolean): number {
+  if (isLesson || zone === 'character') return Infinity
+  const here = s.entries.find((e) => e.cardId === cardId && e.zone === zone)?.quantity ?? 0
+  return Math.max(0, COPY_LIMIT - (copies(s.entries, cardId) - here))
 }
 
 export function addCard(s: BuilderState, view: Omit<DeckCardView, 'zone' | 'quantity'>, zone: DeckZone): BuilderState {

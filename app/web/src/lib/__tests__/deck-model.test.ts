@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { emptyDeck, addCard, copyLimitReached, setFormat } from '../deck-model'
+import { emptyDeck, addCard, copyLimitReached, maxQuantity, setFormat } from '../deck-model'
 
 const view = (id: string, over: Partial<Parameters<typeof addCard>[1]> = {}) => ({
   cardId: id, name: id, cost: 1, setCode: 'BS', number: '1', lesson: null,
@@ -23,6 +23,19 @@ describe('deck model', () => {
     let s = emptyDeck()
     for (let i = 0; i < 9; i++) s = addCard(s, view('lesson', { isLesson: true }), 'main')
     expect(s.entries.find((e) => e.cardId === 'lesson')?.quantity).toBe(9)
+  })
+  it('caps a single entry at the copies left over from the other zone', () => {
+    let s = emptyDeck()
+    s = addCard(s, view('accio'), 'main')
+    s = addCard(s, view('accio'), 'sideboard')
+    expect(maxQuantity(s, 'accio', 'main', false)).toBe(3)
+    expect(maxQuantity(s, 'accio', 'sideboard', false)).toBe(3)
+  })
+  it('does not cap lessons or the character slot', () => {
+    let s = emptyDeck()
+    s = addCard(s, view('lesson', { isLesson: true }), 'main')
+    expect(maxQuantity(s, 'lesson', 'main', true)).toBe(Infinity)
+    expect(maxQuantity(s, 'harry', 'character', false)).toBe(Infinity)
   })
   it('replaces the starting character', () => {
     let s = emptyDeck()

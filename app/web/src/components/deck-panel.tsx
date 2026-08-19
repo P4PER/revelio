@@ -12,6 +12,47 @@ import { DeckArt } from '@/components/deck-art'
 import { DeckLegalityBar } from '@/components/deck-legality-bar'
 import { CardDetailSheet } from '@/components/card-detail-sheet'
 
+// Editable quantity sitting between the stepper buttons. While the field is
+// being typed into, `draft` holds the raw text; committing clears it so the
+// row falls back to the deck's own value -- which is also what snaps the
+// field back when a request gets capped by the four-copy rule upstream.
+function QuantityInput({
+  value,
+  label,
+  onCommit,
+}: {
+  value: number
+  label: string
+  onCommit: (qty: number) => void
+}) {
+  const [draft, setDraft] = useState<string | null>(null)
+
+  function commit() {
+    if (draft !== null && draft !== '') onCommit(Number(draft))
+    setDraft(null)
+  }
+
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      aria-label={label}
+      value={draft ?? String(value)}
+      onChange={(ev) => setDraft(ev.target.value.replace(/\D/g, '').slice(0, 2))}
+      onFocus={(ev) => ev.currentTarget.select()}
+      onBlur={commit}
+      onKeyDown={(ev) => {
+        if (ev.key === 'Enter') {
+          ev.preventDefault()
+          ev.currentTarget.blur()
+        }
+        if (ev.key === 'Escape') setDraft(null)
+      }}
+      className="h-7 w-7 cursor-text bg-transparent text-center text-sm font-bold tabular-nums outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring"
+    />
+  )
+}
+
 // Takes the deck's full entry list, groups the main zone by lesson (falling
 // back to synthetic "Lessons"/"Items" buckets), and renders the character
 // slot, main groups (with quantity steppers), and sideboard. Presentational —
@@ -84,7 +125,11 @@ export function DeckPanel({
             >
               <Minus className="size-3.5" />
             </button>
-            <b className="min-w-4 text-center text-sm tabular-nums">{e.quantity}</b>
+            <QuantityInput
+              value={e.quantity}
+              label={t('panel.quantity', { name: e.name })}
+              onCommit={(qty) => onQuantityChange?.(e.cardId, e.zone, qty)}
+            />
             <button
               type="button"
               aria-label={t('panel.increase', { name: e.name })}

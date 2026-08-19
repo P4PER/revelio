@@ -428,6 +428,7 @@
       "emptyMain": "No main deck cards yet. Add cards from the browser.",
       "sideboard": "Sideboard",
       "emptySideboard": "No sideboard cards.",
+      "quantity": "Quantity of {name}",
       "increase": "Increase {name}",
       "decrease": "Decrease {name}"
     },

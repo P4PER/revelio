@@ -428,6 +428,7 @@
       "emptyMain": "Noch keine Karten im Hauptdeck. Füge Karten aus dem Browser hinzu.",
       "sideboard": "Sideboard",
       "emptySideboard": "Keine Karten im Sideboard.",
+      "quantity": "Anzahl von {name}",
       "increase": "{name} erhöhen",
       "decrease": "{name} verringern"
     },

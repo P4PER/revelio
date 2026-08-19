@@ -10,6 +10,7 @@ import {
   addCard,
   copyLimitReached,
   loadDraft,
+  maxQuantity,
   saveDraft,
   clearDraft,
   setFormat,
@@ -90,14 +91,16 @@ export function DeckBuilder({
     if (!deckId && !loggedIn) saveDraft(state)
   }, [state, deckId, loggedIn])
 
+  // The typed quantity input can jump several copies at once, so cap the
+  // request against what the four-copy rule still allows instead of only
+  // rejecting a step that starts at the limit.
   function handleQuantityChange(cardId: string, zone: DeckZone, qty: number) {
     setState((s) => {
-      if (zone !== 'character' && qty > 0) {
-        const current = s.entries.find((e) => e.cardId === cardId && e.zone === zone)
-        const increasing = qty > (current?.quantity ?? 0)
-        if (increasing && copyLimitReached(s, cardId, current?.isLesson ?? false)) return s
-      }
-      return setQuantity(s, cardId, zone, qty)
+      const current = s.entries.find((e) => e.cardId === cardId && e.zone === zone)
+      if (!current) return s
+      const capped = Math.min(qty, maxQuantity(s, cardId, zone, current.isLesson))
+      if (capped === current.quantity) return s
+      return setQuantity(s, cardId, zone, capped)
     })
   }
 

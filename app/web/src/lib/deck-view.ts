@@ -5,3 +5,7 @@
 export const DECK_VIEW_COOKIE = 'revelio.deck-view'
 
 export type DeckView = 'list' | 'gallery'
+
+// Cards per page in the builder's card browser. Shared so the loading grid can
+// ghost exactly as many tiles as the search action will return.
+export const DECK_BROWSE_PAGE_SIZE = 30

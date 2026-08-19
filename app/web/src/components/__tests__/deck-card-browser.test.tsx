@@ -79,6 +79,26 @@ describe('DeckCardBrowser', () => {
     expect(screen.getByRole('button', { name: 'Add OK Card' })).not.toBeDisabled()
   })
 
+  it('shows ghost tiles instead of the empty state until the first search resolves', async () => {
+    renderBrowser(() => false)
+
+    expect(screen.getByRole('status', { name: 'Loading cards…' })).toBeInTheDocument()
+    expect(screen.queryByText('No cards found.')).not.toBeInTheDocument()
+
+    await waitFor(() => expect(screen.getByText('4 cards')).toBeInTheDocument(), { timeout: 2000 })
+    expect(screen.queryByRole('status', { name: 'Loading cards…' })).not.toBeInTheDocument()
+  })
+
+  it('keeps the results on screen while a refetch is in flight', async () => {
+    const user = userEvent.setup()
+    renderBrowser(() => false)
+    await waitFor(() => expect(screen.getByText('4 cards')).toBeInTheDocument(), { timeout: 2000 })
+
+    await user.type(screen.getByRole('searchbox'), 'wand')
+    expect(screen.getByRole('button', { name: 'Add OK Card' })).toBeInTheDocument()
+    expect(screen.queryByRole('status', { name: 'Loading cards…' })).not.toBeInTheDocument()
+  })
+
   it('offers Main/Sideboard items for any card, and a "starting character" item only for a character-eligible card', async () => {
     const user = userEvent.setup()
     renderBrowser(() => false)

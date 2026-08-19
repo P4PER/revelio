@@ -447,6 +447,7 @@
       "searchPlaceholder": "{format}-Karten durchsuchen…",
       "resultCount": "{count} Karten",
       "noResults": "Keine Karten gefunden.",
+      "loading": "Karten werden geladen…",
       "add": "+ Hinzufügen",
       "addAria": "{name} hinzufügen",
       "addToCharacter": "Als Startcharakter festlegen",

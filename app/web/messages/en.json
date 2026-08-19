@@ -447,6 +447,7 @@
       "searchPlaceholder": "Search {format} cards…",
       "resultCount": "{count} cards",
       "noResults": "No cards found.",
+      "loading": "Loading cards…",
       "add": "+ Add",
       "addAria": "Add {name}",
       "addToCharacter": "Set as starting character",

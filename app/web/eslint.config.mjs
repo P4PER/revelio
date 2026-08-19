@@ -22,8 +22,9 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    // Component tests stub next/image with a plain <img>; the LCP/bandwidth advice
-    // the rule gives is about production markup and does not apply to a mock.
+    // This rule guards production markup against LCP/bandwidth cost. Test files are
+    // never served to a user, so it is off for all of them, not just the component
+    // tests that currently stub next/image with a plain <img>.
     files: ["**/__tests__/**"],
     rules: { "@next/next/no-img-element": "off" },
   },

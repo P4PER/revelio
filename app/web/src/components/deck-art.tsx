@@ -1,7 +1,4 @@
 'use client'
-/* eslint-disable @next/next/no-img-element -- art crops are pre-sized WebP from the
-   image host and next.config sets images.unoptimized, so <Image> would wrap this in
-   extra markup for zero optimization while complicating the onError fallback. */
 import { useState } from 'react'
 import { imageUrl, artCropKey } from '@revelio/core'
 import { cn } from '@/lib/utils'
@@ -38,6 +35,10 @@ export function DeckArt({
   return (
     <div className={cn('relative overflow-hidden bg-muted', className)}>
       {showImage ? (
+        // Art crops are pre-sized WebP from the image host and next.config sets
+        // images.unoptimized, so <Image> would add markup for zero optimization
+        // while complicating the onError fallback.
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={imageUrl(imageBase, artCropKey(cardId as string, version as number))}
           alt={alt}

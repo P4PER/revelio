@@ -32,7 +32,7 @@ export function CardDetail({
 }) {
   const t = useTranslations('card')
   const tEdit = useTranslations('edit')
-  const { loc, isFallback } = pickLocalization(card, locale)
+  const { loc } = pickLocalization(card, locale)
   if (!loc) return null
   const rulingText = (r: { text: Record<string, string> }) =>
     r.text[locale] ?? r.text[card.defaultLanguage] ?? Object.values(r.text)[0] ?? ''

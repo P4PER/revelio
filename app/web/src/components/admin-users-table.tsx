@@ -101,6 +101,8 @@ export function AdminUsersTable({ users }: { users: UserAdminRow[] }) {
     },
   ], [t])
 
+  // React Compiler skips this component by design: useReactTable returns unmemoizable functions.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,

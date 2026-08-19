@@ -16,6 +16,7 @@ export function LessonIcons({
   return (
     <span className="inline-flex items-center gap-1" aria-label="Lessons">
       {shown.map((code) => (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           key={code}
           src={`/lessons/${code}.svg`}

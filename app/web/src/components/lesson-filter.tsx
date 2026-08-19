@@ -47,7 +47,10 @@ export function LessonFilter({
           >
             {/* Icon is a flat SVG in the lesson's printed colour; on the active
                 (colour-filled) chip force it to --lesson-on so it matches the
-                label rather than fighting the fill. */}
+                label rather than fighting the fill.
+                A static 16px public SVG, and the optimizer is off project-wide
+                (images.unoptimized), so <Image> would add no value. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`/lessons/${l.code}.svg`}
               alt=""

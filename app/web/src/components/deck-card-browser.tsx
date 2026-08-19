@@ -1,7 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { Info } from 'lucide-react'
 import { deckCardMeta, imageUrl, thumbKey } from '@revelio/core'
 import type { DeckCardView, DeckFormat, DeckZone, SetDTO } from '@revelio/core'
 import type { SearchDocument, SearchResult } from '@revelio/search'
@@ -18,6 +17,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { CardDetailSheet } from '@/components/card-detail-sheet'
+import { CardInfoButton } from '@/components/card-info-button'
 import { CardRotate } from '@/components/card-rotate'
 import { DeckFilterDrawer, EMPTY_DECK_FILTERS, type DeckFilters } from '@/components/deck-filter-drawer'
 import { PaginationNav } from '@/components/pagination-nav'
@@ -244,16 +244,10 @@ export function DeckCardBrowser({
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Button
-                type="button"
-                size="icon-sm"
-                variant="secondary"
-                aria-label={t('browse.infoAria', { name: hit.name })}
+              <CardInfoButton
+                label={t('browse.infoAria', { name: hit.name })}
                 onClick={() => setDetailId(hit.id)}
-                className="absolute top-1.5 right-1.5 opacity-0 shadow transition-opacity focus-visible:opacity-100 group-hover:opacity-100 touch:opacity-100"
-              >
-                <Info />
-              </Button>
+              />
             </div>
           )
         })}

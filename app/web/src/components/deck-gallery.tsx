@@ -1,11 +1,11 @@
 'use client'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Info } from 'lucide-react'
 import { imageUrl, thumbKey } from '@revelio/core'
 import type { DeckCardView } from '@revelio/core'
 import { CardRotate } from '@/components/card-rotate'
 import { CardDetailSheet } from '@/components/card-detail-sheet'
+import { CardInfoButton } from '@/components/card-info-button'
 import { groupColor, groupLabel, groupMainEntries } from '@/lib/deck-groups'
 import { MAIN_TARGET } from '@/lib/deck-legality'
 
@@ -38,14 +38,7 @@ function GalleryTile({
       <span className="absolute right-1 bottom-1 rounded bg-black/75 px-1.5 py-0.5 text-xs font-bold text-white tabular-nums">
         {entry.quantity}×
       </span>
-      <button
-        type="button"
-        aria-label={t('browse.infoAria', { name: entry.name })}
-        onClick={onInfo}
-        className="absolute top-2 right-2 z-30 cursor-pointer rounded-full border border-white/40 bg-black/60 p-2.5 text-white opacity-0 shadow-md backdrop-blur-sm transition hover:bg-black/75 focus-visible:opacity-100 group-hover:opacity-100 touch:opacity-100"
-      >
-        <Info className="size-5" />
-      </button>
+      <CardInfoButton label={t('browse.infoAria', { name: entry.name })} onClick={onInfo} />
     </div>
   )
 }

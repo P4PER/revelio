@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
   // image host is unreachable from inside the container (hairpin NAT ->
   // ETIMEDOUT). So skip optimization: the browser loads the variants directly.
   images: { unoptimized: true },
+  // next build type-checks every file in tsconfig.json's include, which covers
+  // the __tests__ trees (Next 16.3 widened this from the app graph alone). Those
+  // files are checked by vitest at runtime, not tsc, so point the build at the
+  // same app-only scope the typecheck script uses.
+  typescript: { tsconfigPath: './tsconfig.typecheck.json' },
   // Our workspace packages ship raw TypeScript (main -> src/*.ts); Next must transpile them.
   transpilePackages: ['@revelio/core', '@revelio/search', '@revelio/db'],
 }

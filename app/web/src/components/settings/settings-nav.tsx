@@ -5,19 +5,16 @@ import { ResponsiveSidebar } from '@/components/responsive-sidebar'
 import { cn } from '@/lib/utils'
 import type { SettingsSection } from './types'
 
-// Appearance is the only section that works signed out; showing the others to
-// a guest would offer links that bounce straight to /login.
-const GUEST_SECTIONS: SettingsSection[] = ['appearance']
-const USER_SECTIONS: SettingsSection[] = ['profile', 'appearance', 'email', 'data', 'danger']
+// Every settings route requires a signed-in user
+const SECTIONS: SettingsSection[] = ['profile', 'appearance', 'email', 'data', 'danger']
 
-function NavList({ isLoggedIn, onSelect }: { isLoggedIn: boolean; onSelect?: () => void }) {
+function NavList({ onSelect }: { onSelect?: () => void }) {
   const t = useTranslations('settings.nav')
   const pathname = usePathname() // locale-stripped, e.g. /settings/email
-  const sections = isLoggedIn ? USER_SECTIONS : GUEST_SECTIONS
-  const active = sections.find((s) => pathname === `/settings/${s}`) ?? sections[0]
+  const active = SECTIONS.find((s) => pathname === `/settings/${s}`) ?? SECTIONS[0]
   return (
     <nav className="flex flex-col gap-1">
-      {sections.map((s) => {
+      {SECTIONS.map((s) => {
         const on = s === active
         const danger = s === 'danger'
         return (
@@ -47,15 +44,15 @@ function NavList({ isLoggedIn, onSelect }: { isLoggedIn: boolean; onSelect?: () 
   )
 }
 
-export function SettingsNav({ isLoggedIn }: { isLoggedIn: boolean }) {
+export function SettingsNav() {
   const t = useTranslations('settings')
   return (
     <ResponsiveSidebar
       title={t('menuTitle')}
       railClassName="w-64"
       drawerClassName="w-72"
-      rail={<NavList isLoggedIn={isLoggedIn} />}
-      drawer={(close) => <NavList isLoggedIn={isLoggedIn} onSelect={close} />}
+      rail={<NavList />}
+      drawer={(close) => <NavList onSelect={close} />}
     />
   )
 }

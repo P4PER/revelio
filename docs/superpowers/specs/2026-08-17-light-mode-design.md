@@ -451,9 +451,10 @@ metadata, and the media pair is right for the overwhelmingly common case.
 
 ## The control: `/settings/appearance`
 
-A new settings section, and **the only one not behind `requireSettingsUser`** — theme is a
-device preference, so gating it would leave signed-out visitors unable to override their OS
-setting.
+A new settings section. It shipped as the only one not behind `requireSettingsUser` (theme
+being a device preference), but that exception was **later removed**: every `/settings` route
+now calls `requireSettingsUser`, so a signed-out visitor is redirected to `/login`. The rest of
+this section describes the original shipped design; see "Superseded" below.
 
 - **UI:** a shadcn `RadioGroup` with System / Light / Dark, each with a one-line description.
 - **Behaviour:** on change, set `document.documentElement.dataset.theme` immediately (instant
@@ -470,6 +471,17 @@ setting.
   you are already under `/settings`, or by signing in. Worth revisiting if signed-out visitors
   are expected to find the theme picker — overriding the OS setting is otherwise undiscoverable.
 - **Strings:** `settings.appearance.*` in `messages/en.json` and `messages/de.json`.
+
+### Superseded: the appearance page is gated like every other section
+
+Because the theme picker was undiscoverable when signed out anyway (no header control, no
+footer link, and both `/settings` entry points sit inside signed-in-only menus), the guest
+exception bought nothing and only made the nav session-aware. It was removed:
+
+- `appearance/page.tsx` calls `requireSettingsUser('/settings/appearance')`.
+- `SettingsNav` is back to one fixed `SECTIONS` array and takes no props; `SettingsLayout` no
+  longer reads the session.
+- Signed-out visitors get the OS setting via `prefers-color-scheme`, which is unchanged.
 
 ## Component sweep
 
@@ -560,8 +572,9 @@ rendering, per non-goals.
 - **e2e (Playwright):** three cases — cookie `light` renders the parchment background; cookie
   `dark` renders midnight; **no cookie** under `emulateMedia({ colorScheme: 'light' })` renders
   parchment, which is the case a cookie-only test would miss.
-- **e2e (Playwright):** changing the radio on `/settings/appearance` updates the page without a
-  reload and survives a reload; the page is reachable signed-out.
+- **e2e (Playwright):** ~~changing the radio on `/settings/appearance` updates the page without
+  a reload and survives a reload; the page is reachable signed-out.~~ Superseded — the radio is
+  covered by `appearance-form.test.tsx`; the e2e case now asserts the `/login` redirect.
 
 ## Risks
 
@@ -608,4 +621,4 @@ so no new dependency)
 in the sweep table and the 50 `text-primary` call sites.
 
 `SettingsNav` lists **Profile first**, then Appearance — Profile stays the default landing
-section for signed-in users; signed-out visitors see Appearance alone.
+section. (Signed-out visitors originally saw Appearance alone; see "Superseded" above.)

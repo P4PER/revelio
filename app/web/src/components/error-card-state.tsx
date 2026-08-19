@@ -50,7 +50,7 @@ export function ErrorCardState({
           <span
             aria-hidden="true"
             className={cn(
-              'text-7xl [filter:drop-shadow(0_0_18px_rgba(232,178,58,0.5))]',
+              'text-7xl [filter:drop-shadow(0_0_18px_var(--glow-symbol))]',
               color,
             )}
           >
@@ -59,13 +59,13 @@ export function ErrorCardState({
         </div>
         <span
           aria-hidden="true"
-          className="absolute -left-3 -top-2 text-xl text-primary-ink [filter:drop-shadow(0_0_8px_rgba(246,213,139,0.85))]"
+          className="absolute -left-3 -top-2 text-xl text-primary-ink [filter:drop-shadow(0_0_8px_var(--glow-sparkle))]"
         >
           ✦
         </span>
         <span
           aria-hidden="true"
-          className="absolute -bottom-1 -right-3 text-sm text-primary-ink [filter:drop-shadow(0_0_6px_rgba(246,213,139,0.8))]"
+          className="absolute -bottom-1 -right-3 text-sm text-primary-ink [filter:drop-shadow(0_0_6px_var(--glow-sparkle-sm))]"
         >
           ✦
         </span>

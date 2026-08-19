@@ -86,7 +86,7 @@ export function ContactForm({
             viewBox="0 0 140 100"
             aria-hidden
             fill="none"
-            className="relative h-32 w-auto text-primary-ink motion-safe:animate-[owl-lift_620ms_ease-out] [filter:drop-shadow(0_0_9px_rgba(232,178,58,0.28))]"
+            className="relative h-32 w-auto text-primary-ink motion-safe:animate-[owl-lift_620ms_ease-out] [filter:drop-shadow(0_0_9px_var(--glow-owl))]"
           >
             {/* Flight trail — draws itself from the launch point up to the envelope. */}
             <path

@@ -19,4 +19,35 @@ describe('DeckArt', () => {
     // gradient element present
     expect(container.querySelector('[data-slot="deck-art-fallback"]')).not.toBeNull()
   })
+
+  // The fallback used to bake LESSONS[].color, the WotC card-frame hexes, which
+  // are tuned for a midnight frame and wash out on parchment. It reads the
+  // per-theme custom properties instead.
+  it('paints the fallback from the theme lesson tints, not baked hexes', () => {
+    const { container } = render(
+      <DeckArt cardId={null} version={null} lessons={['charms', 'potions']} imageBase="" alt="Deck" />,
+    )
+    const style = container.querySelector('[data-slot="deck-art-fallback"]')?.getAttribute('style') ?? ''
+    expect(style).toContain('var(--lesson-charms)')
+    expect(style).toContain('var(--lesson-potions)')
+    expect(style).not.toMatch(/#[0-9a-f]{3,8}\b/i)
+  })
+
+  // A single lesson fades into itself. The alpha has to come from color-mix:
+  // the old `${hex}99` string concatenation is impossible against a var().
+  it('fades a single lesson with color-mix rather than an appended alpha', () => {
+    const { container } = render(
+      <DeckArt cardId={null} version={null} lessons={['quidditch']} imageBase="" alt="Deck" />,
+    )
+    const style = container.querySelector('[data-slot="deck-art-fallback"]')?.getAttribute('style') ?? ''
+    expect(style).toContain('color-mix(in srgb, var(--lesson-quidditch) 60%, transparent)')
+  })
+
+  it('falls through to the muted container when no lesson is known', () => {
+    const { container } = render(
+      <DeckArt cardId={null} version={null} lessons={['not_a_lesson']} imageBase="" alt="Deck" />,
+    )
+    const style = container.querySelector('[data-slot="deck-art-fallback"]')?.getAttribute('style') ?? ''
+    expect(style).not.toContain('linear-gradient')
+  })
 })

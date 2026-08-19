@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 import { LESSONS } from '@revelio/core'
 import type { DeckCardView } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
+import { lessonVar } from '@/lib/lesson-colors'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { LessonCurve } from '@/components/lesson-curve'
 
@@ -37,7 +38,9 @@ export function DeckStatsPanel({ entries }: { entries: DeckCardView[] }) {
 
   const lessonRows = LESSONS.map((l) => ({
     code: l.code,
-    color: l.color,
+    // Theme-aware tint rather than the printed hex, which is tuned for a
+    // midnight card frame and washes out on parchment.
+    color: lessonVar(l.code),
     count: mainEntries.filter((e) => e.lesson === l.code).reduce((n, e) => n + e.quantity, 0),
   }))
   const lessonMax = Math.max(1, ...lessonRows.map((l) => l.count))

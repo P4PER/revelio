@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { describe, it, expect, beforeAll } from 'vitest'
+import { LESSONS } from '@revelio/core'
 
 let css = ''
 beforeAll(async () => {
@@ -77,11 +78,6 @@ describe('light theme contrast', () => {
     ['secondary button label', '--light-secondary-foreground', '--light-secondary'],
     ['accent hover label', '--light-accent-foreground', '--light-accent'],
     ['destructive text', '--light-destructive', '--light-background'],
-    ['lesson cmc', '--light-lesson-cmc', '--light-background'],
-    ['lesson charms', '--light-lesson-charms', '--light-background'],
-    ['lesson potions', '--light-lesson-potions', '--light-background'],
-    ['lesson transfiguration', '--light-lesson-transfiguration', '--light-background'],
-    ['lesson quidditch', '--light-lesson-quidditch', '--light-background'],
   ]
 
   for (const [label, fg, bg] of pairs) {
@@ -167,5 +163,80 @@ describe('dark theme ink', () => {
   // old primary/40/accent/60 borders ended up nearly invisible.
   it('the hover border clears 3:1 on a card', () => {
     expect(contrast(hex('--dark-secondary-ink'), hex('--dark-card'))).toBeGreaterThanOrEqual(3)
+  })
+})
+
+// The lesson tints are the one palette that carries a hue per value AND gets
+// used two ways: as chip label text on the page, and as a chip fill with
+// --lesson-on written over it. Both roles are real text, so both need AA.
+//
+// These guard the values the app actually renders. The previous version of this
+// suite asserted --light-lesson-* while every component painted the fixed
+// LESSONS[].color from @revelio/core, so the tints on screen (quidditch at
+// 1.86:1 on parchment) were never covered by the tests that passed.
+describe('lesson tints', () => {
+  const AA = 4.5
+
+  // The helper builds `var(--lesson-<code>)` straight from the domain code, so
+  // a lesson without a matching custom property would silently paint nothing.
+  it.each(LESSONS.map((l) => l.code))('%s has a token in both themes', (code) => {
+    expect(hex(`--light-lesson-${code}`)).toMatch(/^#[0-9a-f]{6}$/i)
+    expect(hex(`--dark-lesson-${code}`)).toMatch(/^#[0-9a-f]{6}$/i)
+  })
+
+  it.each(LESSONS.map((l) => l.code))(
+    'light: %s reads as a chip label and carries --lesson-on as a fill',
+    (code) => {
+      const tint = hex(`--light-lesson-${code}`)
+      expect(contrast(tint, hex('--light-background'))).toBeGreaterThanOrEqual(AA)
+      expect(contrast(hex('--light-lesson-on'), tint)).toBeGreaterThanOrEqual(AA)
+    },
+  )
+
+  // Dark keeps the WotC card-frame hexes. The design spec records that as a
+  // brand decision rather than a mechanical fix, so these pairs are BELOW AA on
+  // purpose. Pinning the exact set is what stops it drifting: a new lesson, or
+  // a tint nudged either way, changes this list and fails here rather than
+  // quietly widening a documented exception into an undocumented one.
+  const KNOWN_DARK_EXCEPTIONS = {
+    label: ['charms', 'care_of_magical_creatures', 'transfiguration'],
+    fill: ['potions', 'quidditch'],
+  }
+
+  it('the dark lesson exceptions are exactly the ones the spec records', () => {
+    const label = LESSONS.map((l) => l.code).filter(
+      (code) => contrast(hex(`--dark-lesson-${code}`), hex('--dark-background')) < AA,
+    )
+    const fill = LESSONS.map((l) => l.code).filter(
+      (code) => contrast(hex('--dark-lesson-on'), hex(`--dark-lesson-${code}`)) < AA,
+    )
+    expect(label.sort()).toEqual([...KNOWN_DARK_EXCEPTIONS.label].sort())
+    expect(fill.sort()).toEqual([...KNOWN_DARK_EXCEPTIONS.fill].sort())
+  })
+
+  // Whatever is not a recorded exception still has to clear AA.
+  it.each(LESSONS.map((l) => l.code))('dark: %s meets AA unless listed', (code) => {
+    const tint = hex(`--dark-lesson-${code}`)
+    if (!KNOWN_DARK_EXCEPTIONS.label.includes(code)) {
+      expect(contrast(tint, hex('--dark-background'))).toBeGreaterThanOrEqual(AA)
+    }
+    if (!KNOWN_DARK_EXCEPTIONS.fill.includes(code)) {
+      expect(contrast(hex('--dark-lesson-on'), tint)).toBeGreaterThanOrEqual(AA)
+    }
+  })
+
+})
+
+// globals.css used to declare `@custom-variant dark (&:is(.dark *))` while
+// nothing ever set a `.dark` class, so every dark: utility in the tree was a
+// no-op. Fixing the variant made them all fire at once - including this one,
+// which turns out to be load-bearing: shadcn's destructive button paints
+// text-white, and the solid dark destructive is far too light to carry it.
+describe('revived dark: utilities', () => {
+  it('the destructive button needs its dark fill to clear AA under white', () => {
+    const solid = hex('--dark-destructive')
+    expect(contrast('#ffffff', solid)).toBeLessThan(4.5)
+    const damped = over(solid, hex('--dark-background'), 0.6)
+    expect(contrast('#ffffff', damped)).toBeGreaterThanOrEqual(4.5)
   })
 })

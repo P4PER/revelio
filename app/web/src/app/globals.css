@@ -63,14 +63,6 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
-  /* Lesson subject colors - bg-lesson-charms, text-lesson-charms, etc.
-     Values are per-theme: the dark set is the WotC card-frame palette, the
-     light set is darkened so it clears AA on parchment. */
-  --color-lesson-care_of_magical_creatures: var(--lesson-cmc);
-  --color-lesson-charms: var(--lesson-charms);
-  --color-lesson-potions: var(--lesson-potions);
-  --color-lesson-transfiguration: var(--lesson-transfiguration);
-  --color-lesson-quidditch: var(--lesson-quidditch);
 
   /* Decorative star-field colors (see star-field.tsx). */
   --color-star-1: var(--star-1);
@@ -156,11 +148,23 @@
   --dark-sidebar-accent-foreground: #FBF3DC;
   --dark-sidebar-border: #2E2A50;
   --dark-sidebar-ring: #E8B23A;
-  --dark-lesson-cmc: #836444;
+  --dark-lesson-care_of_magical_creatures: #836444;
   --dark-lesson-charms: #0069A9;
   --dark-lesson-potions: #00A661;
   --dark-lesson-transfiguration: #BC3E4D;
   --dark-lesson-quidditch: #E2AE37;
+  /* Ink for content sitting ON a lesson fill. The dark set keeps the WotC
+     card-frame hexes (a brand decision, see the light-mode design spec), which
+     are dark enough to carry white - except potions and quidditch, two of the
+     known dark-mode exceptions the spec records. */
+  --dark-lesson-on: #FFFFFF;
+  --dark-lesson-icon-filter: brightness(0) invert(1);
+  /* Halo behind the error-card glyphs. A glow only reads on a dark surface;
+     on parchment the same wash sits behind darker ink and smudges it. */
+  --dark-glow-symbol: rgba(232, 178, 58, 0.5);
+  --dark-glow-sparkle: rgba(246, 213, 139, 0.85);
+  --dark-glow-sparkle-sm: rgba(246, 213, 139, 0.8);
+  --dark-glow-owl: rgba(232, 178, 58, 0.28);
   --dark-star-1: #E8B23A;
   --dark-star-2: #6E66C9;
   --dark-star-3: #7B8FD4;
@@ -206,11 +210,17 @@
   --light-sidebar-accent-foreground: #1C1838;
   --light-sidebar-border: #DDD6C7;
   --light-sidebar-ring: #F0C458;
-  --light-lesson-cmc: #6B4F35;
+  --light-lesson-care_of_magical_creatures: #6B4F35;
   --light-lesson-charms: #005A90;
   --light-lesson-potions: #00784A;
   --light-lesson-transfiguration: #A32F3D;
   --light-lesson-quidditch: #8F6510;
+  --light-lesson-on: #FFFFFF;
+  --light-lesson-icon-filter: brightness(0) invert(1);
+  --light-glow-symbol: transparent;
+  --light-glow-sparkle: transparent;
+  --light-glow-sparkle-sm: transparent;
+  --light-glow-owl: transparent;
   --light-star-1: #C8881E;
   --light-star-2: #5B4FC0;
   --light-star-3: #4A63B8;
@@ -258,15 +268,21 @@
   --sidebar-accent-foreground: var(--light-sidebar-accent-foreground);
   --sidebar-border: var(--light-sidebar-border);
   --sidebar-ring: var(--light-sidebar-ring);
-  --lesson-cmc: var(--light-lesson-cmc);
+  --lesson-care_of_magical_creatures: var(--light-lesson-care_of_magical_creatures);
   --lesson-charms: var(--light-lesson-charms);
   --lesson-potions: var(--light-lesson-potions);
   --lesson-transfiguration: var(--light-lesson-transfiguration);
   --lesson-quidditch: var(--light-lesson-quidditch);
+  --lesson-on: var(--light-lesson-on);
+  --lesson-icon-filter: var(--light-lesson-icon-filter);
   --star-1: var(--light-star-1);
   --star-2: var(--light-star-2);
   --star-3: var(--light-star-3);
   --star-4: var(--light-star-4);
+  --glow-symbol: var(--light-glow-symbol);
+  --glow-sparkle: var(--light-glow-sparkle);
+  --glow-sparkle-sm: var(--light-glow-sparkle-sm);
+  --glow-owl: var(--light-glow-owl);
   --star-5: var(--light-star-5);
 }
 
@@ -311,15 +327,21 @@
     --sidebar-accent-foreground: var(--dark-sidebar-accent-foreground);
     --sidebar-border: var(--dark-sidebar-border);
     --sidebar-ring: var(--dark-sidebar-ring);
-    --lesson-cmc: var(--dark-lesson-cmc);
+    --lesson-care_of_magical_creatures: var(--dark-lesson-care_of_magical_creatures);
     --lesson-charms: var(--dark-lesson-charms);
     --lesson-potions: var(--dark-lesson-potions);
     --lesson-transfiguration: var(--dark-lesson-transfiguration);
     --lesson-quidditch: var(--dark-lesson-quidditch);
+    --lesson-on: var(--dark-lesson-on);
+    --lesson-icon-filter: var(--dark-lesson-icon-filter);
     --star-1: var(--dark-star-1);
     --star-2: var(--dark-star-2);
     --star-3: var(--dark-star-3);
     --star-4: var(--dark-star-4);
+    --glow-symbol: var(--dark-glow-symbol);
+    --glow-sparkle: var(--dark-glow-sparkle);
+    --glow-sparkle-sm: var(--dark-glow-sparkle-sm);
+    --glow-owl: var(--dark-glow-owl);
     --star-5: var(--dark-star-5);
   }
 }
@@ -366,15 +388,21 @@
   --sidebar-accent-foreground: var(--dark-sidebar-accent-foreground);
   --sidebar-border: var(--dark-sidebar-border);
   --sidebar-ring: var(--dark-sidebar-ring);
-  --lesson-cmc: var(--dark-lesson-cmc);
+  --lesson-care_of_magical_creatures: var(--dark-lesson-care_of_magical_creatures);
   --lesson-charms: var(--dark-lesson-charms);
   --lesson-potions: var(--dark-lesson-potions);
   --lesson-transfiguration: var(--dark-lesson-transfiguration);
   --lesson-quidditch: var(--dark-lesson-quidditch);
+  --lesson-on: var(--dark-lesson-on);
+  --lesson-icon-filter: var(--dark-lesson-icon-filter);
   --star-1: var(--dark-star-1);
   --star-2: var(--dark-star-2);
   --star-3: var(--dark-star-3);
   --star-4: var(--dark-star-4);
+  --glow-symbol: var(--dark-glow-symbol);
+  --glow-sparkle: var(--dark-glow-sparkle);
+  --glow-sparkle-sm: var(--dark-glow-sparkle-sm);
+  --glow-owl: var(--dark-glow-owl);
   --star-5: var(--dark-star-5);
 }
 

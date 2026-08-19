@@ -1,15 +1,19 @@
 'use client'
 import { useState } from 'react'
-import { imageUrl, artCropKey, LESSONS } from '@revelio/core'
+import { imageUrl, artCropKey } from '@revelio/core'
 import { cn } from '@/lib/utils'
-
-const LESSON_COLOR = new Map(LESSONS.map((l) => [l.code, l.color]))
+import { lessonVar } from '@/lib/lesson-colors'
 
 function lessonGradient(lessons: string[]): string | undefined {
-  const colors = lessons.map((c) => LESSON_COLOR.get(c)).filter(Boolean) as string[]
-  if (colors.length === 0) return undefined // container's bg-muted shows through
-  if (colors.length === 1) return `linear-gradient(135deg, ${colors[0]}, ${colors[0]}99)`
-  return `linear-gradient(135deg, ${colors.join(', ')})`
+  const tints = lessons.map(lessonVar).filter(Boolean) as string[]
+  if (tints.length === 0) return undefined // container's bg-muted shows through
+  // One lesson still has to read as a gradient, so it fades into a 60% version
+  // of itself. That needs color-mix rather than the old `${hex}99`: an alpha
+  // cannot be concatenated onto a var(), and the theme tint is a var().
+  if (tints.length === 1) {
+    return `linear-gradient(135deg, ${tints[0]}, color-mix(in srgb, ${tints[0]} 60%, transparent))`
+  }
+  return `linear-gradient(135deg, ${tints.join(', ')})`
 }
 
 // Shows the deck's starting-character art: a pre-cropped, upright image baked at

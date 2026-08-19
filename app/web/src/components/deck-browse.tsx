@@ -64,7 +64,7 @@ export function DeckBrowse({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-primary">{t('explore.title')}</h1>
+        <h1 className="text-2xl font-semibold text-heading">{t('explore.title')}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t('explore.subtitle')}</p>
       </div>
 

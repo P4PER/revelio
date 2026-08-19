@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { describe, it, expect } from 'vitest'
 import { Badge } from '@/components/ui/badge'
+import { LESSONS } from '@revelio/core'
 
 describe('theme + shadcn', () => {
   it('renders a shadcn Badge (proves cn + ui components work)', () => {
@@ -10,20 +11,18 @@ describe('theme + shadcn', () => {
     expect(screen.getByText('Rare')).toBeInTheDocument()
   })
 
-  // Genuine config guard: assert the five lesson-color tokens are actually
-  // registered in globals.css with the correct hex (a typo would fail here,
-  // unlike a class-attribute string check).
-  it('registers all five lesson colors as theme tokens', async () => {
+  // Config guard: every lesson in the domain model needs a custom property in
+  // both themes, because lesson-colors.ts builds `var(--lesson-<code>)` from
+  // the code itself - a missing token paints nothing at all. The values are
+  // asserted in theme-contrast.test.ts, which checks the property that actually
+  // matters (AA in both roles) rather than restating the hexes here.
+  it('registers every lesson colour in both themes, and wires up the alias', async () => {
     const css = await readFile(resolve(process.cwd(), 'src/app/globals.css'), 'utf8')
-    const expected: Record<string, string> = {
-      care_of_magical_creatures: '#836444',
-      charms: '#0069A9',
-      potions: '#00A661',
-      transfiguration: '#BC3E4D',
-      quidditch: '#E2AE37',
-    }
-    for (const [code, hex] of Object.entries(expected)) {
-      expect(css).toMatch(new RegExp(`--color-lesson-${code}\\s*:\\s*${hex}`, 'i'))
+    for (const { code } of LESSONS) {
+      expect(css).toMatch(new RegExp(`--light-lesson-${code}\\s*:\\s*#[0-9a-f]{6}`, 'i'))
+      expect(css).toMatch(new RegExp(`--dark-lesson-${code}\\s*:\\s*#[0-9a-f]{6}`, 'i'))
+      expect(css).toMatch(new RegExp(`--lesson-${code}\\s*:\\s*var\\(--light-lesson-${code}\\)`, 'i'))
+      expect(css).toMatch(new RegExp(`--lesson-${code}\\s*:\\s*var\\(--dark-lesson-${code}\\)`, 'i'))
     }
   })
 })

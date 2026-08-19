@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   METADATA_BASE,
   THEME_COLOR,
+  THEME_COLOR_LIGHT,
   OG_SIZE,
   OG_CONTENT_TYPE,
   buildSiteMetadata,
@@ -24,6 +25,10 @@ describe('seo helpers', () => {
 
   it('uses the brand midnight as the theme color', () => {
     expect(THEME_COLOR).toBe('#13122A')
+  })
+
+  it('exposes the light theme color', () => {
+    expect(THEME_COLOR_LIGHT).toBe('#F8F5ED')
   })
 
   it('uses the standard 1200x630 PNG social card', () => {

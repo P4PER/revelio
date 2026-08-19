@@ -44,14 +44,14 @@ export function AccountMenu({
         <div className="flex items-center gap-2.5 px-2 py-1.5">
           <span
             aria-hidden
-            className="grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold text-primary ring-1 ring-inset ring-primary/40"
+            className="grid size-9 shrink-0 place-items-center rounded-full bg-brand-indigo text-sm font-semibold text-primary ring-1 ring-inset ring-primary/40"
           >
             {initial}
           </span>
           <div className="min-w-0">
             {handle && (
               <div className="truncate text-sm font-semibold">
-                <span className="relative bottom-px text-primary">@</span>
+                <span className="relative bottom-px text-primary-ink">@</span>
                 {handle}
               </div>
             )}

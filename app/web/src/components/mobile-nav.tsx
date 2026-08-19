@@ -106,7 +106,7 @@ export function MobileNav({
                 }}
                 className={
                   active
-                    ? `${rowClass} bg-primary/10 font-semibold text-primary hover:bg-primary/15 hover:text-primary`
+                    ? `${rowClass} bg-primary/10 font-semibold text-primary-ink hover:bg-primary/15 hover:text-primary-ink`
                     : rowClass
                 }
               >
@@ -128,14 +128,14 @@ export function MobileNav({
             <div className="flex items-center gap-2.5 px-3 py-2">
               <span
                 aria-hidden
-                className="grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold text-primary ring-1 ring-inset ring-primary/40"
+                className="grid size-9 shrink-0 place-items-center rounded-full bg-brand-indigo text-sm font-semibold text-primary ring-1 ring-inset ring-primary/40"
               >
                 {(user.displayUsername ?? user.username ?? user.email).charAt(0).toUpperCase()}
               </span>
               <div className="min-w-0">
                 {(user.displayUsername ?? user.username) && (
                   <div className="truncate text-sm font-semibold">
-                    <span className="relative bottom-px text-primary">@</span>
+                    <span className="relative bottom-px text-primary-ink">@</span>
                     {user.displayUsername ?? user.username}
                   </div>
                 )}

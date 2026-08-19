@@ -654,9 +654,23 @@
     "menuTitle": "Settings",
     "nav": {
       "profile": "Profile",
+      "appearance": "Appearance",
       "email": "Email",
       "data": "Your data",
       "danger": "Danger zone"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "lead": "Choose how Revelio looks on this device. This setting is stored in your browser, not on your account.",
+      "legend": "Theme",
+      "system": "System",
+      "systemHint": "Follow your device setting",
+      "light": "Light",
+      "lightHint": "Warm parchment",
+      "dark": "Dark",
+      "darkHint": "Midnight and gold",
+      "saved": "Appearance saved",
+      "error": "Could not save your appearance setting"
     },
     "profile": {
       "title": "Profile",

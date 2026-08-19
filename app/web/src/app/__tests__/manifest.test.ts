@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import manifest from '../manifest'
-import { THEME_COLOR } from '@/lib/seo'
+import { THEME_COLOR_LIGHT } from '@/lib/seo'
 import en from '@/../messages/en.json'
 
 describe('web app manifest', () => {
@@ -18,9 +18,11 @@ describe('web app manifest', () => {
     expect(m.description).toBe(en.meta.description)
   })
 
-  it('uses the brand midnight for theme and background', () => {
-    expect(m.theme_color).toBe(THEME_COLOR)
-    expect(m.background_color).toBe(THEME_COLOR)
+  // The manifest has no media query, so it follows the CSS default (light)
+  // rather than pinning every installer to the midnight splash.
+  it('uses the default light palette for theme and background', () => {
+    expect(m.theme_color).toBe(THEME_COLOR_LIGHT)
+    expect(m.background_color).toBe(THEME_COLOR_LIGHT)
   })
 
   it('ships 192 and 512 png icons', () => {

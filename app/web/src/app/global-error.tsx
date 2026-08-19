@@ -39,7 +39,9 @@ export default function GlobalError({
   reset: () => void
 }) {
   return (
-    <html lang="en" className={`${poppins.variable} dark`}>
+    // No data-theme: this boundary replaces the root layout, so it cannot read
+    // the cookie. Omitting the attribute falls through to prefers-color-scheme.
+    <html lang="en" className={poppins.variable}>
       <body className="min-h-screen bg-background text-foreground font-sans antialiased">
         <GlobalErrorContent error={error} />
       </body>

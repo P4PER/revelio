@@ -2,6 +2,7 @@
 import { useLocale } from 'next-intl'
 import { LESSONS } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
+import { lessonVar } from '@/lib/lesson-colors'
 import { Chip } from '@/components/ui/chip'
 
 // Lesson filter as wrapping chips: five toggles (lesson icon + label) that fill
@@ -27,24 +28,32 @@ export function LessonFilter({
             aria-label={label}
             title={label}
             onClick={() => onToggle(l.code)}
-            // Lesson colours are dynamic hex, so the active fill / rest tint are
-            // inline. Inline background also wins over the hover class, so an
-            // active chip stays put on hover while inactive ones tint.
+            // Lesson tints are per-lesson custom properties, so the active fill
+            // and the rest tint are inline. Inline background also wins over the
+            // hover class, so an active chip stays put on hover while inactive
+            // ones tint. --lesson-on is the ink that stays legible on the fill:
+            // white on the darkened light palette, midnight on the bright dark
+            // one (a fill readable as text on midnight cannot also carry white).
             style={
               active
-                ? { backgroundColor: l.color, borderColor: l.color, color: '#fff' }
-                : { color: l.color }
+                ? {
+                    backgroundColor: lessonVar(l.code),
+                    borderColor: lessonVar(l.code),
+                    color: 'var(--lesson-on)',
+                  }
+                : { color: lessonVar(l.code) }
             }
-            className="hover:bg-white/5"
+            className="hover:bg-(--hover-bg)"
           >
-            {/* Icon is filled with the lesson colour; force white on the active
-                (colour-filled) chip so it stays legible. */}
+            {/* Icon is a flat SVG in the lesson's printed colour; on the active
+                (colour-filled) chip force it to --lesson-on so it matches the
+                label rather than fighting the fill. */}
             <img
               src={`/lessons/${l.code}.svg`}
               alt=""
               width={16}
               height={16}
-              style={{ width: 16, height: 16, filter: active ? 'brightness(0) invert(1)' : undefined }}
+              style={{ width: 16, height: 16, filter: active ? 'var(--lesson-icon-filter)' : undefined }}
             />
             <span className="hidden sm:inline">{label}</span>
           </Chip>

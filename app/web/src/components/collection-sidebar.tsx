@@ -34,11 +34,11 @@ export function CollectionSidebar({
               // Active: soft indigo wash + a 3px gold left rail (inset shadow so
               // it follows the radius and doesn't shift the row). Inactive: hover.
               active
-                ? 'bg-gradient-to-r from-accent/25 to-accent/10 shadow-[inset_3px_0_0_var(--color-primary)]'
-                : 'hover:bg-accent/50',
+                ? 'bg-gradient-to-r from-(--hover-bg) to-transparent shadow-[inset_3px_0_0_var(--color-primary)]'
+                : 'hover:bg-(--hover-bg)',
             )}>
             <div className="flex items-center gap-2">
-              <span className="flex h-4 w-8 shrink-0 items-center justify-center text-primary">
+              <span className="flex h-4 w-8 shrink-0 items-center justify-center text-primary-ink">
                 {s.symbolVersion != null && IMAGE_BASE
                   ? <SetSymbol code={s.code} version={s.symbolVersion} base={IMAGE_BASE} className="size-4" />
                   : <span className="text-[9px] font-semibold uppercase leading-none">{s.code}</span>}

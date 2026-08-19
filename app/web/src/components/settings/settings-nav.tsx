@@ -5,15 +5,19 @@ import { ResponsiveSidebar } from '@/components/responsive-sidebar'
 import { cn } from '@/lib/utils'
 import type { SettingsSection } from './types'
 
-const SECTIONS: SettingsSection[] = ['profile', 'email', 'data', 'danger']
+// Appearance is the only section that works signed out; showing the others to
+// a guest would offer links that bounce straight to /login.
+const GUEST_SECTIONS: SettingsSection[] = ['appearance']
+const USER_SECTIONS: SettingsSection[] = ['profile', 'appearance', 'email', 'data', 'danger']
 
-function NavList({ onSelect }: { onSelect?: () => void }) {
+function NavList({ isLoggedIn, onSelect }: { isLoggedIn: boolean; onSelect?: () => void }) {
   const t = useTranslations('settings.nav')
   const pathname = usePathname() // locale-stripped, e.g. /settings/email
-  const active = SECTIONS.find((s) => pathname === `/settings/${s}`) ?? 'profile'
+  const sections = isLoggedIn ? USER_SECTIONS : GUEST_SECTIONS
+  const active = sections.find((s) => pathname === `/settings/${s}`) ?? sections[0]
   return (
     <nav className="flex flex-col gap-1">
-      {SECTIONS.map((s) => {
+      {sections.map((s) => {
         const on = s === active
         const danger = s === 'danger'
         return (
@@ -30,9 +34,9 @@ function NavList({ onSelect }: { onSelect?: () => void }) {
                     'font-semibold text-foreground',
                     danger
                       ? 'bg-gradient-to-r from-destructive/20 to-destructive/5 shadow-[inset_3px_0_0_var(--color-destructive)]'
-                      : 'bg-gradient-to-r from-accent/25 to-accent/10 shadow-[inset_3px_0_0_var(--color-primary)]',
+                      : 'bg-gradient-to-r from-(--hover-bg) to-transparent shadow-[inset_3px_0_0_var(--color-primary)]',
                   )
-                : cn('font-medium hover:bg-accent/50', danger && 'text-destructive'),
+                : cn('font-medium hover:bg-(--hover-bg)', danger && 'text-destructive'),
             )}
           >
             {t(s)}
@@ -43,15 +47,15 @@ function NavList({ onSelect }: { onSelect?: () => void }) {
   )
 }
 
-export function SettingsNav() {
+export function SettingsNav({ isLoggedIn }: { isLoggedIn: boolean }) {
   const t = useTranslations('settings')
   return (
     <ResponsiveSidebar
       title={t('menuTitle')}
       railClassName="w-64"
       drawerClassName="w-72"
-      rail={<NavList />}
-      drawer={(close) => <NavList onSelect={close} />}
+      rail={<NavList isLoggedIn={isLoggedIn} />}
+      drawer={(close) => <NavList isLoggedIn={isLoggedIn} onSelect={close} />}
     />
   )
 }

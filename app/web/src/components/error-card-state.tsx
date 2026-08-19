@@ -7,9 +7,9 @@ const VARIANTS: Record<
   ErrorCardVariant,
   { symbol: string; color: string; mask: boolean }
 > = {
-  missing: { symbol: '?', color: 'text-primary', mask: false },
-  dissolving: { symbol: '✦', color: 'text-accent', mask: true },
-  dark: { symbol: '✦', color: 'text-accent', mask: false },
+  missing: { symbol: '?', color: 'text-primary-ink', mask: false },
+  dissolving: { symbol: '✦', color: 'text-secondary-ink', mask: true },
+  dark: { symbol: '✦', color: 'text-secondary-ink', mask: false },
 }
 
 export function ErrorCardState({
@@ -35,19 +35,22 @@ export function ErrorCardState({
         <div
           className={cn(
             'relative grid aspect-[5/7] h-80 place-items-center overflow-hidden rounded-2xl border border-border',
-            'shadow-[0_18px_42px_rgba(0,0,0,0.55)]',
+            // Light gets the scale's own shadow; dark keeps the original heavy
+            // one, which is built for a midnight page and would be too much on
+            // parchment.
+            'shadow-xl dark:shadow-[0_18px_42px_rgba(0,0,0,0.55)]',
             mask && '[mask-image:linear-gradient(115deg,#000_55%,transparent_92%)]',
           )}
           style={{
             backgroundImage:
-              'repeating-linear-gradient(135deg,#1d1942 0 9px,#191537 9px 18px)',
+              'repeating-linear-gradient(135deg,var(--color-muted) 0 9px,var(--color-card) 9px 18px)',
           }}
         >
-          <div className="pointer-events-none absolute inset-4 rounded-lg border border-dashed border-[#3a3568]" />
+          <div className="pointer-events-none absolute inset-4 rounded-lg border border-dashed border-border" />
           <span
             aria-hidden="true"
             className={cn(
-              'text-7xl [filter:drop-shadow(0_0_18px_rgba(232,178,58,0.5))]',
+              'text-7xl [filter:drop-shadow(0_0_18px_var(--glow-symbol))]',
               color,
             )}
           >
@@ -56,13 +59,13 @@ export function ErrorCardState({
         </div>
         <span
           aria-hidden="true"
-          className="absolute -left-3 -top-2 text-xl text-primary [filter:drop-shadow(0_0_8px_rgba(246,213,139,0.85))]"
+          className="absolute -left-3 -top-2 text-xl text-primary-ink [filter:drop-shadow(0_0_8px_var(--glow-sparkle))]"
         >
           ✦
         </span>
         <span
           aria-hidden="true"
-          className="absolute -bottom-1 -right-3 text-sm text-primary [filter:drop-shadow(0_0_6px_rgba(246,213,139,0.8))]"
+          className="absolute -bottom-1 -right-3 text-sm text-primary-ink [filter:drop-shadow(0_0_6px_var(--glow-sparkle-sm))]"
         >
           ✦
         </span>

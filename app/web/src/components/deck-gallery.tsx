@@ -81,7 +81,7 @@ export function DeckGallery({ entries, imageBase }: { entries: DeckCardView[]; i
   return (
     <div className="space-y-4">
       <section>
-        <h3 className="mb-2 text-xs font-semibold tracking-widest text-primary uppercase">{t('panel.character')}</h3>
+        <h3 className="mb-2 text-xs font-semibold tracking-widest text-heading uppercase">{t('panel.character')}</h3>
         {character.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('panel.noCharacter')}</p>
         ) : (
@@ -89,7 +89,7 @@ export function DeckGallery({ entries, imageBase }: { entries: DeckCardView[]; i
         )}
       </section>
       <section>
-        <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-widest text-primary uppercase">
+        <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-widest text-heading uppercase">
           <span>{t('panel.main')}</span>
           <span className="ml-auto font-semibold text-foreground tabular-nums">{mainCount} / {MAIN_TARGET}</span>
         </h3>
@@ -113,7 +113,7 @@ export function DeckGallery({ entries, imageBase }: { entries: DeckCardView[]; i
         )}
       </section>
       <section>
-        <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-widest text-primary uppercase">
+        <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-widest text-heading uppercase">
           <span>{t('panel.sideboard')}</span>
           <span className="ml-auto font-semibold text-foreground tabular-nums">{sideCount} / 15</span>
         </h3>

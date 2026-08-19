@@ -79,7 +79,7 @@ export function DeckPanel({
             <button
               type="button"
               aria-label={t('panel.decrease', { name: e.name })}
-              className="grid h-7 w-6 cursor-pointer place-items-center text-muted-foreground hover:text-primary"
+              className="grid h-7 w-6 cursor-pointer place-items-center text-muted-foreground hover:text-primary-ink"
               onClick={() => onQuantityChange?.(e.cardId, e.zone, e.quantity - 1)}
             >
               <Minus className="size-3.5" />
@@ -88,7 +88,7 @@ export function DeckPanel({
             <button
               type="button"
               aria-label={t('panel.increase', { name: e.name })}
-              className="grid h-7 w-6 cursor-pointer place-items-center text-muted-foreground hover:text-primary"
+              className="grid h-7 w-6 cursor-pointer place-items-center text-muted-foreground hover:text-primary-ink"
               onClick={() => onQuantityChange?.(e.cardId, e.zone, e.quantity + 1)}
             >
               <Plus className="size-3.5" />
@@ -118,7 +118,7 @@ export function DeckPanel({
           type="button"
           aria-label={t('browse.infoAria', { name: e.name })}
           onClick={() => setDetailId(e.cardId)}
-          className="-mr-1 grid size-7 shrink-0 cursor-pointer place-items-center rounded-md text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-background hover:text-primary focus-visible:opacity-100 touch:opacity-100"
+          className="-mr-1 grid size-7 shrink-0 cursor-pointer place-items-center rounded-md text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-background hover:text-primary-ink focus-visible:opacity-100 touch:opacity-100"
         >
           <Info className="size-5" />
         </button>
@@ -136,7 +136,7 @@ export function DeckPanel({
           className="border-b border-border/60 px-4 py-3"
         />
       )}
-      <div className="px-4 pt-3 pb-1.5 text-xs font-semibold tracking-widest text-primary uppercase">
+      <div className="px-4 pt-3 pb-1.5 text-xs font-semibold tracking-widest text-heading uppercase">
         {t('panel.character')}
       </div>
       {character ? (
@@ -161,7 +161,7 @@ export function DeckPanel({
               {character.setCode} · #{character.number}
             </div>
           </div>
-          <span className="rounded-full border border-primary/60 px-2 py-0.5 text-xs tracking-wide text-primary uppercase">
+          <span className="rounded-full border border-primary/60 px-2 py-0.5 text-xs tracking-wide text-primary-ink uppercase">
             {t('panel.characterBadge')}
           </span>
         </div>
@@ -169,7 +169,7 @@ export function DeckPanel({
         <p className="mx-4 mb-2 text-sm text-muted-foreground">{t('panel.noCharacter')}</p>
       )}
 
-      <div className="flex items-center gap-2 px-4 pt-3 pb-1.5 text-xs font-semibold tracking-widest text-primary uppercase">
+      <div className="flex items-center gap-2 px-4 pt-3 pb-1.5 text-xs font-semibold tracking-widest text-heading uppercase">
         <span>{t('panel.main')}</span>
         <span className="ml-auto font-semibold text-foreground tabular-nums">{mainCount} / {MAIN_TARGET}</span>
       </div>
@@ -187,7 +187,7 @@ export function DeckPanel({
         </div>
       ))}
 
-      <div className="flex items-center gap-2 px-4 pt-4 pb-1.5 text-xs font-semibold tracking-widest text-primary uppercase">
+      <div className="flex items-center gap-2 px-4 pt-4 pb-1.5 text-xs font-semibold tracking-widest text-heading uppercase">
         <span>{t('panel.sideboard')}</span>
         <span className="ml-auto font-semibold text-foreground tabular-nums">{sideCount} / 15</span>
       </div>

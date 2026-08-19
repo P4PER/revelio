@@ -27,8 +27,12 @@ export function AddToCollection({
           <Library className="size-3.5" />
           {total > 0 ? t('inCollection') : t('addToCollection')}
         </span>
+        {/* The count sits on bg-card, not on card art, so it takes the
+            surface's own ink - white was invisible on parchment. */}
         {total > 0 && (
-          <span className="text-xs font-bold tabular-nums text-white">{t('copies', { count: total })}</span>
+          <span className="text-xs font-bold tabular-nums text-foreground">
+            {t('copies', { count: total })}
+          </span>
         )}
       </div>
       <div className="flex flex-col gap-2 px-2.5 py-2">

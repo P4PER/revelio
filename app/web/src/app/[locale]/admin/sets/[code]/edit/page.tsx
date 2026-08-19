@@ -33,7 +33,7 @@ export default async function EditSetPage({
         <ChevronLeft className="size-4" />
         {t('back')}
       </Link>
-      <h1 className="mb-6 text-2xl font-semibold text-primary">{set.name}</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-heading">{set.name}</h1>
       <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_auto]">
         <SetForm
           mode="edit"

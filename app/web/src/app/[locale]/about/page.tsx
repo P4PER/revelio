@@ -33,7 +33,7 @@ export function AboutContent({ githubUrl }: { githubUrl: string | null }) {
 
       <section className="relative flex flex-col items-center pt-20 pb-16 text-center sm:pt-28">
         <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-5xl">
-          {t('titlePrefix')} <span className="text-primary">{BRAND_NAME}</span>
+          {t('titlePrefix')} <span className="text-heading">{BRAND_NAME}</span>
         </h1>
         <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
           {t('tagline')}
@@ -87,7 +87,7 @@ export function AboutContent({ githubUrl }: { githubUrl: string | null }) {
                   href={githubUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary underline underline-offset-2"
+                  className="text-primary-ink underline underline-offset-2"
                 >
                   {chunks}
                 </a>
@@ -104,7 +104,7 @@ export function AboutContent({ githubUrl }: { githubUrl: string | null }) {
                 href={HPTCG_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary underline underline-offset-2"
+                className="text-primary-ink underline underline-offset-2"
               >
                 {chunks}
               </a>
@@ -116,12 +116,12 @@ export function AboutContent({ githubUrl }: { githubUrl: string | null }) {
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
           {t.rich('exploreBody', {
             sets: (chunks) => (
-              <Link href="/sets" className="text-primary underline underline-offset-2">
+              <Link href="/sets" className="text-primary-ink underline underline-offset-2">
                 {chunks}
               </Link>
             ),
             random: (chunks) => (
-              <Link href="/random" className="text-primary underline underline-offset-2">
+              <Link href="/random" className="text-primary-ink underline underline-offset-2">
                 {chunks}
               </Link>
             ),

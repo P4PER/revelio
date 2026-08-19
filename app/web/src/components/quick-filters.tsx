@@ -36,7 +36,7 @@ export function QuickFilters({ locale }: { locale: string }) {
               className={
                 active
                   ? 'border-primary bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-white/5'
+                  : 'text-muted-foreground hover:bg-(--hover-bg) hover:text-accent-foreground'
               }
             >
               {attrLabel('types', t.code, locale)}

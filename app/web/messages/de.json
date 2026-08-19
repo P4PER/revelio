@@ -617,9 +617,23 @@
     "menuTitle": "Einstellungen",
     "nav": {
       "profile": "Profil",
+      "appearance": "Darstellung",
       "email": "E-Mail",
       "data": "Deine Daten",
       "danger": "Gefahrenzone"
+    },
+    "appearance": {
+      "title": "Darstellung",
+      "lead": "Lege fest, wie Revelio auf diesem Ger\u00e4t aussieht. Diese Einstellung wird im Browser gespeichert, nicht in deinem Konto.",
+      "legend": "Design",
+      "system": "System",
+      "systemHint": "Ger\u00e4teeinstellung folgen",
+      "light": "Hell",
+      "lightHint": "Warmes Pergament",
+      "dark": "Dunkel",
+      "darkHint": "Mitternacht und Gold",
+      "saved": "Darstellung gespeichert",
+      "error": "Darstellung konnte nicht gespeichert werden"
     },
     "profile": {
       "title": "Profil",

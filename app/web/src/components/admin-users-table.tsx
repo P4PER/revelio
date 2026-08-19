@@ -58,7 +58,7 @@ export function AdminUsersTable({ users }: { users: UserAdminRow[] }) {
         <span className="text-muted-foreground">
           {row.original.email}
           {row.original.emailVerified && (
-            <span className="ml-2 text-xs text-primary">{t('verified')}</span>
+            <span className="ml-2 text-xs text-primary-ink">{t('verified')}</span>
           )}
         </span>
       ),

@@ -27,16 +27,10 @@ test.describe('theme', () => {
     expect(await page.evaluate(pageBackground)).toBe(PARCHMENT)
   })
 
-  test('the appearance page is reachable signed out and persists a choice', async ({ page }) => {
-    await page.emulateMedia({ colorScheme: 'dark' })
+  // Picking a theme lives behind the auth gate like every other settings route;
+  // the form itself is covered by src/components/__tests__/appearance-form.test.tsx.
+  test('the appearance page sends a signed-out visitor to login', async ({ page }) => {
     await page.goto('/en/settings/appearance')
-    await expect(page).toHaveURL(/\/settings\/appearance/)
-
-    await page.getByRole('radio', { name: /light/i }).click()
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
-
-    await page.reload()
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
-    expect(await page.evaluate(pageBackground)).toBe(PARCHMENT)
+    await expect(page).toHaveURL(/\/login/)
   })
 })

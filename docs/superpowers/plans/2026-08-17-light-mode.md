@@ -1413,6 +1413,10 @@ Expected: PASS, 3 tests.
 
 - [ ] **Step 7: Add the page**
 
+> **Superseded (2026-08-19):** the appearance page is now gated like every other settings
+> section. See "Superseded: the appearance page is gated like every other section" in
+> `docs/superpowers/specs/2026-08-17-light-mode-design.md`.
+
 Create `app/web/src/app/[locale]/settings/appearance/page.tsx`. Note it does NOT call `requireSettingsUser` — this is the one public settings section, because theme is a device preference and gating it would leave signed-out visitors unable to override their OS:
 
 ```tsx
@@ -1429,6 +1433,10 @@ export default async function AppearanceSettingsPage() {
 ```
 
 - [ ] **Step 8: Make the nav session-aware**
+
+> **Superseded (2026-08-19):** the appearance page is now gated like every other settings
+> section. See "Superseded: the appearance page is gated like every other section" in
+> `docs/superpowers/specs/2026-08-17-light-mode-design.md`.
 
 In `app/web/src/components/settings/types.ts`:
 
@@ -1616,5 +1624,6 @@ cd app && git -c gpg.program=/opt/homebrew/bin/gpg commit -am "fix(web): restore
 
 - `/en` renders parchment under `prefers-color-scheme: light` and midnight under dark, with no cookie set.
 - `/en/settings/appearance` works signed out, repaints instantly, and survives a reload.
+  (Superseded: it now redirects a signed-out visitor to `/login` -- see the spec.)
 - Dark mode is visually unchanged from `main`.
 - `npm test -w web`, `npm run typecheck`, `npm run lint -w web`, `npm run build -w web`, and `npm run e2e -w web` all pass.

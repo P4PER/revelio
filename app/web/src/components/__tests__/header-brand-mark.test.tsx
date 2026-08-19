@@ -11,9 +11,13 @@ describe('HeaderBrandMark', () => {
   it('shows only the full wordmark on the home page (no search present)', () => {
     mockPath.value = '/'
     render(<HeaderBrandMark />)
-    const logos = screen.getAllByAltText(BRAND_NAME)
-    expect(logos).toHaveLength(1)
-    expect(logos[0]).toHaveAttribute('src', expect.stringContaining('revelio-logo-primary.svg'))
+    // BrandMark ships both theme variants and CSS hides one, so two named
+    // images is correct here. "Only the wordmark" is about the square icon
+    // being absent, not about the count.
+    const srcs = screen.getAllByAltText(BRAND_NAME).map((l) => l.getAttribute('src'))
+    expect(srcs.some((s) => s?.includes('revelio-logo-primary.svg'))).toBe(true)
+    expect(srcs.some((s) => s?.includes('revelio-logo-dark.svg'))).toBe(true)
+    expect(srcs.some((s) => s?.includes('revelio-icon.svg'))).toBe(false)
   })
 
   it('renders the icon for phones and the wordmark for >=640px off the home page', () => {

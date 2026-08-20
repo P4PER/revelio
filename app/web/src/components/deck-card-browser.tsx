@@ -1,11 +1,11 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { Info } from 'lucide-react'
 import { deckCardMeta, imageUrl, thumbKey } from '@revelio/core'
 import type { DeckCardView, DeckFormat, DeckZone, SetDTO } from '@revelio/core'
 import type { SearchDocument, SearchResult } from '@revelio/search'
 import { searchDeckCards } from '@/lib/deck-actions'
+import { DECK_BROWSE_PAGE_SIZE } from '@/lib/deck-view'
 import { LessonFilter } from '@/components/lesson-filter'
 import { ClearFiltersButton } from '@/components/clear-filters-button'
 import { cn } from '@/lib/utils'
@@ -18,11 +18,13 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { CardDetailSheet } from '@/components/card-detail-sheet'
+import { Skeleton } from '@/components/ui/skeleton'
+import { CardInfoButton } from '@/components/card-info-button'
 import { CardRotate } from '@/components/card-rotate'
 import { DeckFilterDrawer, EMPTY_DECK_FILTERS, type DeckFilters } from '@/components/deck-filter-drawer'
 import { PaginationNav } from '@/components/pagination-nav'
 
-const EMPTY_RESULT: SearchResult = { hits: [], total: 0, page: 1, hitsPerPage: 24 }
+const EMPTY_RESULT: SearchResult = { hits: [], total: 0, page: 1, hitsPerPage: DECK_BROWSE_PAGE_SIZE }
 const DEBOUNCE_MS = 300
 
 function toAddView(hit: SearchDocument): Omit<DeckCardView, 'zone' | 'quantity'> {
@@ -46,6 +48,9 @@ function toAddView(hit: SearchDocument): Omit<DeckCardView, 'zone' | 'quantity'>
     legality: meta.legality,
     isLesson: meta.isLesson,
     isStartingCharacter: meta.isStartingCharacter,
+    // Carried so a card added in this session sizes its detail skeleton the
+    // same as one loaded from the server, where getCardViews supplies it.
+    orientation: hit.orientation,
     // DeckCardView.imageVersion is the *default-language* thumb version (deck-gallery
     // renders a no-lang thumb key). The hit only carries the effective image lang, so
     // only adopt its version when that lang is the default; otherwise leave it null.
@@ -80,8 +85,11 @@ export function DeckCardBrowser({
   const [filters, setFilters] = useState<DeckFilters>(EMPTY_DECK_FILTERS)
   const [page, setPage] = useState(1)
   const [result, setResult] = useState<SearchResult>(EMPTY_RESULT)
-  const [pending, setPending] = useState(false)
-  const [detailId, setDetailId] = useState<string | null>(null)
+  // Starts true: the first search only fires after the debounce, and until it
+  // lands the grid has nothing to show - without this the browser would open on
+  // "No cards found." instead of a loading state.
+  const [pending, setPending] = useState(true)
+  const [detail, setDetail] = useState<{ id: string; orientation?: string | null } | null>(null)
 
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reqId = useRef(0)
@@ -95,9 +103,13 @@ export function DeckCardBrowser({
 
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current)
+    // Loading starts when the inputs change, not when the debounced request
+    // finally fires: otherwise an empty result set flashes "No cards found."
+    // for the length of the debounce before the ghosts come up.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPending(true)
     timer.current = setTimeout(() => {
       const id = ++reqId.current
-      setPending(true)
       searchDeckCards(locale, {
         query,
         format,
@@ -129,6 +141,10 @@ export function DeckCardBrowser({
     scrollTopPending.current = false
     gridRef.current?.scrollTo({ top: 0 })
   }, [result])
+
+  // Ghost tiles stand in only while there is nothing to show; once results are
+  // on screen they stay put across a refetch rather than flashing back to bones.
+  const showSkeleton = pending && result.hits.length === 0
 
   function toggleLesson(code: string) {
     setLessons((ls) => (ls.includes(code) ? ls.filter((c) => c !== code) : [...ls, code]))
@@ -167,12 +183,32 @@ export function DeckCardBrowser({
             <DeckFilterDrawer sets={sets} value={filters} onApply={setFilters} />
           </div>
         </div>
-        <p className="text-xs text-muted-foreground" role="status">
-          {t('browse.resultCount', { count: result.total })}
-        </p>
+        {/* The live region stays mounted across a search so a new count reaches
+            screen readers as an update to its text; swapping it for the ghost
+            would remount it already populated, which most of them never
+            announce. A div rather than a p because the ghost is a block. */}
+        <div className="text-xs text-muted-foreground" role="status">
+          {showSkeleton ? (
+            <Skeleton className="h-4 w-20" />
+          ) : (
+            t('browse.resultCount', { count: result.total })
+          )}
+        </div>
       </div>
 
-      <div ref={gridRef} className="grid flex-1 auto-rows-min gap-4 overflow-y-auto px-4 py-3 [grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]">
+      <div
+        ref={gridRef}
+        className="grid flex-1 auto-rows-min gap-4 overflow-y-auto px-4 py-3 [grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]"
+        role={showSkeleton ? 'status' : undefined}
+        aria-label={showSkeleton ? t('browse.loading') : undefined}
+        aria-busy={showSkeleton || undefined}
+      >
+        {/* One ghost per card a full page holds, so the loading grid is exactly
+            as deep as the grid that replaces it. */}
+        {showSkeleton &&
+          Array.from({ length: result.hitsPerPage }, (_, i) => (
+            <Skeleton key={i} className="aspect-[5/7] w-full rounded-lg" />
+          ))}
         {result.hits.length === 0 && !pending && (
           <p className="col-span-full py-10 text-center text-sm text-muted-foreground" role="status">
             {t('browse.noResults')}
@@ -244,16 +280,10 @@ export function DeckCardBrowser({
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Button
-                type="button"
-                size="icon-sm"
-                variant="secondary"
-                aria-label={t('browse.infoAria', { name: hit.name })}
-                onClick={() => setDetailId(hit.id)}
-                className="absolute top-1.5 right-1.5 opacity-0 shadow transition-opacity focus-visible:opacity-100 group-hover:opacity-100 touch:opacity-100"
-              >
-                <Info />
-              </Button>
+              <CardInfoButton
+                label={t('browse.infoAria', { name: hit.name })}
+                onClick={() => setDetail({ id: hit.id, orientation: hit.orientation })}
+              />
             </div>
           )
         })}
@@ -269,9 +299,10 @@ export function DeckCardBrowser({
       />
 
       <CardDetailSheet
-        cardId={detailId}
+        cardId={detail?.id ?? null}
+        orientation={detail?.orientation}
         imageBase={imageBase}
-        onOpenChange={(open) => { if (!open) setDetailId(null) }}
+        onOpenChange={(open) => { if (!open) setDetail(null) }}
       />
     </div>
   )

@@ -9,11 +9,37 @@ export function emptyDeck(): BuilderState {
   return { name: '', format: 'revival', visibility: 'private', entries: [] }
 }
 
+const COPY_LIMIT = 4
+
 function copies(entries: DeckCardView[], cardId: string): number {
   return entries.filter((e) => e.cardId === cardId && e.zone !== 'character').reduce((n, e) => n + e.quantity, 0)
 }
 export function copyLimitReached(s: BuilderState, cardId: string, isLesson: boolean): boolean {
-  return !isLesson && copies(s.entries, cardId) >= 4
+  return !isLesson && copies(s.entries, cardId) >= COPY_LIMIT
+}
+
+// Highest quantity a single entry may hold. The four-copy rule counts every
+// non-character zone, so this entry's allowance is what the same card does not
+// already occupy in the other zone. Lessons are exempt.
+export function maxQuantity(s: BuilderState, cardId: string, zone: DeckZone, isLesson: boolean): number {
+  if (isLesson || zone === 'character') return Infinity
+  const here = s.entries.find((e) => e.cardId === cardId && e.zone === zone)?.quantity ?? 0
+  return Math.max(0, COPY_LIMIT - (copies(s.entries, cardId) - here))
+}
+
+// The quantity a requested change should actually write, or null when it would
+// leave the entry where it is (including when there is no such entry). The
+// typed input can jump several copies at once, so a request is capped at what
+// the four-copy rule still allows - but never below where the entry already
+// sits: an imported entry can start above the limit, and there the cap must
+// only block increases rather than turn a step in either direction into a
+// silent drop back down to four.
+export function clampQuantity(s: BuilderState, cardId: string, zone: DeckZone, qty: number): number | null {
+  const current = s.entries.find((e) => e.cardId === cardId && e.zone === zone)
+  if (!current) return null
+  const ceiling = Math.max(current.quantity, maxQuantity(s, cardId, zone, current.isLesson))
+  const capped = Math.min(qty, ceiling)
+  return capped === current.quantity ? null : capped
 }
 
 export function addCard(s: BuilderState, view: Omit<DeckCardView, 'zone' | 'quantity'>, zone: DeckZone): BuilderState {

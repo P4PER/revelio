@@ -9,6 +9,7 @@ import { getDb } from '@/lib/db'
 import { createDeck, updateDeck, updateDeckMeta, deleteDeck, getDeck, getDeckForViewer, getCardById, getCardViews, resolveCardsByName, toggleLike, recordView } from '@revelio/db'
 import { getSearchClient, runSearch } from '@/lib/search-client'
 import type { SearchState } from '@/lib/search-params'
+import { DECK_BROWSE_PAGE_SIZE } from '@/lib/deck-view'
 
 export type DeckActionResult = { ok: true; id: string } | { ok: false; error: string }
 
@@ -124,7 +125,7 @@ export async function searchDeckCards(locale: string, input: unknown): Promise<S
   }
   // The builder browses in a wide grid, so fetch a larger page than the
   // default search results view (24).
-  return runSearch(getSearchClient(), locale, state, { hitsPerPage: 30 })
+  return runSearch(getSearchClient(), locale, state, { hitsPerPage: DECK_BROWSE_PAGE_SIZE })
 }
 
 // Full card detail for the browser's Info Sheet. Public read data (same as the

@@ -8,6 +8,7 @@ import { evaluateDeck } from '@revelio/core'
 import {
   type BuilderState,
   addCard,
+  clampQuantity,
   copyLimitReached,
   loadDraft,
   saveDraft,
@@ -92,12 +93,8 @@ export function DeckBuilder({
 
   function handleQuantityChange(cardId: string, zone: DeckZone, qty: number) {
     setState((s) => {
-      if (zone !== 'character' && qty > 0) {
-        const current = s.entries.find((e) => e.cardId === cardId && e.zone === zone)
-        const increasing = qty > (current?.quantity ?? 0)
-        if (increasing && copyLimitReached(s, cardId, current?.isLesson ?? false)) return s
-      }
-      return setQuantity(s, cardId, zone, qty)
+      const next = clampQuantity(s, cardId, zone, qty)
+      return next === null ? s : setQuantity(s, cardId, zone, next)
     })
   }
 

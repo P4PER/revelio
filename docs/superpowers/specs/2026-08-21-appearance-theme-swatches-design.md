@@ -35,14 +35,17 @@ Two alternatives were demoed and rejected:
 ## The miniature
 
 The miniature is a **card grid on a ground**, not generic browser chrome: a header strip with the
-gold mark and a search field, three portrait cards with lesson-tinted art, and the gold primary
-button. That is the screen a Revelio user actually looks at, so it is the honest sample.
+gold mark, a search field and nav links, over a grid of portrait cards with lesson-tinted art.
+That is the screen a Revelio user actually looks at, so it is the honest sample.
+
+The strip is proportioned off the real header measured at 1280px: mark at 4.4% and 9.4% wide, the
+search field starting at 15.1% and running 35%, then five nav links out to 95.6%. **The mark is
+the only gold up there** - the real Revelio header carries no primary button, so the miniature
+does not invent one, and nothing else in the strip is tinted.
 
 The grid is **two rows of four**, cycling the five lesson tints. Three across read as three big
 colour tiles rather than as a search grid; four across gives the density the real page has, and
-eight cards is what fits two whole rows, so nothing is clipped by the bottom edge. Because the
-grid then fills the box, the gold primary sits in the header strip rather than floating over the
-last row.
+eight cards is what fits two whole rows, so nothing is clipped by the bottom edge.
 
 Each tint is set at **5:7, the proportion of a real HP TCG card**, so the colour block reads as a
 card rather than as a swatch; a landscape block reads as a paint chip and loses the connection to
@@ -79,11 +82,30 @@ already composes `var()` values inline.
 ## Interaction and accessibility
 
 - Still a `RadioGroup` / `RadioGroupItem`, still `Label`-wraps-the-tile. Arrow keys move between
-  options, the whole tile is the click target, focus ring is the primitive's.
-- **Selection reads twice:** the tile border and ring go `--primary`, and the radio dot fills.
-  The demo used a check badge; the shipped control keeps the shadcn radio dot, which is the
-  library default, already carries `data-[state=checked]:text-primary-ink`, and matches the radio
-  styling used elsewhere in settings.
+  options and the whole tile is the click target.
+- **The radio dot is `sr-only`, not dropped.** It stays the focusable, checkable control, so the
+  roving tabindex, the accessible name and form semantics are all the primitive's. A visible dot
+  next to a tile that is already a picture of the theme was redundant chrome; the demo's check
+  badge was rejected for the same reason.
+- **Selection is therefore the tile border alone**, which makes its colour load-bearing. It uses
+  `--secondary-ink` - the token `deck-list`, `deck-hero-card` and `set-card` already use to
+  emphasise a card border, which is the same shape this is. Three reasons it is not `--primary`:
+
+  1. **Contrast.** In light, `--primary` is `#F0C458`: 1.6:1 on the card and 1.1:1 against a
+     neighbouring tile's border, under the 3:1 WCAG 1.4.11 asks of a state indicator.
+     `--secondary-ink` measures 10.1:1 light and 3.6:1 dark against the card.
+  2. **Gold is inside the picture.** The miniature already paints gold - the header mark, the
+     quidditch tint - so a gold frame competes with the swatch it is framing. Indigo appears
+     nowhere in the miniature, so it reads unambiguously as chrome.
+  3. **Focus is gold.** `--ring` is `#F0C458`/`#E8B23A`, gold in *both* themes. A gold selected
+     border would say "selected" in the same colour the outline says "focused", on one box.
+
+  `--primary-ink` was the first fix and clears the contrast bar too (5.7:1 / 8.8:1), but loses on
+  points 2 and 3.
+- The tile styles off the primitive's own `data-state` via `has-data-[state=checked]:`, so there
+  is no second copy of the selection state to keep in sync.
+- **Focus moves to the tile as an `outline`**, not a ring: the selected state already owns the
+  ring, and two rings on one box fight. The sr-only dot cannot show a focus ring of its own.
 - The miniature is decorative — `aria-hidden`, so each radio's accessible name stays exactly the
   option name plus its hint ("Dark Midnight and gold").
 - The section becomes a named `region`, matching its four siblings.

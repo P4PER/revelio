@@ -4,7 +4,7 @@
 
 **Goal:** Give `/settings/appearance` the same card chrome as its four sibling panes, and replace its three radio rows with three selectable tiles that each show a miniature of Revelio painted in that theme's own colours.
 
-**Architecture:** A new decorative `ThemePreview` component renders a miniature Revelio (header strip, three lesson-tinted portrait cards, gold button) from a palette that is fixed rather than themed. It gets that palette by reading the raw `--light-*` / `--dark-*` value sets `globals.css` already declares on `:root` — those are unconditional and never reassigned, so the light swatch stays light while the page is dark, with no new CSS and no duplicated hexes. `AppearanceForm` keeps its `RadioGroup` and its whole save path; only the card chrome and the inside of each `Label` change.
+**Architecture:** A new decorative `ThemePreview` component renders a miniature Revelio (header strip with the gold mark, search field and nav links, over two rows of four lesson-tinted portrait cards - no primary button, because the real header has none) from a palette that is fixed rather than themed. It gets that palette by reading the raw `--light-*` / `--dark-*` value sets `globals.css` already declares on `:root` — those are unconditional and never reassigned, so the light swatch stays light while the page is dark, with no new CSS and no duplicated hexes. `AppearanceForm` keeps its `RadioGroup` and its whole save path; only the card chrome and the inside of each `Label` change.
 
 **Tech Stack:** Next.js 16 App Router, React 19, Tailwind v4 (arbitrary custom properties via `bg-(--p-card)`), shadcn/Radix `RadioGroup`, next-intl, vitest + @testing-library/react.
 
@@ -139,11 +139,16 @@ const PALETTE: Record<Tone, CSSProperties> = {
   } as CSSProperties,
 }
 
-const ART = ['var(--p-art-1)', 'var(--p-art-2)', 'var(--p-art-3)']
+const ART = [
+  'var(--p-art-1)', 'var(--p-art-2)', 'var(--p-art-3)', 'var(--p-art-4)',
+  'var(--p-art-5)', 'var(--p-art-1)', 'var(--p-art-2)', 'var(--p-art-3)',
+]
 
-// One miniature Revelio: the header strip with its gold mark and search field,
-// a row of lesson-tinted cards, and the gold primary button. That is the screen
-// a Revelio user actually looks at, so it is the honest sample of a theme.
+// One miniature Revelio: the header strip with its gold mark, search field and
+// nav links, over a grid of lesson-tinted cards. That is the screen a Revelio
+// user actually looks at, so it is the honest sample of a theme. The mark is
+// the only gold in the strip - the real header carries no primary button, so
+// the miniature does not invent one.
 //
 // The card art is inset inside the card padding rather than bled to the edge,
 // so the card surface - parchment or midnight - is what carries the swatch. A
@@ -288,9 +293,9 @@ import { ThemePreview } from './theme-preview'
           <Label
             key={value}
             htmlFor={`theme-${value}`}
-            data-state={value === choice ? 'checked' : undefined}
-            className="flex cursor-pointer flex-col items-stretch gap-2.5 rounded-xl border p-2.5 transition-colors hover:bg-(--hover-bg) data-[state=checked]:border-primary data-[state=checked]:ring-1 data-[state=checked]:ring-primary"
+            className="flex cursor-pointer flex-col items-stretch gap-2.5 rounded-xl border p-2.5 transition-colors hover:bg-(--hover-bg) has-data-[state=checked]:border-secondary-ink has-data-[state=checked]:ring-2 has-data-[state=checked]:ring-secondary-ink has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring"
           >
+            <RadioGroupItem value={value} id={`theme-${value}`} className="sr-only" />
             <ThemePreview choice={value} />
             <span className="flex items-start gap-2">
               <span className="flex min-w-0 flex-col gap-0.5">
@@ -312,9 +317,17 @@ Two things to be careful about:
 
 1. `RadioGroup`'s primitive already applies `grid gap-3`, so the className only adds `mt-6` and
    `sm:grid-cols-3`. Do not add `grid` again and do not change the gap.
-2. Keep `RadioGroupItem`. The demo used a check badge; the shadcn radio dot is the library
-   default, already carries `data-[state=checked]:border-primary data-[state=checked]:text-primary-ink`,
-   brings its own focus ring, and matches the radio styling used elsewhere in settings.
+2. Keep `RadioGroupItem`, but `sr-only`. The demo used a check badge; a visible dot beside a
+   tile that is already a picture of the theme is redundant chrome. Hiding rather than dropping
+   it keeps the roving tabindex, the accessible name and the form semantics as the primitive's.
+3. Because the dot is hidden, the tile border is the only selection cue, so style it off the
+   primitive's own state with `has-data-[state=checked]:` - do not mirror `data-state` onto the
+   `Label`, that is a second copy of the same state. Use `secondary-ink`, **not** `primary`:
+   `--primary` is `#F0C458` in light, 1.6:1 on the card, under the 3:1 WCAG 1.4.11 asks of a
+   state indicator; gold also appears inside the miniature, and `--ring` is gold in both themes,
+   so a gold border would collide with the focus outline.
+4. Focus goes on the `Label` as an `outline` (`has-[:focus-visible]:outline-*`), not a ring: the
+   sr-only dot cannot show one, and the selected state already owns the ring.
 
 - [ ] **Step 4: Run the tests to verify they pass**
 

@@ -10,7 +10,7 @@ const duplicateDeckAction = vi.fn(async () => ({ ok: true, id: 'new-id' }))
 const deleteDeckAction = vi.fn(async () => ({ ok: true, id: 'd1' }))
 const updateDeckMetaAction = vi.fn(async () => ({ ok: true, id: 'd1' }))
 
-vi.mock('@/lib/deck-actions', () => ({
+vi.mock('@/lib/actions/deck-actions', () => ({
   duplicateDeckAction: (...a: unknown[]) => duplicateDeckAction(...a),
   deleteDeckAction: (...a: unknown[]) => deleteDeckAction(...a),
   updateDeckMetaAction: (...a: unknown[]) => updateDeckMetaAction(...a),

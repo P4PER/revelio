@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Trash2 } from 'lucide-react'
 import { useRouter } from '@/../i18n/navigation'
-import { deleteSetAction } from '@/lib/set-actions'
+import { deleteSetAction } from '@/lib/actions/set-actions'
 import { Button } from '@/components/ui/button'
 
 export function DeleteSetButton({ code, cardCount }: { code: string; cardCount: number }) {

@@ -4,7 +4,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const updateLocalization = vi.fn(async () => ({ ok: true as const }))
-vi.mock('@/lib/localization-actions', () => ({ updateLocalization: (...a: unknown[]) => updateLocalization(...a) }))
+vi.mock('@/lib/actions/localization-actions', () => ({ updateLocalization: (...a: unknown[]) => updateLocalization(...a) }))
 vi.mock('@/../i18n/navigation', () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
   Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,

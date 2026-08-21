@@ -10,7 +10,7 @@ const h = vi.hoisted(() => ({
   success: vi.fn(),
   error: vi.fn(),
 }))
-vi.mock('@/lib/user-admin-actions', () => ({ deleteUser: h.deleteUser }))
+vi.mock('@/lib/actions/user-admin-actions', () => ({ deleteUser: h.deleteUser }))
 vi.mock('@/../i18n/navigation', () => ({ useRouter: () => ({ push: h.push }) }))
 vi.mock('sonner', () => ({ toast: { success: h.success, error: h.error } }))
 

@@ -5,7 +5,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const saveRulingsAction = vi.fn(async () => ({ ok: true as const }))
-vi.mock('@/lib/rulings-actions', () => ({ saveRulingsAction: (...a: unknown[]) => saveRulingsAction(...a) }))
+vi.mock('@/lib/actions/rulings-actions', () => ({ saveRulingsAction: (...a: unknown[]) => saveRulingsAction(...a) }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 vi.mock('@/../i18n/navigation', () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),

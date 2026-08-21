@@ -10,8 +10,8 @@ const m = vi.hoisted(() => ({
   toastSuccess: vi.fn(),
   toastError: vi.fn(),
 }))
-vi.mock('@/lib/settings-actions', () => ({ updateUsername: m.updateUsername }))
-vi.mock('@/lib/auth-actions', () => ({ usernameAvailable: m.usernameAvailable }))
+vi.mock('@/lib/actions/settings-actions', () => ({ updateUsername: m.updateUsername }))
+vi.mock('@/lib/actions/auth-actions', () => ({ usernameAvailable: m.usernameAvailable }))
 vi.mock('sonner', () => ({ toast: { success: m.toastSuccess, error: m.toastError } }))
 
 import { ProfilePane } from '../profile-pane'

@@ -10,7 +10,7 @@ import { DeckGallery } from '@/components/deck-gallery'
 import { DeckStatsPanel } from '@/components/deck-stats-panel'
 import { DeckLegalityBar } from '@/components/deck-legality-bar'
 import { DeckOverviewActions } from '@/components/deck-overview-actions'
-import { recordViewAction } from '@/lib/deck-actions'
+import { recordViewAction } from '@/lib/actions/deck-actions'
 import { Button } from '@/components/ui/button'
 import { DECK_VIEW_COOKIE, type DeckView as View } from '@/lib/deck-view'
 

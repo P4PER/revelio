@@ -5,7 +5,7 @@ import en from '@/../messages/en.json'
 import { SiteSettingsForm } from '../site-settings-form'
 
 const update = vi.fn(async () => ({ ok: true }))
-vi.mock('@/lib/site-settings-actions', () => ({
+vi.mock('@/lib/actions/site-settings-actions', () => ({
   updateSiteSettings: (...a: unknown[]) => update(...a),
 }))
 // vi.mock is hoisted above module init, so the toast mock must be too.

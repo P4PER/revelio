@@ -4,7 +4,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const sendContactMessage = vi.fn(async () => ({ ok: true as const }))
-vi.mock('@/lib/contact-actions', () => ({
+vi.mock('@/lib/actions/contact-actions', () => ({
   sendContactMessage: (...a: unknown[]) => sendContactMessage(...a),
 }))
 

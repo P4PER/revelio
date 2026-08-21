@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { setCollectionVisibilityAction } from '@/lib/collection-actions'
+import { setCollectionVisibilityAction } from '@/lib/actions/collection-actions'
 
 // Mirrors the deck overview's Publish/Published control: an outline "Publish"
 // button (with a confirm dialog) while private, and a "Published" dropdown with

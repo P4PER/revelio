@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
-import { setTheme } from '@/lib/theme-actions'
+import { setTheme } from '@/lib/actions/theme-actions'
 import type { ThemeChoice } from '@/lib/theme'
 import { ThemePreview } from './theme-preview'
 

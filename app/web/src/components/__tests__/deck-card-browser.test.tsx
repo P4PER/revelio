@@ -8,7 +8,7 @@ import { DeckCardBrowser } from '../deck-card-browser'
 
 const searchDeckCards = vi.fn(async (): Promise<SearchResult> => FIXED_RESULT)
 const getCardDetailAction = vi.fn(() => new Promise(() => {})) // never resolves by default
-vi.mock('@/lib/deck-actions', () => ({
+vi.mock('@/lib/actions/deck-actions', () => ({
   searchDeckCards: (...a: unknown[]) => searchDeckCards(...a),
   getCardDetailAction: (...a: unknown[]) => getCardDetailAction(...a),
 }))

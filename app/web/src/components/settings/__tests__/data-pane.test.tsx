@@ -9,7 +9,7 @@ const m = vi.hoisted(() => ({
   exportMyData: vi.fn(async () => ({ ok: true, data: { profile: {}, decks: [], collection: { visibility: 'private', ownedCards: [] }, likes: [] } })),
   toastError: vi.fn(),
 }))
-vi.mock('@/lib/settings-actions', () => ({ exportMyData: m.exportMyData }))
+vi.mock('@/lib/actions/settings-actions', () => ({ exportMyData: m.exportMyData }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: m.toastError } }))
 
 import { DataPane } from '../data-pane'

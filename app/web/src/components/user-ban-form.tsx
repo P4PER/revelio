@@ -2,7 +2,7 @@
 import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { banUser, unbanUser, type UserActionResult } from '@/lib/user-admin-actions'
+import { banUser, unbanUser, type UserActionResult } from '@/lib/actions/user-admin-actions'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'

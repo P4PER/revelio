@@ -6,7 +6,7 @@ import { DeleteSetButton } from '../delete-set-button'
 
 const push = vi.fn()
 const del = vi.fn(async () => ({ ok: true }))
-vi.mock('@/lib/set-actions', () => ({ deleteSetAction: (...a: unknown[]) => del(...a) }))
+vi.mock('@/lib/actions/set-actions', () => ({ deleteSetAction: (...a: unknown[]) => del(...a) }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 vi.mock('@/../i18n/navigation', () => ({ useRouter: () => ({ push }) }))
 

@@ -1,7 +1,7 @@
 'use client'
 import { useState, useTransition } from 'react'
 import { Minus, Plus } from 'lucide-react'
-import { setCardQuantityAction } from '@/lib/collection-actions'
+import { setCardQuantityAction } from '@/lib/actions/collection-actions'
 import { cn } from '@/lib/utils'
 
 export function CardFinishStepper({

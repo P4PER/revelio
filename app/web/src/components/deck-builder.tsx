@@ -16,7 +16,7 @@ import {
   setFormat,
   setQuantity,
 } from '@/lib/deck-model'
-import { createDeckAction, updateDeckAction } from '@/lib/deck-actions'
+import { createDeckAction, updateDeckAction } from '@/lib/actions/deck-actions'
 import { DeckStatsPanel } from './deck-stats-panel'
 import { DeckPanel } from './deck-panel'
 import { DeckCardBrowser } from './deck-card-browser'

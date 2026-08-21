@@ -18,7 +18,7 @@ const m = vi.hoisted(() => ({
 vi.mock('@/lib/server/session', () => ({ getSession: m.getSession }))
 vi.mock('@/lib/server/db', () => ({ getDb: () => ({ update: m.update }) }))
 vi.mock('@revelio/db', () => ({ user: { id: 'user.id' }, deleteUserById: m.deleteUserById, getUserExport: m.getUserExport }))
-vi.mock('@/lib/auth-actions', () => ({ usernameAvailable: m.usernameAvailable, emailHasAccount: m.emailHasAccount }))
+vi.mock('@/lib/actions/auth-actions', () => ({ usernameAvailable: m.usernameAvailable, emailHasAccount: m.emailHasAccount }))
 vi.mock('@/lib/server/account-codes', () => ({
   generateCode: m.generateCode, storeCode: m.storeCode, consumeCode: m.consumeCode,
   emailChangeId: (id: string) => `ec:${id}`, deleteId: (id: string) => `del:${id}`,

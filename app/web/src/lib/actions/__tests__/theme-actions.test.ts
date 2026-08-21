@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const store = { set: vi.fn(), delete: vi.fn() }
 vi.mock('next/headers', () => ({ cookies: async () => store }))
 
-const { setTheme } = await import('@/lib/theme-actions')
+const { setTheme } = await import('@/lib/actions/theme-actions')
 
 beforeEach(() => {
   store.set.mockClear()

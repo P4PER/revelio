@@ -4,7 +4,7 @@ import { useRouter } from '@/../i18n/navigation'
 import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { ImagePlus, Trash2, Loader2 } from 'lucide-react'
-import { uploadCardImage, removeCardImage } from '@/lib/image-actions'
+import { uploadCardImage, removeCardImage } from '@/lib/actions/image-actions'
 import { FieldError } from '@/components/ui/field-error'
 import { cn } from '@/lib/utils'
 

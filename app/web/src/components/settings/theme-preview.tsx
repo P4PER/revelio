@@ -38,10 +38,10 @@ const ART = ['var(--p-art-1)', 'var(--p-art-2)', 'var(--p-art-3)']
 // a row of lesson-tinted cards, and the gold primary button. That is the screen
 // a Revelio user actually looks at, so it is the honest sample of a theme.
 //
-// The card art is inset inside the card padding rather than bled to the edge,
-// so the card surface - parchment or midnight - is what carries the swatch. A
-// full-bleed tint turns the miniature into a row of colour chips and buries the
-// thing being chosen.
+// Each tint is set at 5:7, the proportion of a real HP TCG card, so the colour
+// block reads as a card rather than as a swatch. It stays inset inside the card
+// padding rather than bled to the edge, so the card surface - parchment or
+// midnight - frames it and is what actually carries the theme.
 function Pane({ tone, style }: { tone: Tone; style?: CSSProperties }) {
   return (
     <div
@@ -58,11 +58,10 @@ function Pane({ tone, style }: { tone: Tone; style?: CSSProperties }) {
         {ART.map((tint) => (
           <div
             key={tint}
-            className="flex aspect-5/7 flex-col gap-0.5 rounded-[3px] border border-(--p-border) bg-(--p-card) p-0.5"
+            className="flex flex-col gap-1 rounded-[3px] border border-(--p-border) bg-(--p-card) p-1"
           >
-            <span className="h-[52%] shrink-0 rounded-[2px] opacity-90" style={{ background: tint }} />
-            <span className="mx-0.5 h-[2px] rounded-full bg-(--p-ink) opacity-30" />
-            <span className="mx-0.5 h-[2px] w-[55%] rounded-full bg-(--p-ink) opacity-20" />
+            <span className="aspect-5/7 rounded-[2px] opacity-90" style={{ background: tint }} />
+            <span className="h-[2px] rounded-full bg-(--p-ink) opacity-30" />
           </div>
         ))}
       </div>

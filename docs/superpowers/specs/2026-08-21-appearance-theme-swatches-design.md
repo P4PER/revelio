@@ -39,9 +39,12 @@ gold mark and a search field, three portrait cards with lesson-tinted art, and t
 button. That is the screen a Revelio user actually looks at, so it is the honest sample.
 
 The lesson art blocks use charms / transfiguration / potions, in that order — the same tints the
-search grid leads with. The card art is inset inside the card's padding rather than bled to the
-edge, so the card surface (parchment or midnight) is what carries the swatch; a full-bleed tint
-turns the miniature into a colour-chip row and buries the thing being chosen.
+search grid leads with. Each tint is set at **5:7, the proportion of a real HP TCG card**, so the
+colour block reads as a card rather than as a swatch; a landscape block reads as a paint chip and
+loses the connection to the product. It stays inset inside the card's padding rather than bled to
+the edge, so the card surface (parchment or midnight) frames it and is what actually carries the
+theme — a full-bleed tint turns the miniature into a colour-chip row and buries the thing being
+chosen.
 
 **System splits on a diagonal:** parchment above the anti-diagonal, midnight below, with a
 brand-gold seam on the cut. "Follow your device setting" genuinely means both, and the seam says

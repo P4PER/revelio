@@ -40,4 +40,17 @@ describe('AppearanceForm', () => {
     expect(document.documentElement.dataset.theme).toBeUndefined()
     expect(setTheme).toHaveBeenCalledWith('system')
   })
+
+  // The other four settings panes each expose a named region; this one did not.
+  it('exposes the pane as a named region, like its sibling panes', () => {
+    renderForm('system')
+    expect(screen.getByRole('region', { name: 'Appearance' })).toBeInTheDocument()
+  })
+
+  // The miniature is decoration. If it ever leaked into the accessible name,
+  // screen-reader users would hear the markup instead of the choice.
+  it('keeps each radio named by its option and hint alone', () => {
+    renderForm('system')
+    expect(screen.getByRole('radio', { name: 'Dark Midnight and gold' })).toBeInTheDocument()
+  })
 })

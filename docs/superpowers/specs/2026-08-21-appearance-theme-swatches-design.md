@@ -38,13 +38,24 @@ The miniature is a **card grid on a ground**, not generic browser chrome: a head
 gold mark and a search field, three portrait cards with lesson-tinted art, and the gold primary
 button. That is the screen a Revelio user actually looks at, so it is the honest sample.
 
-The lesson art blocks use charms / transfiguration / potions, in that order — the same tints the
-search grid leads with. Each tint is set at **5:7, the proportion of a real HP TCG card**, so the
-colour block reads as a card rather than as a swatch; a landscape block reads as a paint chip and
-loses the connection to the product. It stays inset inside the card's padding rather than bled to
-the edge, so the card surface (parchment or midnight) frames it and is what actually carries the
-theme — a full-bleed tint turns the miniature into a colour-chip row and buries the thing being
-chosen.
+The grid is **two rows of four**, cycling the five lesson tints. Three across read as three big
+colour tiles rather than as a search grid; four across gives the density the real page has, and
+eight cards is what fits two whole rows, so nothing is clipped by the bottom edge. Because the
+grid then fills the box, the gold primary sits in the header strip rather than floating over the
+last row.
+
+Each tint is set at **5:7, the proportion of a real HP TCG card**, so the colour block reads as a
+card rather than as a swatch; a landscape block reads as a paint chip and loses the connection to
+the product. It stays inset inside the card's padding rather than bled to the edge, so the card
+surface (parchment or midnight) frames it and is what actually carries the theme — a full-bleed
+tint turns the miniature into a colour-chip row and buries the thing being chosen.
+
+**The tints stay at full saturation.** Muting them was tried and rejected: in light they go
+pastel, which reads as a faded *different* theme, and the swatch's whole job is to show what the
+app actually looks like. Dropping colour entirely was also tried — it turns the tile into a
+generic theme picker with nothing Revelio about it, and in dark the neutral cards sink into the
+ground. The tints only read as too loud when the cards are too big, so the fix was the grid, not
+the palette.
 
 **System splits on a diagonal:** parchment above the anti-diagonal, midnight below, with a
 brand-gold seam on the cut. "Follow your device setting" genuinely means both, and the seam says

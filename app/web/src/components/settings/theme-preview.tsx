@@ -61,11 +61,24 @@ function Pane({ tone, style }: { tone: Tone; style?: CSSProperties }) {
       style={{ ...PALETTE[tone], ...style }}
       className="absolute inset-0 flex flex-col bg-(--p-bg)"
     >
-      <div className="flex h-[16%] shrink-0 items-center gap-1 border-b border-(--p-border) bg-(--p-card) px-1.5">
-        <span className="size-[7px] shrink-0 rounded-full bg-(--p-gold)" />
-        <span className="h-[3px] w-[22px] shrink-0 rounded-full bg-(--p-ink) opacity-55" />
-        <span className="mx-auto h-[7px] w-[38%] rounded-full bg-(--p-ink) opacity-10" />
-        <span className="h-[7px] w-5 shrink-0 rounded-[2px] bg-(--p-gold)" />
+      {/* Proportioned off the real header measured at 1280px: logo at 4.4% and
+          9.4% wide, the search field starting at 15.1% and running 35%, then
+          five nav links from 56.3% to 95.6%. The logo mark is the only gold up
+          there - the real header has no primary button - so nothing else in
+          this strip is tinted. */}
+      <div className="flex h-[16%] shrink-0 items-center border-b border-(--p-border) bg-(--p-card) px-[4%]">
+        <span className="size-[5px] shrink-0 rounded-full bg-(--p-gold)" />
+        <span className="ml-px h-[3px] w-[7%] shrink-0 rounded-full bg-(--p-ink) opacity-55" />
+        <span className="ml-[2%] h-[7px] w-[35%] shrink-0 rounded-full bg-(--p-ink) opacity-10" />
+        <span className="ml-auto flex shrink-0 items-center gap-[4%]">
+          {[6, 8, 7, 5].map((w) => (
+            <span
+              key={w}
+              style={{ width: `${w}px` }}
+              className="h-[3px] rounded-full bg-(--p-ink) opacity-30"
+            />
+          ))}
+        </span>
       </div>
       <div className="grid flex-1 grid-cols-4 content-start gap-1.5 p-1.5">
         {ART.map((tint, i) => (

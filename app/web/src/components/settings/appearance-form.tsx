@@ -60,17 +60,19 @@ export function AppearanceForm({ current }: { current: ThemeChoice }) {
             key={value}
             htmlFor={`theme-${value}`}
             data-state={value === choice ? 'checked' : undefined}
-            className="flex cursor-pointer flex-col items-stretch gap-2.5 rounded-xl border p-2.5 transition-colors hover:bg-(--hover-bg) data-[state=checked]:border-primary data-[state=checked]:ring-1 data-[state=checked]:ring-primary"
+            className="flex cursor-pointer flex-col items-stretch gap-2.5 rounded-xl border p-2.5 transition-colors hover:bg-(--hover-bg) data-[state=checked]:border-primary data-[state=checked]:ring-2 data-[state=checked]:ring-primary has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring"
           >
+            {/* The dot is hidden, not dropped: it stays the focusable radio, so
+                arrow keys and the accessible name still work. The gold border
+                carries the selection, and the focus ring moves to the tile as
+                an outline - a ring here would fight the selected ring. */}
+            <RadioGroupItem value={value} id={`theme-${value}`} className="sr-only" />
             <ThemePreview choice={value} />
-            <span className="flex items-start gap-2">
-              <span className="flex min-w-0 flex-col gap-0.5">
-                <span className="font-medium">{t(value)}</span>
-                <span className="text-sm font-normal text-muted-foreground">
-                  {t(`${value}Hint`)}
-                </span>
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span className="font-medium">{t(value)}</span>
+              <span className="text-sm font-normal text-muted-foreground">
+                {t(`${value}Hint`)}
               </span>
-              <RadioGroupItem value={value} id={`theme-${value}`} className="mt-0.5 ml-auto" />
             </span>
           </Label>
         ))}

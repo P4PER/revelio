@@ -1,7 +1,7 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { Plus } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
-import { getDb } from '@/lib/db'
+import { getDb } from '@/lib/server/db'
 import { listSets } from '@revelio/db'
 import { AdminSetsTable } from '@/components/admin-sets-table'
 import { Button } from '@/components/ui/button'

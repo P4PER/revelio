@@ -10,8 +10,8 @@ const m = vi.hoisted(() => ({
 
 vi.mock('@/lib/email/mailer', () => ({ sendMail: m.sendMail }))
 vi.mock('@/lib/email/contact-template', () => ({ renderContactEmail: m.renderContactEmail }))
-vi.mock('@/lib/site-settings', () => ({ getCachedSiteSettings: m.getCachedSiteSettings }))
-vi.mock('@/lib/rate-limit', () => ({ consumeContactRateLimit: m.consumeContactRateLimit }))
+vi.mock('@/lib/server/site-settings', () => ({ getCachedSiteSettings: m.getCachedSiteSettings }))
+vi.mock('@/lib/server/rate-limit', () => ({ consumeContactRateLimit: m.consumeContactRateLimit }))
 vi.mock('next/headers', () => ({ headers: m.headers }))
 
 import { sendContactMessage } from '../contact-actions'

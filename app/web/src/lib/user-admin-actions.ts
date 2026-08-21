@@ -1,7 +1,7 @@
 'use server'
 import { revalidatePath } from 'next/cache'
-import { requireRole } from '@/lib/session'
-import { getDb } from '@/lib/db'
+import { requireRole } from '@/lib/server/session'
+import { getDb } from '@/lib/server/db'
 import {
   getUserForAdmin, countAdmins, updateUserRole, setUserBan, clearUserBan, deleteUserById,
 } from '@revelio/db'

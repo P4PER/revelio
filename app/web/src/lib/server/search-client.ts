@@ -1,7 +1,7 @@
 import 'server-only'
 import type { MeiliSearch } from 'meilisearch'
 import { createMeiliClient, searchCards, type SearchResult } from '@revelio/search'
-import { toSearchOptions, type SearchState } from './search-params'
+import { toSearchOptions, type SearchState } from '@/lib/search-params'
 
 export function getSearchClient(): MeiliSearch {
   const host = process.env.MEILI_HOST

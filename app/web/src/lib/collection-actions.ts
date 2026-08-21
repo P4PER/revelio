@@ -2,8 +2,8 @@
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { CollectionVisibility, isFinishAllowed } from '@revelio/core'
-import { getSession } from '@/lib/session'
-import { getDb } from '@/lib/db'
+import { getSession } from '@/lib/server/session'
+import { getDb } from '@/lib/server/db'
 import { getCardFinishes, setCardQuantity, setCollectionVisibility } from '@revelio/db'
 
 export type CollectionActionResult = { ok: true } | { ok: false; error: string }

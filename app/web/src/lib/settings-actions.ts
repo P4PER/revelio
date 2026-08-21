@@ -1,14 +1,14 @@
 'use server'
 import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
-import { getSession } from '@/lib/session'
-import { getDb } from '@/lib/db'
+import { getSession } from '@/lib/server/session'
+import { getDb } from '@/lib/server/db'
 import { user, deleteUserById, getUserExport, type UserExport } from '@revelio/db'
 import { usernameAvailable, emailHasAccount } from '@/lib/auth-actions'
-import { generateCode, storeCode, consumeCode, emailChangeId, deleteId } from '@/lib/account-codes'
+import { generateCode, storeCode, consumeCode, emailChangeId, deleteId } from '@/lib/server/account-codes'
 import { renderOtpEmail } from '@/lib/email/otp-template'
 import { sendMail } from '@/lib/email/mailer'
-import { getCachedSiteSettings } from '@/lib/site-settings'
+import { getCachedSiteSettings } from '@/lib/server/site-settings'
 
 export type SettingsResult = { ok: true } | { ok: false; error: string }
 

@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { listSets } from '@revelio/db'
-import { getDb } from '@/lib/db'
-import { getSession } from '@/lib/session'
+import { getDb } from '@/lib/server/db'
+import { getSession } from '@/lib/server/session'
 import { emptyDeck } from '@/lib/deck-model'
 import { DeckBuilder } from '@/components/deck-builder'
 

@@ -1,7 +1,7 @@
 import 'server-only'
 import { getLocale } from 'next-intl/server'
 import { redirect } from '@/../i18n/navigation'
-import { getSession } from '@/lib/session'
+import { getSession } from '@/lib/server/session'
 import { loginHref } from '@/lib/redirect-path'
 
 /**

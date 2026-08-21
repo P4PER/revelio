@@ -1,8 +1,8 @@
 'use server'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { requireRole } from '@/lib/session'
-import { getDb } from '@/lib/db'
+import { requireRole } from '@/lib/server/session'
+import { getDb } from '@/lib/server/db'
 import { saveRulings } from '@revelio/db'
 import { routing } from '@/../i18n/routing'
 

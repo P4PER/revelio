@@ -1,7 +1,7 @@
 import 'server-only'
 import { unstable_cache } from 'next/cache'
 import { getDailyShowcaseCandidates, type ShowcaseCandidate } from '@revelio/db'
-import { getDb } from '@/lib/db'
+import { getDb } from '@/lib/server/db'
 import { pickDailyCards } from '@/lib/daily-cards'
 import { scatterPositions, type ScatterSlot } from '@/lib/card-scatter'
 

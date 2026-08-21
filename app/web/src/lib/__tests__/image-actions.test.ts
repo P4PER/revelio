@@ -11,14 +11,14 @@ const m = vi.hoisted(() => ({
   del: vi.fn(async () => {}),
   revalidatePath: vi.fn(),
 }))
-vi.mock('@/lib/session', () => ({ requireRole: m.requireRole }))
-vi.mock('@/lib/db', () => ({ getDb: () => ({}) }))
+vi.mock('@/lib/server/session', () => ({ requireRole: m.requireRole }))
+vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
 vi.mock('@revelio/db', () => ({
   getCardById: m.getCardById, setLocalizationImage: m.setLocalizationImage, getCardIndexData: m.getCardIndexData,
 }))
 vi.mock('@revelio/search', () => ({ reindexCard: m.reindexCard }))
-vi.mock('@/lib/reindex', () => ({ getWriteClient: m.getWriteClient }))
-vi.mock('@/lib/s3', () => ({ getS3: () => ({}), putObject: m.put, deleteObject: m.del }))
+vi.mock('@/lib/server/reindex', () => ({ getWriteClient: m.getWriteClient }))
+vi.mock('@/lib/server/s3', () => ({ getS3: () => ({}), putObject: m.put, deleteObject: m.del }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
 vi.mock('sharp', () => ({
   default: () => ({ webp: () => ({ resize: () => ({ toBuffer: async () => Buffer.from('x') }), toBuffer: async () => Buffer.from('x') }) }),

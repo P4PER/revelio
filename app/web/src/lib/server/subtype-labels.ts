@@ -1,5 +1,5 @@
 import 'server-only'
-import { getDb } from '@/lib/db'
+import { getDb } from '@/lib/server/db'
 import { getSubTypeLabels } from '@revelio/db'
 
 // sub_type_translations is a tiny table and the card page renders dynamically,

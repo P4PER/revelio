@@ -1,7 +1,7 @@
 import 'server-only'
 import { unstable_cache } from 'next/cache'
 import { getSiteSettings, type SiteSettings } from '@revelio/db'
-import { getDb } from '@/lib/db'
+import { getDb } from '@/lib/server/db'
 
 export const SITE_SETTINGS_TAG = 'site-settings'
 

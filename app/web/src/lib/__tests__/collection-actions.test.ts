@@ -7,8 +7,8 @@ const m = vi.hoisted(() => ({
   setCollectionVisibility: vi.fn(async () => {}),
   revalidatePath: vi.fn(),
 }))
-vi.mock('@/lib/session', () => ({ getSession: m.getSession }))
-vi.mock('@/lib/db', () => ({ getDb: () => ({}) }))
+vi.mock('@/lib/server/session', () => ({ getSession: m.getSession }))
+vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
 vi.mock('@revelio/db', () => ({
   getCardFinishes: m.getCardFinishes,
   setCardQuantity: m.setCardQuantity,

@@ -15,17 +15,17 @@ const m = vi.hoisted(() => ({
   update: vi.fn(() => ({ set: () => ({ where: async () => {} }) })),
   revalidatePath: vi.fn(),
 }))
-vi.mock('@/lib/session', () => ({ getSession: m.getSession }))
-vi.mock('@/lib/db', () => ({ getDb: () => ({ update: m.update }) }))
+vi.mock('@/lib/server/session', () => ({ getSession: m.getSession }))
+vi.mock('@/lib/server/db', () => ({ getDb: () => ({ update: m.update }) }))
 vi.mock('@revelio/db', () => ({ user: { id: 'user.id' }, deleteUserById: m.deleteUserById, getUserExport: m.getUserExport }))
 vi.mock('@/lib/auth-actions', () => ({ usernameAvailable: m.usernameAvailable, emailHasAccount: m.emailHasAccount }))
-vi.mock('@/lib/account-codes', () => ({
+vi.mock('@/lib/server/account-codes', () => ({
   generateCode: m.generateCode, storeCode: m.storeCode, consumeCode: m.consumeCode,
   emailChangeId: (id: string) => `ec:${id}`, deleteId: (id: string) => `del:${id}`,
 }))
 vi.mock('@/lib/email/otp-template', () => ({ renderOtpEmail: m.renderOtpEmail }))
 vi.mock('@/lib/email/mailer', () => ({ sendMail: m.sendMail }))
-vi.mock('@/lib/site-settings', () => ({ getCachedSiteSettings: m.getCachedSiteSettings }))
+vi.mock('@/lib/server/site-settings', () => ({ getCachedSiteSettings: m.getCachedSiteSettings }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
 
 import {

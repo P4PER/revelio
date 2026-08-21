@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const getSiteSettings = vi.fn()
 vi.mock('@revelio/db', () => ({ getSiteSettings: (...a: unknown[]) => getSiteSettings(...a) }))
-vi.mock('@/lib/db', () => ({ getDb: () => ({ __db: true }) }))
+vi.mock('@/lib/server/db', () => ({ getDb: () => ({ __db: true }) }))
 
 import { loadSiteSettings, SITE_SETTINGS_TAG } from '../site-settings'
 

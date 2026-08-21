@@ -7,7 +7,7 @@ const redirectMock = vi.fn(() => {
   throw new Error('NEXT_REDIRECT')
 })
 
-vi.mock('@/lib/session', () => ({ getSession: () => getSession() }))
+vi.mock('@/lib/server/session', () => ({ getSession: () => getSession() }))
 vi.mock('@/../i18n/navigation', () => ({ redirect: (...a: unknown[]) => redirectMock(...a) }))
 vi.mock('next-intl/server', () => ({ getLocale: async () => 'de' }))
 

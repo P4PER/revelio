@@ -7,7 +7,7 @@ import {
   listSets, getCollectionSetProgress, getCollectionSummary, getOwnedQuantities,
   getOwnedCardIds, getDuplicateCardIds,
 } from '@revelio/db'
-import { runSearch } from '@/lib/search-client'
+import { runSearch } from '@/lib/server/search-client'
 import { parseSearchParams, toSearchOptions } from '@/lib/search-params'
 import { parseOwnership, applyOwnership } from '@/lib/collection-search'
 import { toCollectionCards } from '@/lib/collection-cards'

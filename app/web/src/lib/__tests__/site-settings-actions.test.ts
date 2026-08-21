@@ -3,10 +3,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const requireRole = vi.fn()
 const upsertSiteSettings = vi.fn()
 const updateTag = vi.fn()
-vi.mock('@/lib/session', () => ({ requireRole: (...a: unknown[]) => requireRole(...a) }))
-vi.mock('@/lib/db', () => ({ getDb: () => ({ __db: true }) }))
+vi.mock('@/lib/server/session', () => ({ requireRole: (...a: unknown[]) => requireRole(...a) }))
+vi.mock('@/lib/server/db', () => ({ getDb: () => ({ __db: true }) }))
 vi.mock('@revelio/db', () => ({ upsertSiteSettings: (...a: unknown[]) => upsertSiteSettings(...a) }))
-vi.mock('@/lib/site-settings', () => ({ SITE_SETTINGS_TAG: 'site-settings' }))
+vi.mock('@/lib/server/site-settings', () => ({ SITE_SETTINGS_TAG: 'site-settings' }))
 vi.mock('next/cache', () => ({ updateTag: (...a: unknown[]) => updateTag(...a) }))
 
 import { updateSiteSettings } from '../site-settings-actions'

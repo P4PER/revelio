@@ -10,8 +10,8 @@ const m = vi.hoisted(() => ({
   countAdmins: vi.fn(async () => 2),
   revalidatePath: vi.fn(),
 }))
-vi.mock('@/lib/session', () => ({ requireRole: m.requireRole }))
-vi.mock('@/lib/db', () => ({ getDb: () => ({}) }))
+vi.mock('@/lib/server/session', () => ({ requireRole: m.requireRole }))
+vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
 vi.mock('@revelio/db', () => ({
   updateUserRole: m.updateUserRole, setUserBan: m.setUserBan, clearUserBan: m.clearUserBan,
   deleteUserById: m.deleteUserById, getUserForAdmin: m.getUserForAdmin, countAdmins: m.countAdmins,

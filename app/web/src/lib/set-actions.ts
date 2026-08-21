@@ -2,10 +2,10 @@
 import sharp from 'sharp'
 import { revalidatePath } from 'next/cache'
 import { symbolKey } from '@revelio/core'
-import { requireRole } from '@/lib/session'
-import { getDb } from '@/lib/db'
+import { requireRole } from '@/lib/server/session'
+import { getDb } from '@/lib/server/db'
 import { getSetByCode, setSetSymbolVersion, createSet, updateSet, deleteSet } from '@revelio/db'
-import { getS3, putObject, deleteObject } from '@/lib/s3'
+import { getS3, putObject, deleteObject } from '@/lib/server/s3'
 import { makeSetWriteSchema, makeSetCreateSchema } from '@/lib/schemas/set'
 
 export type SetActionResult = { ok: true } | { ok: false; error: string }

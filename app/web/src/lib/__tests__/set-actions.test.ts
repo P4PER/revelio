@@ -11,13 +11,13 @@ const m = vi.hoisted(() => ({
   updateSet: vi.fn(async () => {}),
   deleteSet: vi.fn(async () => {}),
 }))
-vi.mock('@/lib/session', () => ({ requireRole: m.requireRole }))
-vi.mock('@/lib/db', () => ({ getDb: () => ({}) }))
+vi.mock('@/lib/server/session', () => ({ requireRole: m.requireRole }))
+vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
 vi.mock('@revelio/db', () => ({
   getSetByCode: m.getSetByCode, setSetSymbolVersion: m.setSetSymbolVersion,
   createSet: m.createSet, updateSet: m.updateSet, deleteSet: m.deleteSet,
 }))
-vi.mock('@/lib/s3', () => ({ getS3: () => ({}), putObject: m.put, deleteObject: m.del }))
+vi.mock('@/lib/server/s3', () => ({ getS3: () => ({}), putObject: m.put, deleteObject: m.del }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
 vi.mock('sharp', () => ({
   default: () => ({ webp: () => ({ toBuffer: async () => Buffer.from('x') }) }),

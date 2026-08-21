@@ -7,7 +7,7 @@ import { nextCookies } from 'better-auth/next-js'
 import { createClient, schema } from '@revelio/db'
 import { renderOtpEmail } from '@/lib/email/otp-template'
 import { sendMail } from '@/lib/email/mailer'
-import { getCachedSiteSettings } from '@/lib/site-settings'
+import { getCachedSiteSettings } from '@/lib/server/site-settings'
 
 const db = createClient(process.env.DATABASE_URL ?? '').db
 

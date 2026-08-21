@@ -3,7 +3,7 @@ import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { useTranslations } from 'next-intl'
 import { ProseShell } from '@/components/legal/prose-shell'
 import { ContactEmail } from '@/components/legal/contact-email'
-import { getCachedSiteSettings } from '@/lib/site-settings'
+import { getCachedSiteSettings } from '@/lib/server/site-settings'
 import { BRAND_NAME } from '@/lib/brand'
 
 export const dynamic = 'force-dynamic'

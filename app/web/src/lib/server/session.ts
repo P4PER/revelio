@@ -1,7 +1,7 @@
 import 'server-only'
 import { headers } from 'next/headers'
 import { auth } from './auth'
-import { hasRequiredRole } from './roles'
+import { hasRequiredRole } from '@/lib/roles'
 
 export async function getSession() {
   return auth.api.getSession({ headers: await headers() })

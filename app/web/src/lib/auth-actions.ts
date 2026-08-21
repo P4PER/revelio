@@ -1,6 +1,6 @@
 'use server'
 import { sql } from 'drizzle-orm'
-import { getDb } from '@/lib/db'
+import { getDb } from '@/lib/server/db'
 import { user } from '@revelio/db'
 
 /**

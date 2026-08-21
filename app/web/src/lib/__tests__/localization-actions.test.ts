@@ -8,9 +8,9 @@ const m = vi.hoisted(() => ({
   revalidatePath: vi.fn(),
 }))
 
-vi.mock('@/lib/session', () => ({ requireRole: m.requireRole }))
-vi.mock('@/lib/db', () => ({ getDb: () => ({}) }))
-vi.mock('@/lib/reindex', () => ({ getWriteClient: () => ({}) }))
+vi.mock('@/lib/server/session', () => ({ requireRole: m.requireRole }))
+vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
+vi.mock('@/lib/server/reindex', () => ({ getWriteClient: () => ({}) }))
 vi.mock('@revelio/db', () => ({ upsertLocalization: m.upsertLocalization, getCardIndexData: m.getCardIndexData }))
 vi.mock('@revelio/search', () => ({ reindexCard: m.reindexCard }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))

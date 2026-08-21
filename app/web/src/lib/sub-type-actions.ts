@@ -1,7 +1,7 @@
 'use server'
 import { z } from 'zod'
-import { requireRole } from '@/lib/session'
-import { getDb } from '@/lib/db'
+import { requireRole } from '@/lib/server/session'
+import { getDb } from '@/lib/server/db'
 import { saveSubTypeTranslations } from '@revelio/db'
 import { routing } from '@/../i18n/routing'
 

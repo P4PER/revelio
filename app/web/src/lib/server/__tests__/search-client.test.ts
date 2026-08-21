@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { randomUUID } from 'node:crypto'
 import { createMeiliClient, cardsIndex, CARD_INDEX_SETTINGS, type SearchDocument } from '@revelio/search'
 import { runSearch } from '../search-client'
-import { parseSearchParams } from '../search-params'
+import { parseSearchParams } from '@/lib/search-params'
 
 const lang = `test${randomUUID().replace(/-/g, '')}`
 const client = createMeiliClient(

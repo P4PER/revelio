@@ -1,5 +1,5 @@
 import 'server-only'
-import { requireUser } from '@/lib/require-user'
+import { requireUser } from '@/lib/server/require-user'
 import type { SettingsUser } from '@/components/settings/types'
 
 /**

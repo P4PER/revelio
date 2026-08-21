@@ -5,8 +5,8 @@ const m = vi.hoisted(() => ({
   saveRulings: vi.fn(async () => {}),
   revalidatePath: vi.fn(),
 }))
-vi.mock('@/lib/session', () => ({ requireRole: m.requireRole }))
-vi.mock('@/lib/db', () => ({ getDb: () => ({}) }))
+vi.mock('@/lib/server/session', () => ({ requireRole: m.requireRole }))
+vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
 vi.mock('@revelio/db', () => ({ saveRulings: m.saveRulings }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
 

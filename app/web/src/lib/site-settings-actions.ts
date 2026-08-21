@@ -1,10 +1,10 @@
 'use server'
 import { updateTag } from 'next/cache'
-import { requireRole } from '@/lib/session'
-import { getDb } from '@/lib/db'
+import { requireRole } from '@/lib/server/session'
+import { getDb } from '@/lib/server/db'
 import { upsertSiteSettings } from '@revelio/db'
 import { makeSiteSettingsSchema } from '@/lib/schemas/site-settings'
-import { SITE_SETTINGS_TAG } from '@/lib/site-settings'
+import { SITE_SETTINGS_TAG } from '@/lib/server/site-settings'
 
 export type SiteSettingsActionResult = { ok: true } | { ok: false; error: string }
 

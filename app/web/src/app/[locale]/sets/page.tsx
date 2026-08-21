@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import type { SetDTO } from '@revelio/core'
-import { getDb } from '@/lib/db'
+import { getDb } from '@/lib/server/db'
 import { listSets } from '@revelio/db'
 import { SetCard } from '@/components/set-card'
 import { byReleaseDate } from '@/lib/set-sort'

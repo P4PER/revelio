@@ -1,4 +1,4 @@
-import { requireSettingsUser } from '@/lib/settings-user'
+import { requireSettingsUser } from '@/lib/server/settings-user'
 import { DangerPane } from '@/components/settings/danger-pane'
 
 export default async function DangerSettingsPage() {

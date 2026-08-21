@@ -14,8 +14,8 @@ const m = vi.hoisted(() => ({
   getSearchClient: vi.fn(() => 'client'),
   runSearch: vi.fn(async () => ({ hits: [], total: 0, page: 1, hitsPerPage: 24 })),
 }))
-vi.mock('@/lib/session', () => ({ getSession: m.getSession }))
-vi.mock('@/lib/db', () => ({ getDb: () => ({}) }))
+vi.mock('@/lib/server/session', () => ({ getSession: m.getSession }))
+vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
 vi.mock('@revelio/db', () => ({
   createDeck: m.createDeck,
   updateDeck: m.updateDeck,
@@ -27,7 +27,7 @@ vi.mock('@revelio/db', () => ({
   recordView: m.recordView,
 }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
-vi.mock('@/lib/search-client', () => ({ getSearchClient: m.getSearchClient, runSearch: m.runSearch }))
+vi.mock('@/lib/server/search-client', () => ({ getSearchClient: m.getSearchClient, runSearch: m.runSearch }))
 
 import { createDeckAction, updateDeckAction, updateDeckMetaAction, deleteDeckAction, duplicateDeckAction, searchDeckCards, toggleLikeAction, recordViewAction } from '../deck-actions'
 

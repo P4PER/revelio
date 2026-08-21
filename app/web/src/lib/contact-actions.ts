@@ -1,10 +1,10 @@
 'use server'
 import { headers } from 'next/headers'
 import { makeContactSchema } from '@/lib/schemas/contact'
-import { consumeContactRateLimit } from '@/lib/rate-limit'
+import { consumeContactRateLimit } from '@/lib/server/rate-limit'
 import { renderContactEmail } from '@/lib/email/contact-template'
 import { sendMail } from '@/lib/email/mailer'
-import { getCachedSiteSettings } from '@/lib/site-settings'
+import { getCachedSiteSettings } from '@/lib/server/site-settings'
 
 export type ContactResult =
   | { ok: true }

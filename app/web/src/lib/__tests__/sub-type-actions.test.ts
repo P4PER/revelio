@@ -4,8 +4,8 @@ const m = vi.hoisted(() => ({
   requireRole: vi.fn(async () => ({ user: { role: 'editor' } })),
   saveSubTypeTranslations: vi.fn(async () => {}),
 }))
-vi.mock('@/lib/session', () => ({ requireRole: m.requireRole }))
-vi.mock('@/lib/db', () => ({ getDb: () => ({}) }))
+vi.mock('@/lib/server/session', () => ({ requireRole: m.requireRole }))
+vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
 vi.mock('@revelio/db', () => ({ saveSubTypeTranslations: m.saveSubTypeTranslations }))
 
 import { saveSubTypeTranslationsAction } from '../sub-type-actions'

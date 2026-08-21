@@ -1,7 +1,7 @@
 import 'server-only'
 import { createHash, randomInt, randomUUID } from 'node:crypto'
 import { and, eq, gt } from 'drizzle-orm'
-import { getDb } from '@/lib/db'
+import { getDb } from '@/lib/server/db'
 import { verification } from '@revelio/db'
 
 const TTL_MS = 10 * 60 * 1000 // 10 minutes, matches the OTP email copy

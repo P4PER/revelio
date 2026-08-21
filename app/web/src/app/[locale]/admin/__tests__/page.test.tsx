@@ -7,7 +7,7 @@ const cookieGet = vi.fn()
 vi.mock('@/../i18n/navigation', () => ({ redirect: (arg: unknown) => redirect(arg) }))
 vi.mock('next-intl/server', () => ({ setRequestLocale: vi.fn() }))
 vi.mock('next/headers', () => ({ cookies: async () => ({ get: cookieGet }) }))
-vi.mock('@/lib/session', () => ({ getSession: () => getSession() }))
+vi.mock('@/lib/server/session', () => ({ getSession: () => getSession() }))
 
 import AdminIndexPage from '../page'
 

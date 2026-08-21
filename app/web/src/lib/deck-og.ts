@@ -1,3 +1,5 @@
+import 'server-only'
+
 import sharp from 'sharp'
 import { artCropKey, imageUrl, LESSONS, type DeckCardView } from '@revelio/core'
 

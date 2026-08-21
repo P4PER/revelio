@@ -56,9 +56,14 @@ Five npm workspaces under `app/`, with a strict dependency direction `core ← {
 ### Web app specifics
 
 - **Next.js App Router with `next-intl`**. All pages live under `src/app/[locale]/` — the `[locale]` root layout owns `<html>`/`<body>`. `src/middleware.ts` drives locale routing. Use next-intl's navigation helpers, not bare `next/link`, for locale-aware links.
-- **Server Actions** in `src/lib/*-actions.ts` (`auth-actions`, `localization-actions`, `rulings-actions`, `image-actions`) are the write path. Editor saves go through these; they are `'use server'` and must never leak secrets to the client.
-- **Two Meilisearch keys, server-only.** Read path uses `MEILI_SEARCH_KEY`; editor writes use a **scoped** `MEILI_WRITE_KEY` (documents.add/update on card indexes only) via `getWriteClient()` in `src/lib/reindex.ts`. The master key is never used at runtime and never sent to the browser. Editing a card writes to Postgres *and* re-indexes Meilisearch in the same action.
-- **Auth**: Better Auth (email-OTP + username + roles) wired at `src/app/api/auth/[...all]/route.ts`, config in `src/lib/auth.ts`; roles/session helpers in `src/lib/roles.ts` / `src/lib/session.ts`. Admin emails come from `ADMIN_EMAILS`.
+- **Server Actions** in `src/lib/actions/` (`auth-actions`, `localization-actions`, `rulings-actions`, `image-actions`) are the write path. Editor saves go through these; they are `'use server'` and must never leak secrets to the client.
+- **Two Meilisearch keys, server-only.** Read path uses `MEILI_SEARCH_KEY`; editor writes use a **scoped** `MEILI_WRITE_KEY` (documents.add/update on card indexes only) via `getWriteClient()` in `src/lib/server/reindex.ts`. The master key is never used at runtime and never sent to the browser. Editing a card writes to Postgres *and* re-indexes Meilisearch in the same action.
+- **Auth**: Better Auth (email-OTP + username + roles) wired at `src/app/api/auth/[...all]/route.ts`, config in `src/lib/server/auth.ts`; roles/session helpers in `src/lib/roles.ts` / `src/lib/server/session.ts`. Admin emails come from `ADMIN_EMAILS`.
+- **`src/lib` is split by runtime.** `lib/server/` holds server-only modules (DB, S3, auth,
+  session, search client) and every file there must start with `import 'server-only'` - a test
+  in `lib/server/__tests__/server-only-guard.test.ts` enforces it. `lib/actions/` holds the
+  `'use server'` modules. Pure, isomorphic helpers stay at `lib/` root; `utils.ts` must stay
+  there because `components.json` pins `aliases.utils` to `@/lib/utils`.
 - **Images**: per-language card images stored in S3/MinIO with lang-aware keys and fallback; `sharp` generates thumbnails. Public base URL is `NEXT_PUBLIC_IMAGE_BASE_URL` (build-time inlined).
 - **UI**: shadcn + Radix + Tailwind v4. Shared primitives in `src/components/ui/`.
 - `NEXT_PUBLIC_*` env vars are inlined at `next build` — they must be set at build time, not just at runtime.

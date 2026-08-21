@@ -19,6 +19,8 @@ const PALETTE: Record<Tone, CSSProperties> = {
     '--p-art-1': 'var(--light-lesson-charms)',
     '--p-art-2': 'var(--light-lesson-transfiguration)',
     '--p-art-3': 'var(--light-lesson-potions)',
+    '--p-art-4': 'var(--light-lesson-quidditch)',
+    '--p-art-5': 'var(--light-lesson-care_of_magical_creatures)',
   } as CSSProperties,
   dark: {
     '--p-bg': 'var(--dark-background)',
@@ -29,10 +31,20 @@ const PALETTE: Record<Tone, CSSProperties> = {
     '--p-art-1': 'var(--dark-lesson-charms)',
     '--p-art-2': 'var(--dark-lesson-transfiguration)',
     '--p-art-3': 'var(--dark-lesson-potions)',
+    '--p-art-4': 'var(--dark-lesson-quidditch)',
+    '--p-art-5': 'var(--dark-lesson-care_of_magical_creatures)',
   } as CSSProperties,
 }
 
-const ART = ['var(--p-art-1)', 'var(--p-art-2)', 'var(--p-art-3)']
+// Two rows of four, cycling the five lesson tints. Fewer, larger cards read as
+// a row of colour tiles rather than as a search grid, and at four across the
+// tints are small enough that the ground and the card surface - the thing being
+// chosen - still lead. Eight at this size is also what fits two whole rows, so
+// no card is clipped by the bottom edge.
+const ART = [
+  'var(--p-art-1)', 'var(--p-art-2)', 'var(--p-art-3)', 'var(--p-art-4)',
+  'var(--p-art-5)', 'var(--p-art-1)', 'var(--p-art-2)', 'var(--p-art-3)',
+]
 
 // One miniature Revelio: the header strip with its gold mark and search field,
 // a row of lesson-tinted cards, and the gold primary button. That is the screen
@@ -52,12 +64,13 @@ function Pane({ tone, style }: { tone: Tone; style?: CSSProperties }) {
       <div className="flex h-[16%] shrink-0 items-center gap-1 border-b border-(--p-border) bg-(--p-card) px-1.5">
         <span className="size-[7px] shrink-0 rounded-full bg-(--p-gold)" />
         <span className="h-[3px] w-[22px] shrink-0 rounded-full bg-(--p-ink) opacity-55" />
-        <span className="ml-auto h-[7px] w-[38%] rounded-full bg-(--p-ink) opacity-10" />
+        <span className="mx-auto h-[7px] w-[38%] rounded-full bg-(--p-ink) opacity-10" />
+        <span className="h-[7px] w-5 shrink-0 rounded-[2px] bg-(--p-gold)" />
       </div>
-      <div className="grid flex-1 grid-cols-3 content-start gap-1.5 p-1.5">
-        {ART.map((tint) => (
+      <div className="grid flex-1 grid-cols-4 content-start gap-1.5 p-1.5">
+        {ART.map((tint, i) => (
           <div
-            key={tint}
+            key={i}
             className="flex flex-col gap-1 rounded-[3px] border border-(--p-border) bg-(--p-card) p-1"
           >
             <span className="aspect-5/7 rounded-[2px] opacity-90" style={{ background: tint }} />
@@ -65,7 +78,6 @@ function Pane({ tone, style }: { tone: Tone; style?: CSSProperties }) {
           </div>
         ))}
       </div>
-      <span className="absolute right-2 bottom-2 h-2.5 w-8 rounded-[3px] bg-(--p-gold)" />
     </div>
   )
 }

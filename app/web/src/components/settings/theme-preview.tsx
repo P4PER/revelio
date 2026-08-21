@@ -46,9 +46,9 @@ const ART = [
   'var(--p-art-5)', 'var(--p-art-1)', 'var(--p-art-2)', 'var(--p-art-3)',
 ]
 
-// One miniature Revelio: the header strip with its gold mark and search field,
-// a row of lesson-tinted cards, and the gold primary button. That is the screen
-// a Revelio user actually looks at, so it is the honest sample of a theme.
+// One miniature Revelio: the header strip with its gold mark, search field and
+// nav links, over a grid of lesson-tinted cards. That is the screen a Revelio
+// user actually looks at, so it is the honest sample of a theme.
 //
 // Each tint is set at 5:7, the proportion of a real HP TCG card, so the colour
 // block reads as a card rather than as a swatch. It stays inset inside the card

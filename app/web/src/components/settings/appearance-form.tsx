@@ -59,13 +59,20 @@ export function AppearanceForm({ current }: { current: ThemeChoice }) {
           <Label
             key={value}
             htmlFor={`theme-${value}`}
-            data-state={value === choice ? 'checked' : undefined}
-            className="flex cursor-pointer flex-col items-stretch gap-2.5 rounded-xl border p-2.5 transition-colors hover:bg-(--hover-bg) data-[state=checked]:border-primary data-[state=checked]:ring-2 data-[state=checked]:ring-primary has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring"
+            className="flex cursor-pointer flex-col items-stretch gap-2.5 rounded-xl border p-2.5 transition-colors hover:bg-(--hover-bg) has-data-[state=checked]:border-secondary-ink has-data-[state=checked]:ring-2 has-data-[state=checked]:ring-secondary-ink has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring"
           >
             {/* The dot is hidden, not dropped: it stays the focusable radio, so
-                arrow keys and the accessible name still work. The gold border
-                carries the selection, and the focus ring moves to the tile as
-                an outline - a ring here would fight the selected ring. */}
+                arrow keys and the accessible name still work, and its own
+                data-state is what the tile styles off - no mirrored prop.
+                That makes the border the only selection cue, so it uses
+                secondary-ink, the same token deck-list, deck-hero-card and
+                set-card use to emphasise a card border. Not primary: gold is
+                1.6:1 on the light card, under the 3:1 WCAG 1.4.11 asks of a
+                state indicator, it also appears inside the miniature (the mark
+                and the quidditch tint), and --ring is gold in both themes, so
+                a gold border would say "selected" in the same colour the
+                outline below says "focused". Focus is that outline rather than
+                a ring, because the selected state already owns the ring. */}
             <RadioGroupItem value={value} id={`theme-${value}`} className="sr-only" />
             <ThemePreview choice={value} />
             <span className="flex min-w-0 flex-col gap-0.5">

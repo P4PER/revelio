@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
-import { SetCard } from '../set-card'
+import { SetCard } from '@/components/set-card'
 import type { SetDTO } from '@revelio/core'
 
 vi.mock('next/image', () => ({ default: (p: Record<string, unknown>) => <img alt={p.alt as string} /> }))

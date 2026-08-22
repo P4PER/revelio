@@ -1,8 +1,8 @@
 import type { SetDTO } from '@revelio/core'
-import { FilterDrawer } from './filter-drawer'
-import { QuickFilters } from './quick-filters'
-import { ActiveFilters } from './active-filters'
-import { ClearFilters } from './clear-filters'
+import { FilterDrawer } from '@/components/filter-drawer'
+import { QuickFilters } from '@/components/quick-filters'
+import { ActiveFilters } from '@/components/active-filters'
+import { ClearFilters } from '@/components/clear-filters'
 
 export function SearchControls({ locale, sets }: { locale: string; sets: SetDTO[] }) {
   return (

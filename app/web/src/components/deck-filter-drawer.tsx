@@ -1,7 +1,7 @@
 'use client'
 import { useLocale } from 'next-intl'
 import type { SetDTO } from '@revelio/core'
-import { FilterSheet, type FilterSelection } from './filter-sheet'
+import { FilterSheet, type FilterSelection } from '@/components/filter-sheet'
 
 // The deck builder's advanced filters. Lessons (quick-filter buttons) and the
 // official/fan split (decided by the deck format) are intentionally absent.

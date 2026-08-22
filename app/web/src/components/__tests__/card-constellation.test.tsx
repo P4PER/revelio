@@ -18,7 +18,7 @@ vi.mock('@/../i18n/navigation', () => ({
   ),
 }))
 
-import { CardConstellation } from '../card-constellation'
+import { CardConstellation } from '@/components/card-constellation'
 
 const cards = [
   { id: 'a', name: 'Alpha', imageVersion: 1 },

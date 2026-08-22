@@ -5,7 +5,7 @@ import { routing } from '@/../i18n/routing'
 import {
   Select, SelectContent, SelectItem, SelectTrigger,
 } from '@/components/ui/select'
-import { LOCALE_NAMES, useSwitchLocale } from './locale-switch'
+import { LOCALE_NAMES, useSwitchLocale } from '@/components/locale-switch'
 
 export function LanguageSwitcher() {
   const locale = useLocale()

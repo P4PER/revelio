@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
-import { ErrorCardState } from '../error-card-state'
+import { ErrorCardState } from '@/components/error-card-state'
 
 describe('ErrorCardState', () => {
   it('renders heading, description, and action children', () => {

@@ -2,7 +2,7 @@
 import { useSearchParams } from 'next/navigation'
 import { useRouter, usePathname } from '@/../i18n/navigation'
 import type { SetDTO } from '@revelio/core'
-import { FilterSheet, type FilterSelection, type OwnershipValue } from './filter-sheet'
+import { FilterSheet, type FilterSelection, type OwnershipValue } from '@/components/filter-sheet'
 
 // URL adapter for FilterSheet on the collection "Browse all" tab: like
 // FilterDrawer, but also carries the ownership facet (?owned=) and keeps the

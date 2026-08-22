@@ -9,7 +9,7 @@ vi.mock('@/../i18n/navigation', () => ({
 }))
 vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams('') }))
 
-import { QuickFilters } from '../quick-filters'
+import { QuickFilters } from '@/components/quick-filters'
 
 function renderFilters() {
   // LessonFilter (shared) calls useLocale(), so an intl provider is needed.

@@ -20,10 +20,10 @@ import {
   SheetTrigger,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { DECK_LINKS } from './nav-links'
-import { LOCALE_NAMES, useSwitchLocale } from './locale-switch'
-import { useSignOut } from './use-sign-out'
-import type { AccountUser } from './types'
+import { DECK_LINKS } from '@/components/nav-links'
+import { LOCALE_NAMES, useSwitchLocale } from '@/components/locale-switch'
+import { useSignOut } from '@/components/use-sign-out'
+import type { AccountUser } from '@/components/types'
 
 const rowClass =
   'flex w-full cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-left hover:bg-accent hover:text-accent-foreground'

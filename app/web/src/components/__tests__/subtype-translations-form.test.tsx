@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
-import { SubTypeTranslationsForm } from '../subtype-translations-form'
+import { SubTypeTranslationsForm } from '@/components/subtype-translations-form'
 
 vi.mock('@/lib/actions/sub-type-actions', () => ({ saveSubTypeTranslationsAction: vi.fn(async () => ({ ok: true })) }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))

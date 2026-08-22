@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
 import type { UserAdminRow } from '@revelio/db'
-import { AdminUsersTable } from '../admin-users-table'
+import { AdminUsersTable } from '@/components/admin-users-table'
 
 vi.mock('@/../i18n/navigation', () => ({
   Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,

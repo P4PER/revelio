@@ -3,8 +3,8 @@ import { useRef, useState } from 'react'
 import { useRouter, Link } from '@/../i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { LocalizationForm, type LocalizationFormHandle } from './localization-form'
-import { RulingsEditor, type RulingsEditorHandle } from './rulings-editor'
+import { LocalizationForm, type LocalizationFormHandle } from '@/components/localization-form'
+import { RulingsEditor, type RulingsEditorHandle } from '@/components/rulings-editor'
 import { Button } from '@/components/ui/button'
 
 type LocInitial = {

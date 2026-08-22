@@ -6,7 +6,7 @@ vi.mock('@/components/auth-form', () => ({
   AuthForm: ({ mode }: { mode: string }) => <div data-testid="auth-form">{mode}</div>,
 }))
 
-import { AuthCard } from '../auth-card'
+import { AuthCard } from '@/components/auth-card'
 
 function renderCard(mode: 'login' | 'register') {
   return render(<AuthCard mode={mode} />)

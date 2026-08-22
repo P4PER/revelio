@@ -9,7 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
-import { DECK_LINKS } from './nav-links'
+import { DECK_LINKS } from '@/components/nav-links'
 
 // Groups every deck-related destination under one "Decks" menu: discovering
 // public decks, building a new one, and (when signed in) the user's own decks —

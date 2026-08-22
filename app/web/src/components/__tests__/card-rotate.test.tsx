@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { NextIntlClientProvider } from 'next-intl'
-import { CardRotate } from '../card-rotate'
+import { CardRotate } from '@/components/card-rotate'
 
 vi.mock('next/image', () => ({ default: (p: Record<string, unknown>) => <img alt={p.alt as string} /> }))
 

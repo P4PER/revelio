@@ -5,7 +5,7 @@ import { BRAND_NAME } from '@/lib/brand'
 const { mockPath } = vi.hoisted(() => ({ mockPath: { value: '/' } }))
 vi.mock('@/../i18n/navigation', () => ({ usePathname: () => mockPath.value }))
 
-import { HeaderBrandMark } from '../header-brand-mark'
+import { HeaderBrandMark } from '@/components/header-brand-mark'
 
 describe('HeaderBrandMark', () => {
   it('shows only the full wordmark on the home page (no search present)', () => {

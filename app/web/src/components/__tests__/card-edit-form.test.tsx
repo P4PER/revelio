@@ -17,7 +17,7 @@ vi.mock('@/../i18n/navigation', () => ({
 }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() } }))
 
-import { CardEditForm } from '../card-edit-form'
+import { CardEditForm } from '@/components/card-edit-form'
 import en from '@/../messages/en.json'
 
 beforeEach(() => {

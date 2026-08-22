@@ -11,7 +11,7 @@ vi.mock('@/../i18n/navigation', () => ({
 }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), warning: vi.fn(), error: vi.fn() } }))
 
-import { LocalizationForm } from '../localization-form'
+import { LocalizationForm } from '@/components/localization-form'
 import en from '@/../messages/en.json'
 
 function renderForm(kind: 'adventure' | 'match' | null = null) {

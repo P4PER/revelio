@@ -9,7 +9,7 @@ vi.mock('@/../i18n/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
 }))
 
-import { CardDetail } from '../card-detail'
+import { CardDetail } from '@/components/card-detail'
 import en from '@/../messages/en.json'
 
 const card = {

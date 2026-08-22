@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { NextIntlClientProvider } from 'next-intl'
-import { CardGrid } from '../card-grid'
+import { CardGrid } from '@/components/card-grid'
 import type { SearchDocument } from '@revelio/search'
 
 vi.mock('next/image', () => ({ default: (props: Record<string, unknown>) => <img alt={props.alt as string} /> }))

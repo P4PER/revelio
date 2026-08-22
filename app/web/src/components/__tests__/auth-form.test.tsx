@@ -26,7 +26,7 @@ vi.mock('@/../i18n/navigation', () => ({
   Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,
 }))
 
-import { AuthForm } from '../auth-form'
+import { AuthForm } from '@/components/auth-form'
 import en from '@/../messages/en.json'
 
 function renderForm(mode: 'login' | 'register', redirectTo?: string | null) {

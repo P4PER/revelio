@@ -9,7 +9,7 @@ vi.mock('@/../i18n/navigation', () => ({
 }))
 vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams('') }))
 
-import { SortSelect } from '../sort-select'
+import { SortSelect } from '@/components/sort-select'
 
 describe('SortSelect', () => {
   it('defaults to Relevance', () => {

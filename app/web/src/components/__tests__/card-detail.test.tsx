@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { NextIntlClientProvider } from 'next-intl'
-import { CardDetail } from '../card-detail'
+import { CardDetail } from '@/components/card-detail'
 import type { CardDetailDTO } from '@revelio/core'
 
 vi.mock('next/image', () => ({ default: (p: Record<string, unknown>) => <img alt={p.alt as string} /> }))

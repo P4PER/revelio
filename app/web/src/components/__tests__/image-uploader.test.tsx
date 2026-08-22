@@ -12,7 +12,7 @@ vi.mock('@/lib/actions/image-actions', () => ({
 vi.mock('@/../i18n/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() } }))
 
-import { ImageUploader } from '../image-uploader'
+import { ImageUploader } from '@/components/image-uploader'
 import en from '@/../messages/en.json'
 
 function renderUploader(imageSrc: string | null = null, fallbackLang: string | null = 'en') {

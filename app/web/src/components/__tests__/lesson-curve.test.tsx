@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
 import type { DeckCardView } from '@revelio/core'
-import { LessonCurve } from '../lesson-curve'
+import { LessonCurve } from '@/components/lesson-curve'
 
 const entry = (over: Partial<DeckCardView> = {}): DeckCardView => ({
   cardId: 'x', zone: 'main', quantity: 1, name: 'Card', cost: 1, setCode: 'BS', number: '1', lesson: null,

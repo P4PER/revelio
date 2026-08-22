@@ -8,7 +8,7 @@ vi.mock('@/../i18n/navigation', () => ({
   Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,
 }))
 
-import { DecksMenu } from '../decks-menu'
+import { DecksMenu } from '@/components/decks-menu'
 
 function renderMenu(isLoggedIn = false) {
   return render(

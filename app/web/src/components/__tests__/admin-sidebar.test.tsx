@@ -12,7 +12,7 @@ vi.mock('@/../i18n/navigation', () => ({
   ),
 }))
 
-import { AdminSidebar } from '../admin-sidebar'
+import { AdminSidebar } from '@/components/admin-sidebar'
 
 beforeEach(() => {
   mockPathname = '/admin/sets'

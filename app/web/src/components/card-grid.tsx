@@ -1,5 +1,5 @@
 import type { SearchDocument } from '@revelio/search'
-import { CardTile } from './card-tile'
+import { CardTile } from '@/components/card-tile'
 
 export function CardGrid({
   hits, imageBase, searchParams, startIndex = 0,

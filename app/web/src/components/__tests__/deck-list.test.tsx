@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
 import type { DeckSummary } from '@revelio/db'
-import { DeckList } from '../deck-list'
+import { DeckList } from '@/components/deck-list'
 
 const duplicateDeckAction = vi.fn(async () => ({ ok: true, id: 'new-id' }))
 const deleteDeckAction = vi.fn(async () => ({ ok: true, id: 'd1' }))

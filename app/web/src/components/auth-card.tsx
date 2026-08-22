@@ -1,5 +1,5 @@
 'use client'
-import { AuthForm } from './auth-form'
+import { AuthForm } from '@/components/auth-form'
 
 // Centered single-column auth layout for /login and /register. No card chrome,
 // brand panel, or logo — just the form, framed by the global SiteHeader/

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
-import { LessonCost } from '../lesson-cost'
+import { LessonCost } from '@/components/lesson-cost'
 
 describe('LessonCost', () => {
   it('renders the lesson symbol for the code with the cost number overlaid', () => {

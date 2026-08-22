@@ -10,7 +10,7 @@ vi.mock('@/../i18n/navigation', () => ({
   ),
 }))
 
-import { CollectionSetNav } from '../collection-set-nav'
+import { CollectionSetNav } from '@/components/collection-set-nav'
 
 const sets = [
   { code: 'BS', name: 'Base', releaseDate: null, isOfficial: true, cardCount: 3, symbol: null },

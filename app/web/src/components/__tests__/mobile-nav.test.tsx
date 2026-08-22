@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi } from 'vitest'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
-import type { AccountUser } from '../types'
+import type { AccountUser } from '@/components/types'
 
 vi.mock('@/lib/auth-client', () => ({ signOut: vi.fn() }))
 vi.mock('@/../i18n/routing', () => ({ routing: { locales: ['en', 'de'] } }))
@@ -15,7 +15,7 @@ vi.mock('@/../i18n/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
 }))
 
-import { MobileNav } from '../mobile-nav'
+import { MobileNav } from '@/components/mobile-nav'
 
 async function openMenu(isEditor = false, user: AccountUser | null = null) {
   render(

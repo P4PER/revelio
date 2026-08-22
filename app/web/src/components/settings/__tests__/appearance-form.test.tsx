@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import messages from '../../../messages/en.json'
+import messages from '@/../messages/en.json'
 import { AppearanceForm } from '@/components/settings/appearance-form'
 
 const setTheme = vi.fn(async () => ({ ok: true as const }))

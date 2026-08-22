@@ -28,7 +28,7 @@ test.describe('theme', () => {
   })
 
   // Picking a theme lives behind the auth gate like every other settings route;
-  // the form itself is covered by src/components/__tests__/appearance-form.test.tsx.
+  // the form itself is covered by src/components/settings/__tests__/appearance-form.test.tsx.
   test('the appearance page sends a signed-out visitor to login', async ({ page }) => {
     await page.goto('/en/settings/appearance')
     await expect(page).toHaveURL(/\/login/)

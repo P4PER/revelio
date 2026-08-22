@@ -11,7 +11,7 @@ import { runSearch } from '@/lib/server/search-client'
 import { parseSearchParams, toSearchOptions } from '@/lib/search-params'
 import { parseOwnership, applyOwnership } from '@/lib/collection-search'
 import { toCollectionCards } from '@/lib/collection-cards'
-import type { CollectionCard } from '@/components/collection-card-tile'
+import type { CollectionCard } from '@/components/collection/collection-card-tile'
 
 // Upper bound for a single set's card grid — comfortably above the largest set
 // (~140 cards) so the By-set view renders the whole set in one page.

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { AuthCard } from '@/components/auth-card'
+import { AuthCard } from '@/components/auth/auth-card'
 import { safeRedirectPath } from '@/lib/redirect-path'
 
 export async function generateMetadata({

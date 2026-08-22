@@ -1,0 +1,172 @@
+'use client'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { toast } from 'sonner'
+import { ImagePlus, Trash2, Loader2 } from 'lucide-react'
+import { useRouter } from '@/../i18n/navigation'
+import { uploadSetSymbol, removeSetSymbol } from '@/lib/actions/set-actions'
+import { SetSymbol } from '@/components/set/set-symbol'
+import { FieldError } from '@/components/ui/field-error'
+import { cn } from '@/lib/utils'
+
+const MAX_BYTES = 5 * 1024 * 1024
+
+export function SetSymbolUploader({
+  code,
+  hasSymbol,
+  symbolVersion,
+  imageBase,
+  staged = false,
+  stagedFile = null,
+  onStagedChange,
+}: {
+  code?: string
+  hasSymbol?: boolean
+  symbolVersion?: number | null
+  imageBase?: string
+  staged?: boolean
+  stagedFile?: File | null
+  onStagedChange?: (f: File | null) => void
+}) {
+  const t = useTranslations('admin.sets')
+  const tv = useTranslations('validation')
+  const router = useRouter()
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [busy, setBusy] = useState(false)
+  const [fieldError, setFieldError] = useState('')
+
+  // Reject the file client-side before staging or uploading. Returns false + sets
+  // the inline error when the type/size is wrong.
+  function accept(file: File): boolean {
+    setFieldError('')
+    if (!file.type.startsWith('image/')) { setFieldError(tv('fileType')); return false }
+    if (file.size > MAX_BYTES) { setFieldError(tv('fileSize')); return false }
+    return true
+  }
+  const previewUrl = useMemo(
+    () => (staged && stagedFile ? URL.createObjectURL(stagedFile) : null),
+    [staged, stagedFile],
+  )
+  useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl) }, [previewUrl])
+
+  async function doUpload(file: File) {
+    setBusy(true)
+    try {
+      const fd = new FormData()
+      fd.append('code', code!)
+      fd.append('file', file)
+      const res = await uploadSetSymbol(fd)
+      if (!res.ok) {
+        if (res.error === 'type') return setFieldError(tv('fileType'))
+        if (res.error === 'size') return setFieldError(tv('fileSize'))
+        return toast.error(t('saveError'))
+      }
+      toast.success(t('symbolUpdated'))
+      router.refresh()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function onRemove() {
+    setBusy(true)
+    try {
+      const res = await removeSetSymbol(code!)
+      if (!res.ok) return toast.error(t('saveError'))
+      toast.success(t('symbolRemoved'))
+      router.refresh()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function onPick(file: File) {
+    if (!accept(file)) return
+    if (staged) { onStagedChange?.(file); return }
+    doUpload(file)
+  }
+
+  function handleRemove() {
+    if (staged) { onStagedChange?.(null); return }
+    onRemove()
+  }
+
+  return (
+    <div className="space-y-2">
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label={t('symbol')}
+        aria-busy={busy}
+        onClick={() => !busy && inputRef.current?.click()}
+        onKeyDown={(e) => {
+          if ((e.key === 'Enter' || e.key === ' ') && !busy) {
+            e.preventDefault()
+            inputRef.current?.click()
+          }
+        }}
+        className={cn(
+          'group relative flex h-28 w-28 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-input bg-card outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        )}
+      >
+        {staged ? (
+          previewUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- local object-URL preview
+            <img src={previewUrl} alt="" className="h-full w-full object-contain" />
+          ) : (
+            <span className="px-2 text-center text-xs text-muted-foreground">{t('noSymbol')}</span>
+          )
+        ) : hasSymbol && imageBase && symbolVersion != null ? (
+          <SetSymbol code={code!} version={symbolVersion} base={imageBase} className="h-12 w-12 text-foreground/80" />
+        ) : (
+          <span className="px-2 text-center text-xs text-muted-foreground">{t('noSymbol')}</span>
+        )}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 touch:hidden">
+          <ImagePlus className="size-5" />
+        </div>
+
+        {/* Touch has no hover: show a small persistent tap-to-change badge
+            instead of the full scrim, which would hide the symbol. Decorative —
+            the tile itself is the labelled button. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute right-1.5 bottom-1.5 hidden touch:flex items-center justify-center rounded-full bg-black/60 p-1.5 text-white shadow"
+        >
+          <ImagePlus className="size-4" />
+        </div>
+        {busy ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+            <Loader2 className="size-5 animate-spin text-white" />
+          </div>
+        ) : null}
+      </div>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        aria-label={t('uploadSymbol')}
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0]
+          if (f) onPick(f)
+          e.target.value = ''
+        }}
+      />
+
+      <FieldError>{fieldError}</FieldError>
+
+      {(staged ? !!stagedFile : hasSymbol) ? (
+        <button
+          type="button"
+          onClick={handleRemove}
+          disabled={busy}
+          className="inline-flex cursor-pointer items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Trash2 className="size-3.5" />
+          {t('removeSymbol')}
+        </button>
+      ) : null}
+    </div>
+  )
+}

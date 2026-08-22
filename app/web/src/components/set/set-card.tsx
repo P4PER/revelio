@@ -1,0 +1,28 @@
+import { Link } from '@/../i18n/navigation'
+import type { SetDTO } from '@revelio/core'
+import { SetSymbol } from '@/components/set/set-symbol'
+import { formatReleaseMonth } from '@/lib/set-sort'
+
+export function SetCard({ set, imageBase }: { set: SetDTO; imageBase: string }) {
+  return (
+    <Link
+      href={`/sets/${set.code}`}
+      className="flex items-center gap-4 rounded-lg border border-input bg-card p-4 transition hover:border-secondary-ink"
+    >
+      {set.symbolVersion != null && imageBase ? (
+<SetSymbol code={set.code} version={set.symbolVersion} base={imageBase} className="h-10 w-10 text-foreground/80" />
+      ) : (
+        <span className="flex h-10 w-10 items-center justify-center text-xs text-muted-foreground">
+          {set.code}
+        </span>
+      )}
+      <span className="flex-1">
+        <span className="block font-medium">{set.name}</span>
+        <span className="block text-sm text-muted-foreground">
+          {set.cardCount} · {formatReleaseMonth(set.releaseDate)}
+          {set.isOfficial ? '' : ' · Fan'}
+        </span>
+      </span>
+    </Link>
+  )
+}

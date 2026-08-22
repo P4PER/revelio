@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
-import { DatePicker, parseYMD, toYMD } from '../date-picker'
+import { DatePicker, parseYMD, toYMD } from '@/components/date-picker'
 import { Calendar } from '../ui/calendar'
 
 function renderDP(value: string, onChange = () => {}) {

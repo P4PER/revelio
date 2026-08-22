@@ -6,7 +6,7 @@ const read = (p: string) => readFile(resolve(process.cwd(), 'src/components', p)
 
 describe('light-mode sweep', () => {
   // bg-white/5 is a dark-only wash: on parchment it is invisible.
-  it.each(['quick-filters.tsx', 'lesson-filter.tsx'])('%s uses the hover token', async (file) => {
+  it.each(['search/quick-filters.tsx', 'search/lesson-filter.tsx'])('%s uses the hover token', async (file) => {
     const src = await read(file)
     expect(src).not.toMatch(/hover:bg-white\//)
     expect(src).toMatch(/hover:bg-\(--hover-bg\)/)
@@ -21,7 +21,7 @@ describe('light-mode sweep', () => {
   // fill. Here it sat on bg-card, so the count was white on near-white and
   // only showed up when a text selection highlighted it.
   it('add-to-collection does not paint the count white', async () => {
-    expect(await read('add-to-collection.tsx')).not.toMatch(/text-white/)
+    expect(await read('collection/add-to-collection.tsx')).not.toMatch(/text-white/)
   })
 
   // A colour literal only hurts theming when it carries a hue: a neutral

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { PublicCollection } from '@/components/public-collection'
+import { PublicCollection } from '@/components/collection/public-collection'
 
 // A named user's collection is personal data, not catalog content — keep it out
 // of search indexes (robots.txt intentionally does not enumerate this route).

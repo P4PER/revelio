@@ -2,7 +2,7 @@
 import Image from 'next/image'
 import { usePathname } from '@/../i18n/navigation'
 import { BRAND_NAME } from '@/lib/brand'
-import { BrandMark } from '@/components/brand-mark'
+import { BrandMark } from '@/components/layout/brand-mark'
 
 // Header wordmark that adapts to the search field. Off the home page the header
 // search shares the row, so on phones we drop to the square icon and restore the

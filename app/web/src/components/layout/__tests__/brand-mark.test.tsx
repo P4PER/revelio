@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
-import { BrandMark } from '@/components/brand-mark'
+import { BrandMark } from '@/components/layout/brand-mark'
 import { BRAND_NAME } from '@/lib/brand'
 
 describe('BrandMark', () => {

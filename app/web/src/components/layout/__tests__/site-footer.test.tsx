@@ -1,13 +1,13 @@
 import { render, screen, within } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { SiteFooterView } from '@/components/site-footer'
+import { SiteFooterView } from '@/components/layout/site-footer'
 import en from '@/../messages/en.json'
 
 // LanguageSwitcher calls next-intl's useRouter, which needs the Next app router
 // mounted (unavailable in jsdom). Stub it — it is unrelated to the footer's
 // own link/layout behaviour under test.
-vi.mock('@/components/language-switcher', () => ({
+vi.mock('@/components/layout/language-switcher', () => ({
   LanguageSwitcher: () => <div data-testid="language-switcher" />,
 }))
 

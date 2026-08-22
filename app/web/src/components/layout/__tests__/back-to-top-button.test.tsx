@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi } from 'vitest'
-import { BackToTopButton } from '@/components/back-to-top-button'
+import { BackToTopButton } from '@/components/layout/back-to-top-button'
 
 describe('BackToTopButton', () => {
   it('scrolls to the top when clicked', async () => {

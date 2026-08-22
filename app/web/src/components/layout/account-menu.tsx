@@ -10,8 +10,8 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
-import { useSignOut } from '@/components/use-sign-out'
-import type { AccountUser } from '@/components/types'
+import { useSignOut } from '@/components/layout/use-sign-out'
+import type { AccountUser } from '@/components/layout/types'
 
 export function AccountMenu({
   isEditor,

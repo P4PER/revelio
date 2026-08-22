@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { RotateCw } from 'lucide-react'
-import { isHorizontal } from '@/components/card-image'
+import { isHorizontal } from '@/components/card/card-image'
 import { cn } from '@/lib/utils'
 
 // Renders a card's single tile image and, for horizontal cards, a hover rotate

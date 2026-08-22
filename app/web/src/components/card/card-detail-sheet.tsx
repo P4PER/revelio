@@ -6,8 +6,8 @@ import { getCardDetailAction } from '@/lib/actions/deck-actions'
 import { pickLocalization } from '@/lib/card-view'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
-import { isHorizontal } from '@/components/card-image'
-import { CardDetail } from '@/components/card-detail'
+import { isHorizontal } from '@/components/card/card-image'
+import { CardDetail } from '@/components/card/card-detail'
 import { cn } from '@/lib/utils'
 
 // Card detail Sheet used by the deck builder's card browser: the browser owns

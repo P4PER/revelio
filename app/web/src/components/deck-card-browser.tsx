@@ -17,10 +17,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
-import { CardDetailSheet } from '@/components/card-detail-sheet'
+import { CardDetailSheet } from '@/components/card/card-detail-sheet'
 import { Skeleton } from '@/components/ui/skeleton'
-import { CardInfoButton } from '@/components/card-info-button'
-import { CardRotate } from '@/components/card-rotate'
+import { CardInfoButton } from '@/components/card/card-info-button'
+import { CardRotate } from '@/components/card/card-rotate'
 import { DeckFilterDrawer, EMPTY_DECK_FILTERS, type DeckFilters } from '@/components/deck-filter-drawer'
 import { PaginationNav } from '@/components/pagination-nav'
 

@@ -12,7 +12,7 @@ vi.mock('@/../i18n/navigation', () => ({
   Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,
 }))
 
-import { RulingsEditor } from '@/components/rulings-editor'
+import { RulingsEditor } from '@/components/card/rulings-editor'
 import en from '@/../messages/en.json'
 
 function renderEditor(initial: { id: string; date: string; source: string; text: string }[] = []) {

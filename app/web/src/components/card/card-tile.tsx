@@ -1,7 +1,7 @@
 import { Link } from '@/../i18n/navigation'
 import type { SearchDocument } from '@revelio/search'
 import { imageUrl, thumbKey } from '@revelio/core'
-import { CardRotate } from '@/components/card-rotate'
+import { CardRotate } from '@/components/card/card-rotate'
 import { contextHref } from '@/lib/search-params'
 
 export function CardTile({

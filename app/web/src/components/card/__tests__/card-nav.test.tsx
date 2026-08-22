@@ -10,7 +10,7 @@ vi.mock('@/../i18n/navigation', () => ({
   ),
 }))
 
-import { CardNav } from '@/components/card-nav'
+import { CardNav } from '@/components/card/card-nav'
 
 const labels = {
   prev: 'Previous card', next: 'Next card',

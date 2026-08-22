@@ -7,10 +7,10 @@ import { attrLabel } from '@/lib/attribute-labels'
 import { cn } from '@/lib/utils'
 import { MAIN_TARGET } from '@/lib/deck-legality'
 import { groupColor, groupLabel, groupMainEntries } from '@/lib/deck-groups'
-import { LessonCost } from '@/components/lesson-cost'
+import { LessonCost } from '@/components/card/lesson-cost'
 import { DeckArt } from '@/components/deck-art'
 import { DeckLegalityBar } from '@/components/deck-legality-bar'
-import { CardDetailSheet } from '@/components/card-detail-sheet'
+import { CardDetailSheet } from '@/components/card/card-detail-sheet'
 
 // Editable quantity sitting between the stepper buttons. While the field is
 // being typed into, `draft` holds the raw text; committing clears it so the

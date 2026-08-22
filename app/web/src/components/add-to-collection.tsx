@@ -1,7 +1,7 @@
 'use client'
 import { useTranslations } from 'next-intl'
 import { Library } from 'lucide-react'
-import { CardFinishStepper } from '@/components/card-finish-stepper'
+import { CardFinishStepper } from '@/components/card/card-finish-stepper'
 import { attrLabel } from '@/lib/attribute-labels'
 import { cn } from '@/lib/utils'
 

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
-import { CardImage, isHorizontal } from '@/components/card-image'
+import { CardImage, isHorizontal } from '@/components/card/card-image'
 
 vi.mock('next/image', () => ({ default: (p: Record<string, unknown>) => <img alt={p.alt as string} /> }))
 

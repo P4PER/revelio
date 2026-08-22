@@ -3,7 +3,7 @@ import { useSearchParams } from 'next/navigation'
 import { useRef } from 'react'
 import { useRouter, usePathname } from '@/../i18n/navigation'
 import { withParams } from '@/lib/search-params'
-import { SearchField } from '@/components/search-field'
+import { SearchField } from '@/components/search/search-field'
 
 export function SearchBox({ placeholder, className }: { placeholder: string; className?: string }) {
   const router = useRouter()

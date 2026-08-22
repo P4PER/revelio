@@ -7,7 +7,7 @@ const push = vi.fn()
 vi.mock('@/../i18n/navigation', () => ({ useRouter: () => ({ push }) }))
 vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams('') }))
 
-import { FilterDrawer } from '@/components/filter-drawer'
+import { FilterDrawer } from '@/components/search/filter-drawer'
 
 const messages = { filters: { button: 'Filters', title: 'Filters', apply: 'Apply', clear: 'Clear all', set: 'Set', type: 'Type', lesson: 'Lesson', rarity: 'Rarity', finish: 'Finish', legality: 'Legality', cost: 'Cost', costMin: 'Min', costMax: 'Max', official: 'Official only', fan: 'Fan / Revival only', anySet: 'Any set' } }
 const sets = [{ code: 'BS', name: 'Base Set', releaseDate: null, isOfficial: true, cardCount: 1, symbol: 'BS' }]

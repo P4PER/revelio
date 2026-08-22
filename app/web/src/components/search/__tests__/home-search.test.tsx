@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from 'vitest'
 const push = vi.fn()
 vi.mock('@/../i18n/navigation', () => ({ useRouter: () => ({ push }) }))
 
-import { HomeSearch } from '@/components/home-search'
+import { HomeSearch } from '@/components/search/home-search'
 
 describe('HomeSearch', () => {
   it('submits to /search with the query', () => {

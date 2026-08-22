@@ -5,7 +5,7 @@ import { TYPES } from '@revelio/core'
 import { withParams, parseSearchParams } from '@/lib/search-params'
 import { attrLabel } from '@/lib/attribute-labels'
 import { Chip } from '@/components/ui/chip'
-import { LessonFilter } from '@/components/lesson-filter'
+import { LessonFilter } from '@/components/search/lesson-filter'
 
 export function QuickFilters({ locale }: { locale: string }) {
   const router = useRouter()

@@ -1,5 +1,5 @@
 import { withParams } from '@/lib/search-params'
-import { PaginationNav } from '@/components/pagination-nav'
+import { PaginationNav } from '@/components/search/pagination-nav'
 
 export function Pagination({
   page, total, hitsPerPage, current, basePath = '/search',

@@ -12,7 +12,7 @@ vi.mock('@/../i18n/navigation', () => ({
 let params = new URLSearchParams()
 vi.mock('next/navigation', () => ({ useSearchParams: () => params }))
 
-import { ClearFilters } from '@/components/clear-filters'
+import { ClearFilters } from '@/components/search/clear-filters'
 
 const messages = { filters: { clearFilters: 'Clear filters' } }
 function renderClear() {

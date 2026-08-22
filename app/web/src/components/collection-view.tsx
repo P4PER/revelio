@@ -12,9 +12,9 @@ import { Button } from '@/components/ui/button'
 import { CollectionSetNav } from '@/components/collection-set-nav'
 import { CollectionCardTile, type CollectionCard } from '@/components/collection-card-tile'
 import { CollectionFilterDrawer } from '@/components/collection-filter-drawer'
-import { ClearFiltersButton } from '@/components/clear-filters-button'
-import { SearchBox } from '@/components/search-box'
-import { Pagination } from '@/components/pagination'
+import { ClearFiltersButton } from '@/components/search/clear-filters-button'
+import { SearchBox } from '@/components/search/search-box'
+import { Pagination } from '@/components/search/pagination'
 import type { SetDTO, SetProgress, OwnedQuantities } from '@revelio/core'
 
 export function CollectionView({

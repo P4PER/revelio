@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { getTranslations } from 'next-intl/server'
-import { HeaderSearch } from '@/components/header-search'
+import { HeaderSearch } from '@/components/search/header-search'
 import { Link } from '@/../i18n/navigation'
 import { BRAND_NAME } from '@/lib/brand'
 import { Layers, Library } from 'lucide-react'

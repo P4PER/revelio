@@ -16,7 +16,7 @@ import {
 import { Link } from '@/../i18n/navigation'
 import type { SetDTO } from '@revelio/core'
 import { SetSymbol } from '@/components/set-symbol'
-import { PaginationNav } from '@/components/pagination-nav'
+import { PaginationNav } from '@/components/search/pagination-nav'
 import { formatReleaseMonth } from '@/lib/set-sort'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'

@@ -2,7 +2,7 @@
 import { useSearchParams } from 'next/navigation'
 import { useRouter, usePathname } from '@/../i18n/navigation'
 import { parseSearchParams, withParams } from '@/lib/search-params'
-import { ClearFiltersButton } from '@/components/clear-filters-button'
+import { ClearFiltersButton } from '@/components/search/clear-filters-button'
 
 // URL adapter for the search page: clears every narrowing filter (type/lesson/
 // rarity/finish/legality/set/cost/official) in one click while preserving the

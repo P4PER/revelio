@@ -8,7 +8,7 @@ vi.mock('@/../i18n/navigation', () => ({
 }))
 vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams('') }))
 
-import { SearchBox } from '@/components/search-box'
+import { SearchBox } from '@/components/search/search-box'
 
 describe('SearchBox', () => {
   it('debounced typing updates the q param via router.replace', async () => {

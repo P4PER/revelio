@@ -9,7 +9,7 @@ import { buildSiteMetadata, THEME_COLOR, THEME_COLOR_LIGHT } from '@/lib/seo'
 import { SiteHeader } from '@/components/layout/site-header'
 import { SiteFooter } from '@/components/layout/site-footer'
 import { Toaster } from '@/components/ui/sonner'
-import { SearchHotkey } from '@/components/search-hotkey'
+import { SearchHotkey } from '@/components/search/search-hotkey'
 import { THEME_COOKIE, parseTheme } from '@/lib/theme'
 import '../globals.css'
 

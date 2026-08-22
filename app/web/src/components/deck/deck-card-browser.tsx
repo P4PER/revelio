@@ -6,10 +6,10 @@ import type { DeckCardView, DeckFormat, DeckZone, SetDTO } from '@revelio/core'
 import type { SearchDocument, SearchResult } from '@revelio/search'
 import { searchDeckCards } from '@/lib/actions/deck-actions'
 import { DECK_BROWSE_PAGE_SIZE } from '@/lib/deck-view'
-import { LessonFilter } from '@/components/lesson-filter'
-import { ClearFiltersButton } from '@/components/clear-filters-button'
+import { LessonFilter } from '@/components/search/lesson-filter'
+import { ClearFiltersButton } from '@/components/search/clear-filters-button'
 import { cn } from '@/lib/utils'
-import { SearchField } from '@/components/search-field'
+import { SearchField } from '@/components/search/search-field'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -22,7 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { CardInfoButton } from '@/components/card/card-info-button'
 import { CardRotate } from '@/components/card/card-rotate'
 import { DeckFilterDrawer, EMPTY_DECK_FILTERS, type DeckFilters } from '@/components/deck/deck-filter-drawer'
-import { PaginationNav } from '@/components/pagination-nav'
+import { PaginationNav } from '@/components/search/pagination-nav'
 
 const EMPTY_RESULT: SearchResult = { hits: [], total: 0, page: 1, hitsPerPage: DECK_BROWSE_PAGE_SIZE }
 const DEBOUNCE_MS = 300

@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
-import { PaginationNav } from '@/components/pagination-nav'
+import { PaginationNav } from '@/components/search/pagination-nav'
 
 const usernameOrEmail: FilterFn<UserAdminRow> = (row, _id, value) => {
   const q = String(value).trim().toLowerCase()

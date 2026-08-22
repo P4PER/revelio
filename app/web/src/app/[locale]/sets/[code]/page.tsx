@@ -7,7 +7,7 @@ import { formatReleaseMonth } from '@/lib/set-sort'
 import { getSearchClient, runSearch } from '@/lib/server/search-client'
 import { parseSearchParams, toURLSearchParams } from '@/lib/search-params'
 import { CardGrid } from '@/components/card/card-grid'
-import { Pagination } from '@/components/pagination'
+import { Pagination } from '@/components/search/pagination'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 

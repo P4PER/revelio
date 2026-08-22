@@ -2,7 +2,7 @@
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from '@/../i18n/navigation'
 import type { SetDTO } from '@revelio/core'
-import { FilterSheet, type FilterSelection } from '@/components/filter-sheet'
+import { FilterSheet, type FilterSelection } from '@/components/search/filter-sheet'
 
 // URL adapter for FilterSheet: reads the applied selection from the /search
 // query string and, on apply, writes it back (preserving q and sort). Soft

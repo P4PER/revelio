@@ -6,7 +6,7 @@ const read = (p: string) => readFile(resolve(process.cwd(), 'src/components', p)
 
 describe('light-mode sweep', () => {
   // bg-white/5 is a dark-only wash: on parchment it is invisible.
-  it.each(['quick-filters.tsx', 'lesson-filter.tsx'])('%s uses the hover token', async (file) => {
+  it.each(['search/quick-filters.tsx', 'search/lesson-filter.tsx'])('%s uses the hover token', async (file) => {
     const src = await read(file)
     expect(src).not.toMatch(/hover:bg-white\//)
     expect(src).toMatch(/hover:bg-\(--hover-bg\)/)

@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi } from 'vitest'
 
-import { FilterSheet, EMPTY_SELECTION } from '@/components/filter-sheet'
+import { FilterSheet, EMPTY_SELECTION } from '@/components/search/filter-sheet'
 import en from '@/../messages/en.json'
 
 function renderSheet(onApply = vi.fn()) {

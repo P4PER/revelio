@@ -8,7 +8,7 @@ vi.mock('@/../i18n/navigation', () => ({ useRouter: () => ({ push }) }))
 const params = new URLSearchParams('rarity=rare&legality=legal&costMin=2&costMax=5&official=fan')
 vi.mock('next/navigation', () => ({ useSearchParams: () => params, usePathname: () => '/search' }))
 
-import { ActiveFilters } from '@/components/active-filters'
+import { ActiveFilters } from '@/components/search/active-filters'
 
 const messages = { filters: { official: 'Official only', fan: 'Fan / Revival only' } }
 const sets = [{ code: 'BS', name: 'Base Set', releaseDate: null, isOfficial: true, cardCount: 1, symbol: 'BS' }]

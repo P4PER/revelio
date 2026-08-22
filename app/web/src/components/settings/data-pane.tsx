@@ -2,7 +2,7 @@
 import { useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { exportMyData } from '@/lib/settings-actions'
+import { exportMyData } from '@/lib/actions/settings-actions'
 import { Button } from '@/components/ui/button'
 import type { SettingsUser } from './types'
 

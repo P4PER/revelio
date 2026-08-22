@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { routing } from '@/../i18n/routing'
-import { getDb } from '@/lib/db'
+import { getDb } from '@/lib/server/db'
 import { listSubTypesWithTranslations } from '@revelio/db'
 import { SubTypeTranslationsForm } from '@/components/subtype-translations-form'
 

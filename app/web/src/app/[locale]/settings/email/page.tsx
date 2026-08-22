@@ -1,4 +1,4 @@
-import { requireSettingsUser } from '@/lib/settings-user'
+import { requireSettingsUser } from '@/lib/server/settings-user'
 import { EmailPane } from '@/components/settings/email-pane'
 
 export default async function EmailSettingsPage() {

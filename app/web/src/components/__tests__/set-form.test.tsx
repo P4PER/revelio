@@ -9,7 +9,7 @@ const refresh = vi.fn()
 const create = vi.fn(async () => ({ ok: true }))
 const update = vi.fn(async () => ({ ok: true }))
 const upload = vi.fn(async () => ({ ok: true }))
-vi.mock('@/lib/set-actions', () => ({
+vi.mock('@/lib/actions/set-actions', () => ({
   createSetAction: (...a: unknown[]) => create(...a),
   updateSetAction: (...a: unknown[]) => update(...a),
   uploadSetSymbol: (...a: unknown[]) => upload(...a),

@@ -4,7 +4,7 @@ import { Heart } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { useRouter } from '@/../i18n/navigation'
-import { toggleLikeAction } from '@/lib/deck-actions'
+import { toggleLikeAction } from '@/lib/actions/deck-actions'
 import { cn } from '@/lib/utils'
 
 export function DeckLikeButton({

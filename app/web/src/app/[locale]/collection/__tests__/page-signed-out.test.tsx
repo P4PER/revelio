@@ -13,10 +13,10 @@ vi.mock('next-intl/server', () => ({
 const getSession = vi.fn()
 const loadCollectionPage = vi.fn()
 
-vi.mock('@/lib/session', () => ({ getSession: () => getSession() }))
-vi.mock('@/lib/db', () => ({ getDb: () => ({}) }))
-vi.mock('@/lib/search-client', () => ({ getSearchClient: () => ({}) }))
-vi.mock('@/lib/collection-page-data', () => ({
+vi.mock('@/lib/server/session', () => ({ getSession: () => getSession() }))
+vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
+vi.mock('@/lib/server/search-client', () => ({ getSearchClient: () => ({}) }))
+vi.mock('@/lib/server/collection-page-data', () => ({
   loadCollectionPage: (...a: unknown[]) => loadCollectionPage(...a),
 }))
 vi.mock('@revelio/db', () => ({ getCollectionVisibility: vi.fn() }))

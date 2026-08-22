@@ -11,8 +11,8 @@ vi.mock('next-intl/server', () => ({
 const getSession = vi.fn()
 const listDecksByUser = vi.fn()
 
-vi.mock('@/lib/session', () => ({ getSession: () => getSession() }))
-vi.mock('@/lib/db', () => ({ getDb: () => ({}) }))
+vi.mock('@/lib/server/session', () => ({ getSession: () => getSession() }))
+vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
 vi.mock('@revelio/db', () => ({ listDecksByUser: (...a: unknown[]) => listDecksByUser(...a) }))
 vi.mock('@/../i18n/navigation', () => ({
   Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,

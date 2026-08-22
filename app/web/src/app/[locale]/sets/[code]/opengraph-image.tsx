@@ -1,6 +1,6 @@
 import { cache } from 'react'
 import { getTranslations } from 'next-intl/server'
-import { getDb } from '@/lib/db'
+import { getDb } from '@/lib/server/db'
 import { getSetByCode } from '@revelio/db'
 import { setOgSubtitle, ogImageMetadata, ogImageAlt } from '@/lib/seo'
 import { renderBrandOgImage, renderDefaultOgImage } from '@/lib/og-image'

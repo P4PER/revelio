@@ -7,8 +7,8 @@ import { Separator } from '@/components/ui/separator'
 import { BrandMark } from './brand-mark'
 import { LanguageSwitcher } from './language-switcher'
 import { BackToTopButton } from './back-to-top-button'
-import { getSession } from '@/lib/session'
-import { getCachedSiteSettings } from '@/lib/site-settings'
+import { getSession } from '@/lib/server/session'
+import { getCachedSiteSettings } from '@/lib/server/site-settings'
 import { BRAND_NAME } from '@/lib/brand'
 
 const linkClass =

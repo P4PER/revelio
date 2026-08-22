@@ -10,7 +10,7 @@ const m = vi.hoisted(() => ({
   toastSuccess: vi.fn(),
   toastError: vi.fn(),
 }))
-vi.mock('@/lib/settings-actions', () => ({ requestEmailChange: m.requestEmailChange, confirmEmailChange: m.confirmEmailChange }))
+vi.mock('@/lib/actions/settings-actions', () => ({ requestEmailChange: m.requestEmailChange, confirmEmailChange: m.confirmEmailChange }))
 vi.mock('sonner', () => ({ toast: { success: m.toastSuccess, error: m.toastError } }))
 
 import { EmailPane } from '../email-pane'

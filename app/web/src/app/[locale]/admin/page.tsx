@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers'
 import { setRequestLocale } from 'next-intl/server'
 import { redirect } from '@/../i18n/navigation'
-import { getSession } from '@/lib/session'
+import { getSession } from '@/lib/server/session'
 import { hasRequiredRole } from '@/lib/roles'
 import { ADMIN_SECTION_COOKIE, resolveAdminSection } from '@/lib/admin-nav'
 

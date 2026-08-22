@@ -15,7 +15,7 @@ const searchDeckCards = vi.fn(async (): Promise<SearchResult> => EMPTY_RESULT)
 const getCardDetailAction = vi.fn(() => new Promise(() => {}))
 const getCardViewsAction = vi.fn(async () => ({}))
 const resolveImportNames = vi.fn(async () => ({}))
-vi.mock('@/lib/deck-actions', () => ({
+vi.mock('@/lib/actions/deck-actions', () => ({
   createDeckAction: (...a: unknown[]) => createDeckAction(...a),
   updateDeckAction: (...a: unknown[]) => updateDeckAction(...a),
   searchDeckCards: (...a: unknown[]) => searchDeckCards(...a),

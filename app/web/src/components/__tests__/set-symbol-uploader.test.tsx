@@ -7,7 +7,7 @@ import { SetSymbolUploader } from '../set-symbol-uploader'
 const refresh = vi.fn()
 const upload = vi.fn(async () => ({ ok: true }))
 const remove = vi.fn(async () => ({ ok: true }))
-vi.mock('@/lib/set-actions', () => ({
+vi.mock('@/lib/actions/set-actions', () => ({
   uploadSetSymbol: (...a: unknown[]) => upload(...a),
   removeSetSymbol: (...a: unknown[]) => remove(...a),
 }))

@@ -13,7 +13,7 @@ const m = vi.hoisted(() => ({
   toastSuccess: vi.fn(),
   toastError: vi.fn(),
 }))
-vi.mock('@/lib/settings-actions', () => ({ requestAccountDeletion: m.requestAccountDeletion, confirmAccountDeletion: m.confirmAccountDeletion }))
+vi.mock('@/lib/actions/settings-actions', () => ({ requestAccountDeletion: m.requestAccountDeletion, confirmAccountDeletion: m.confirmAccountDeletion }))
 vi.mock('@/lib/auth-client', () => ({ signOut: m.signOut }))
 vi.mock('@/../i18n/navigation', () => ({ useRouter: () => ({ push: m.push, refresh: m.refresh }) }))
 vi.mock('sonner', () => ({ toast: { success: m.toastSuccess, error: m.toastError } }))

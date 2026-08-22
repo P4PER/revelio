@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { ContactForm } from '@/components/contact-form'
-import { getSession } from '@/lib/session'
+import { getSession } from '@/lib/server/session'
 
 // Rendered per request so the submit-timing token is fresh and never statically cached.
 export const dynamic = 'force-dynamic'

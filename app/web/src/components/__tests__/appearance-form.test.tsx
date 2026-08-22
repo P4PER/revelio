@@ -6,7 +6,7 @@ import messages from '../../../messages/en.json'
 import { AppearanceForm } from '@/components/settings/appearance-form'
 
 const setTheme = vi.fn(async () => ({ ok: true as const }))
-vi.mock('@/lib/theme-actions', () => ({ setTheme: (c: unknown) => setTheme(c) }))
+vi.mock('@/lib/actions/theme-actions', () => ({ setTheme: (c: unknown) => setTheme(c) }))
 
 function renderForm(current: 'system' | 'light' | 'dark' = 'system') {
   return render(

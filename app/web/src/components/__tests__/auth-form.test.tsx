@@ -16,7 +16,7 @@ vi.mock('@/lib/auth-client', () => ({
     updateUser: (...a: unknown[]) => updateUser(...a),
   },
 }))
-vi.mock('@/lib/auth-actions', () => ({
+vi.mock('@/lib/actions/auth-actions', () => ({
   emailHasAccount: (...a: unknown[]) => emailHasAccount(...a),
   usernameAvailable: (...a: unknown[]) => usernameAvailable(...a),
 }))

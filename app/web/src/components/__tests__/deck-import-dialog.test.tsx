@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi } from 'vitest'
 
-vi.mock('@/lib/deck-actions', () => ({
+vi.mock('@/lib/actions/deck-actions', () => ({
   getCardViewsAction: vi.fn(async () => ({})),
   resolveImportNames: vi.fn(async () => ({})),
 }))

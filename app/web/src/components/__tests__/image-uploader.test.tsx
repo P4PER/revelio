@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const uploadCardImage = vi.fn(async () => ({ ok: true as const }))
 const removeCardImage = vi.fn(async () => ({ ok: true as const }))
-vi.mock('@/lib/image-actions', () => ({
+vi.mock('@/lib/actions/image-actions', () => ({
   uploadCardImage: (...a: unknown[]) => uploadCardImage(...a),
   removeCardImage: (...a: unknown[]) => removeCardImage(...a),
 }))

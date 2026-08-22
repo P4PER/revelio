@@ -1,6 +1,6 @@
 import { setRequestLocale } from 'next-intl/server'
 import { redirect } from '@/../i18n/navigation'
-import { getDb } from '@/lib/db'
+import { getDb } from '@/lib/server/db'
 import { getRandomCardId } from '@revelio/db'
 
 export const dynamic = 'force-dynamic'

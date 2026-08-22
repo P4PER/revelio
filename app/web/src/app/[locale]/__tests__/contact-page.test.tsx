@@ -9,7 +9,7 @@ vi.mock('next-intl/server', () => ({
   getTranslations: async () => (k: string) => k,
 }))
 const getSession = vi.fn(async () => null as unknown)
-vi.mock('@/lib/session', () => ({ getSession: () => getSession() }))
+vi.mock('@/lib/server/session', () => ({ getSession: () => getSession() }))
 vi.mock('@/components/contact-form', () => ({
   ContactForm: ({
     renderedAt,

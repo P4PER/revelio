@@ -5,10 +5,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const updateLocalization = vi.fn(async () => ({ ok: true as const }))
 const saveRulingsAction = vi.fn(async () => ({ ok: true as const }))
-vi.mock('@/lib/localization-actions', () => ({
+vi.mock('@/lib/actions/localization-actions', () => ({
   updateLocalization: (...a: unknown[]) => updateLocalization(...a),
 }))
-vi.mock('@/lib/rulings-actions', () => ({
+vi.mock('@/lib/actions/rulings-actions', () => ({
   saveRulingsAction: (...a: unknown[]) => saveRulingsAction(...a),
 }))
 vi.mock('@/../i18n/navigation', () => ({

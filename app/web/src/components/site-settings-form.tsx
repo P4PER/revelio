@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import type { SiteSettings } from '@revelio/db'
-import { updateSiteSettings } from '@/lib/site-settings-actions'
+import { updateSiteSettings } from '@/lib/actions/site-settings-actions'
 import { makeSiteSettingsSchema, type SiteSettingsFormValues } from '@/lib/schemas/site-settings'
 import {
   Form,

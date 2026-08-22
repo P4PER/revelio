@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { CollectionCardTile } from '@/components/collection-card-tile'
 
-vi.mock('@/lib/collection-actions', () => ({ setCardQuantityAction: vi.fn(async () => ({ ok: true })) }))
+vi.mock('@/lib/actions/collection-actions', () => ({ setCardQuantityAction: vi.fn(async () => ({ ok: true })) }))
 
 const card = { id: 'bs-1', name: 'Harry', finishes: ['normal', 'holo'] }
 

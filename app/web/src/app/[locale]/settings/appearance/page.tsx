@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers'
 import { THEME_COOKIE, parseTheme } from '@/lib/theme'
 import { AppearanceForm } from '@/components/settings/appearance-form'
-import { requireSettingsUser } from '@/lib/settings-user'
+import { requireSettingsUser } from '@/lib/server/settings-user'
 
 export const dynamic = 'force-dynamic'
 

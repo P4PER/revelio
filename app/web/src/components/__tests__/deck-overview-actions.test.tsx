@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { screen, fireEvent, within, waitFor } from '@testing-library/react'
 import type { DeckCardView } from '@revelio/core'
 import { renderWithIntl } from '@/test/intl'
-import { updateDeckMetaAction, deleteDeckAction } from '@/lib/deck-actions'
+import { updateDeckMetaAction, deleteDeckAction } from '@/lib/actions/deck-actions'
 import { DeckOverviewActions } from '@/components/deck-overview-actions'
 
 const push = vi.fn()
@@ -10,7 +10,7 @@ vi.mock('@/../i18n/navigation', () => ({
   Link: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a>,
   useRouter: () => ({ push }),
 }))
-vi.mock('@/lib/deck-actions', () => ({
+vi.mock('@/lib/actions/deck-actions', () => ({
   updateDeckMetaAction: vi.fn(async () => ({ ok: true, id: 'd1' })),
   duplicateDeckAction: vi.fn(async () => ({ ok: true, id: 'copy1' })),
   deleteDeckAction: vi.fn(async () => ({ ok: true, id: 'd1' })),

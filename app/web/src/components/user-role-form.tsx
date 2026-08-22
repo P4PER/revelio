@@ -2,7 +2,7 @@
 import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { setUserRole } from '@/lib/user-admin-actions'
+import { setUserRole } from '@/lib/actions/user-admin-actions'
 import { Button } from '@/components/ui/button'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,

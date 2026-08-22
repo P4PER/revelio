@@ -1,0 +1,77 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+const m = vi.hoisted(() => ({
+  requireRole: vi.fn(async () => ({ user: { role: 'editor' } })),
+  upsertLocalization: vi.fn(async () => {}),
+  getCardIndexData: vi.fn(async () => ({ id: 'x-1', localizations: { en: {} } })),
+  reindexCard: vi.fn(async () => {}),
+  revalidatePath: vi.fn(),
+}))
+
+vi.mock('@/lib/server/session', () => ({ requireRole: m.requireRole }))
+vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
+vi.mock('@/lib/server/reindex', () => ({ getWriteClient: () => ({}) }))
+vi.mock('@revelio/db', () => ({ upsertLocalization: m.upsertLocalization, getCardIndexData: m.getCardIndexData }))
+vi.mock('@revelio/search', () => ({ reindexCard: m.reindexCard }))
+vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
+
+import { updateLocalization } from '../localization-actions'
+
+const valid = { cardId: 'x-1', lang: 'de', name: 'Neuer Name', text: 'Rumpf', flavorText: '', status: 'official' }
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  m.requireRole.mockResolvedValue({ user: { role: 'editor' } })
+  m.getCardIndexData.mockResolvedValue({ id: 'x-1', localizations: { en: {} } })
+})
+
+describe('updateLocalization', () => {
+  it('rejects a non-editor before writing', async () => {
+    m.requireRole.mockRejectedValueOnce(new Error('Forbidden'))
+    let caught: unknown
+    await updateLocalization(valid).catch((e) => { caught = e })
+    expect((caught as Error)?.message).toBe('Forbidden')
+    expect(m.upsertLocalization).not.toHaveBeenCalled()
+  })
+  it('returns an error and does not write on invalid input', async () => {
+    const res = await updateLocalization({ ...valid, name: '' })
+    expect(res).toEqual({ ok: false, error: 'invalid' })
+    expect(m.upsertLocalization).not.toHaveBeenCalled()
+  })
+  it('upserts (empty strings -> null), reindexes, revalidates, returns ok', async () => {
+    const res = await updateLocalization(valid)
+    expect(m.upsertLocalization).toHaveBeenCalledWith(expect.anything(), {
+      cardId: 'x-1', lang: 'de', name: 'Neuer Name', text: 'Rumpf', flavorText: null, status: 'official',
+    })
+    expect(m.reindexCard).toHaveBeenCalled()
+    expect(m.revalidatePath).toHaveBeenCalledWith('/card/x-1')
+    expect(res).toEqual({ ok: true })
+  })
+  it('keeps the save when reindex fails (non-fatal warning)', async () => {
+    m.reindexCard.mockRejectedValueOnce(new Error('meili down'))
+    const res = await updateLocalization(valid)
+    expect(m.upsertLocalization).toHaveBeenCalled()
+    expect(res).toEqual({ ok: true, warning: 'reindex-failed' })
+  })
+
+  it('passes a normalized adventure group and omits match', async () => {
+    await updateLocalization({
+      ...valid,
+      adventure: { effect: '  spark  ', reward: '', toSolve: '' },
+    })
+    expect(m.upsertLocalization).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ adventure: { effect: 'spark', reward: null, toSolve: null } }),
+    )
+    const arg = m.upsertLocalization.mock.calls[0][1]
+    expect('match' in arg).toBe(false)
+  })
+
+  it('nulls an all-empty adventure group', async () => {
+    await updateLocalization({ ...valid, adventure: { effect: '', reward: '  ', toSolve: '' } })
+    expect(m.upsertLocalization).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ adventure: null }),
+    )
+  })
+})

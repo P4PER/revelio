@@ -11,7 +11,7 @@ import { RandomNavButton } from './random-nav-button'
 import { LanguageSwitcher } from './language-switcher'
 import { AccountMenu } from './account-menu'
 import { MobileNav } from './mobile-nav'
-import { getSession } from '@/lib/session'
+import { getSession } from '@/lib/server/session'
 import { hasRequiredRole } from '@/lib/roles'
 
 export async function SiteHeader() {

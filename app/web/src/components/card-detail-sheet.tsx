@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import type { CardDetailDTO } from '@revelio/core'
-import { getCardDetailAction } from '@/lib/deck-actions'
+import { getCardDetailAction } from '@/lib/actions/deck-actions'
 import { pickLocalization } from '@/lib/card-view'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'

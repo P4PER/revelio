@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
 import { makeContactSchema, type ContactFormValues } from '@/lib/schemas/contact'
-import { sendContactMessage, type ContactResult } from '@/lib/contact-actions'
+import { sendContactMessage, type ContactResult } from '@/lib/actions/contact-actions'
 import {
   Form,
   FormControl,

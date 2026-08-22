@@ -1,6 +1,6 @@
 import { it, expect, vi } from 'vitest'
 
-vi.mock('@/lib/settings-user', () => ({
+vi.mock('@/lib/server/settings-user', () => ({
   requireSettingsUser: async () => ({
     id: 'u1', username: 'a', displayUsername: 'a', email: 'a@b.c', role: 'user', createdAt: '2026-01-01T00:00:00.000Z',
   }),

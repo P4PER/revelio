@@ -4,7 +4,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
 import { SubTypeTranslationsForm } from '../subtype-translations-form'
 
-vi.mock('@/lib/sub-type-actions', () => ({ saveSubTypeTranslationsAction: vi.fn(async () => ({ ok: true })) }))
+vi.mock('@/lib/actions/sub-type-actions', () => ({ saveSubTypeTranslationsAction: vi.fn(async () => ({ ok: true })) }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 vi.mock('@/../i18n/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
 
@@ -31,7 +31,7 @@ describe('SubTypeTranslationsForm', () => {
   })
 
   it('saves the full row×locale matrix, sending "" for cleared cells', async () => {
-    const { saveSubTypeTranslationsAction } = await import('@/lib/sub-type-actions')
+    const { saveSubTypeTranslationsAction } = await import('@/lib/actions/sub-type-actions')
     const { toast } = await import('sonner')
     renderForm()
 
@@ -52,7 +52,7 @@ describe('SubTypeTranslationsForm', () => {
   })
 
   it('shows an inline error when saving fails', async () => {
-    const { saveSubTypeTranslationsAction } = await import('@/lib/sub-type-actions')
+    const { saveSubTypeTranslationsAction } = await import('@/lib/actions/sub-type-actions')
     ;(saveSubTypeTranslationsAction as unknown as { mockResolvedValueOnce: (v: unknown) => void })
       .mockResolvedValueOnce({ ok: false })
     renderForm()

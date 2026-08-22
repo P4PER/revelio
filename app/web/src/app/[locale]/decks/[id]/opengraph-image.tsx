@@ -1,9 +1,9 @@
 import { cache } from 'react'
 import { getTranslations } from 'next-intl/server'
 import { getDeckForViewer } from '@revelio/db'
-import { getDb } from '@/lib/db'
+import { getDb } from '@/lib/server/db'
 import { ogImageMetadata, ogImageAlt } from '@/lib/seo'
-import { pickStarterArt, deckLessonCodes, fetchArtCropPng } from '@/lib/deck-og'
+import { pickStarterArt, deckLessonCodes, fetchArtCropPng } from '@/lib/server/deck-og'
 import { renderDeckOgImage, renderDefaultOgImage } from '@/lib/og-image'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''

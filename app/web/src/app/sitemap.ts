@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { listCardsForSitemap, listSetsForSitemap } from '@revelio/db'
-import { getDb } from '@/lib/db'
+import { getDb } from '@/lib/server/db'
 import { buildSitemap } from '@/lib/sitemap'
 
 // The card catalog changes only via editor writes, so a per-request query is

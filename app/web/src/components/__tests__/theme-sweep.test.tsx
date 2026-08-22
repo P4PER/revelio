@@ -21,7 +21,7 @@ describe('light-mode sweep', () => {
   // fill. Here it sat on bg-card, so the count was white on near-white and
   // only showed up when a text selection highlighted it.
   it('add-to-collection does not paint the count white', async () => {
-    expect(await read('add-to-collection.tsx')).not.toMatch(/text-white/)
+    expect(await read('collection/add-to-collection.tsx')).not.toMatch(/text-white/)
   })
 
   // A colour literal only hurts theming when it carries a hue: a neutral

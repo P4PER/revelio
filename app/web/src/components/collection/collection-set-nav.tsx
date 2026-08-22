@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import { ResponsiveSidebar } from '@/components/responsive-sidebar'
-import { CollectionSidebar, type SetNavProps } from '@/components/collection-sidebar'
+import { CollectionSidebar, type SetNavProps } from '@/components/collection/collection-sidebar'
 
 export function CollectionSetNav(props: SetNavProps) {
   const t = useTranslations('collection')

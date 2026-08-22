@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
-import { CollectionSidebar } from '@/components/collection-sidebar'
+import { CollectionSidebar } from '@/components/collection/collection-sidebar'
 
 const messages = { collection: { ofTotal: '{owned} / {total}' } }
 const sets = [

@@ -6,8 +6,8 @@ import { getDb } from '@/lib/server/db'
 import { getSearchClient } from '@/lib/server/search-client'
 import { loadCollectionPage } from '@/lib/server/collection-page-data'
 import { toURLSearchParams } from '@/lib/search-params'
-import { CollectionView } from '@/components/collection-view'
-import { CollectionSummary } from '@/components/collection-summary'
+import { CollectionView } from '@/components/collection/collection-view'
+import { CollectionSummary } from '@/components/collection/collection-summary'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 

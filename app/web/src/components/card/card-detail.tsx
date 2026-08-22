@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { LessonCost } from '@/components/card/lesson-cost'
 import { LightningDivider } from '@/components/card/lightning-divider'
 import { humanize } from '@/lib/humanize'
-import { AddToCollection } from '@/components/add-to-collection'
+import { AddToCollection } from '@/components/collection/add-to-collection'
 import { CardNav } from '@/components/card/card-nav'
 import type { Neighbor } from '@/lib/card-neighbors'
 

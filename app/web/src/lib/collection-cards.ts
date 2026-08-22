@@ -1,6 +1,6 @@
 import type { SearchDocument } from '@revelio/search'
 import { imageUrl, thumbKey } from '@revelio/core'
-import type { CollectionCard } from '@/components/collection-card-tile'
+import type { CollectionCard } from '@/components/collection/collection-card-tile'
 
 // Adapt a Meili search hit to the collection tile's minimal shape. The single
 // place ownership grids turn a hit into a renderable card.

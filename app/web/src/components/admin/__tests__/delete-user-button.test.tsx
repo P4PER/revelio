@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
-import { DeleteUserButton } from '@/components/delete-user-button'
+import { DeleteUserButton } from '@/components/admin/delete-user-button'
 
 const h = vi.hoisted(() => ({
   deleteUser: vi.fn(async () => ({ ok: true as const })),

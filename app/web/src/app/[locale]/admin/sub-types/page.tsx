@@ -2,7 +2,7 @@ import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { routing } from '@/../i18n/routing'
 import { getDb } from '@/lib/server/db'
 import { listSubTypesWithTranslations } from '@revelio/db'
-import { SubTypeTranslationsForm } from '@/components/subtype-translations-form'
+import { SubTypeTranslationsForm } from '@/components/admin/subtype-translations-form'
 
 export default async function AdminSubTypesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
-import { DeleteSetButton } from '@/components/delete-set-button'
+import { DeleteSetButton } from '@/components/admin/delete-set-button'
 
 const push = vi.fn()
 const del = vi.fn(async () => ({ ok: true }))

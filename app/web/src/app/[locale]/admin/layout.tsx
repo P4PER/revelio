@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getSession } from '@/lib/server/session'
 import { hasRequiredRole } from '@/lib/roles'
-import { AdminSidebar } from '@/components/admin-sidebar'
+import { AdminSidebar } from '@/components/admin/admin-sidebar'
 
 export const dynamic = 'force-dynamic'
 

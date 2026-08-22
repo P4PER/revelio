@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import { getDb } from '@/lib/server/db'
 import { listSets } from '@revelio/db'
-import { AdminSetsTable } from '@/components/admin-sets-table'
+import { AdminSetsTable } from '@/components/admin/admin-sets-table'
 import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'

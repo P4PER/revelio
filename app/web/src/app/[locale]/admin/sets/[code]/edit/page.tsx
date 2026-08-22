@@ -7,7 +7,7 @@ import { getDb } from '@/lib/server/db'
 import { getSetForEdit } from '@revelio/db'
 import { SetForm } from '@/components/set-form'
 import { SetSymbolUploader } from '@/components/set-symbol-uploader'
-import { DeleteSetButton } from '@/components/delete-set-button'
+import { DeleteSetButton } from '@/components/admin/delete-set-button'
 
 export const dynamic = 'force-dynamic'
 

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
-import { SiteSettingsForm } from '@/components/site-settings-form'
+import { SiteSettingsForm } from '@/components/admin/site-settings-form'
 
 const update = vi.fn(async () => ({ ok: true }))
 vi.mock('@/lib/actions/site-settings-actions', () => ({

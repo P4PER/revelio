@@ -21,7 +21,7 @@ import { CardDetailSheet } from '@/components/card/card-detail-sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CardInfoButton } from '@/components/card/card-info-button'
 import { CardRotate } from '@/components/card/card-rotate'
-import { DeckFilterDrawer, EMPTY_DECK_FILTERS, type DeckFilters } from '@/components/deck-filter-drawer'
+import { DeckFilterDrawer, EMPTY_DECK_FILTERS, type DeckFilters } from '@/components/deck/deck-filter-drawer'
 import { PaginationNav } from '@/components/pagination-nav'
 
 const EMPTY_RESULT: SearchResult = { hits: [], total: 0, page: 1, hitsPerPage: DECK_BROWSE_PAGE_SIZE }

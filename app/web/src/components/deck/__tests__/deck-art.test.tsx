@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/react'
-import { DeckArt } from '@/components/deck-art'
+import { DeckArt } from '@/components/deck/deck-art'
 
 describe('DeckArt', () => {
   it('renders the baked art-crop image (no transform) when a card id and base are given', () => {

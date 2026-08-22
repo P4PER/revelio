@@ -5,7 +5,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getDeckForViewer, getDeckLikeState } from '@revelio/db'
 import { getDb } from '@/lib/server/db'
 import { getSession } from '@/lib/server/session'
-import { DeckOverview } from '@/components/deck-overview'
+import { DeckOverview } from '@/components/deck/deck-overview'
 import { DECK_VIEW_COOKIE } from '@/lib/deck-view'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''

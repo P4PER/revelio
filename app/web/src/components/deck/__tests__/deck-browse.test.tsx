@@ -11,7 +11,7 @@ vi.mock('@/../i18n/navigation', () => ({
   Link: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={typeof href === 'string' ? href : '#'}>{children}</a>,
 }))
 
-import { DeckBrowse } from '@/components/deck-browse'
+import { DeckBrowse } from '@/components/deck/deck-browse'
 
 const base = {
   state: { q: '', lessons: [], format: null, sort: 'likes' as const, page: 1 },

@@ -5,7 +5,7 @@ import { getDeck, listSets } from '@revelio/db'
 import type { BuilderState } from '@/lib/deck-model'
 import { getDb } from '@/lib/server/db'
 import { getSession } from '@/lib/server/session'
-import { DeckBuilder } from '@/components/deck-builder'
+import { DeckBuilder } from '@/components/deck/deck-builder'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 

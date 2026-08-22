@@ -8,8 +8,8 @@ import { cn } from '@/lib/utils'
 import { MAIN_TARGET } from '@/lib/deck-legality'
 import { groupColor, groupLabel, groupMainEntries } from '@/lib/deck-groups'
 import { LessonCost } from '@/components/card/lesson-cost'
-import { DeckArt } from '@/components/deck-art'
-import { DeckLegalityBar } from '@/components/deck-legality-bar'
+import { DeckArt } from '@/components/deck/deck-art'
+import { DeckLegalityBar } from '@/components/deck/deck-legality-bar'
 import { CardDetailSheet } from '@/components/card/card-detail-sheet'
 
 // Editable quantity sitting between the stepper buttons. While the field is

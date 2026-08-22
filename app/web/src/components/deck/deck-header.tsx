@@ -3,9 +3,9 @@ import { useLocale, useTranslations } from 'next-intl'
 import { Eye } from 'lucide-react'
 import type { DeckFormat } from '@revelio/core'
 import { Link } from '@/../i18n/navigation'
-import { DeckArt } from '@/components/deck-art'
-import { LessonIcons } from '@/components/lesson-icons'
-import { DeckLikeButton } from '@/components/deck-like-button'
+import { DeckArt } from '@/components/deck/deck-art'
+import { LessonIcons } from '@/components/deck/lesson-icons'
+import { DeckLikeButton } from '@/components/deck/deck-like-button'
 import { Badge } from '@/components/ui/badge'
 
 export type DeckHeaderProps = {

@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import type { SearchDocument, SearchResult } from '@revelio/search'
 import en from '@/../messages/en.json'
-import { DeckCardBrowser } from '@/components/deck-card-browser'
+import { DeckCardBrowser } from '@/components/deck/deck-card-browser'
 
 const searchDeckCards = vi.fn(async (): Promise<SearchResult> => FIXED_RESULT)
 const getCardDetailAction = vi.fn(() => new Promise(() => {})) // never resolves by default

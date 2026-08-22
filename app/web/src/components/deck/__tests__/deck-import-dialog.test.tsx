@@ -10,7 +10,7 @@ vi.mock('@/lib/actions/deck-actions', () => ({
 
 import { parseText } from '@revelio/core'
 
-import { DeckImportDialog, EXAMPLE_LIST } from '@/components/deck-import-dialog'
+import { DeckImportDialog, EXAMPLE_LIST } from '@/components/deck/deck-import-dialog'
 import { emptyDeck } from '@/lib/deck-model'
 import en from '@/../messages/en.json'
 

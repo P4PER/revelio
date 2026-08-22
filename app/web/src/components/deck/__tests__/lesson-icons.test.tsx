@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { LessonIcons } from '@/components/lesson-icons'
+import { LessonIcons } from '@/components/deck/lesson-icons'
 
 describe('LessonIcons', () => {
   it('renders one image per lesson code', () => {

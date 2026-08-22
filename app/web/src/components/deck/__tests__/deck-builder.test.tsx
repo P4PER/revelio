@@ -5,7 +5,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import type { SearchResult } from '@revelio/search'
 import en from '@/../messages/en.json'
 import type { BuilderState } from '@/lib/deck-model'
-import { DeckBuilder } from '@/components/deck-builder'
+import { DeckBuilder } from '@/components/deck/deck-builder'
 
 const EMPTY_RESULT: SearchResult = { hits: [], total: 0, page: 1, hitsPerPage: 24 }
 

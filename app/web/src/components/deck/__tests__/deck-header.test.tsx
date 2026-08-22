@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { screen } from '@testing-library/react'
 import { renderWithIntl } from '@/test/intl'
-import { DeckHeader } from '@/components/deck-header'
+import { DeckHeader } from '@/components/deck/deck-header'
 
 vi.mock('@/../i18n/navigation', () => ({
   Link: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => (
@@ -9,7 +9,7 @@ vi.mock('@/../i18n/navigation', () => ({
   ),
 }))
 // Isolate the header: the like button has its own action/router deps.
-vi.mock('@/components/deck-like-button', () => ({ DeckLikeButton: () => <div data-testid="like" /> }))
+vi.mock('@/components/deck/deck-like-button', () => ({ DeckLikeButton: () => <div data-testid="like" /> }))
 
 const base = {
   deckId: 'd1',

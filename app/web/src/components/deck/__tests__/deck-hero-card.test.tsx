@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
-import { DeckHeroCard } from '@/components/deck-hero-card'
+import { DeckHeroCard } from '@/components/deck/deck-hero-card'
 
 vi.mock('@/../i18n/navigation', () => ({
   Link: ({ href, children, ...p }: { href: string; children: React.ReactNode }) => <a href={typeof href === 'string' ? href : '#'} {...p}>{children}</a>,

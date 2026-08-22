@@ -2,18 +2,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, fireEvent } from '@testing-library/react'
 import type { DeckCardView } from '@revelio/core'
 import { renderWithIntl } from '@/test/intl'
-import { DeckOverview } from '@/components/deck-overview'
+import { DeckOverview } from '@/components/deck/deck-overview'
 
 vi.mock('@/../i18n/navigation', () => ({
   Link: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a>,
   useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
 }))
-vi.mock('@/components/deck-overview-actions', () => ({
+vi.mock('@/components/deck/deck-overview-actions', () => ({
   DeckOverviewActions: () => <div data-testid="actions" />,
 }))
-vi.mock('@/components/deck-panel', () => ({ DeckPanel: () => <div data-testid="list-view" /> }))
-vi.mock('@/components/deck-gallery', () => ({ DeckGallery: () => <div data-testid="gallery-view" /> }))
-vi.mock('@/components/deck-header', () => ({
+vi.mock('@/components/deck/deck-panel', () => ({ DeckPanel: () => <div data-testid="list-view" /> }))
+vi.mock('@/components/deck/deck-gallery', () => ({ DeckGallery: () => <div data-testid="gallery-view" /> }))
+vi.mock('@/components/deck/deck-header', () => ({
   DeckHeader: ({ name }: { name: string }) => <h1>{name}</h1>,
 }))
 // The mount effect fires the recordView server action; stub it so tests don't

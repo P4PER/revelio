@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { screen } from '@testing-library/react'
 import type { DeckCardView } from '@revelio/core'
 import { renderWithIntl } from '@/test/intl'
-import { DeckPanel } from '@/components/deck-panel'
+import { DeckPanel } from '@/components/deck/deck-panel'
 
 function view(cardId: string, zone: DeckCardView['zone'], quantity: number): DeckCardView {
   return {

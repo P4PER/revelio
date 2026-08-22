@@ -3,8 +3,8 @@ import { useLocale, useTranslations } from 'next-intl'
 import { Heart, Eye } from 'lucide-react'
 import type { PublicDeckEntry } from '@revelio/db'
 import { Link } from '@/../i18n/navigation'
-import { DeckArt } from '@/components/deck-art'
-import { LessonIcons } from '@/components/lesson-icons'
+import { DeckArt } from '@/components/deck/deck-art'
+import { LessonIcons } from '@/components/deck/lesson-icons'
 import { formatRelativeTime } from '@/lib/relative-time'
 
 export function DeckDiscoverRow({ deck, imageBase }: { deck: PublicDeckEntry; imageBase: string }) {

@@ -5,7 +5,7 @@ import { getDb } from '@/lib/server/db'
 import { getSession } from '@/lib/server/session'
 import { listPublicDecks } from '@revelio/db'
 import { parseBrowseParams } from '@/lib/browse-params'
-import { DeckBrowse } from '@/components/deck-browse'
+import { DeckBrowse } from '@/components/deck/deck-browse'
 import { DECK_VIEW_COOKIE } from '@/lib/deck-view'
 
 export const dynamic = 'force-dynamic'

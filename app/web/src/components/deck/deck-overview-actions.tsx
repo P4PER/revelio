@@ -7,7 +7,7 @@ import type { DeckCardView, DeckFormat } from '@revelio/core'
 import { Link, useRouter } from '@/../i18n/navigation'
 import { deleteDeckAction, duplicateDeckAction, updateDeckMetaAction } from '@/lib/actions/deck-actions'
 import { saveDraft, type BuilderState } from '@/lib/deck-model'
-import { DeckExportMenu } from '@/components/deck-export-menu'
+import { DeckExportMenu } from '@/components/deck/deck-export-menu'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   DropdownMenu,

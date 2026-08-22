@@ -7,7 +7,7 @@ import type { DeckCardView } from '@revelio/core'
 import { attrLabel } from '@/lib/attribute-labels'
 import { lessonVar } from '@/lib/lesson-colors'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { LessonCurve } from '@/components/lesson-curve'
+import { LessonCurve } from '@/components/deck/lesson-curve'
 
 // The deck's stats block that sits above the card list: a collapsible box with
 // Curve / Lessons / Numbers tabs, pinned to a fixed content height so switching

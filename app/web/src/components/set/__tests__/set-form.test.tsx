@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
-import { SetForm } from '@/components/set-form'
+import { SetForm } from '@/components/set/set-form'
 
 const push = vi.fn()
 const refresh = vi.fn()

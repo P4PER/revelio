@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl'
 import { Link } from '@/../i18n/navigation'
 import { Progress } from '@/components/ui/progress'
-import { SetSymbol } from '@/components/set-symbol'
+import { SetSymbol } from '@/components/set/set-symbol'
 import type { SetDTO, SetProgress } from '@revelio/core'
 import { cn } from '@/lib/utils'
 

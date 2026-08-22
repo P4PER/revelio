@@ -1,6 +1,6 @@
 import { Link } from '@/../i18n/navigation'
 import type { SetDTO } from '@revelio/core'
-import { SetSymbol } from '@/components/set-symbol'
+import { SetSymbol } from '@/components/set/set-symbol'
 import { formatReleaseMonth } from '@/lib/set-sort'
 
 export function SetCard({ set, imageBase }: { set: SetDTO; imageBase: string }) {

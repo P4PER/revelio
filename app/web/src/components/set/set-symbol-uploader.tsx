@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { ImagePlus, Trash2, Loader2 } from 'lucide-react'
 import { useRouter } from '@/../i18n/navigation'
 import { uploadSetSymbol, removeSetSymbol } from '@/lib/actions/set-actions'
-import { SetSymbol } from '@/components/set-symbol'
+import { SetSymbol } from '@/components/set/set-symbol'
 import { FieldError } from '@/components/ui/field-error'
 import { cn } from '@/lib/utils'
 

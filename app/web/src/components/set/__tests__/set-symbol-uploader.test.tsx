@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
-import { SetSymbolUploader } from '@/components/set-symbol-uploader'
+import { SetSymbolUploader } from '@/components/set/set-symbol-uploader'
 
 const refresh = vi.fn()
 const upload = vi.fn(async () => ({ ok: true }))

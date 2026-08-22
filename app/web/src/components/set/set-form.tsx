@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DatePicker } from '@/components/date-picker'
-import { SetSymbolUploader } from '@/components/set-symbol-uploader'
+import { SetSymbolUploader } from '@/components/set/set-symbol-uploader'
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
 import { makeSetCreateSchema } from '@/lib/schemas/set'
 

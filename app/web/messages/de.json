@@ -641,8 +641,9 @@
     },
     "profile": {
       "title": "Profil",
-      "hint": "Dein Benutzername ist dein öffentlicher Name und erscheint auf den Decks, die du veröffentlichst. Er muss eindeutig sein.",
+      "lead": "Verwalte, wie du für andere Spieler erscheinst.",
       "usernameLabel": "Benutzername",
+      "usernamePreview": "Erscheint als @{name} auf deinen Decks und unter {url}",
       "checking": "Verfügbarkeit wird geprüft…",
       "available": "Verfügbar",
       "taken": "Dieser Benutzername ist vergeben. Bitte wähle einen anderen.",

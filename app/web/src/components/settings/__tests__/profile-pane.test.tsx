@@ -37,3 +37,32 @@ it('saves a changed username and toasts success', async () => {
   await waitFor(() => expect(m.updateUsername).toHaveBeenCalledWith('bob'))
   await waitFor(() => expect(m.toastSuccess).toHaveBeenCalled())
 })
+
+it('describes the username input with the preview, and keeps a generic pane lead', () => {
+  renderPane()
+  const input = screen.getByLabelText(en.settings.profile.usernameLabel)
+  const preview = screen.getByText(/@alice on your decks/)
+  expect(input.getAttribute('aria-describedby')?.split(' ')).toContain(preview.id)
+  expect(screen.getByText(en.settings.profile.lead)).toBeInTheDocument()
+})
+
+it('previews the public identity live and hides it when the field is empty', async () => {
+  renderPane()
+  const input = screen.getByLabelText(en.settings.profile.usernameLabel)
+  expect(screen.getByText(/@alice on your decks/)).toHaveTextContent('/collection/alice')
+
+  await userEvent.clear(input)
+  expect(screen.queryByText(/on your decks/)).toBeNull()
+
+  await userEvent.type(input, 'bob')
+  expect(screen.getByText(/@bob on your decks/)).toHaveTextContent('/collection/bob')
+})
+
+it('percent-encodes the preview URL, since nothing constrains the username charset', async () => {
+  renderPane()
+  const input = screen.getByLabelText(en.settings.profile.usernameLabel)
+  await userEvent.clear(input)
+  await userEvent.type(input, 'a/b c')
+  const preview = screen.getByText(/@a\/b c on your decks/)
+  expect(preview).toHaveTextContent('/collection/a%2Fb%20c')
+})

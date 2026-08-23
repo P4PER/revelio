@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl'
-import { Link } from '@/../i18n/navigation'
 import { Progress } from '@/components/ui/progress'
+import { SidebarNavLink } from '@/components/sidebar-nav-link'
 import { SetSymbol } from '@/components/set/set-symbol'
 import type { SetDTO, SetProgress } from '@revelio/core'
 import { cn } from '@/lib/utils'
@@ -27,16 +27,8 @@ export function CollectionSidebar({
         const pct = p.total > 0 ? Math.round((p.owned / p.total) * 100) : 0
         const active = s.code === selected
         return (
-          <Link key={s.code} href={hrefFor(s.code)} onClick={onSelect}
-            data-testid={`set-row-${s.code}`} data-active={active}
-            className={cn(
-              'rounded-lg px-3 py-2 transition-colors',
-              // Active: soft indigo wash + a 3px gold left rail (inset shadow so
-              // it follows the radius and doesn't shift the row). Inactive: hover.
-              active
-                ? 'bg-gradient-to-r from-(--hover-bg) to-transparent shadow-[inset_3px_0_0_var(--color-primary)]'
-                : 'hover:bg-(--hover-bg)',
-            )}>
+          <SidebarNavLink key={s.code} href={hrefFor(s.code)} active={active}
+            onSelect={onSelect} testId={`set-row-${s.code}`}>
             <div className="flex items-center gap-2">
               <span className="flex h-4 w-8 shrink-0 items-center justify-center text-primary-ink">
                 {s.symbolVersion != null && IMAGE_BASE
@@ -49,7 +41,7 @@ export function CollectionSidebar({
               </span>
             </div>
             <Progress value={pct} className="mt-1.5 h-1" />
-          </Link>
+          </SidebarNavLink>
         )
       })}
     </nav>

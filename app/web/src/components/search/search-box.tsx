@@ -26,6 +26,7 @@ export function SearchBox({ placeholder, className }: { placeholder: string; cla
       placeholder={placeholder}
       className={className}
       onChange={(e) => onChange(e.target.value)}
+      onClear={() => onChange('')}
     />
   )
 }

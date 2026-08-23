@@ -174,6 +174,7 @@ export function DeckCardBrowser({
           primary
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onClear={() => setQuery('')}
           placeholder={t('browse.searchPlaceholder', { format: t(`format.${format}`) })}
         />
         <div className="flex flex-wrap items-center gap-1.5">

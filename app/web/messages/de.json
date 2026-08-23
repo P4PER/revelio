@@ -54,6 +54,7 @@
   "search": {
     "title": "Suche",
     "placeholder": "Karten suchen…",
+    "clear": "Suche löschen",
     "results": "{count} Karten"
   },
   "card": {

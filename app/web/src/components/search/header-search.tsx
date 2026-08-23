@@ -5,7 +5,13 @@ import { useSearchParams } from 'next/navigation'
 import { withParams } from '@/lib/search-params'
 import { HEADER_SEARCH_CLASS, HeaderSearchField } from '@/components/search/header-search-field'
 
-export function HeaderSearch({ placeholder }: { placeholder: string }) {
+export function HeaderSearch({
+  placeholder,
+  clearLabel,
+}: {
+  placeholder: string
+  clearLabel: string
+}) {
   const pathname = usePathname()
   const router = useRouter()
   const params = useSearchParams()
@@ -14,6 +20,7 @@ export function HeaderSearch({ placeholder }: { placeholder: string }) {
   const [q, setQ] = useState(onSearchPage ? urlQ : '')
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const internal = useRef(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // Sync the field to the URL query whenever the route/query changes. Only the
   // search page's `q` belongs in this box; other pages (e.g. /decks browse) also
@@ -39,6 +46,13 @@ export function HeaderSearch({ placeholder }: { placeholder: string }) {
     }
   }
 
+  // Clearing goes through onChange so the search page reacts exactly as it does
+  // to deleting the text by hand, then hands focus back for the next query.
+  function clear() {
+    onChange('')
+    inputRef.current?.focus()
+  }
+
   function onChange(value: string) {
     internal.current = true
     setQ(value)
@@ -56,7 +70,14 @@ export function HeaderSearch({ placeholder }: { placeholder: string }) {
       }}
       className={HEADER_SEARCH_CLASS}
     >
-      <HeaderSearchField placeholder={placeholder} value={q} onChange={onChange} />
+      <HeaderSearchField
+        placeholder={placeholder}
+        clearLabel={clearLabel}
+        value={q}
+        onChange={onChange}
+        onClear={clear}
+        inputRef={inputRef}
+      />
     </form>
   )
 }

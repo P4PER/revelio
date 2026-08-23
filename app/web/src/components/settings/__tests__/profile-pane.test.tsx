@@ -37,3 +37,11 @@ it('saves a changed username and toasts success', async () => {
   await waitFor(() => expect(m.updateUsername).toHaveBeenCalledWith('bob'))
   await waitFor(() => expect(m.toastSuccess).toHaveBeenCalled())
 })
+
+it('describes the username input with the field hint, not a pane-level paragraph', () => {
+  renderPane()
+  const input = screen.getByLabelText(en.settings.profile.usernameLabel)
+  const hint = screen.getByText(en.settings.profile.usernameHint)
+  expect(input.getAttribute('aria-describedby')?.split(' ')).toContain(hint.id)
+  expect(screen.getByText(en.settings.profile.lead)).toBeInTheDocument()
+})

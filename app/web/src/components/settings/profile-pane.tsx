@@ -10,7 +10,7 @@ import { makeUsernameSchema } from '@/lib/schemas/settings'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
+import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import type { SettingsUser } from './types'
 
 export function ProfilePane({ user }: { user: SettingsUser }) {
@@ -53,13 +53,14 @@ export function ProfilePane({ user }: { user: SettingsUser }) {
   return (
     <section aria-labelledby="s-profile" className="rounded-xl border border-border bg-card p-5">
       <h2 id="s-profile" className="text-lg font-semibold">{t('title')}</h2>
-      <p className="mt-1 mb-5 text-sm text-muted-foreground">{t('hint')}</p>
+      <p className="mt-1 mb-5 text-sm text-muted-foreground">{t('lead')}</p>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-sm space-y-4">
           <FormField control={form.control} name="username" render={({ field }) => (
             <FormItem>
               <Label htmlFor="username">{t('usernameLabel')}</Label>
+              <FormDescription>{t('usernameHint')}</FormDescription>
               <FormControl><Input id="username" autoComplete="off" {...field} /></FormControl>
               {checking && <p className="text-xs text-muted-foreground">{t('checking')}</p>}
               <FormMessage />

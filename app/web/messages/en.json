@@ -678,8 +678,9 @@
     },
     "profile": {
       "title": "Profile",
-      "hint": "Your username is your public name, shown on the decks you publish. It must be unique.",
+      "lead": "Manage how you appear to other players.",
       "usernameLabel": "Username",
+      "usernameHint": "Your public name, shown on the decks you publish. Must be unique.",
       "checking": "Checking availability…",
       "available": "Available",
       "taken": "That username is taken. Please choose another.",

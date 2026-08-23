@@ -57,3 +57,12 @@ it('previews the public identity live and hides it when the field is empty', asy
   await userEvent.type(input, 'bob')
   expect(screen.getByText(/@bob on your decks/)).toHaveTextContent('/collection/bob')
 })
+
+it('percent-encodes the preview URL, since nothing constrains the username charset', async () => {
+  renderPane()
+  const input = screen.getByLabelText(en.settings.profile.usernameLabel)
+  await userEvent.clear(input)
+  await userEvent.type(input, 'a/b c')
+  const preview = screen.getByText(/@a\/b c on your decks/)
+  expect(preview).toHaveTextContent('/collection/a%2Fb%20c')
+})

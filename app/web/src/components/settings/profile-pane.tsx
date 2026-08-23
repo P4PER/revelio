@@ -69,8 +69,11 @@ export function ProfilePane({ user }: { user: SettingsUser }) {
                 <Label htmlFor="username">{t('usernameLabel')}</Label>
                 <FormControl><Input id="username" autoComplete="off" {...field} /></FormControl>
                 {typed && (
-                  <FormDescription className="break-all">
-                    {t('usernamePreview', { name: typed, url: `${PUBLIC_HOST}/collection/${typed}` })}
+                  <FormDescription className="break-words">
+                    {t('usernamePreview', {
+                      name: typed,
+                      url: `${PUBLIC_HOST}/collection/${encodeURIComponent(typed)}`,
+                    })}
                   </FormDescription>
                 )}
                 {checking && <p className="text-xs text-muted-foreground">{t('checking')}</p>}

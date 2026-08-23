@@ -15,8 +15,8 @@ import {
 } from '@/components/ui/alert-dialog'
 import type { SettingsUser } from './types'
 
-export function DangerPane({ user }: { user: SettingsUser }) {
-  const t = useTranslations('settings.danger')
+export function DeleteAccountSection({ user }: { user: SettingsUser }) {
+  const t = useTranslations('settings.safety.delete')
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [code, setCode] = useState('')
@@ -63,8 +63,8 @@ export function DangerPane({ user }: { user: SettingsUser }) {
   }
 
   return (
-    <section aria-labelledby="s-danger" className="rounded-xl border border-destructive/40 bg-destructive/5 p-5">
-      <h2 id="s-danger" className="text-lg font-semibold text-destructive">{t('title')}</h2>
+    <section aria-labelledby="s-delete" className="rounded-xl border border-destructive/40 bg-destructive/5 p-5">
+      <h2 id="s-delete" className="text-lg font-semibold text-destructive">{t('title')}</h2>
       <p className="mt-1 text-sm text-muted-foreground">{t('hint')}</p>
       <ul className="my-4 list-disc pl-5 text-sm text-muted-foreground">
         <li>{t('item1')}</li>

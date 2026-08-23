@@ -214,7 +214,10 @@
       "users": "Users",
       "settings": "Settings"
     },
-    "settings": { "title": "Settings", "desc": "Operator, legal, and footer details." },
+    "settings": {
+      "title": "Settings",
+      "desc": "Operator, legal, and footer details."
+    },
     "subTypes": "Sub-types",
     "subTypesDesc": "Translate creature and character sub-types.",
     "code": "Code",
@@ -660,8 +663,7 @@
       "profile": "Profile",
       "appearance": "Appearance",
       "email": "Email",
-      "data": "Your data",
-      "danger": "Danger zone"
+      "safety": "Safety zone"
     },
     "appearance": {
       "title": "Appearance",
@@ -706,28 +708,30 @@
       "requestError": "Couldn’t send the code. Please try again.",
       "invalidCode": "That code isn’t right, or it expired. Try again."
     },
-    "data": {
-      "title": "Your data",
-      "hint": "Download everything Revelio holds about you as a single JSON file — your profile, decks, collection and likes.",
-      "export": "Export as JSON",
-      "exporting": "Preparing…",
-      "exportError": "Couldn’t prepare your export. Please try again."
-    },
-    "danger": {
-      "title": "Danger zone",
-      "hint": "Deleting your account is permanent. It also removes:",
-      "item1": "All your decks and their cards",
-      "item2": "Your collection and owned-card records",
-      "item3": "Your likes and views",
-      "deleteAction": "Delete account",
-      "dialogTitle": "Confirm account deletion",
-      "dialogBody": "We emailed a 6-digit code to {email}. Enter it to permanently delete your account.",
-      "codeLabel": "Confirmation code",
-      "sendError": "Couldn’t send the code. Please try again.",
-      "confirmDelete": "Delete forever",
-      "cancel": "Cancel",
-      "deleted": "Your account has been deleted.",
-      "invalidCode": "That code isn’t right, or it expired. Try again."
+    "safety": {
+      "export": {
+        "title": "Your data",
+        "hint": "Download everything Revelio holds about you as a single JSON file — your profile, decks, collection and likes.",
+        "export": "Export as JSON",
+        "exporting": "Preparing…",
+        "exportError": "Couldn’t prepare your export. Please try again."
+      },
+      "delete": {
+        "title": "Delete account",
+        "hint": "Deleting your account is permanent. It also removes:",
+        "item1": "All your decks and their cards",
+        "item2": "Your collection and owned-card records",
+        "item3": "Your likes and views",
+        "deleteAction": "Delete account",
+        "dialogTitle": "Confirm account deletion",
+        "dialogBody": "We emailed a 6-digit code to {email}. Enter it to permanently delete your account.",
+        "codeLabel": "Confirmation code",
+        "sendError": "Couldn’t send the code. Please try again.",
+        "confirmDelete": "Delete forever",
+        "cancel": "Cancel",
+        "deleted": "Your account has been deleted.",
+        "invalidCode": "That code isn’t right, or it expired. Try again."
+      }
     }
   },
   "about": {

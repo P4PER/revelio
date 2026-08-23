@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import type { SettingsSection } from './types'
 
 // Every settings route requires a signed-in user
-const SECTIONS: SettingsSection[] = ['profile', 'appearance', 'email', 'data', 'danger']
+const SECTIONS: SettingsSection[] = ['profile', 'appearance', 'email', 'safety']
 
 function NavList({ onSelect }: { onSelect?: () => void }) {
   const t = useTranslations('settings.nav')
@@ -16,7 +16,6 @@ function NavList({ onSelect }: { onSelect?: () => void }) {
     <nav className="flex flex-col gap-1">
       {SECTIONS.map((s) => {
         const on = s === active
-        const danger = s === 'danger'
         return (
           <Link
             key={s}
@@ -27,13 +26,8 @@ function NavList({ onSelect }: { onSelect?: () => void }) {
             className={cn(
               'rounded-lg px-3 py-2 text-sm transition-colors',
               on
-                ? cn(
-                    'font-semibold text-foreground',
-                    danger
-                      ? 'bg-gradient-to-r from-destructive/20 to-destructive/5 shadow-[inset_3px_0_0_var(--color-destructive)]'
-                      : 'bg-gradient-to-r from-(--hover-bg) to-transparent shadow-[inset_3px_0_0_var(--color-primary)]',
-                  )
-                : cn('font-medium hover:bg-(--hover-bg)', danger && 'text-destructive'),
+                ? 'bg-gradient-to-r from-(--hover-bg) to-transparent font-semibold text-foreground shadow-[inset_3px_0_0_var(--color-primary)]'
+                : 'font-medium hover:bg-(--hover-bg)',
             )}
           >
             {t(s)}

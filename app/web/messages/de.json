@@ -214,7 +214,10 @@
       "users": "Benutzer",
       "settings": "Einstellungen"
     },
-    "settings": { "title": "Einstellungen", "desc": "Betreiber-, Rechts- und Footer-Angaben." },
+    "settings": {
+      "title": "Einstellungen",
+      "desc": "Betreiber-, Rechts- und Footer-Angaben."
+    },
     "subTypes": "Unterarten",
     "subTypesDesc": "Kreatur- und Charakter-Unterarten übersetzen.",
     "code": "Code",
@@ -623,15 +626,14 @@
       "profile": "Profil",
       "appearance": "Darstellung",
       "email": "E-Mail",
-      "data": "Deine Daten",
-      "danger": "Gefahrenzone"
+      "safety": "Sicherheitsbereich"
     },
     "appearance": {
       "title": "Darstellung",
-      "lead": "Lege fest, wie Revelio auf diesem Ger\u00e4t aussieht. Diese Einstellung wird im Browser gespeichert, nicht in deinem Konto.",
+      "lead": "Lege fest, wie Revelio auf diesem Gerät aussieht. Diese Einstellung wird im Browser gespeichert, nicht in deinem Konto.",
       "legend": "Design",
       "system": "System",
-      "systemHint": "Ger\u00e4teeinstellung folgen",
+      "systemHint": "Geräteeinstellung folgen",
       "light": "Hell",
       "lightHint": "Warmes Pergament",
       "dark": "Dunkel",
@@ -669,28 +671,30 @@
       "requestError": "Code konnte nicht gesendet werden. Bitte versuche es erneut.",
       "invalidCode": "Dieser Code ist falsch oder abgelaufen. Bitte versuche es erneut."
     },
-    "data": {
-      "title": "Deine Daten",
-      "hint": "Lade alles, was Revelio über dich speichert, als einzelne JSON-Datei herunter — dein Profil, Decks, Sammlung und Likes.",
-      "export": "Als JSON exportieren",
-      "exporting": "Wird vorbereitet…",
-      "exportError": "Export konnte nicht vorbereitet werden. Bitte versuche es erneut."
-    },
-    "danger": {
-      "title": "Gefahrenzone",
-      "hint": "Das Löschen deines Kontos ist endgültig. Ebenfalls entfernt werden:",
-      "item1": "Alle deine Decks und ihre Karten",
-      "item2": "Deine Sammlung und deine Karteneinträge",
-      "item3": "Deine Likes und Aufrufe",
-      "deleteAction": "Konto löschen",
-      "dialogTitle": "Kontolöschung bestätigen",
-      "dialogBody": "Wir haben einen 6-stelligen Code an {email} gesendet. Gib ihn ein, um dein Konto endgültig zu löschen.",
-      "codeLabel": "Bestätigungscode",
-      "sendError": "Code konnte nicht gesendet werden. Bitte versuche es erneut.",
-      "confirmDelete": "Endgültig löschen",
-      "cancel": "Abbrechen",
-      "deleted": "Dein Konto wurde gelöscht.",
-      "invalidCode": "Dieser Code ist falsch oder abgelaufen. Bitte versuche es erneut."
+    "safety": {
+      "export": {
+        "title": "Deine Daten",
+        "hint": "Lade alles, was Revelio über dich speichert, als einzelne JSON-Datei herunter — dein Profil, Decks, Sammlung und Likes.",
+        "export": "Als JSON exportieren",
+        "exporting": "Wird vorbereitet…",
+        "exportError": "Export konnte nicht vorbereitet werden. Bitte versuche es erneut."
+      },
+      "delete": {
+        "title": "Konto löschen",
+        "hint": "Das Löschen deines Kontos ist endgültig. Ebenfalls entfernt werden:",
+        "item1": "Alle deine Decks und ihre Karten",
+        "item2": "Deine Sammlung und deine Karteneinträge",
+        "item3": "Deine Likes und Aufrufe",
+        "deleteAction": "Konto löschen",
+        "dialogTitle": "Kontolöschung bestätigen",
+        "dialogBody": "Wir haben einen 6-stelligen Code an {email} gesendet. Gib ihn ein, um dein Konto endgültig zu löschen.",
+        "codeLabel": "Bestätigungscode",
+        "sendError": "Code konnte nicht gesendet werden. Bitte versuche es erneut.",
+        "confirmDelete": "Endgültig löschen",
+        "cancel": "Abbrechen",
+        "deleted": "Dein Konto wurde gelöscht.",
+        "invalidCode": "Dieser Code ist falsch oder abgelaufen. Bitte versuche es erneut."
+      }
     }
   },
   "about": {

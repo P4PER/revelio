@@ -6,8 +6,8 @@ import { exportMyData } from '@/lib/actions/settings-actions'
 import { Button } from '@/components/ui/button'
 import type { SettingsUser } from './types'
 
-export function DataPane({ user }: { user: SettingsUser }) {
-  const t = useTranslations('settings.data')
+export function ExportDataSection({ user }: { user: SettingsUser }) {
+  const t = useTranslations('settings.safety.export')
   const [pending, start] = useTransition()
 
   function onExport() {
@@ -34,8 +34,8 @@ export function DataPane({ user }: { user: SettingsUser }) {
   }
 
   return (
-    <section aria-labelledby="s-data" className="rounded-xl border border-border bg-card p-5">
-      <h2 id="s-data" className="text-lg font-semibold">{t('title')}</h2>
+    <section aria-labelledby="s-export" className="rounded-xl border border-border bg-card p-5">
+      <h2 id="s-export" className="text-lg font-semibold">{t('title')}</h2>
       <p className="mt-1 mb-5 text-sm text-muted-foreground">{t('hint')}</p>
       <Button type="button" size="sm" onClick={onExport} disabled={pending}>{pending ? t('exporting') : t('export')}</Button>
     </section>

@@ -18,11 +18,11 @@ vi.mock('@/lib/auth-client', () => ({ signOut: m.signOut }))
 vi.mock('@/../i18n/navigation', () => ({ useRouter: () => ({ push: m.push, refresh: m.refresh }) }))
 vi.mock('sonner', () => ({ toast: { success: m.toastSuccess, error: m.toastError } }))
 
-import { DangerPane } from '../danger-pane'
+import { DeleteAccountSection } from '../delete-account-section'
 
 const user = { id: 'u1', username: 'alice', displayUsername: 'alice', email: 'alice@owl.post', role: 'user', createdAt: '2026-01-01T00:00:00.000Z' }
-const renderPane = () => render(
-  <NextIntlClientProvider locale="en" messages={en}><DangerPane user={user} /></NextIntlClientProvider>,
+const renderSection = () => render(
+  <NextIntlClientProvider locale="en" messages={en}><DeleteAccountSection user={user} /></NextIntlClientProvider>,
 )
 
 beforeEach(() => {
@@ -31,8 +31,8 @@ beforeEach(() => {
 })
 
 it('requests a deletion code when the dialog opens', async () => {
-  renderPane()
-  await userEvent.click(screen.getByRole('button', { name: en.settings.danger.deleteAction }))
+  renderSection()
+  await userEvent.click(screen.getByRole('button', { name: en.settings.safety.delete.deleteAction }))
   await waitFor(() => expect(m.requestAccountDeletion).toHaveBeenCalled())
-  expect(await screen.findByText(en.settings.danger.dialogTitle)).toBeInTheDocument()
+  expect(await screen.findByText(en.settings.safety.delete.dialogTitle)).toBeInTheDocument()
 })

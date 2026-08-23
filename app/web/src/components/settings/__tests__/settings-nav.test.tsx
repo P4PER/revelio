@@ -24,7 +24,7 @@ function renderNav() {
 it('links each section to its own route', () => {
   renderNav()
   expect(screen.getByRole('link', { name: en.settings.nav.profile })).toHaveAttribute('href', '/settings/profile')
-  expect(screen.getByRole('link', { name: en.settings.nav.danger })).toHaveAttribute('href', '/settings/danger')
+  expect(screen.getByRole('link', { name: en.settings.nav.safety })).toHaveAttribute('href', '/settings/safety')
 })
 
 it('marks the current section active from the pathname', () => {
@@ -36,7 +36,7 @@ it('marks the current section active from the pathname', () => {
 // Every route behind /settings requires a session, so the nav has no guest variant.
 it('lists every settings section', () => {
   renderNav()
-  for (const s of ['profile', 'appearance', 'email', 'data', 'danger'] as const) {
+  for (const s of ['profile', 'appearance', 'email', 'safety'] as const) {
     expect(screen.getByRole('link', { name: en.settings.nav[s] })).toHaveAttribute('href', `/settings/${s}`)
   }
 })

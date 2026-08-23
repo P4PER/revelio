@@ -12,11 +12,11 @@ const m = vi.hoisted(() => ({
 vi.mock('@/lib/actions/settings-actions', () => ({ exportMyData: m.exportMyData }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: m.toastError } }))
 
-import { DataPane } from '../data-pane'
+import { ExportDataSection } from '../export-data-section'
 
 const user = { id: 'u1', username: 'alice', displayUsername: 'alice', email: 'alice@owl.post', role: 'user', createdAt: '2026-01-01T00:00:00.000Z' }
-const renderPane = () => render(
-  <NextIntlClientProvider locale="en" messages={en}><DataPane user={user} /></NextIntlClientProvider>,
+const renderSection = () => render(
+  <NextIntlClientProvider locale="en" messages={en}><ExportDataSection user={user} /></NextIntlClientProvider>,
 )
 
 beforeEach(() => {
@@ -27,14 +27,14 @@ beforeEach(() => {
 })
 
 it('calls exportMyData when the button is clicked', async () => {
-  renderPane()
-  await userEvent.click(screen.getByRole('button', { name: en.settings.data.export }))
+  renderSection()
+  await userEvent.click(screen.getByRole('button', { name: en.settings.safety.export.export }))
   await waitFor(() => expect(m.exportMyData).toHaveBeenCalled())
 })
 
 it('toasts an error when export fails', async () => {
   m.exportMyData.mockResolvedValueOnce({ ok: false, error: 'failed' })
-  renderPane()
-  await userEvent.click(screen.getByRole('button', { name: en.settings.data.export }))
+  renderSection()
+  await userEvent.click(screen.getByRole('button', { name: en.settings.safety.export.export }))
   await waitFor(() => expect(m.toastError).toHaveBeenCalled())
 })

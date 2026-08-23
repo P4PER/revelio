@@ -52,7 +52,7 @@ describe('light-mode sweep', () => {
     return found
   }
 
-  it.each(['contact-form.tsx', 'error-card-state.tsx'])(
+  it.each(['legal/contact-form.tsx', 'error-card-state.tsx'])(
     '%s has no hardcoded chromatic colours',
     async (file) => {
       expect(chromaticLiterals(await read(file))).toEqual([])

@@ -8,7 +8,7 @@ vi.mock('@/lib/actions/contact-actions', () => ({
   sendContactMessage: (...a: unknown[]) => sendContactMessage(...a),
 }))
 
-import { ContactForm } from '@/components/contact-form'
+import { ContactForm } from '@/components/legal/contact-form'
 import en from '@/../messages/en.json'
 
 function renderForm() {

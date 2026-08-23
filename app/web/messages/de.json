@@ -643,7 +643,7 @@
       "title": "Profil",
       "lead": "Verwalte, wie du für andere Spieler erscheinst.",
       "usernameLabel": "Benutzername",
-      "usernameHint": "Dein öffentlicher Name, der auf den von dir veröffentlichten Decks erscheint. Muss eindeutig sein.",
+      "usernamePreview": "Erscheint als @{name} auf deinen Decks und unter {url}",
       "checking": "Verfügbarkeit wird geprüft…",
       "available": "Verfügbar",
       "taken": "Dieser Benutzername ist vergeben. Bitte wähle einen anderen.",

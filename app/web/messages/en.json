@@ -680,7 +680,7 @@
       "title": "Profile",
       "lead": "Manage how you appear to other players.",
       "usernameLabel": "Username",
-      "usernameHint": "Your public name, shown on the decks you publish. Must be unique.",
+      "usernamePreview": "Shown as @{name} on your decks, and at {url}",
       "checking": "Checking availability…",
       "available": "Available",
       "taken": "That username is taken. Please choose another.",

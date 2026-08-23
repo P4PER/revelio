@@ -38,10 +38,22 @@ it('saves a changed username and toasts success', async () => {
   await waitFor(() => expect(m.toastSuccess).toHaveBeenCalled())
 })
 
-it('describes the username input with the field hint, not a pane-level paragraph', () => {
+it('describes the username input with the preview, and keeps a generic pane lead', () => {
   renderPane()
   const input = screen.getByLabelText(en.settings.profile.usernameLabel)
-  const hint = screen.getByText(en.settings.profile.usernameHint)
-  expect(input.getAttribute('aria-describedby')?.split(' ')).toContain(hint.id)
+  const preview = screen.getByText(/@alice on your decks/)
+  expect(input.getAttribute('aria-describedby')?.split(' ')).toContain(preview.id)
   expect(screen.getByText(en.settings.profile.lead)).toBeInTheDocument()
+})
+
+it('previews the public identity live and hides it when the field is empty', async () => {
+  renderPane()
+  const input = screen.getByLabelText(en.settings.profile.usernameLabel)
+  expect(screen.getByText(/@alice on your decks/)).toHaveTextContent('/collection/alice')
+
+  await userEvent.clear(input)
+  expect(screen.queryByText(/on your decks/)).toBeNull()
+
+  await userEvent.type(input, 'bob')
+  expect(screen.getByText(/@bob on your decks/)).toHaveTextContent('/collection/bob')
 })

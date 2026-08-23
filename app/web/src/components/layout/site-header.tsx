@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { getTranslations } from 'next-intl/server'
 import { HeaderSearch } from '@/components/search/header-search'
+import { HeaderSearchFallback } from '@/components/search/header-search-field'
 import { Link } from '@/../i18n/navigation'
 import { BRAND_NAME } from '@/lib/brand'
 import { Layers, Library } from 'lucide-react'
@@ -30,7 +31,7 @@ export async function SiteHeader() {
     <header className="border-b border-border/60">
       <div className="mx-auto flex max-w-[76rem] items-center gap-4 px-6 py-2">
         <Link href="/" aria-label={`${BRAND_NAME} home`} className="shrink-0"><HeaderBrandMark /></Link>
-        <Suspense fallback={<div className="w-full min-w-0 max-w-md" />}>
+        <Suspense fallback={<HeaderSearchFallback placeholder={ts('placeholder')} />}>
           <HeaderSearch placeholder={ts('placeholder')} />
         </Suspense>
         {/* Inline nav at >=1024px; collapses into a drawer below that. */}

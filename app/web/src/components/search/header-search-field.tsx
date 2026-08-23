@@ -34,7 +34,11 @@ export function HeaderSearchField({
         type="search"
         aria-label={placeholder}
         placeholder={placeholder}
-        data-search-hotkey
+        // Only the live field answers the "/" hotkey. SearchHotkey focuses
+        // whatever carries this attribute and swallows the key once focus
+        // lands, so pointing it at the inert stand-in would eat a "/" and then
+        // drop the focus when the real field streams in.
+        data-search-hotkey={onChange ? true : undefined}
         {...(onChange
           ? {
               value: value ?? '',

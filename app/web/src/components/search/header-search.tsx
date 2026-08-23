@@ -54,9 +54,12 @@ export function HeaderSearch({
   }
 
   function onChange(value: string) {
-    internal.current = true
     setQ(value)
+    // Only arm the skip when a URL change of ours is coming. Off the search page
+    // nothing navigates, so arming it here would leave the flag set and swallow
+    // the next genuine sync - landing on /search?q=... with an empty box.
     if (!onSearchPage) return
+    internal.current = true
     if (timer.current) clearTimeout(timer.current)
     timer.current = setTimeout(() => submit(value), 300)
   }

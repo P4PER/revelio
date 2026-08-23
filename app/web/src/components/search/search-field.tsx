@@ -13,13 +13,15 @@ import { cn } from '@/lib/utils'
 // ⌘K target for the page (see SearchHotkey). Pass `onClear` to offer a reset
 // button in the slot the kbd hint vacates once there is text - the caller owns
 // it because only the caller knows what else has to change (a URL param, a
-// filter model) when the query goes away.
+// filter model) when the query goes away. The ref is not forwarded: this
+// component needs its own to reset uncontrolled callers.
 export function SearchField({
   className,
   primary = false,
+  placeholder,
   onClear,
   ...props
-}: Omit<React.ComponentProps<typeof Input>, 'size'> & {
+}: Omit<React.ComponentProps<typeof Input>, 'size' | 'ref'> & {
   primary?: boolean
   onClear?: () => void
 }) {
@@ -49,11 +51,12 @@ export function SearchField({
         type="search"
         size="sm"
         data-search-primary={primary || undefined}
+        placeholder={placeholder}
         className="peer w-full pr-11 pl-9 [&::-webkit-search-cancel-button]:hidden sm:pr-14"
         {...props}
       />
       <KbdHint className="absolute top-1/2 right-2 -translate-y-1/2" />
-      {onClear && (
+      {onClear && placeholder && (
         <SearchClearButton
           label={t('clear')}
           onClear={clear}

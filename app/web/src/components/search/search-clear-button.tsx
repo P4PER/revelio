@@ -10,6 +10,10 @@ import { cn } from '@/lib/utils'
 // rather than React state, which keeps this component hook-free so the
 // server-rendered header stand-in can render it too. Callers own the
 // positioning; the display toggle lives here.
+//
+// That makes a placeholder on the peer input part of the contract: an input
+// without one never matches :placeholder-shown, so this button would sit there
+// permanently, visible over an empty field.
 export function SearchClearButton({
   label,
   onClear,

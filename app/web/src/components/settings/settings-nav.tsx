@@ -1,12 +1,20 @@
 'use client'
 import { useTranslations } from 'next-intl'
-import { Link, usePathname } from '@/../i18n/navigation'
+import { usePathname } from '@/../i18n/navigation'
+import { User, Palette, Mail, ShieldCheck, type LucideIcon } from 'lucide-react'
 import { ResponsiveSidebar } from '@/components/responsive-sidebar'
-import { cn } from '@/lib/utils'
+import { SidebarNavLink } from '@/components/sidebar-nav-link'
 import type { SettingsSection } from './types'
 
 // Every settings route requires a signed-in user
 const SECTIONS: SettingsSection[] = ['profile', 'appearance', 'email', 'safety']
+
+const ICONS: Record<SettingsSection, LucideIcon> = {
+  profile: User,
+  appearance: Palette,
+  email: Mail,
+  safety: ShieldCheck,
+}
 
 function NavList({ onSelect }: { onSelect?: () => void }) {
   const t = useTranslations('settings.nav')
@@ -14,26 +22,17 @@ function NavList({ onSelect }: { onSelect?: () => void }) {
   const active = SECTIONS.find((s) => pathname === `/settings/${s}`) ?? SECTIONS[0]
   return (
     <nav className="flex flex-col gap-1">
-      {SECTIONS.map((s) => {
-        const on = s === active
-        return (
-          <Link
-            key={s}
-            href={`/settings/${s}`}
-            onClick={onSelect}
-            data-active={on}
-            aria-current={on ? 'page' : undefined}
-            className={cn(
-              'rounded-lg px-3 py-2 text-sm transition-colors',
-              on
-                ? 'bg-gradient-to-r from-(--hover-bg) to-transparent font-semibold text-foreground shadow-[inset_3px_0_0_var(--color-primary)]'
-                : 'font-medium hover:bg-(--hover-bg)',
-            )}
-          >
-            {t(s)}
-          </Link>
-        )
-      })}
+      {SECTIONS.map((s) => (
+        <SidebarNavLink
+          key={s}
+          href={`/settings/${s}`}
+          active={s === active}
+          icon={ICONS[s]}
+          onSelect={onSelect}
+        >
+          {t(s)}
+        </SidebarNavLink>
+      ))}
     </nav>
   )
 }

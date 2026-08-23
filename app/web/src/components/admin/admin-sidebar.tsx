@@ -2,10 +2,10 @@
 
 import { useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { usePathname, Link } from '@/../i18n/navigation'
+import { usePathname } from '@/../i18n/navigation'
 import { Tags, Layers, Users, Settings, type LucideIcon } from 'lucide-react'
 import { ResponsiveSidebar } from '@/components/responsive-sidebar'
-import { cn } from '@/lib/utils'
+import { SidebarNavLink } from '@/components/sidebar-nav-link'
 import {
   ADMIN_SECTION_COOKIE,
   activeSectionHref,
@@ -32,27 +32,17 @@ function NavList({
   const t = useTranslations('admin.nav')
   return (
     <nav className="flex flex-col gap-1">
-      {visibleSections(isAdmin).map((s) => {
-        const Icon = ICONS[s.id]
-        const active = s.href === activeHref
-        return (
-          <Link
-            key={s.id}
-            href={s.href}
-            onClick={onNavigate}
-            aria-current={active ? 'page' : undefined}
-            className={cn(
-              'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors',
-              active
-                ? 'bg-primary/15 font-medium text-primary-ink'
-                : 'text-foreground/80 hover:bg-muted/60 hover:text-foreground',
-            )}
-          >
-            <Icon className="size-4 shrink-0 opacity-80" aria-hidden />
-            {t(s.labelKey)}
-          </Link>
-        )
-      })}
+      {visibleSections(isAdmin).map((s) => (
+        <SidebarNavLink
+          key={s.id}
+          href={s.href}
+          active={s.href === activeHref}
+          icon={ICONS[s.id]}
+          onSelect={onNavigate}
+        >
+          {t(s.labelKey)}
+        </SidebarNavLink>
+      ))}
     </nav>
   )
 }

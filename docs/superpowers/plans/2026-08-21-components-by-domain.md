@@ -40,7 +40,12 @@
 | `components/admin/` | 9 | `admin-sets-table`, `admin-sidebar`, `admin-users-table`, `delete-set-button`, `delete-user-button`, `site-settings-form`, `subtype-translations-form`, `user-ban-form`, `user-role-form` |
 | `components/set/` | 4 | `set-card`, `set-form`, `set-symbol`, `set-symbol-uploader` |
 | `components/auth/` | 2 | `auth-card`, `auth-form` |
-| stays at `components/` root | 6 | `contact-form`, `date-picker`, `error-card-state`, `responsive-sidebar`, `signed-out-teaser`, `star-field` |
+| stays at `components/` root | 5 | `date-picker`, `error-card-state`, `responsive-sidebar`, `signed-out-teaser`, `star-field` |
+
+> Post-review amendment: `contact-form` was originally listed here, but a code review flagged
+> that it sat at the root while its sibling `contact-email` lived in `legal/`. It now sits in
+> `components/legal/` alongside `contact-email` and `prose-shell`, the folder that already owned
+> the contact/imprint/privacy content pages. The root is five files, not six.
 
 Placement rules worth stating, because several are not obvious from the filename:
 
@@ -57,9 +62,9 @@ Placement rules worth stating, because several are not obvious from the filename
   by deck and collection components; they are still card primitives, and `deck/` importing
   `@/components/card/card-image` states that dependency plainly. Same for `set-symbol`, which
   five components across four domains use.
-- **The six left at the root are genuinely domain-free** - a date picker, an error state, a
-  responsive sidebar shell, a signed-out teaser, a decorative star field and the contact form.
-  A folder for each would be six folders of one.
+- **The five left at the root are genuinely domain-free** - a date picker, an error state, a
+  responsive sidebar shell, a signed-out teaser and a decorative star field. A folder for each
+  would be five folders of one.
 
 **Tests move with their subjects.** All 68 files in `components/__tests__/` are named after
 their subject and follow it, with these exceptions:
@@ -78,6 +83,8 @@ their subject and follow it, with these exceptions:
 `src/components`, and it currently names `add-to-collection.tsx`, `contact-form.tsx`,
 `error-card-state.tsx`, `lesson-filter.tsx` and `quick-filters.tsx`. Three of those five move,
 so the strings must be updated in the task that moves them or the test fails with ENOENT.
+(The post-review `legal/` move makes it four of five: `contact-form.tsx` became
+`legal/contact-form.tsx`.)
 `theme.test.tsx` only reads `src/app/globals.css` and is unaffected.
 
 ---
@@ -323,18 +330,18 @@ git mv __tests__/appearance-form.test.tsx settings/__tests__/
 It already imports its subject as `@/components/settings/appearance-form`, so no rewrite is
 needed.
 
-- [ ] **Step 2: Confirm the root is down to the intended six components and two sweeps**
+- [ ] **Step 2: Confirm the root is down to the intended five components and two sweeps**
 
 ```bash
 cd /Users/timon.wegener/WebstormProjects/revelio/app/web/src/components
 ls -1 *.tsx *.ts && echo "---" && ls -1 __tests__/
 ```
 
-Expected: exactly `contact-form.tsx`, `date-picker.tsx`, `error-card-state.tsx`,
-`responsive-sidebar.tsx`, `signed-out-teaser.tsx`, `star-field.tsx`; and `__tests__/`
-containing exactly `contact-form.test.tsx`, `date-picker.test.tsx`,
-`error-card-state.test.tsx`, `signed-out-teaser.test.tsx`, `theme.test.tsx` and
-`theme-sweep.test.tsx`.
+Expected: exactly `date-picker.tsx`, `error-card-state.tsx`, `responsive-sidebar.tsx`,
+`signed-out-teaser.tsx`, `star-field.tsx`; and `__tests__/` containing exactly
+`date-picker.test.tsx`, `error-card-state.test.tsx`, `signed-out-teaser.test.tsx`,
+`theme.test.tsx` and `theme-sweep.test.tsx`. (`contact-form` and its test moved on to
+`legal/` after the post-review amendment above.)
 
 - [ ] **Step 3: Confirm no reference to a moved component's old path survives anywhere**
 

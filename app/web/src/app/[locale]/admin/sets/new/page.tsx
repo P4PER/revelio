@@ -2,7 +2,7 @@ import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { ChevronLeft } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import { routing } from '@/../i18n/routing'
-import { SetForm } from '@/components/set-form'
+import { SetForm } from '@/components/set/set-form'
 
 export const dynamic = 'force-dynamic'
 

@@ -66,6 +66,13 @@ Five npm workspaces under `app/`, with a strict dependency direction `core ← {
   there because `components.json` pins `aliases.utils` to `@/lib/utils`.
 - **Images**: per-language card images stored in S3/MinIO with lang-aware keys and fallback; `sharp` generates thumbnails. Public base URL is `NEXT_PUBLIC_IMAGE_BASE_URL` (build-time inlined).
 - **UI**: shadcn + Radix + Tailwind v4. Shared primitives in `src/components/ui/`.
+- **`src/components` is grouped by domain.** `card/`, `deck/`, `collection/`, `search/`,
+  `admin/`, `set/`, `auth/`, `layout/`, plus `settings/` and `legal/`. Cross-domain components
+  live in the domain that owns them, not in a shared folder - `deck/` importing
+  `@/components/card/card-image` is the intended shape. Only genuinely domain-free components
+  (`date-picker`, `error-card-state`, `responsive-sidebar`, ...) sit at the root. No barrel
+  files: import the leaf path. Each folder owns its `__tests__/` and, where two or more
+  siblings share a type, its `types.ts`.
 - `NEXT_PUBLIC_*` env vars are inlined at `next build` — they must be set at build time, not just at runtime.
 
 ## Migrations (read before touching the schema)

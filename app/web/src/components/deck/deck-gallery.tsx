@@ -1,0 +1,129 @@
+'use client'
+import { useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { imageUrl, thumbKey } from '@revelio/core'
+import type { DeckCardView } from '@revelio/core'
+import { CardRotate } from '@/components/card/card-rotate'
+import { CardDetailSheet } from '@/components/card/card-detail-sheet'
+import { CardInfoButton } from '@/components/card/card-info-button'
+import { groupColor, groupLabel, groupMainEntries } from '@/lib/deck-groups'
+import { MAIN_TARGET } from '@/lib/deck-legality'
+
+function GalleryTile({
+  entry,
+  imageBase,
+  onInfo,
+}: {
+  entry: DeckCardView
+  imageBase: string
+  onInfo: () => void
+}) {
+  const t = useTranslations('decks')
+  const [broken, setBroken] = useState(false)
+  return (
+    <div className="group relative aspect-[63/88] overflow-hidden rounded-lg border border-border bg-muted">
+      {broken || entry.imageVersion == null ? (
+        <div className="flex h-full items-center justify-center p-2 text-center text-xs text-muted-foreground">
+          {entry.name}
+        </div>
+      ) : (
+        <CardRotate
+          src={imageUrl(imageBase, thumbKey(entry.cardId, entry.imageVersion))}
+          alt={entry.name}
+          orientation={entry.orientation}
+          sizes="(max-width: 640px) 30vw, 160px"
+          onError={() => setBroken(true)}
+        />
+      )}
+      <span className="absolute right-1 bottom-1 rounded bg-black/75 px-1.5 py-0.5 text-xs font-bold text-white tabular-nums">
+        {entry.quantity}×
+      </span>
+      <CardInfoButton label={t('browse.infoAria', { name: entry.name })} onClick={onInfo} />
+    </div>
+  )
+}
+
+function Grid({
+  entries,
+  imageBase,
+  onInfo,
+}: {
+  entries: DeckCardView[]
+  imageBase: string
+  onInfo: (entry: DeckCardView) => void
+}) {
+  return (
+    <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
+      {entries.map((e) => (
+        <GalleryTile key={`${e.zone}-${e.cardId}`} entry={e} imageBase={imageBase} onInfo={() => onInfo(e)} />
+      ))}
+    </div>
+  )
+}
+
+export function DeckGallery({ entries, imageBase }: { entries: DeckCardView[]; imageBase: string }) {
+  const t = useTranslations('decks')
+  const [detail, setDetail] = useState<{ id: string; orientation?: string | null } | null>(null)
+  const showDetail = (entry: DeckCardView) => setDetail({ id: entry.cardId, orientation: entry.orientation })
+  const character = entries.filter((e) => e.zone === 'character')
+  const main = entries.filter((e) => e.zone === 'main')
+  const sideboard = entries.filter((e) => e.zone === 'sideboard')
+  const mainCount = main.reduce((n, e) => n + e.quantity, 0)
+  const sideCount = sideboard.reduce((n, e) => n + e.quantity, 0)
+  const mainGroups = groupMainEntries(main)
+
+  return (
+    <div className="space-y-4">
+      <section>
+        <h3 className="mb-2 text-xs font-semibold tracking-widest text-heading uppercase">{t('panel.character')}</h3>
+        {character.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t('panel.noCharacter')}</p>
+        ) : (
+          <Grid entries={character} imageBase={imageBase} onInfo={showDetail} />
+        )}
+      </section>
+      <section>
+        <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-widest text-heading uppercase">
+          <span>{t('panel.main')}</span>
+          <span className="ml-auto font-semibold text-foreground tabular-nums">{mainCount} / {MAIN_TARGET}</span>
+        </h3>
+        {main.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t('panel.emptyMain')}</p>
+        ) : (
+          <div className="space-y-4">
+            {[...mainGroups.entries()].map(([key, list]) => (
+              <div key={key}>
+                <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                  <span className="h-4 w-1 rounded-sm" style={{ backgroundColor: groupColor(key) }} aria-hidden />
+                  {groupLabel(key, t)}
+                  <span className="ml-auto text-xs font-medium text-muted-foreground">
+                    {list.reduce((n, e) => n + e.quantity, 0)}
+                  </span>
+                </div>
+                <Grid entries={list} imageBase={imageBase} onInfo={showDetail} />
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+      <section>
+        <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-widest text-heading uppercase">
+          <span>{t('panel.sideboard')}</span>
+          <span className="ml-auto font-semibold text-foreground tabular-nums">{sideCount} / 15</span>
+        </h3>
+        {sideboard.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t('panel.emptySideboard')}</p>
+        ) : (
+          <Grid entries={sideboard} imageBase={imageBase} onInfo={showDetail} />
+        )}
+      </section>
+
+      <CardDetailSheet
+        cardId={detail?.id ?? null}
+        orientation={detail?.orientation}
+        imageBase={imageBase}
+        onOpenChange={(open) => { if (!open) setDetail(null) }}
+      />
+    </div>
+  )
+}

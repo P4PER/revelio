@@ -14,10 +14,10 @@ export default defineConfig({
       // Node's resolution so it survives hoisting/dedupe changes.
       'next/navigation': require.resolve('next/navigation'),
       // server-only throws in non-Next.js environments (vitest/jsdom); stub it out.
-      'server-only': fileURLToPath(new URL('./test/empty.ts', import.meta.url)),
+      'server-only': fileURLToPath(new URL('./vitest-stubs/empty.ts', import.meta.url)),
       // next/font/google is an SWC build-time transform, not a runtime function;
       // stub it so components importing fonts can be tested.
-      'next/font/google': fileURLToPath(new URL('./test/next-font-google.ts', import.meta.url)),
+      'next/font/google': fileURLToPath(new URL('./vitest-stubs/next-font-google.ts', import.meta.url)),
     },
   },
   test: {

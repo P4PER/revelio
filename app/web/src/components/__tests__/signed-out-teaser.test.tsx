@@ -5,7 +5,7 @@ vi.mock('@/../i18n/navigation', () => ({
   Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,
 }))
 
-import { SignedOutTeaser } from '../signed-out-teaser'
+import { SignedOutTeaser } from '@/components/signed-out-teaser'
 
 function renderTeaser() {
   return render(

@@ -4,7 +4,7 @@ import { getDb } from '@/lib/server/db'
 import { getSession } from '@/lib/server/session'
 import { hasRequiredRole } from '@/lib/roles'
 import { listUsersForAdmin } from '@revelio/db'
-import { AdminUsersTable } from '@/components/admin-users-table'
+import { AdminUsersTable } from '@/components/admin/admin-users-table'
 
 export const dynamic = 'force-dynamic'
 

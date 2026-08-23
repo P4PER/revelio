@@ -4,7 +4,7 @@ import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { getSession } from '@/lib/server/session'
 import { hasRequiredRole } from '@/lib/roles'
 import { loadSiteSettings } from '@/lib/server/site-settings'
-import { SiteSettingsForm } from '@/components/site-settings-form'
+import { SiteSettingsForm } from '@/components/admin/site-settings-form'
 
 export const dynamic = 'force-dynamic'
 

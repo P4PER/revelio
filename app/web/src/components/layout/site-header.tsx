@@ -31,8 +31,10 @@ export async function SiteHeader() {
     <header className="border-b border-border/60">
       <div className="mx-auto flex max-w-[76rem] items-center gap-4 px-6 py-2">
         <Link href="/" aria-label={`${BRAND_NAME} home`} className="shrink-0"><HeaderBrandMark /></Link>
-        <Suspense fallback={<HeaderSearchFallback placeholder={ts('placeholder')} />}>
-          <HeaderSearch placeholder={ts('placeholder')} />
+        <Suspense
+          fallback={<HeaderSearchFallback placeholder={ts('placeholder')} clearLabel={ts('clear')} />}
+        >
+          <HeaderSearch placeholder={ts('placeholder')} clearLabel={ts('clear')} />
         </Suspense>
         {/* Inline nav at >=1024px; collapses into a drawer below that. */}
         <nav className="ml-auto hidden shrink-0 items-center gap-3 min-[1024px]:flex">

@@ -75,6 +75,7 @@ export function DeckBrowse({
         placeholder={t('explore.searchPlaceholder')}
         className="w-full"
         onChange={(e) => onSearchChange(e.target.value)}
+        onClear={() => onSearchChange('')}
       />
 
       {/* Lesson chips + format / clear — the narrowing filters, grouped below

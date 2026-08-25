@@ -8,6 +8,6 @@ describe('Pagination', () => {
     renderWithIntl(
       <Pagination page={1} total={105} hitsPerPage={24} current={new URLSearchParams()} />,
     )
-    expect(screen.getByRole('status')).toHaveTextContent('1–24 of 105 cards')
+    expect(screen.getByText('1–24 of 105 cards')).toBeInTheDocument()
   })
 })

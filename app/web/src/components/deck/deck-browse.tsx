@@ -114,7 +114,7 @@ export function DeckBrowse({
       {/* Header row: count + sort + view toggle. Sort lives here (with the
           results it orders), not in the filter row above. */}
       <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">{countText}</span>
+        <span className="text-sm text-muted-foreground" role="status">{countText}</span>
         <div className="flex items-center gap-2">
           <Select value={state.sort} onValueChange={(v) => push({ sort: v as PublicDeckSort })}>
             <SelectTrigger aria-label={t('explore.sort.label')} size="sm" className="w-auto min-w-36">

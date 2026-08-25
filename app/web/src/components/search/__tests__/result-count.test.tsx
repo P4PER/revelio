@@ -14,6 +14,11 @@ describe('ResultCount', () => {
     expect(screen.getByRole('status')).toHaveTextContent('1–24 of 14,181 cards')
   })
 
+  it('groups thousands on both sides of the range', () => {
+    renderWithIntl(<ResultCount page={500} pageSize={24} total={14181} />)
+    expect(screen.getByRole('status')).toHaveTextContent('11,977–12,000 of 14,181 cards')
+  })
+
   it('drops the range when everything fits on a single page', () => {
     renderWithIntl(<ResultCount page={1} pageSize={24} total={7} />)
     expect(screen.getByRole('status')).toHaveTextContent('7 cards')

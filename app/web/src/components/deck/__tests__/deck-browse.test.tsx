@@ -55,6 +55,9 @@ describe('DeckBrowse deck count', () => {
   it('names the decks on screen in both the header and the pager', () => {
     renderBrowse({ total: 105 })
     expect(screen.getAllByText('1–24 of 105 decks')).toHaveLength(2)
+    // exactly one of the two announces, the way the card lists do
+    expect(screen.getAllByRole('status')).toHaveLength(1)
+    expect(screen.getByRole('status')).toHaveTextContent('1–24 of 105 decks')
   })
 
   it('drops the range once every deck fits on one page', () => {

@@ -14,7 +14,9 @@ import { cn } from '@/lib/utils'
  * The range reads "Showing X–Y of Z" unless the caller passes `status`, which
  * card lists use to repeat their header verbatim ("X–Y of Z cards"). Callers
  * without a header of their own - the admin tables - keep the default, where
- * naming a record type would be wrong.
+ * naming a record type would be wrong, and keep the live region with it: a
+ * passed-in status already announces from the header it was rendered for, and
+ * repeating it here would read the same sentence out twice per page.
  *
  * Two modes, so it works from both server pages and client tables:
  * - link mode: pass `prevHref`/`nextHref` (server-safe — strings, no closures)
@@ -56,7 +58,7 @@ export function PaginationNav({
       className={cn('flex items-center justify-between gap-4 text-sm', className)}
       aria-label={t('label')}
     >
-      <span className="text-muted-foreground" role="status">
+      <span className="text-muted-foreground" role={status ? undefined : 'status'}>
         {status ?? t('pageStatus', { from, to, total })}
       </span>
       <div className="flex items-center gap-2">

@@ -10,6 +10,10 @@ describe('pageRange', () => {
     expect(pageRange(26, 24, 604)).toEqual({ from: 601, to: 604, lastPage: 26 })
   })
 
+  it('clamps a page past the end to the last one', () => {
+    expect(pageRange(999, 24, 604)).toEqual({ from: 601, to: 604, lastPage: 26 })
+  })
+
   it('reports a single page when everything fits on one', () => {
     expect(pageRange(1, 24, 7)).toEqual({ from: 1, to: 7, lastPage: 1 })
   })

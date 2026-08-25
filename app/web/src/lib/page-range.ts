@@ -5,12 +5,17 @@
  *
  * An empty result set is a single page holding records 0 to 0, which callers
  * read as "no range to show".
+ *
+ * A page past the end - ?page=999 on a 26-page search - reports the last page
+ * rather than an inverted range like 23953-604, since nothing upstream knows
+ * the page count early enough to clamp the URL.
  */
 export function pageRange(page: number, pageSize: number, total: number) {
   const lastPage = Math.max(1, Math.ceil(total / pageSize))
+  const clamped = Math.min(Math.max(page, 1), lastPage)
   return {
-    from: total === 0 ? 0 : (page - 1) * pageSize + 1,
-    to: Math.min(page * pageSize, total),
+    from: total === 0 ? 0 : (clamped - 1) * pageSize + 1,
+    to: Math.min(clamped * pageSize, total),
     lastPage,
   }
 }

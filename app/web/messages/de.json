@@ -56,7 +56,7 @@
     "placeholder": "Karten suchen…",
     "clear": "Suche löschen",
     "results": "{count, plural, one {# Karte} other {# Karten}}",
-    "resultRange": "{from}–{to} von {total, number} Karten"
+    "resultRange": "{from, number}–{to, number} von {total, number} Karten"
   },
   "card": {
     "number": "Nr. {number}",
@@ -323,7 +323,7 @@
       },
       "lessonsLabel": "Lektionen",
       "count": "{count, plural, one {# Deck} other {# Decks}}",
-      "countRange": "{from}–{to} von {total, number} Decks",
+      "countRange": "{from, number}–{to, number} von {total, number} Decks",
       "empty": "Keine Decks entsprechen deinen Filtern.",
       "prev": "Zurück",
       "next": "Weiter",
@@ -560,7 +560,7 @@
     "label": "Seitennavigation",
     "prev": "Zurück",
     "next": "Weiter",
-    "pageStatus": "Zeige {from}–{to} von {total, number}"
+    "pageStatus": "Zeige {from, number}–{to, number} von {total, number}"
   },
   "collection": {
     "title": "Meine Sammlung",

@@ -161,6 +161,7 @@ export function CollectionView({
           hitsPerPage={browsePageSize}
           current={new URLSearchParams(params.toString())}
           basePath={pathname}
+          announcedByHeader
         />
       </TabsContent>
     </Tabs>

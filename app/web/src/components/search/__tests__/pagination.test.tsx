@@ -10,4 +10,16 @@ describe('Pagination', () => {
     )
     expect(screen.getByText('1–24 of 105 cards')).toBeInTheDocument()
   })
+
+  it('announces the range itself unless the page says a header already does', () => {
+    const { rerender } = renderWithIntl(
+      <Pagination page={1} total={105} hitsPerPage={24} current={new URLSearchParams()} />,
+    )
+    expect(screen.getByRole('status')).toHaveTextContent('1–24 of 105 cards')
+
+    rerender(
+      <Pagination page={1} total={105} hitsPerPage={24} current={new URLSearchParams()} announcedByHeader />,
+    )
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
 })

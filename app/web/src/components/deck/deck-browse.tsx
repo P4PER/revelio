@@ -158,6 +158,7 @@ export function DeckBrowse({
         pageSize={pageSize}
         total={total}
         status={countText}
+        announcedByHeader
         className="pt-4"
         onPrev={() => push({ page: state.page - 1 })}
         onNext={() => push({ page: state.page + 1 })}

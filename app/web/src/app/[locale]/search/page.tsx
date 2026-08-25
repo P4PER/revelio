@@ -66,6 +66,7 @@ export default async function SearchPage({
         total={results.total}
         hitsPerPage={results.hitsPerPage}
         current={current}
+        announcedByHeader
       />
     </main>
   )

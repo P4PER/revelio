@@ -293,6 +293,7 @@ export function DeckCardBrowser({
       </div>
 
       <PaginationNav
+        status={resultCount}
         page={result.page}
         pageSize={result.hitsPerPage}
         total={result.total}

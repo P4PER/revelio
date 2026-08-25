@@ -6,22 +6,28 @@ import { pageRange } from '@/lib/page-range'
 import { cn } from '@/lib/utils'
 
 /**
- * The single pagination look for the whole app: a "Showing X–Y of Z" record
- * range on the left and Previous / Next buttons on the right. Buttons disable
+ * The single pagination look for the whole app: the record range on the left
+ * and Previous / Next buttons on the right. Buttons disable
  * (rather than disappear) at the first/last page so the controls stay put.
  * Renders nothing when everything fits on a single page.
+ *
+ * The range reads "Showing X–Y of Z" unless the caller passes `status`, which
+ * card lists use to repeat their header verbatim ("X–Y of Z cards"). Callers
+ * without a header of their own - the admin tables - keep the default, where
+ * naming a record type would be wrong.
  *
  * Two modes, so it works from both server pages and client tables:
  * - link mode: pass `prevHref`/`nextHref` (server-safe — strings, no closures)
  * - button mode: pass `onPrev`/`onNext` (client callers: tanstack tables, browse)
  */
 export function PaginationNav({
-  page, pageSize, total, className, prevHref, nextHref, onPrev, onNext,
+  page, pageSize, total, className, status, prevHref, nextHref, onPrev, onNext,
 }: {
   page: number
   pageSize: number
   total: number
   className?: string
+  status?: string
   prevHref?: string
   nextHref?: string
   onPrev?: () => void
@@ -51,7 +57,7 @@ export function PaginationNav({
       aria-label={t('label')}
     >
       <span className="text-muted-foreground" role="status">
-        {t('pageStatus', { from, to, total })}
+        {status ?? t('pageStatus', { from, to, total })}
       </span>
       <div className="flex items-center gap-2">
         {arrow(hasPrev, prevHref, onPrev, t('prev'))}

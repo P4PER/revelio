@@ -55,7 +55,7 @@
     "title": "Search",
     "placeholder": "Search cards…",
     "clear": "Clear search",
-    "results": "{count, number} cards",
+    "results": "{count, plural, one {# card} other {# cards}}",
     "resultRange": "{from}–{to} of {total, number} cards"
   },
   "card": {
@@ -76,7 +76,7 @@
   },
   "sets": {
     "title": "Sets",
-    "meta": "{count} cards · released {date}",
+    "meta": "{count, plural, one {# card} other {# cards}} · released {date}",
     "original": "Original",
     "fanMade": "Fan-made"
   },
@@ -322,7 +322,7 @@
         "revival": "Revival"
       },
       "lessonsLabel": "Lessons",
-      "count": "{count, number} decks",
+      "count": "{count, plural, one {# deck} other {# decks}}",
       "countRange": "{from}–{to} of {total, number} decks",
       "empty": "No decks match your filters.",
       "prev": "Previous",
@@ -367,9 +367,9 @@
       "viewLabel": "View",
       "viewList": "List",
       "viewGallery": "Gallery",
-      "cardCount": "{count} cards",
+      "cardCount": "{count, plural, one {# card} other {# cards}}",
       "updatedAt": "Updated {date}",
-      "views": "{count} views",
+      "views": "{count, plural, one {# view} other {# views}}",
       "viewAuthorDecks": "View decks by @{username}",
       "publishDialog": {
         "title": "Publish this deck?",
@@ -403,9 +403,9 @@
     "status": {
       "legal": "Tournament legal",
       "incomplete": "Incomplete",
-      "incompleteNeeds": "Incomplete · needs {count} more cards",
+      "incompleteNeeds": "Incomplete · needs {count, plural, one {# more card} other {# more cards}}",
       "needsCharacter": "Needs a starting character",
-      "tooMany": "{count} too many cards",
+      "tooMany": "{count, plural, one {# card too many} other {# cards too many}}",
       "illegal": "Illegal"
     },
     "seal": {
@@ -426,7 +426,7 @@
       "avgCost": "Avg. cost",
       "avgDamage": "Avg. damage",
       "damageSources": "Damage sources",
-      "lessonCards": "{count} lesson cards"
+      "lessonCards": "{count, plural, one {# lesson card} other {# lesson cards}}"
     },
     "panel": {
       "character": "Starting Character",
@@ -566,7 +566,7 @@
     "title": "My Collection",
     "owned": "{count} owned",
     "ofTotal": "{owned} / {total}",
-    "copies": "{count} copies",
+    "copies": "{count, plural, one {# copy} other {# copies}}",
     "distinct": "{owned} / {total} cards",
     "browseAll": "Browse all",
     "bySets": "By set",

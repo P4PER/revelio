@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { countMessage, pageRange } from '../page-range'
+import { countMessage, overflowPage, pageRange } from '../page-range'
 
 describe('pageRange', () => {
   it('numbers the records a middle page covers', () => {
@@ -20,6 +20,21 @@ describe('pageRange', () => {
 
   it('reports a single empty page for no results', () => {
     expect(pageRange(1, 24, 0)).toEqual({ from: 0, to: 0, lastPage: 1 })
+  })
+})
+
+describe('overflowPage', () => {
+  it('names the last page when the requested one is past the end', () => {
+    expect(overflowPage(999, 24, 604)).toBe(26)
+  })
+
+  it('sends a high page back to the first one when nothing matched', () => {
+    expect(overflowPage(5, 24, 0)).toBe(1)
+  })
+
+  it('leaves a page inside the results alone', () => {
+    expect(overflowPage(26, 24, 604)).toBeNull()
+    expect(overflowPage(1, 24, 7)).toBeNull()
   })
 })
 

@@ -5,7 +5,9 @@ import { getDb } from '@/lib/server/db'
 import { getSetByCode } from '@revelio/db'
 import { formatReleaseMonth } from '@/lib/set-sort'
 import { getSearchClient, runSearch } from '@/lib/server/search-client'
-import { parseSearchParams, toURLSearchParams } from '@/lib/search-params'
+import { pageQuery, parseSearchParams, toURLSearchParams } from '@/lib/search-params'
+import { overflowPage } from '@/lib/page-range'
+import { redirect } from '@/../i18n/navigation'
 import { CardGrid } from '@/components/card/card-grid'
 import { Pagination } from '@/components/search/pagination'
 
@@ -53,6 +55,9 @@ export default async function SetPage({
     costMax: null,
   }
   const results = await runSearch(getSearchClient(), locale, state)
+  // Same reasoning as /search: a page past the end lands on the last real one.
+  const overflow = overflowPage(state.page, results.hitsPerPage, results.total)
+  if (overflow) redirect({ href: `/sets/${code}?${pageQuery(current, overflow)}`, locale })
 
   return (
     <main className="mx-auto max-w-[76rem] px-6 py-8">

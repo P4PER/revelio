@@ -34,3 +34,15 @@ export function countMessage(
     ? { ranged: true, values: { from, to, total } }
     : { ranged: false, values: { count: total } }
 }
+
+/**
+ * The page a request should land on when it asked for one past the end, or null
+ * when the request was already in range. Callers redirect rather than render:
+ * the page count needs the total, so an out-of-range URL can only be caught
+ * after the query has run, and leaving it in place shows an empty grid under a
+ * range the reader cannot see.
+ */
+export function overflowPage(page: number, pageSize: number, total: number): number | null {
+  const { lastPage } = pageRange(page, pageSize, total)
+  return page > lastPage ? lastPage : null
+}

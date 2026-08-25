@@ -109,3 +109,12 @@ export function withParams(
   if (Object.keys(patch).some((k) => k !== 'page')) next.delete('page')
   return next
 }
+
+/**
+ * The current query string moved to another page. Page 1 carries no `page`
+ * param - withParams reads an empty value as a removal - so the first page
+ * keeps the canonical, param-free URL.
+ */
+export function pageQuery(current: URLSearchParams, page: number): string {
+  return withParams(current, { page: page > 1 ? String(page) : '' }).toString()
+}

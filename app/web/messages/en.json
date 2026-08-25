@@ -322,7 +322,8 @@
         "revival": "Revival"
       },
       "lessonsLabel": "Lessons",
-      "count": "{count} decks",
+      "count": "{count, number} decks",
+      "countRange": "{from}–{to} of {total, number} decks",
       "empty": "No decks match your filters.",
       "prev": "Previous",
       "next": "Next",

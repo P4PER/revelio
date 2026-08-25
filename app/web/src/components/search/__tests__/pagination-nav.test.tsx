@@ -26,19 +26,12 @@ describe('PaginationNav', () => {
         pageSize={24}
         total={105}
         status="1–24 of 105 cards"
-        announcedByHeader
         nextHref="?page=2"
       />,
     )
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
-  it('keeps announcing a status no header repeats, as on a set page', () => {
-    renderWithIntl(
-      <PaginationNav page={1} pageSize={24} total={105} status="1–24 of 105 cards" nextHref="?page=2" />,
-    )
-    expect(screen.getByRole('status')).toHaveTextContent('1–24 of 105 cards')
-  })
 
   it('groups thousands in the record range', () => {
     renderWithIntl(

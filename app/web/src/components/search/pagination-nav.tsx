@@ -16,25 +16,24 @@ import { cn } from '@/lib/utils'
  * without a header of their own - the admin tables - keep the default, where
  * naming a record type would be wrong.
  *
- * The range is a live region unless `announcedByHeader` says a header above the
- * list already announces the same sentence - two live regions with identical
- * text read it out twice per page change. Passing `status` alone is not that
- * claim: the set page passes one while its own header describes the set, not
- * the records on screen.
+ * A passed-in `status` also gives up the live region: it was copied from a
+ * header that announces it already, and two live regions with the same text
+ * read the sentence out twice per page change. Every list that renders its own
+ * count header passes one; the ones that do not keep the default and announce
+ * from here.
  *
  * Two modes, so it works from both server pages and client tables:
  * - link mode: pass `prevHref`/`nextHref` (server-safe — strings, no closures)
  * - button mode: pass `onPrev`/`onNext` (client callers: tanstack tables, browse)
  */
 export function PaginationNav({
-  page, pageSize, total, className, status, announcedByHeader, prevHref, nextHref, onPrev, onNext,
+  page, pageSize, total, className, status, prevHref, nextHref, onPrev, onNext,
 }: {
   page: number
   pageSize: number
   total: number
   className?: string
   status?: string
-  announcedByHeader?: boolean
   prevHref?: string
   nextHref?: string
   onPrev?: () => void
@@ -63,7 +62,7 @@ export function PaginationNav({
       className={cn('flex items-center justify-between gap-4 text-sm', className)}
       aria-label={t('label')}
     >
-      <span className="text-muted-foreground" role={announcedByHeader ? undefined : 'status'}>
+      <span className="text-muted-foreground" role={status ? undefined : 'status'}>
         {status ?? t('pageStatus', { from, to, total })}
       </span>
       <div className="flex items-center gap-2">

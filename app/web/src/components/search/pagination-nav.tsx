@@ -2,6 +2,7 @@
 import { useTranslations } from 'next-intl'
 import { Link } from '@/../i18n/navigation'
 import { Button } from '@/components/ui/button'
+import { pageRange } from '@/lib/page-range'
 import { cn } from '@/lib/utils'
 
 /**
@@ -27,11 +28,9 @@ export function PaginationNav({
   onNext?: () => void
 }) {
   const t = useTranslations('pagination')
-  const lastPage = Math.max(1, Math.ceil(total / pageSize))
+  const { from, to, lastPage } = pageRange(page, pageSize, total)
   if (lastPage <= 1) return null
 
-  const from = (page - 1) * pageSize + 1
-  const to = Math.min(page * pageSize, total)
   const hasPrev = page > 1
   const hasNext = page < lastPage
 

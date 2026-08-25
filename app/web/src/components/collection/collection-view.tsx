@@ -15,6 +15,7 @@ import { CollectionFilterDrawer } from '@/components/collection/collection-filte
 import { ClearFiltersButton } from '@/components/search/clear-filters-button'
 import { SearchBox } from '@/components/search/search-box'
 import { Pagination } from '@/components/search/pagination'
+import { ResultCount } from '@/components/search/result-count'
 import type { SetDTO, SetProgress, OwnedQuantities } from '@revelio/core'
 
 export function CollectionView({
@@ -36,7 +37,6 @@ export function CollectionView({
   stepperLayout?: StepperLayout
 }) {
   const t = useTranslations('collection')
-  const tSearch = useTranslations('search')
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -153,9 +153,7 @@ export function CollectionView({
             <CollectionFilterDrawer sets={sets} locale={locale} />
           </div>
         </div>
-        <p className="mb-4 text-sm text-muted-foreground" role="status">
-          {tSearch('results', { count: browseTotal })}
-        </p>
+        <ResultCount className="mb-4" page={browsePage} pageSize={browsePageSize} total={browseTotal} />
         {browseCards.length ? grid(browseCards) : <p className="text-muted-foreground">{t('empty')}</p>}
         <Pagination
           page={browsePage}

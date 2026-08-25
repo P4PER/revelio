@@ -1,0 +1,16 @@
+/**
+ * The record range one page of results covers, plus how many pages there are.
+ * Shared by the result-count header and the pagination bar so the two lines
+ * can never disagree about which records are on screen.
+ *
+ * An empty result set is a single page holding records 0 to 0, which callers
+ * read as "no range to show".
+ */
+export function pageRange(page: number, pageSize: number, total: number) {
+  const lastPage = Math.max(1, Math.ceil(total / pageSize))
+  return {
+    from: total === 0 ? 0 : (page - 1) * pageSize + 1,
+    to: Math.min(page * pageSize, total),
+    lastPage,
+  }
+}

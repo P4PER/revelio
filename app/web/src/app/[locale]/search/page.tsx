@@ -4,6 +4,7 @@ import { getSearchClient, runSearch } from '@/lib/server/search-client'
 import { parseSearchParams, toURLSearchParams } from '@/lib/search-params'
 import { CardGrid } from '@/components/card/card-grid'
 import { Pagination } from '@/components/search/pagination'
+import { ResultCount } from '@/components/search/result-count'
 import { SearchControls } from '@/components/search/search-controls'
 import { SortSelect } from '@/components/search/sort-select'
 import { getDb } from '@/lib/server/db'
@@ -38,7 +39,6 @@ export default async function SearchPage({
   const state = parseSearchParams(current)
   const results = await runSearch(getSearchClient(), locale, state)
   const sets = await listSets(getDb(), locale)
-  const t = await getTranslations('search')
 
   return (
     <main className="mx-auto max-w-[76rem] px-6 py-8">
@@ -46,9 +46,7 @@ export default async function SearchPage({
       {/* Results header: count on the left, Sort right-aligned above the grid
           (Sort orders results, so it lives here — not in the filter toolbar). */}
       <div className="mb-4 flex items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground" role="status">
-          {t('results', { count: results.total })}
-        </p>
+        <ResultCount page={results.page} pageSize={results.hitsPerPage} total={results.total} />
         <SortSelect />
       </div>
       <CardGrid

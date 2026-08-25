@@ -55,7 +55,8 @@
     "title": "Search",
     "placeholder": "Search cards…",
     "clear": "Clear search",
-    "results": "{count} cards"
+    "results": "{count, number} cards",
+    "resultRange": "{from}–{to} of {total, number} cards"
   },
   "card": {
     "number": "No. {number}",
@@ -452,7 +453,6 @@
     },
     "browse": {
       "searchPlaceholder": "Search {format} cards…",
-      "resultCount": "{count} cards",
       "noResults": "No cards found.",
       "loading": "Loading cards…",
       "add": "+ Add",
@@ -559,7 +559,7 @@
     "label": "Pagination",
     "prev": "Previous",
     "next": "Next",
-    "pageStatus": "Showing {from}–{to} of {total}"
+    "pageStatus": "Showing {from}–{to} of {total, number}"
   },
   "collection": {
     "title": "My Collection",

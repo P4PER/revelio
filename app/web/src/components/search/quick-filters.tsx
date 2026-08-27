@@ -36,9 +36,12 @@ export function QuickFilters({ locale, trailing }: { locale: string; trailing?: 
   // baseline as the first line of its lane.
   const laneLabel = 'text-[11px] leading-8 font-medium tracking-wider text-muted-foreground/75 uppercase'
 
+  // Below md the trailing trigger drops under the lanes: kept beside them it
+  // reserves its width on every wrapped row, which squeezes the chip column
+  // down to one chip per line on a phone.
   return (
-    <div className="flex items-start gap-4">
-      <div className="grid min-w-0 flex-1 grid-cols-[auto_1fr] items-start gap-x-4 gap-y-2">
+    <div className="flex flex-col items-start gap-3 md:flex-row md:gap-4">
+      <div className="grid w-full min-w-0 grid-cols-[auto_1fr] items-start gap-x-4 gap-y-2 md:flex-1">
         <span className={laneLabel}>{t('type')}</span>
         <div className="flex flex-wrap gap-2" role="group" aria-label={t('type')}>
           {TYPES.map((ty) => {

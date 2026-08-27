@@ -18,7 +18,14 @@ export function ClearFiltersButton({
   const t = useTranslations('filters')
   if (!active) return null
   return (
-    <Button variant="link" size="sm" onClick={onClear}>
+    <Button
+      variant="link"
+      size="sm"
+      // Muted rather than the link variant's gold: it sits beside the result
+      // count and the filter chips, and should not outrank either.
+      className="text-muted-foreground hover:text-foreground"
+      onClick={onClear}
+    >
       {t('clearFilters')}
     </Button>
   )

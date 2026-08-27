@@ -23,6 +23,7 @@ import { CardInfoButton } from '@/components/card/card-info-button'
 import { CardRotate } from '@/components/card/card-rotate'
 import { DeckFilterDrawer, EMPTY_DECK_FILTERS, type DeckFilters } from '@/components/deck/deck-filter-drawer'
 import { PaginationNav } from '@/components/search/pagination-nav'
+import { useResultCountText } from '@/components/search/result-count'
 
 const EMPTY_RESULT: SearchResult = { hits: [], total: 0, page: 1, hitsPerPage: DECK_BROWSE_PAGE_SIZE }
 const DEBOUNCE_MS = 300
@@ -90,6 +91,7 @@ export function DeckCardBrowser({
   // "No cards found." instead of a loading state.
   const [pending, setPending] = useState(true)
   const [detail, setDetail] = useState<{ id: string; orientation?: string | null } | null>(null)
+  const resultCount = useResultCountText(result.page, result.hitsPerPage, result.total)
 
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reqId = useRef(0)
@@ -192,7 +194,7 @@ export function DeckCardBrowser({
           {showSkeleton ? (
             <Skeleton className="h-4 w-20" />
           ) : (
-            t('browse.resultCount', { count: result.total })
+            resultCount
           )}
         </div>
       </div>
@@ -291,6 +293,7 @@ export function DeckCardBrowser({
       </div>
 
       <PaginationNav
+        status={resultCount}
         page={result.page}
         pageSize={result.hitsPerPage}
         total={result.total}

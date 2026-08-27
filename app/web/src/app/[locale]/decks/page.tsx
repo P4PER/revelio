@@ -4,7 +4,9 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getDb } from '@/lib/server/db'
 import { getSession } from '@/lib/server/session'
 import { listPublicDecks } from '@revelio/db'
-import { parseBrowseParams } from '@/lib/browse-params'
+import { browseToQuery, parseBrowseParams } from '@/lib/browse-params'
+import { overflowPage } from '@/lib/page-range'
+import { redirect } from '@/../i18n/navigation'
 import { DeckBrowse } from '@/components/deck/deck-browse'
 import { DECK_VIEW_COOKIE } from '@/lib/deck-view'
 
@@ -42,6 +44,13 @@ export default async function DecksBrowsePage({
     search: state.q, lessons: state.lessons, format: state.format,
     sort: state.sort, page: state.page, viewerId,
   })
+
+  // As on the card lists: a page past the end lands on the last real one.
+  const overflow = overflowPage(state.page, result.pageSize, result.total)
+  if (overflow) {
+    const q = new URLSearchParams(browseToQuery({ ...state, page: overflow })).toString()
+    redirect({ href: `/decks${q ? `?${q}` : ''}`, locale })
+  }
 
   const savedView = cookieStore.get(DECK_VIEW_COOKIE)?.value
   const initialView = savedView === 'gallery' || savedView === 'list' ? savedView : undefined

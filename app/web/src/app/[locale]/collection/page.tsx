@@ -6,7 +6,9 @@ import { getSession } from '@/lib/server/session'
 import { getDb } from '@/lib/server/db'
 import { getSearchClient } from '@/lib/server/search-client'
 import { loadCollectionPage } from '@/lib/server/collection-page-data'
-import { toURLSearchParams } from '@/lib/search-params'
+import { pageQuery, toURLSearchParams } from '@/lib/search-params'
+import { overflowPage } from '@/lib/page-range'
+import { redirect } from '@/../i18n/navigation'
 import { STEPPER_LAYOUT_COOKIE, parseStepperLayout } from '@/lib/collection-prefs'
 import { CollectionView } from '@/components/collection/collection-view'
 import { CollectionSummary } from '@/components/collection/collection-summary'
@@ -78,6 +80,13 @@ export default async function CollectionPage({
     getCollectionVisibility(db, userId),
     cookies(),
   ])
+  // As on the card lists: a Browse page past the end lands on the last real
+  // one. The By-set tab renders a whole set at once, so it never overflows.
+  const overflow = data.tab === 'browse'
+    ? overflowPage(data.browsePage, data.browsePageSize, data.browseTotal)
+    : null
+  if (overflow) redirect({ href: `/collection?${pageQuery(sp, overflow)}`, locale })
+
   const stepperLayout = parseStepperLayout(cookieStore.get(STEPPER_LAYOUT_COOKIE)?.value)
 
   const t = await getTranslations({ locale, namespace: 'collection' })

@@ -109,3 +109,17 @@ export function withParams(
   if (Object.keys(patch).some((k) => k !== 'page')) next.delete('page')
   return next
 }
+
+// Upper bound for a grid that renders a whole set at once - comfortably above
+// the largest set (140 cards), so a set page and the collection's By-set view
+// never truncate one.
+export const FULL_SET_LIMIT = 250
+
+/**
+ * The current query string moved to another page. Page 1 carries no `page`
+ * param - withParams reads an empty value as a removal - so the first page
+ * keeps the canonical, param-free URL.
+ */
+export function pageQuery(current: URLSearchParams, page: number): string {
+  return withParams(current, { page: page > 1 ? String(page) : '' }).toString()
+}

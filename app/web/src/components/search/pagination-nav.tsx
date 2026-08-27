@@ -2,36 +2,47 @@
 import { useTranslations } from 'next-intl'
 import { Link } from '@/../i18n/navigation'
 import { Button } from '@/components/ui/button'
+import { pageRange } from '@/lib/page-range'
 import { cn } from '@/lib/utils'
 
 /**
- * The single pagination look for the whole app: a "Showing X–Y of Z" record
- * range on the left and Previous / Next buttons on the right. Buttons disable
+ * The single pagination look for the whole app: the record range on the left
+ * and Previous / Next buttons on the right. Buttons disable
  * (rather than disappear) at the first/last page so the controls stay put.
  * Renders nothing when everything fits on a single page.
+ *
+ * The range reads "Showing X–Y of Z" unless the caller passes `status`, which
+ * card lists use to repeat their header verbatim ("X–Y of Z cards"). Callers
+ * without a header of their own - the admin tables - keep the default, where
+ * naming a record type would be wrong.
+ *
+ * A passed-in `status` also gives up the live region: it was copied from a
+ * header that announces it already, and two live regions with the same text
+ * read the sentence out twice per page change. Every list that renders its own
+ * count header passes one; the ones that do not keep the default and announce
+ * from here.
  *
  * Two modes, so it works from both server pages and client tables:
  * - link mode: pass `prevHref`/`nextHref` (server-safe — strings, no closures)
  * - button mode: pass `onPrev`/`onNext` (client callers: tanstack tables, browse)
  */
 export function PaginationNav({
-  page, pageSize, total, className, prevHref, nextHref, onPrev, onNext,
+  page, pageSize, total, className, status, prevHref, nextHref, onPrev, onNext,
 }: {
   page: number
   pageSize: number
   total: number
   className?: string
+  status?: string
   prevHref?: string
   nextHref?: string
   onPrev?: () => void
   onNext?: () => void
 }) {
   const t = useTranslations('pagination')
-  const lastPage = Math.max(1, Math.ceil(total / pageSize))
+  const { from, to, lastPage } = pageRange(page, pageSize, total)
   if (lastPage <= 1) return null
 
-  const from = (page - 1) * pageSize + 1
-  const to = Math.min(page * pageSize, total)
   const hasPrev = page > 1
   const hasNext = page < lastPage
 
@@ -51,8 +62,8 @@ export function PaginationNav({
       className={cn('flex items-center justify-between gap-4 text-sm', className)}
       aria-label={t('label')}
     >
-      <span className="text-muted-foreground" role="status">
-        {t('pageStatus', { from, to, total })}
+      <span className="text-muted-foreground" role={status ? undefined : 'status'}>
+        {status ?? t('pageStatus', { from, to, total })}
       </span>
       <div className="flex items-center gap-2">
         {arrow(hasPrev, prevHref, onPrev, t('prev'))}

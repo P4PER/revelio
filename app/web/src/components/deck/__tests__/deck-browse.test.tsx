@@ -18,8 +18,12 @@ const base = {
   entries: [], total: 0, pageSize: 24, imageBase: 'https://img.test', initialView: 'gallery' as const,
 }
 
-function renderBrowse() {
-  return render(<NextIntlClientProvider locale="en" messages={en}><DeckBrowse {...base} /></NextIntlClientProvider>)
+function renderBrowse(overrides: Partial<typeof base> = {}) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={en}>
+      <DeckBrowse {...base} {...overrides} />
+    </NextIntlClientProvider>,
+  )
 }
 
 beforeEach(() => { vi.useFakeTimers(); push.mockClear() })
@@ -44,5 +48,20 @@ describe('DeckBrowse sort control', () => {
     await user.click(screen.getByLabelText(en.decks.explore.sort.label))
     await user.click(await screen.findByRole('option', { name: en.decks.explore.sort.newest }))
     expect(push).toHaveBeenCalledWith(expect.stringContaining('sort=newest'))
+  })
+})
+
+describe('DeckBrowse deck count', () => {
+  it('names the decks on screen in both the header and the pager', () => {
+    renderBrowse({ total: 105 })
+    expect(screen.getAllByText('1–24 of 105 decks')).toHaveLength(2)
+    // exactly one of the two announces, the way the card lists do
+    expect(screen.getAllByRole('status')).toHaveLength(1)
+    expect(screen.getByRole('status')).toHaveTextContent('1–24 of 105 decks')
+  })
+
+  it('drops the range once every deck fits on one page', () => {
+    renderBrowse({ total: 7 })
+    expect(screen.getByText('7 decks')).toBeInTheDocument()
   })
 })

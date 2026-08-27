@@ -55,7 +55,8 @@
     "title": "Suche",
     "placeholder": "Karten suchen…",
     "clear": "Suche löschen",
-    "results": "{count} Karten"
+    "results": "{count, plural, one {# Karte} other {# Karten}}",
+    "resultRange": "{from, number}–{to, number} von {total, number} Karten"
   },
   "card": {
     "number": "Nr. {number}",
@@ -75,7 +76,7 @@
   },
   "sets": {
     "title": "Editionen",
-    "meta": "{count} Karten · erschienen {date}",
+    "meta": "{count, plural, one {# Karte} other {# Karten}} · erschienen {date}",
     "original": "Original",
     "fanMade": "Fan-Made"
   },
@@ -321,7 +322,8 @@
         "revival": "Revival"
       },
       "lessonsLabel": "Lektionen",
-      "count": "{count} Decks",
+      "count": "{count, plural, one {# Deck} other {# Decks}}",
+      "countRange": "{from, number}–{to, number} von {total, number} Decks",
       "empty": "Keine Decks entsprechen deinen Filtern.",
       "prev": "Zurück",
       "next": "Weiter",
@@ -365,9 +367,9 @@
       "viewLabel": "Ansicht",
       "viewList": "Liste",
       "viewGallery": "Galerie",
-      "cardCount": "{count} Karten",
+      "cardCount": "{count, plural, one {# Karte} other {# Karten}}",
       "updatedAt": "Aktualisiert {date}",
-      "views": "{count} Aufrufe",
+      "views": "{count, plural, one {# Aufruf} other {# Aufrufe}}",
       "viewAuthorDecks": "Decks von @{username} ansehen",
       "publishDialog": {
         "title": "Dieses Deck veröffentlichen?",
@@ -401,9 +403,9 @@
     "status": {
       "legal": "Turnierlegal",
       "incomplete": "Unvollständig",
-      "incompleteNeeds": "Unvollständig · noch {count} Karten nötig",
+      "incompleteNeeds": "Unvollständig · noch {count, plural, one {# Karte} other {# Karten}} nötig",
       "needsCharacter": "Startcharakter fehlt",
-      "tooMany": "{count} Karten zu viel",
+      "tooMany": "{count, plural, one {# Karte} other {# Karten}} zu viel",
       "illegal": "Nicht legal"
     },
     "seal": {
@@ -424,7 +426,7 @@
       "avgCost": "Ø Kosten",
       "avgDamage": "Ø Schaden",
       "damageSources": "Schadensquellen",
-      "lessonCards": "{count} Lektionskarten"
+      "lessonCards": "{count, plural, one {# Lektionskarte} other {# Lektionskarten}}"
     },
     "panel": {
       "character": "Startcharakter",
@@ -452,7 +454,6 @@
     },
     "browse": {
       "searchPlaceholder": "{format}-Karten durchsuchen…",
-      "resultCount": "{count} Karten",
       "noResults": "Keine Karten gefunden.",
       "loading": "Karten werden geladen…",
       "add": "+ Hinzufügen",
@@ -559,13 +560,13 @@
     "label": "Seitennavigation",
     "prev": "Zurück",
     "next": "Weiter",
-    "pageStatus": "Zeige {from}–{to} von {total}"
+    "pageStatus": "Zeige {from, number}–{to, number} von {total, number}"
   },
   "collection": {
     "title": "Meine Sammlung",
     "owned": "{count} im Besitz",
     "ofTotal": "{owned} / {total}",
-    "copies": "{count} Exemplare",
+    "copies": "{count, plural, one {# Exemplar} other {# Exemplare}}",
     "distinct": "{owned} / {total} Karten",
     "browseAll": "Alle durchsuchen",
     "bySets": "Nach Set",

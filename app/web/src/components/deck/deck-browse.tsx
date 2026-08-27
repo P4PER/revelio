@@ -10,6 +10,7 @@ import { DECK_VIEW_COOKIE, type DeckView } from '@/lib/deck-view'
 import { LessonFilter } from '@/components/search/lesson-filter'
 import { ClearFiltersButton } from '@/components/search/clear-filters-button'
 import { PaginationNav } from '@/components/search/pagination-nav'
+import { countMessage } from '@/lib/page-range'
 import { DeckHeroCard } from '@/components/deck/deck-hero-card'
 import { DeckDiscoverRow } from '@/components/deck/deck-discover-row'
 import { Button } from '@/components/ui/button'
@@ -34,6 +35,10 @@ export function DeckBrowse({
   const t = useTranslations('decks')
   const router = useRouter()
   const view = initialView ?? 'gallery' // default Grid for discovery
+
+  // Header and pager say the same thing, the way the card lists do.
+  const count = countMessage(state.page, pageSize, total)
+  const countText = count.ranged ? t('explore.countRange', count.values) : t('explore.count', count.values)
 
   function push(next: Partial<BrowseState>) {
     const merged = { ...state, ...next, page: next.page ?? 1 }
@@ -109,7 +114,7 @@ export function DeckBrowse({
       {/* Header row: count + sort + view toggle. Sort lives here (with the
           results it orders), not in the filter row above. */}
       <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">{t('explore.count', { count: total })}</span>
+        <span className="text-sm text-muted-foreground" role="status">{countText}</span>
         <div className="flex items-center gap-2">
           <Select value={state.sort} onValueChange={(v) => push({ sort: v as PublicDeckSort })}>
             <SelectTrigger aria-label={t('explore.sort.label')} size="sm" className="w-auto min-w-36">
@@ -152,6 +157,7 @@ export function DeckBrowse({
         page={state.page}
         pageSize={pageSize}
         total={total}
+        status={countText}
         className="pt-4"
         onPrev={() => push({ page: state.page - 1 })}
         onNext={() => push({ page: state.page + 1 })}

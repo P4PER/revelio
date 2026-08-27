@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  parseSearchParams, toSearchOptions, withParams, toURLSearchParams, contextHref,
+  parseSearchParams, toSearchOptions, withParams, toURLSearchParams, contextHref, pageQuery,
 } from '../search-params'
 
 describe('search-params', () => {
@@ -109,5 +109,17 @@ describe('contextHref', () => {
   it('yields a path with just i when there are no other params', () => {
     expect(contextHref('bs-1', new URLSearchParams('i=0'), 1)).toBe('/card/bs-1?i=1')
     expect(contextHref('bs-1', new URLSearchParams(''), 3)).toBe('/card/bs-1?i=3')
+  })
+})
+
+describe('pageQuery', () => {
+  it('keeps the rest of the query while moving to a page', () => {
+    const q = pageQuery(new URLSearchParams('q=accio&page=999'), 9)
+    expect(new URLSearchParams(q).get('q')).toBe('accio')
+    expect(new URLSearchParams(q).get('page')).toBe('9')
+  })
+
+  it('drops the page param for the first page', () => {
+    expect(pageQuery(new URLSearchParams('q=accio&page=999'), 1)).toBe('q=accio')
   })
 })

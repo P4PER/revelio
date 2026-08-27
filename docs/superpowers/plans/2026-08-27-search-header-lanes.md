@@ -401,8 +401,12 @@ State plainly what passed, paste any command output for what did not, and list a
 
 ---
 
+## Added after review
+
+The clear control was originally deferred on the other three surfaces (see below). On seeing it live the user asked for the same placement everywhere, so `deck-card-browser.tsx`, `deck-browse.tsx` and `collection-view.tsx` each moved `ClearFiltersButton` out of their filter toolbar and in beside their result count, matching `/search`. The control is also muted (`text-muted-foreground hover:text-foreground`) rather than the link variant's gold.
+
 ## Out of scope
 
-- The deck-builder and collection toolbars keep their current layout. They share `ClearFiltersButton` (so they inherit its new label) and nothing else from this plan.
+- The deck-builder, deck-explore and collection toolbars keep their overall layout; only the clear control moved (see "Added after review").
 - `ActiveFilters` keeps its `Badge variant="secondary"` pill styling; the approved artboard shows the same pill.
 - No changes to the search query, the index, or pagination.

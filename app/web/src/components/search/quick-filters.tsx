@@ -1,5 +1,5 @@
 'use client'
-import type { ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
 import { useTranslations } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
 import { useRouter, usePathname } from '@/../i18n/navigation'
@@ -17,6 +17,10 @@ import { LessonFilter } from '@/components/search/lesson-filter'
 // occupying a row of its own.
 export function QuickFilters({ locale, trailing }: { locale: string; trailing?: ReactNode }) {
   const t = useTranslations('filters')
+  // Each lane is named by its own visible label rather than a duplicate
+  // aria-label, so a screen reader announces the label once.
+  const typeLabelId = useId()
+  const lessonLabelId = useId()
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -42,8 +46,8 @@ export function QuickFilters({ locale, trailing }: { locale: string; trailing?: 
   return (
     <div className="flex flex-col items-start gap-3 md:flex-row md:gap-4">
       <div className="grid w-full min-w-0 grid-cols-[auto_1fr] items-start gap-x-4 gap-y-2 md:flex-1">
-        <span className={laneLabel}>{t('type')}</span>
-        <div className="flex flex-wrap gap-2" role="group" aria-label={t('type')}>
+        <span id={typeLabelId} className={laneLabel}>{t('type')}</span>
+        <div className="flex flex-wrap gap-2" role="group" aria-labelledby={typeLabelId}>
           {TYPES.map((ty) => {
             const active = state.types.includes(ty.code)
             return (
@@ -62,8 +66,8 @@ export function QuickFilters({ locale, trailing }: { locale: string; trailing?: 
             )
           })}
         </div>
-        <span className={laneLabel}>{t('lesson')}</span>
-        <div role="group" aria-label={t('lesson')}>
+        <span id={lessonLabelId} className={laneLabel}>{t('lesson')}</span>
+        <div role="group" aria-labelledby={lessonLabelId}>
           <LessonFilter
             selected={state.lessons}
             onToggle={(code) => toggle('lesson', state.lessons, code)}

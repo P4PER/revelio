@@ -15,6 +15,11 @@ const poppins = Poppins({
   variable: '--font-poppins',
 })
 
+// English on purpose. This boundary replaces the root layout, so there is no
+// next-intl provider and no request locale to read; detecting one client-side
+// would still paint English first and would add a hydration seam plus both
+// catalogues to the one component that has to survive a total failure. The
+// <html lang="en"> below says the same thing, so markup and copy agree.
 export function GlobalErrorContent({ error }: { error: Error & { digest?: string } }) {
   return (
     <ErrorCardState

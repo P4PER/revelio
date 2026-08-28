@@ -57,6 +57,7 @@
     "clear": "Suche löschen",
     "results": "{count, plural, one {# Karte} other {# Karten}}",
     "resultRange": "{from, number}–{to, number} von {total, number} Karten",
+    "noResults": "Keine Karten gefunden.",
     "sort": {
       "label": "Sortieren nach",
       "relevance": "Relevanz",
@@ -311,6 +312,7 @@
     }
   },
   "decks": {
+    "lessonsAria": "Lektionen",
     "explore": {
       "title": "Decks entdecken",
       "subtitle": "Entdecke öffentliche Decks der Community",
@@ -334,7 +336,11 @@
       "empty": "Keine Decks entsprechen deinen Filtern.",
       "prev": "Zurück",
       "next": "Weiter",
-      "pageOf": "Seite {page} von {total}"
+      "pageOf": "Seite {page} von {total}",
+      "view": {
+        "list": "Listenansicht",
+        "gallery": "Rasteransicht"
+      }
     },
     "like": {
       "label": "Dieses Deck liken",

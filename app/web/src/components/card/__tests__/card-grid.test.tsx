@@ -1,16 +1,12 @@
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
-import { NextIntlClientProvider } from 'next-intl'
+import en from '@/../messages/en.json'
+import { renderWithIntl } from '@/test/intl'
 import { CardGrid } from '@/components/card/card-grid'
 import type { SearchDocument } from '@revelio/search'
 
 vi.mock('next/image', () => ({ default: (props: Record<string, unknown>) => <img alt={props.alt as string} /> }))
 vi.mock('@/../i18n/navigation', () => ({ Link: (p: { href: string; children: React.ReactNode; className?: string }) => <a href={p.href}>{p.children}</a> }))
-
-const messages = { card: { rotate: 'Rotate upright', rotateBack: 'Close rotated view' } }
-function Wrapper({ children }: { children: React.ReactNode }) {
-  return <NextIntlClientProvider locale="en" messages={messages}>{children}</NextIntlClientProvider>
-}
 
 const hit = (id: string, name: string): SearchDocument => ({
   id, setCode: 'BS', number: '1', name, text: null, flavorText: null,
@@ -21,27 +17,26 @@ const hit = (id: string, name: string): SearchDocument => ({
 
 describe('CardGrid', () => {
   it('renders a tile per hit with the card name', () => {
-    render(<CardGrid hits={[hit('a', 'Harry Potter'), hit('b', 'Flobberworm')]} imageBase="http://img" />, { wrapper: Wrapper })
+    renderWithIntl(<CardGrid hits={[hit('a', 'Harry Potter'), hit('b', 'Flobberworm')]} imageBase="http://img" />)
     expect(screen.getByText('Harry Potter')).toBeInTheDocument()
     expect(screen.getByAltText('Flobberworm')).toBeInTheDocument()
   })
 
   it('shows an empty state when there are no hits', () => {
-    render(<CardGrid hits={[]} imageBase="http://img" />, { wrapper: Wrapper })
-    expect(screen.getByRole('status')).toHaveTextContent(/no cards found/i)
+    renderWithIntl(<CardGrid hits={[]} imageBase="http://img" />)
+    expect(screen.getByRole('status')).toHaveTextContent(en.search.noResults)
   })
 })
 
 describe('CardGrid context plumbing', () => {
   it('gives each tile its absolute index when searchParams + startIndex are set', () => {
-    render(
+    renderWithIntl(
       <CardGrid
         hits={[hit('a', 'Harry Potter'), hit('b', 'Flobberworm')]}
         imageBase="http://img"
         searchParams={new URLSearchParams('q=x')}
         startIndex={24}
       />,
-      { wrapper: Wrapper },
     )
     const hrefs = screen.getAllByRole('link').map((l) => l.getAttribute('href'))
     expect(hrefs).toContain('/card/a?q=x&i=24')

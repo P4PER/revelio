@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
+import de from '@/../messages/de.json'
 
 const replace = vi.fn()
 const push = vi.fn()
@@ -21,6 +22,14 @@ const base = {
 function renderBrowse(overrides: Partial<typeof base> = {}) {
   return render(
     <NextIntlClientProvider locale="en" messages={en}>
+      <DeckBrowse {...base} {...overrides} />
+    </NextIntlClientProvider>,
+  )
+}
+
+function renderBrowseInGerman(overrides: Partial<typeof base> = {}) {
+  return render(
+    <NextIntlClientProvider locale="de" timeZone="UTC" messages={de}>
       <DeckBrowse {...base} {...overrides} />
     </NextIntlClientProvider>,
   )
@@ -63,5 +72,13 @@ describe('DeckBrowse deck count', () => {
   it('drops the range once every deck fits on one page', () => {
     renderBrowse({ total: 7 })
     expect(screen.getByText('7 decks')).toBeInTheDocument()
+  })
+})
+
+describe('DeckBrowse view toggle', () => {
+  it('names the list and gallery buttons in the active locale', () => {
+    renderBrowseInGerman()
+    expect(screen.getByLabelText(de.decks.explore.view.list)).toBeInTheDocument()
+    expect(screen.getByLabelText(de.decks.explore.view.gallery)).toBeInTheDocument()
   })
 })

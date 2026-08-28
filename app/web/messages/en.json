@@ -57,6 +57,7 @@
     "clear": "Clear search",
     "results": "{count, plural, one {# card} other {# cards}}",
     "resultRange": "{from, number}–{to, number} of {total, number} cards",
+    "noResults": "No cards found.",
     "sort": {
       "label": "Sort by",
       "relevance": "Relevance",
@@ -311,6 +312,7 @@
     }
   },
   "decks": {
+    "lessonsAria": "Lessons",
     "explore": {
       "title": "Discover decks",
       "subtitle": "Discover public decks from the community",
@@ -334,7 +336,11 @@
       "empty": "No decks match your filters.",
       "prev": "Previous",
       "next": "Next",
-      "pageOf": "Page {page} of {total}"
+      "pageOf": "Page {page} of {total}",
+      "view": {
+        "list": "List view",
+        "gallery": "Grid view"
+      }
     },
     "like": {
       "label": "Like this deck",

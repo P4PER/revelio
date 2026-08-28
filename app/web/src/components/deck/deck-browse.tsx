@@ -128,10 +128,10 @@ export function DeckBrowse({
             </SelectContent>
           </Select>
           <div className="flex gap-1">
-            <Button variant={view === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setView('list')} aria-label="List view">
+            <Button variant={view === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setView('list')} aria-label={t('explore.view.list')}>
               <List className="size-4" />
             </Button>
-            <Button variant={view === 'gallery' ? 'secondary' : 'ghost'} size="icon" onClick={() => setView('gallery')} aria-label="Grid view">
+            <Button variant={view === 'gallery' ? 'secondary' : 'ghost'} size="icon" onClick={() => setView('gallery')} aria-label={t('explore.view.gallery')}>
               <LayoutGrid className="size-4" />
             </Button>
           </div>

@@ -56,7 +56,14 @@
     "placeholder": "Search cards…",
     "clear": "Clear search",
     "results": "{count, plural, one {# card} other {# cards}}",
-    "resultRange": "{from, number}–{to, number} of {total, number} cards"
+    "resultRange": "{from, number}–{to, number} of {total, number} cards",
+    "sort": {
+      "label": "Sort by",
+      "relevance": "Relevance",
+      "name": "Name",
+      "number": "Number",
+      "cost": "Cost"
+    }
   },
   "card": {
     "number": "No. {number}",

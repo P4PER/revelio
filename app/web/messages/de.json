@@ -56,7 +56,14 @@
     "placeholder": "Karten suchen…",
     "clear": "Suche löschen",
     "results": "{count, plural, one {# Karte} other {# Karten}}",
-    "resultRange": "{from, number}–{to, number} von {total, number} Karten"
+    "resultRange": "{from, number}–{to, number} von {total, number} Karten",
+    "sort": {
+      "label": "Sortieren nach",
+      "relevance": "Relevanz",
+      "name": "Name",
+      "number": "Nummer",
+      "cost": "Kosten"
+    }
   },
   "card": {
     "number": "Nr. {number}",

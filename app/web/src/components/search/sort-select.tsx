@@ -1,17 +1,12 @@
 'use client'
+import { useTranslations } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
 import { useRouter, usePathname } from '@/../i18n/navigation'
-import { withParams, type SortKey } from '@/lib/search-params'
+import { withParams, SORT_KEYS, type SortKey } from '@/lib/search-params'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-const OPTIONS: { key: SortKey; label: string }[] = [
-  { key: 'relevance', label: 'Relevance' },
-  { key: 'name', label: 'Name' },
-  { key: 'number', label: 'Number' },
-  { key: 'cost', label: 'Cost' },
-]
-
 export function SortSelect() {
+  const t = useTranslations('search.sort')
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -24,12 +19,12 @@ export function SortSelect() {
 
   return (
     <Select value={current} onValueChange={onValueChange}>
-      <SelectTrigger aria-label="Sort by" size="sm" className="w-[160px]">
+      <SelectTrigger aria-label={t('label')} size="sm" className="w-[160px]">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {OPTIONS.map((o) => (
-          <SelectItem key={o.key} value={o.key}>{o.label}</SelectItem>
+        {SORT_KEYS.map((key) => (
+          <SelectItem key={key} value={key}>{t(key)}</SelectItem>
         ))}
       </SelectContent>
     </Select>

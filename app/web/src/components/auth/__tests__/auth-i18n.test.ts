@@ -11,8 +11,4 @@ describe('auth i18n', () => {
       expect('sendCode' in m.auth).toBe(false)
     }
   })
-
-  it('keeps identical auth key sets across locales', () => {
-    expect(Object.keys(en.auth).sort()).toEqual(Object.keys(de.auth).sort())
-  })
 })

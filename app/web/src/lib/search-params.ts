@@ -16,7 +16,7 @@ export type SearchState = {
   costMax: number | null
 }
 
-const SORT_KEYS: SortKey[] = ['relevance', 'name', 'number', 'cost']
+export const SORT_KEYS: readonly SortKey[] = ['relevance', 'name', 'number', 'cost']
 const SORT_MEILI: Record<Exclude<SortKey, 'relevance'>, string> = {
   name: 'name:asc',
   number: 'numberSort:asc',

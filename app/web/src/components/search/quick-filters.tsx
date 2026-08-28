@@ -1,4 +1,6 @@
 'use client'
+import { useId, type ReactNode } from 'react'
+import { useTranslations } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
 import { useRouter, usePathname } from '@/../i18n/navigation'
 import { TYPES } from '@revelio/core'
@@ -7,7 +9,18 @@ import { attrLabel } from '@/lib/attribute-labels'
 import { Chip } from '@/components/ui/chip'
 import { LessonFilter } from '@/components/search/lesson-filter'
 
-export function QuickFilters({ locale }: { locale: string }) {
+// The one-click facet lanes above the search results: one labelled row per
+// facet, so fourteen chips read as two named groups rather than one wrapping
+// wall. The label column is sized to its content and the chips take the rest,
+// which keeps both lanes' chips on a shared left edge. `trailing` takes the
+// advanced-filter trigger; it sits at the top right of the block instead of
+// occupying a row of its own.
+export function QuickFilters({ locale, trailing }: { locale: string; trailing?: ReactNode }) {
+  const t = useTranslations('filters')
+  // Each lane is named by its own visible label rather than a duplicate
+  // aria-label, so a screen reader announces the label once.
+  const typeLabelId = useId()
+  const lessonLabelId = useId()
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -23,31 +36,45 @@ export function QuickFilters({ locale }: { locale: string }) {
     apply({ [key]: next })
   }
 
+  // leading-8 matches the 32px chip height, so a label sits on the same
+  // baseline as the first line of its lane.
+  const laneLabel = 'text-[11px] leading-8 font-medium tracking-wider text-muted-foreground/75 uppercase'
+
+  // Below md the trailing trigger drops under the lanes: kept beside them it
+  // reserves its width on every wrapped row, which squeezes the chip column
+  // down to one chip per line on a phone.
   return (
-    <div className="flex flex-wrap gap-2">
-      <div className="flex flex-wrap gap-2">
-        {TYPES.map((t) => {
-          const active = state.types.includes(t.code)
-          return (
-            <Chip
-              key={t.code}
-              active={active}
-              onClick={() => toggle('type', state.types, t.code)}
-              className={
-                active
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-(--hover-bg) hover:text-accent-foreground'
-              }
-            >
-              {attrLabel('types', t.code, locale)}
-            </Chip>
-          )
-        })}
+    <div className="flex flex-col items-start gap-3 md:flex-row md:gap-4">
+      <div className="grid w-full min-w-0 grid-cols-[auto_1fr] items-start gap-x-4 gap-y-2 md:flex-1">
+        <span id={typeLabelId} className={laneLabel}>{t('type')}</span>
+        <div className="flex flex-wrap gap-2" role="group" aria-labelledby={typeLabelId}>
+          {TYPES.map((ty) => {
+            const active = state.types.includes(ty.code)
+            return (
+              <Chip
+                key={ty.code}
+                active={active}
+                onClick={() => toggle('type', state.types, ty.code)}
+                className={
+                  active
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-(--hover-bg) hover:text-accent-foreground'
+                }
+              >
+                {attrLabel('types', ty.code, locale)}
+              </Chip>
+            )
+          })}
+        </div>
+        <span id={lessonLabelId} className={laneLabel}>{t('lesson')}</span>
+        <div role="group" aria-labelledby={lessonLabelId}>
+          <LessonFilter
+            selected={state.lessons}
+            onToggle={(code) => toggle('lesson', state.lessons, code)}
+          />
+        </div>
       </div>
-      <LessonFilter
-        selected={state.lessons}
-        onToggle={(code) => toggle('lesson', state.lessons, code)}
-      />
+      {trailing ? <div className="shrink-0">{trailing}</div> : null}
     </div>
   )
 }

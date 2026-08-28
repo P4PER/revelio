@@ -1,21 +1,17 @@
 import type { SetDTO } from '@revelio/core'
 import { FilterDrawer } from '@/components/search/filter-drawer'
 import { QuickFilters } from '@/components/search/quick-filters'
-import { ActiveFilters } from '@/components/search/active-filters'
-import { ClearFilters } from '@/components/search/clear-filters'
 
+// Filter block above the results: the labelled facet lanes with the advanced
+// trigger at their top right, closed by a full-width rule that separates
+// filtering from the results. The active advanced filters and the clear
+// control live one row further down, in the results bar next to the count, so
+// nothing in this block resizes as filters come and go.
 export function SearchControls({ locale, sets }: { locale: string; sets: SetDTO[] }) {
   return (
-    <div className="mb-6 space-y-4">
-      <div className="w-fit space-y-3">
-        <div className="flex items-center gap-3">
-          <FilterDrawer sets={sets} locale={locale} />
-          <ClearFilters />
-        </div>
-        <div className="h-px w-full bg-border/60" aria-hidden />
-      </div>
-      <QuickFilters locale={locale} />
-      <ActiveFilters sets={sets} locale={locale} />
+    <div className="mb-5 space-y-5">
+      <QuickFilters locale={locale} trailing={<FilterDrawer sets={sets} locale={locale} />} />
+      <div className="h-px w-full bg-border/60" aria-hidden />
     </div>
   )
 }

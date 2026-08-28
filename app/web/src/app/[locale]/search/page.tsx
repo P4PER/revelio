@@ -8,6 +8,8 @@ import { CardGrid } from '@/components/card/card-grid'
 import { Pagination } from '@/components/search/pagination'
 import { ResultCount } from '@/components/search/result-count'
 import { SearchControls } from '@/components/search/search-controls'
+import { ActiveFilters } from '@/components/search/active-filters'
+import { ClearFilters } from '@/components/search/clear-filters'
 import { SortSelect } from '@/components/search/sort-select'
 import { getDb } from '@/lib/server/db'
 import { listSets } from '@revelio/db'
@@ -49,10 +51,15 @@ export default async function SearchPage({
   return (
     <main className="mx-auto max-w-[76rem] px-6 py-8">
       <SearchControls locale={locale} sets={sets} />
-      {/* Results header: count on the left, Sort right-aligned above the grid
-          (Sort orders results, so it lives here — not in the filter toolbar). */}
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <ResultCount page={results.page} pageSize={results.hitsPerPage} total={results.total} />
+      {/* Results bar: the count, the applied advanced filters and the clear
+          control on the left; Sort right-aligned above the grid (Sort orders
+          results, so it lives here and not in the filter block). */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
+          <ResultCount page={results.page} pageSize={results.hitsPerPage} total={results.total} />
+          <ActiveFilters sets={sets} locale={locale} />
+          <ClearFilters />
+        </div>
         <SortSelect />
       </div>
       <CardGrid

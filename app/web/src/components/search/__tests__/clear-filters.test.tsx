@@ -45,4 +45,11 @@ describe('ClearFilters', () => {
     expect(url).not.toMatch(/official=/)
     expect(url).not.toMatch(/costMin=/)
   })
+
+  it('labels the control with visible text rather than an icon alone', () => {
+    params = new URLSearchParams('q=aggro&type=creature')
+    renderClear()
+    const button = screen.getByRole('button', { name: /clear filters/i })
+    expect(button).toHaveTextContent('Clear filters')
+  })
 })

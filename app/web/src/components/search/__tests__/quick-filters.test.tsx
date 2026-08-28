@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import type { ReactNode } from 'react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { NextIntlClientProvider } from 'next-intl'
 
@@ -11,11 +12,13 @@ vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams('
 
 import { QuickFilters } from '@/components/search/quick-filters'
 
-function renderFilters() {
+const messages = { filters: { type: 'Type', lesson: 'Lesson' } }
+
+function renderFilters(trailing?: ReactNode) {
   // LessonFilter (shared) calls useLocale(), so an intl provider is needed.
   return render(
-    <NextIntlClientProvider locale="en" messages={{}}>
-      <QuickFilters locale="en" />
+    <NextIntlClientProvider locale="en" messages={messages}>
+      <QuickFilters locale="en" trailing={trailing} />
     </NextIntlClientProvider>,
   )
 }
@@ -31,5 +34,22 @@ describe('QuickFilters', () => {
     renderFilters()
     fireEvent.click(screen.getByRole('button', { name: /Potions/ }))
     expect(replace.mock.calls.at(-1)?.[0]).toMatch(/lesson=potions/)
+  })
+
+  it('groups the type chips in a lane labelled Type', () => {
+    renderFilters()
+    const lane = screen.getByRole('group', { name: 'Type' })
+    expect(within(lane).getByRole('button', { name: 'Creature' })).toBeInTheDocument()
+  })
+
+  it('groups the lesson chips in a lane labelled Lesson', () => {
+    renderFilters()
+    const lane = screen.getByRole('group', { name: 'Lesson' })
+    expect(within(lane).getByRole('button', { name: /Potions/ })).toBeInTheDocument()
+  })
+
+  it('renders the trailing slot alongside the lanes', () => {
+    renderFilters(<button type="button">Advanced</button>)
+    expect(screen.getByRole('button', { name: 'Advanced' })).toBeInTheDocument()
   })
 })

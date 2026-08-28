@@ -181,21 +181,27 @@ export function DeckCardBrowser({
         />
         <div className="flex flex-wrap items-center gap-1.5">
           <LessonFilter selected={lessons} onToggle={toggleLesson} />
-          <div className="ml-auto flex items-center gap-1.5">
-            <ClearFiltersButton active={filtersActive} onClear={clearFilters} />
+          <div className="ml-auto">
             <DeckFilterDrawer sets={sets} value={filters} onApply={setFilters} />
           </div>
         </div>
-        {/* The live region stays mounted across a search so a new count reaches
-            screen readers as an update to its text; swapping it for the ghost
-            would remount it already populated, which most of them never
-            announce. A div rather than a p because the ghost is a block. */}
-        <div className="text-xs text-muted-foreground" role="status">
-          {showSkeleton ? (
-            <Skeleton className="h-4 w-20" />
-          ) : (
-            resultCount
-          )}
+        {/* Clearing sits beside the count, as it does on /search: it belongs
+            with the run of things that appear once filters are applied, not in
+            the toolbar above. It stays outside the live region so a new count
+            does not announce the button along with it. */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* The live region stays mounted across a search so a new count reaches
+              screen readers as an update to its text; swapping it for the ghost
+              would remount it already populated, which most of them never
+              announce. A div rather than a p because the ghost is a block. */}
+          <div className="text-xs text-muted-foreground" role="status">
+            {showSkeleton ? (
+              <Skeleton className="h-4 w-20" />
+            ) : (
+              resultCount
+            )}
+          </div>
+          <ClearFiltersButton active={filtersActive} onClear={clearFilters} />
         </div>
       </div>
 

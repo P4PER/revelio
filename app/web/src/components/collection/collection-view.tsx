@@ -148,12 +148,15 @@ export function CollectionView({
       <TabsContent value="browse">
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <SearchBox placeholder={t('searchPlaceholder')} className="w-full sm:w-1/2" />
-          <div className="ml-auto flex items-center gap-2">
-            <ClearFiltersButton active={hasFilters} onClear={clearFilters} />
+          <div className="ml-auto">
             <CollectionFilterDrawer sets={sets} locale={locale} />
           </div>
         </div>
-        <ResultCount className="mb-4" page={browsePage} pageSize={browsePageSize} total={browseTotal} />
+        {/* Clearing sits with the count, as it does on /search. */}
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <ResultCount page={browsePage} pageSize={browsePageSize} total={browseTotal} />
+          <ClearFiltersButton active={hasFilters} onClear={clearFilters} />
+        </div>
         {browseCards.length ? grid(browseCards) : <p className="text-muted-foreground">{t('empty')}</p>}
         <Pagination
           page={browsePage}

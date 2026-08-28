@@ -1,14 +1,9 @@
 'use client'
-import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
-import { PanelBottom, Layers } from 'lucide-react'
 import { useRouter, usePathname } from '@/../i18n/navigation'
 import { parseSearchParams, withParams } from '@/lib/search-params'
-import { STEPPER_LAYOUT_COOKIE, type StepperLayout } from '@/lib/collection-prefs'
-import { useHasHover } from '@/hooks/use-has-hover'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
 import { CollectionSetNav } from '@/components/collection/collection-set-nav'
 import { CollectionCardTile, type CollectionCard } from '@/components/collection/collection-card-tile'
 import { CollectionFilterDrawer } from '@/components/collection/collection-filter-drawer'
@@ -20,7 +15,7 @@ import type { SetDTO, SetProgress, OwnedQuantities } from '@revelio/core'
 
 export function CollectionView({
   sets, progress, selectedSet, cards, browseCards, quantities, editable, locale, mode,
-  browseTotal, browsePage, browsePageSize, stepperLayout = 'panel',
+  browseTotal, browsePage, browsePageSize,
 }: {
   sets: SetDTO[]
   progress: SetProgress[]
@@ -34,26 +29,11 @@ export function CollectionView({
   browseTotal: number
   browsePage: number
   browsePageSize: number
-  stepperLayout?: StepperLayout
 }) {
   const t = useTranslations('collection')
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
-
-  // Stepper layout is a persisted per-user setting: initial value comes from the
-  // cookie (server-read), and the toggle flips it live and rewrites the cookie.
-  const [layout, setLayout] = useState<StepperLayout>(stepperLayout)
-  function setLayoutPref(next: StepperLayout) {
-    setLayout(next)
-    document.cookie = `${STEPPER_LAYOUT_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`
-  }
-
-  // On touch there is no hover, so the overlay layout (hover-revealed steppers)
-  // is unusable — force the panel (under-card) layout and hide the selector. The
-  // cookie is left untouched, so a later desktop visit still honors the choice.
-  const hasHover = useHasHover()
-  const effectiveLayout: StepperLayout = hasHover ? layout : 'panel'
 
   // Tabs are URL-driven so the search box and pagination (which write to the
   // URL) keep the browse tab active instead of snapping back to the default.
@@ -99,33 +79,17 @@ export function CollectionView({
     <ul className="grid grid-cols-2 gap-3 min-[640px]:grid-cols-3 min-[768px]:grid-cols-4 min-[1780px]:grid-cols-5">
       {list.map((c) => (
         <li key={c.id}>
-          <CollectionCardTile card={c} quantities={quantities[c.id] ?? {}} editable={editable} locale={locale} stepperLayout={effectiveLayout} />
+          <CollectionCardTile card={c} quantities={quantities[c.id] ?? {}} editable={editable} locale={locale} />
         </li>
       ))}
     </ul>
   )
   return (
     <Tabs value={mode} onValueChange={onTab}>
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <TabsList className="p-0.5">
-          <TabsTrigger value="sets" className="px-5 text-sm">{t('bySets')}</TabsTrigger>
-          <TabsTrigger value="browse" className="px-5 text-sm">{t('browseAll')}</TabsTrigger>
-        </TabsList>
-        {/* Hidden on touch via CSS (not the JS hook) so it never flashes in
-            before hydration — `touch:hidden` applies on the first paint. */}
-        {editable && (
-          <div className="flex items-center gap-1 touch:hidden" role="group" aria-label={t('layoutLabel')}>
-            <Button variant={layout === 'panel' ? 'secondary' : 'ghost'} size="icon-sm"
-              onClick={() => setLayoutPref('panel')} aria-label={t('layoutUnder')} title={t('layoutUnder')}>
-              <PanelBottom className="size-4" />
-            </Button>
-            <Button variant={layout === 'overlay' ? 'secondary' : 'ghost'} size="icon-sm"
-              onClick={() => setLayoutPref('overlay')} aria-label={t('layoutHover')} title={t('layoutHover')}>
-              <Layers className="size-4" />
-            </Button>
-          </div>
-        )}
-      </div>
+      <TabsList className="mb-4 p-0.5">
+        <TabsTrigger value="sets" className="px-5 text-sm">{t('bySets')}</TabsTrigger>
+        <TabsTrigger value="browse" className="px-5 text-sm">{t('browseAll')}</TabsTrigger>
+      </TabsList>
 
       <TabsContent value="sets">
         {/* Gutter layout: content stays anchored to the 76rem container; at >=1780px

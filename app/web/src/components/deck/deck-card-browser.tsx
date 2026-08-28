@@ -193,10 +193,15 @@ export function DeckCardBrowser({
           {/* The live region stays mounted across a search so a new count reaches
               screen readers as an update to its text; swapping it for the ghost
               would remount it already populated, which most of them never
-              announce. A div rather than a p because the ghost is a block. */}
-          <div className="text-xs text-muted-foreground" role="status">
+              announce. A div rather than a p because the ghost is a block.
+              text-sm, like ResultCount everywhere else: the count is one look
+              across the app, and it keeps this row the same height whether or
+              not the clear control is mounted beside it. The ghost matches that
+              line box (h-5) and roughly the count's width, so the row does not
+              resize when the real text arrives. */}
+          <div className="text-sm text-muted-foreground" role="status">
             {showSkeleton ? (
-              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-5 w-28" />
             ) : (
               resultCount
             )}

@@ -37,7 +37,7 @@ export function AddToCollection({
       </div>
       <div className="flex flex-col gap-2 px-2.5 py-2">
         {finishes.map((f) => (
-          <CardFinishStepper key={f} cardId={cardId} finish={f} variant="plain"
+          <CardFinishStepper key={f} cardId={cardId} finish={f}
             label={attrLabel('finishes', f, locale)} quantity={quantities[f] ?? 0} />
         ))}
       </div>

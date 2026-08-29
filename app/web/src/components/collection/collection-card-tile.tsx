@@ -4,7 +4,6 @@ import { CardRotate } from '@/components/card/card-rotate'
 import { Badge } from '@/components/ui/badge'
 import { CardFinishStepper } from '@/components/card/card-finish-stepper'
 import { attrLabel } from '@/lib/attribute-labels'
-import type { StepperLayout } from '@/lib/collection-prefs'
 import { cn } from '@/lib/utils'
 
 export type CollectionCard = {
@@ -16,32 +15,21 @@ export type CollectionCard = {
 }
 
 export function CollectionCardTile({
-  card, quantities, editable, locale = 'en', stepperLayout = 'panel',
+  card, quantities, editable, locale = 'en',
 }: {
   card: CollectionCard
   quantities: Record<string, number>
   editable: boolean
   locale?: string
-  stepperLayout?: StepperLayout
 }) {
   const total = Object.values(quantities).reduce((a, b) => a + b, 0)
   const owned = total > 0
-  const panel = stepperLayout === 'panel'
-
-  // Borderless steppers under the image (they sit on the tile's own surface);
-  // the boxed pill only for the hover overlay, where the border aids legibility.
-  const steppers = card.finishes.map((f) => (
-    <CardFinishStepper key={f} cardId={card.id} finish={f} variant={panel ? 'plain' : 'boxed'}
-      activeBorder={false} label={attrLabel('finishes', f, locale)} quantity={quantities[f] ?? 0} />
-  ))
 
   return (
     <div data-testid={`card-tile-${card.id}`} data-owned={owned}
-      className={cn('group relative', panel && 'rounded-lg border border-border/60 bg-card')}>
+      className="group relative rounded-lg border border-border/60 bg-card">
       <Link href={`/card/${card.id}`} className="block">
-        {/* In panel mode the outer div owns the border/background; in overlay
-            mode it lives here on the figure. */}
-        <figure className={cn(!panel && 'rounded-lg border border-border/60 bg-card')}>
+        <figure>
           {/* The gray-out for unowned cards lives on the image (via CardRotate's
               className), NOT an ancestor: a filter/opacity ancestor becomes the
               containing block for position:fixed, which would trap and clip
@@ -65,17 +53,16 @@ export function CollectionCardTile({
           {total}
         </Badge>
       )}
-      {editable && (panel ? (
-        // Panel: steppers on their own surface under the image, always visible.
-        <div className="flex flex-col gap-1 p-1.5">{steppers}</div>
-      ) : (
-        // Overlay: hover steppers ride on a solid scrim (dark from the image
-        // bottom, fading up over the top 2rem) so the rows stay legible over any
-        // artwork instead of vanishing on pale cards.
-        <div className="pointer-events-none absolute inset-x-0 bottom-7 flex flex-col gap-1 bg-[linear-gradient(to_top,var(--background),var(--background)_calc(100%_-_2rem),transparent)] px-1.5 pb-1 pt-8 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
-          {steppers}
+      {/* Borderless steppers on the tile's own surface under the image, always
+          visible. */}
+      {editable && (
+        <div className="flex flex-col gap-1 p-1.5">
+          {card.finishes.map((f) => (
+            <CardFinishStepper key={f} cardId={card.id} finish={f}
+              label={attrLabel('finishes', f, locale)} quantity={quantities[f] ?? 0} />
+          ))}
         </div>
-      ))}
+      )}
     </div>
   )
 }

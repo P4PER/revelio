@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { cookies } from 'next/headers'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getCollectionVisibility } from '@revelio/db'
 import { getSession } from '@/lib/server/session'
@@ -9,7 +8,6 @@ import { loadCollectionPage } from '@/lib/server/collection-page-data'
 import { pageQuery, toURLSearchParams } from '@/lib/search-params'
 import { overflowPage } from '@/lib/page-range'
 import { redirect } from '@/../i18n/navigation'
-import { STEPPER_LAYOUT_COOKIE, parseStepperLayout } from '@/lib/collection-prefs'
 import { CollectionView } from '@/components/collection/collection-view'
 import { CollectionSummary } from '@/components/collection/collection-summary'
 import { CollectionVisibilityToggle } from '@/components/collection/collection-visibility-toggle'
@@ -75,10 +73,9 @@ export default async function CollectionPage({
 
   const db = getDb()
 
-  const [data, visibility, cookieStore] = await Promise.all([
+  const [data, visibility] = await Promise.all([
     loadCollectionPage(db, getSearchClient(), locale, userId, sp, IMAGE_BASE),
     getCollectionVisibility(db, userId),
-    cookies(),
   ])
   // As on the card lists: a Browse page past the end lands on the last real
   // one. The By-set tab renders a whole set at once, so it never overflows.
@@ -86,8 +83,6 @@ export default async function CollectionPage({
     ? overflowPage(data.browsePage, data.browsePageSize, data.browseTotal)
     : null
   if (overflow) redirect({ href: `/collection?${pageQuery(sp, overflow)}`, locale })
-
-  const stepperLayout = parseStepperLayout(cookieStore.get(STEPPER_LAYOUT_COOKIE)?.value)
 
   const t = await getTranslations({ locale, namespace: 'collection' })
   const path = session.user.username ? `/collection/${session.user.username}` : `/collection/u/${userId}`
@@ -109,7 +104,6 @@ export default async function CollectionPage({
         cards={data.setCards} browseCards={data.browseCards}
         browseTotal={data.browseTotal} browsePage={data.browsePage} browsePageSize={data.browsePageSize}
         quantities={data.quantities} editable locale={locale} mode={data.tab}
-        stepperLayout={stepperLayout}
       />
     </main>
   )

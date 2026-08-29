@@ -2,22 +2,15 @@
 import { useState, useTransition } from 'react'
 import { Minus, Plus } from 'lucide-react'
 import { setCardQuantityAction } from '@/lib/actions/collection-actions'
-import { cn } from '@/lib/utils'
 
 export function CardFinishStepper({
-  cardId, finish, label, quantity, editable = true, variant = 'boxed', activeBorder = true,
+  cardId, finish, label, quantity, editable = true,
 }: {
   cardId: string
   finish: string
   label: string
   quantity: number
   editable?: boolean
-  // 'boxed' — bordered pill (popover, hover overlay). 'plain' — borderless row
-  // that blends into a surrounding panel (collection under-card layout).
-  variant?: 'boxed' | 'plain'
-  // Highlight the boxed border gold once a copy is owned. Off where the gold
-  // outline reads as clutter (e.g. the collection hover overlay).
-  activeBorder?: boolean
 }) {
   const [qty, setQty] = useState(quantity)
   const [pending, start] = useTransition()
@@ -35,12 +28,9 @@ export function CardFinishStepper({
   return (
     <div
       data-testid={`stepper-${cardId}-${finish}`}
-      className={cn(
-        'flex items-center justify-between gap-2',
-        variant === 'boxed'
-          ? cn('rounded-md border border-input bg-background/80 px-2 py-1', qty > 0 && activeBorder && 'border-primary')
-          : 'px-1',
-      )}
+      // Borderless row that blends into its surrounding panel (the collection
+      // tile and the card page's collection panel both own the surface).
+      className="flex items-center justify-between gap-2 px-1"
     >
       <span className="text-xs text-muted-foreground">{label}</span>
       {editable ? (

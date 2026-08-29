@@ -59,9 +59,9 @@ export function CardNav({
   // One-time first-visit hint, skipped under reduced-motion. The decision reads
   // client-only APIs (matchMedia, localStorage) that don't exist during SSR, so
   // it can only run post-hydration - a legitimate one-shot setState in an effect.
-  // Hover is read live here (not via useHasHover, whose SSR snapshot assumes
-  // desktop - that stale value would mis-pick 'keys' on touch and, because we
-  // mark the hint seen, never correct). It clears itself on animationend below.
+  // Hover is read live here rather than from an SSR-safe snapshot (which would
+  // assume desktop): a stale value would mis-pick 'keys' on touch and, because
+  // we mark the hint seen, never correct. It clears itself on animationend below.
   useEffect(() => {
     // No neighbors -> this instance can't navigate (e.g. the deck-builder card
     // sheet), so don't show the hint or burn the once-per-browser flag.

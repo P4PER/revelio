@@ -55,7 +55,7 @@ Five npm workspaces under `app/`, with a strict dependency direction `core ← {
 
 ### Web app specifics
 
-- **Next.js App Router with `next-intl`**. All pages live under `src/app/[locale]/` — the `[locale]` root layout owns `<html>`/`<body>`. `src/middleware.ts` drives locale routing. Use next-intl's navigation helpers, not bare `next/link`, for locale-aware links.
+- **Next.js App Router with `next-intl`**. All pages live under `src/app/[locale]/` — the `[locale]` root layout owns `<html>`/`<body>`. `src/proxy.ts` drives locale routing (Next 16 renamed the `middleware.ts` convention to `proxy.ts`). Use next-intl's navigation helpers, not bare `next/link`, for locale-aware links.
 - **Server Actions** in `src/lib/actions/` (`auth-actions`, `localization-actions`, `rulings-actions`, `image-actions`) are the write path. Editor saves go through these; they are `'use server'` and must never leak secrets to the client.
 - **Two Meilisearch keys, server-only.** Read path uses `MEILI_SEARCH_KEY`; editor writes use a **scoped** `MEILI_WRITE_KEY` (documents.add/update on card indexes only) via `getWriteClient()` in `src/lib/server/reindex.ts`. The master key is never used at runtime and never sent to the browser. Editing a card writes to Postgres *and* re-indexes Meilisearch in the same action.
 - **Auth**: Better Auth (email-OTP + username + roles) wired at `src/app/api/auth/[...all]/route.ts`, config in `src/lib/server/auth.ts`; roles/session helpers in `src/lib/roles.ts` / `src/lib/server/session.ts`. Admin emails come from `ADMIN_EMAILS`.

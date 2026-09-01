@@ -86,3 +86,20 @@ describe('DeckBrowse view toggle', () => {
     expect(screen.getByLabelText(de.decks.explore.view.gallery)).toBeInTheDocument()
   })
 })
+
+describe('DeckBrowse empty state', () => {
+  it('blames the filters and offers to clear them when a filter is set', () => {
+    renderBrowse({ state: { ...base.state, lessons: ['charms'] } })
+    expect(screen.getByText(en.decks.explore.empty.filters)).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: en.filters.clearFilters }).length).toBeGreaterThan(0)
+  })
+
+  // The bug this guards: hasFilters ignores the query, so a search-only miss
+  // used to blame filters that were never set and offer no control.
+  it('blames the search, not the filters, when only a query is set', () => {
+    renderBrowse({ state: { ...base.state, q: 'zzzz' } })
+    expect(screen.getByText(en.decks.explore.empty.plain)).toBeInTheDocument()
+    expect(screen.queryByText(en.decks.explore.empty.filters)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: en.filters.clearFilters })).not.toBeInTheDocument()
+  })
+})

@@ -123,3 +123,38 @@ export const FULL_SET_LIMIT = 250
 export function pageQuery(current: URLSearchParams, page: number): string {
   return withParams(current, { page: page > 1 ? String(page) : '' }).toString()
 }
+
+// Every narrowing filter, zeroed. Shared by the "Clear filters" control and by
+// the search empty state so the two can never drift apart on what "clear"
+// means. The query and the sort order deliberately survive.
+export const CLEARED_FILTERS: Record<string, null> = {
+  type: null, lesson: null, rarity: null, finish: null,
+  legality: null, set: null, costMin: null, costMax: null, official: null,
+}
+
+export function hasActiveFilters(s: SearchState): boolean {
+  return (
+    s.types.length > 0 ||
+    s.lessons.length > 0 ||
+    s.rarities.length > 0 ||
+    s.finishes.length > 0 ||
+    s.legalities.length > 0 ||
+    Boolean(s.set) ||
+    s.costMin != null ||
+    s.costMax != null ||
+    s.official !== null
+  )
+}
+
+export type EmptyReason = 'queryAndFilters' | 'filters' | 'query' | 'plain'
+
+// Why a result set came back empty, which decides both the copy and which
+// recovery buttons the empty state offers.
+export function emptyReason(s: SearchState): EmptyReason {
+  const query = s.q.trim().length > 0
+  const filters = hasActiveFilters(s)
+  if (query && filters) return 'queryAndFilters'
+  if (filters) return 'filters'
+  if (query) return 'query'
+  return 'plain'
+}

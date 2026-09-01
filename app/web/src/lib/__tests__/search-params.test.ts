@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   parseSearchParams, toSearchOptions, withParams, toURLSearchParams, contextHref, pageQuery,
+  hasActiveFilters, emptyReason, CLEARED_FILTERS,
 } from '../search-params'
 
 describe('search-params', () => {
@@ -121,5 +122,60 @@ describe('pageQuery', () => {
 
   it('drops the page param for the first page', () => {
     expect(pageQuery(new URLSearchParams('q=accio&page=999'), 1)).toBe('q=accio')
+  })
+})
+
+describe('hasActiveFilters', () => {
+  it('is false for a bare query', () => {
+    expect(hasActiveFilters(parseSearchParams(new URLSearchParams('q=lumos')))).toBe(false)
+  })
+
+  it('is true for each narrowing filter on its own', () => {
+    const cases = ['type=Spell', 'lesson=Charms', 'rarity=Rare', 'finish=foil',
+      'legality=banned', 'set=BS', 'costMin=2', 'costMax=5', 'official=fan']
+    for (const c of cases) {
+      expect(hasActiveFilters(parseSearchParams(new URLSearchParams(c)))).toBe(true)
+    }
+  })
+
+  it('ignores sort and page, which do not narrow the result set', () => {
+    expect(hasActiveFilters(parseSearchParams(new URLSearchParams('sort=name&page=3')))).toBe(false)
+  })
+})
+
+describe('emptyReason', () => {
+  it('reports both when a query and a filter are set', () => {
+    expect(emptyReason(parseSearchParams(new URLSearchParams('q=lumos&rarity=Rare')))).toBe('queryAndFilters')
+  })
+
+  it('reports filters when only a filter is set', () => {
+    expect(emptyReason(parseSearchParams(new URLSearchParams('rarity=Rare')))).toBe('filters')
+  })
+
+  it('reports query when only a query is set', () => {
+    expect(emptyReason(parseSearchParams(new URLSearchParams('q=lumos')))).toBe('query')
+  })
+
+  it('treats a whitespace-only query as no query', () => {
+    expect(emptyReason(parseSearchParams(new URLSearchParams('q=%20%20')))).toBe('plain')
+  })
+
+  it('reports plain when nothing is set', () => {
+    expect(emptyReason(parseSearchParams(new URLSearchParams('')))).toBe('plain')
+  })
+})
+
+describe('CLEARED_FILTERS', () => {
+  it('drops every narrowing param but keeps the query and sort', () => {
+    const next = withParams(
+      new URLSearchParams('q=lumos&sort=name&rarity=Rare&set=BS&costMin=2&official=fan'),
+      CLEARED_FILTERS,
+    )
+    expect(next.get('q')).toBe('lumos')
+    expect(next.get('sort')).toBe('name')
+    expect(next.get('rarity')).toBeNull()
+    expect(next.get('set')).toBeNull()
+    expect(next.get('costMin')).toBeNull()
+    expect(next.get('official')).toBeNull()
   })
 })

@@ -2,7 +2,7 @@
 import { useTranslations } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
 import { useRouter, usePathname } from '@/../i18n/navigation'
-import { parseSearchParams, withParams } from '@/lib/search-params'
+import { CLEARED_FILTERS, hasActiveFilters, parseSearchParams, withParams } from '@/lib/search-params'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { CollectionSetNav } from '@/components/collection/collection-set-nav'
 import { CollectionCardTile, type CollectionCard } from '@/components/collection/collection-card-tile'
@@ -33,6 +33,10 @@ export function CollectionView({
   browsePageSize: number
 }) {
   const t = useTranslations('collection')
+  // The by-set empty state is the same statement /sets/[code] makes about the
+  // same situation, so both read it from the one key rather than keeping two
+  // copies that can drift.
+  const ts = useTranslations('sets')
   const tf = useTranslations('filters')
   const router = useRouter()
   const pathname = usePathname()
@@ -50,25 +54,16 @@ export function CollectionView({
   }
 
   // Browse-tab filter state: the shared advanced filters plus the collection's
-  // own ownership facet. Clearing drops them all in one navigation while keeping
-  // the search query, sort and the browse tab.
+  // own ownership facet, which lives outside SearchState and so is counted and
+  // cleared alongside the shared set rather than in place of it. Clearing drops
+  // them all in one navigation while keeping the search query, sort and tab.
   const browseState = parseSearchParams(new URLSearchParams(params.toString()))
-  const hasFilters =
-    browseState.types.length > 0 ||
-    browseState.lessons.length > 0 ||
-    browseState.rarities.length > 0 ||
-    browseState.finishes.length > 0 ||
-    browseState.legalities.length > 0 ||
-    Boolean(browseState.set) ||
-    browseState.costMin != null ||
-    browseState.costMax != null ||
-    browseState.official !== null ||
-    params.get('owned') != null
+  const hasFilters = hasActiveFilters(browseState) || params.get('owned') != null
 
   function clearFilters() {
     const next = withParams(new URLSearchParams(params.toString()), {
-      type: null, lesson: null, rarity: null, finish: null, legality: null,
-      set: null, costMin: null, costMax: null, official: null, owned: null,
+      ...CLEARED_FILTERS,
+      owned: null,
     })
     router.push(`${pathname}?${next.toString()}`)
   }
@@ -109,8 +104,8 @@ export function CollectionView({
           <section className="min-w-0 flex-1 min-[1024px]:max-w-[76rem]">
             {cards.length ? grid(cards) : (
               <EmptyResults
-                heading={t('emptySet.heading')}
-                description={t('emptySet.description')}
+                heading={ts('empty.heading')}
+                description={ts('empty.description')}
               />
             )}
           </section>

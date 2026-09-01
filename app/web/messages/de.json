@@ -624,10 +624,6 @@
       "cancel": "Abbrechen"
     },
     "searchPlaceholder": "Sammlung durchsuchen",
-    "emptySet": {
-      "heading": "Keine Karten in diesem Set",
-      "description": "Dieses Set enthält noch keine Karten im Archiv."
-    },
     "emptyBrowse": {
       "heading": "Keine Karten gefunden",
       "filters": "Keine Karten in deiner Sammlung passen zu diesen Filtern.",

@@ -11,6 +11,8 @@ import { ClearFiltersButton } from '@/components/search/clear-filters-button'
 import { SearchBox } from '@/components/search/search-box'
 import { Pagination } from '@/components/search/pagination'
 import { ResultCount } from '@/components/search/result-count'
+import { EmptyResults } from '@/components/empty-results'
+import { Button } from '@/components/ui/button'
 import type { SetDTO, SetProgress, OwnedQuantities } from '@revelio/core'
 
 export function CollectionView({
@@ -31,6 +33,7 @@ export function CollectionView({
   browsePageSize: number
 }) {
   const t = useTranslations('collection')
+  const tf = useTranslations('filters')
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -104,7 +107,12 @@ export function CollectionView({
           <CollectionSetNav sets={sets} progress={progress} selected={selectedSet}
             hrefFor={(c) => `?tab=sets&set=${c}`} />
           <section className="min-w-0 flex-1 min-[1024px]:max-w-[76rem]">
-            {cards.length ? grid(cards) : <p className="text-muted-foreground">{t('empty')}</p>}
+            {cards.length ? grid(cards) : (
+              <EmptyResults
+                heading={t('emptySet.heading')}
+                description={t('emptySet.description')}
+              />
+            )}
           </section>
         </div>
       </TabsContent>
@@ -121,7 +129,16 @@ export function CollectionView({
           <ResultCount page={browsePage} pageSize={browsePageSize} total={browseTotal} />
           <ClearFiltersButton active={hasFilters} onClear={clearFilters} />
         </div>
-        {browseCards.length ? grid(browseCards) : <p className="text-muted-foreground">{t('empty')}</p>}
+        {browseCards.length ? grid(browseCards) : (
+          <EmptyResults
+            heading={t('emptyBrowse.heading')}
+            description={hasFilters ? t('emptyBrowse.filters') : t('emptyBrowse.plain')}
+          >
+            {hasFilters ? (
+              <Button size="sm" onClick={clearFilters}>{tf('clearFilters')}</Button>
+            ) : null}
+          </EmptyResults>
+        )}
         <Pagination
           page={browsePage}
           total={browseTotal}

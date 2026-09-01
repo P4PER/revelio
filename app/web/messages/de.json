@@ -57,7 +57,13 @@
     "clear": "Suche löschen",
     "results": "{count, plural, one {# Karte} other {# Karten}}",
     "resultRange": "{from, number}–{to, number} von {total, number} Karten",
-    "noResults": "Keine Karten gefunden.",
+    "empty": {
+      "heading": "Keine Karten gefunden",
+      "queryAndFilters": "Nichts im Archiv passt zu „{query}“ mit diesen Filtern.",
+      "filters": "Nichts im Archiv passt zu diesen Filtern.",
+      "query": "Nichts im Archiv passt zu „{query}“.",
+      "plain": "Hier gibt es keine Karten anzuzeigen."
+    },
     "sort": {
       "label": "Sortieren nach",
       "relevance": "Relevanz",
@@ -86,7 +92,11 @@
     "title": "Editionen",
     "meta": "{count, plural, one {# Karte} other {# Karten}} · erschienen {date}",
     "original": "Original",
-    "fanMade": "Fan-Made"
+    "fanMade": "Fan-Made",
+    "empty": {
+      "heading": "Keine Karten in diesem Set",
+      "description": "Dieses Set enthält noch keine Karten im Archiv."
+    }
   },
   "filters": {
     "button": "Erweitert",
@@ -333,7 +343,11 @@
       "lessonsLabel": "Lektionen",
       "count": "{count, plural, one {# Deck} other {# Decks}}",
       "countRange": "{from, number}–{to, number} von {total, number} Decks",
-      "empty": "Keine Decks entsprechen deinen Filtern.",
+      "empty": {
+        "heading": "Keine Decks gefunden",
+        "filters": "Keine Decks entsprechen deinen Filtern.",
+        "plain": "Keine Decks entsprechen deiner Suche."
+      },
       "prev": "Zurück",
       "next": "Weiter",
       "pageOf": "Seite {page} von {total}",
@@ -467,7 +481,10 @@
     },
     "browse": {
       "searchPlaceholder": "{format}-Karten durchsuchen…",
-      "noResults": "Keine Karten gefunden.",
+      "empty": {
+        "heading": "Keine Karten gefunden",
+        "description": "Versuche eine andere Suche oder setze die Filter zurück."
+      },
       "loading": "Karten werden geladen…",
       "add": "+ Hinzufügen",
       "addAria": "{name} hinzufügen",
@@ -607,7 +624,15 @@
       "cancel": "Abbrechen"
     },
     "searchPlaceholder": "Sammlung durchsuchen",
-    "empty": "Du besitzt noch keine Karten.",
+    "emptySet": {
+      "heading": "Keine Karten in diesem Set",
+      "description": "Dieses Set enthält noch keine Karten im Archiv."
+    },
+    "emptyBrowse": {
+      "heading": "Keine Karten gefunden",
+      "filters": "Keine Karten in deiner Sammlung passen zu diesen Filtern.",
+      "plain": "Keine Karten in deiner Sammlung passen zu deiner Suche."
+    },
     "loggedOut": {
       "title": "Behalte deine Sammlung im Blick",
       "desc": "Markiere Karten als vorhanden, verfolge deinen Fortschritt Set für Set und teile deine Sammlung mit einem Link.",

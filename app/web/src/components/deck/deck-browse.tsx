@@ -13,6 +13,7 @@ import { PaginationNav } from '@/components/search/pagination-nav'
 import { countMessage } from '@/lib/page-range'
 import { DeckHeroCard } from '@/components/deck/deck-hero-card'
 import { DeckDiscoverRow } from '@/components/deck/deck-discover-row'
+import { EmptyResults } from '@/components/empty-results'
 import { Button } from '@/components/ui/button'
 import { SearchField } from '@/components/search/search-field'
 import {
@@ -33,6 +34,7 @@ export function DeckBrowse({
   imageBase: string
 }) {
   const t = useTranslations('decks')
+  const tf = useTranslations('filters')
   const router = useRouter()
   const view = initialView ?? 'gallery' // default Grid for discovery
 
@@ -140,7 +142,16 @@ export function DeckBrowse({
 
       {/* Entries */}
       {entries.length === 0 ? (
-        <p className="py-16 text-center text-sm text-muted-foreground">{t('explore.empty')}</p>
+        <EmptyResults
+          heading={t('explore.empty.heading')}
+          description={hasFilters ? t('explore.empty.filters') : t('explore.empty.plain')}
+        >
+          {hasFilters ? (
+            <Button size="sm" onClick={() => push({ lessons: [], format: null })}>
+              {tf('clearFilters')}
+            </Button>
+          ) : null}
+        </EmptyResults>
       ) : view === 'list' ? (
         <ul className="space-y-2">
           {entries.map((d) => (

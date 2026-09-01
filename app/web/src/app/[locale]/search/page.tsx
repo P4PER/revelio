@@ -10,6 +10,7 @@ import { ResultCount } from '@/components/search/result-count'
 import { SearchControls } from '@/components/search/search-controls'
 import { ActiveFilters } from '@/components/search/active-filters'
 import { ClearFilters } from '@/components/search/clear-filters'
+import { SearchEmptyResults } from '@/components/search/search-empty-results'
 import { SortSelect } from '@/components/search/sort-select'
 import { getDb } from '@/lib/server/db'
 import { listSets } from '@revelio/db'
@@ -67,6 +68,7 @@ export default async function SearchPage({
         imageBase={IMAGE_BASE}
         searchParams={current}
         startIndex={(results.page - 1) * results.hitsPerPage}
+        empty={<SearchEmptyResults />}
       />
       <Pagination
         page={results.page}

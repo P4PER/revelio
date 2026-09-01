@@ -85,7 +85,7 @@ describe('DeckCardBrowser', () => {
     renderBrowser(() => false)
 
     expect(screen.getByRole('status', { name: 'Loading cards…' })).toBeInTheDocument()
-    expect(screen.queryByText('No cards found.')).not.toBeInTheDocument()
+    expect(screen.queryByText(en.decks.browse.empty.heading)).not.toBeInTheDocument()
 
     await waitFor(() => expect(screen.getByText('5 cards')).toBeInTheDocument(), { timeout: 2000 })
     expect(screen.queryByRole('status', { name: 'Loading cards…' })).not.toBeInTheDocument()

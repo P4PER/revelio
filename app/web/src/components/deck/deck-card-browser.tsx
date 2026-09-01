@@ -18,6 +18,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { CardDetailSheet } from '@/components/card/card-detail-sheet'
+import { EmptyResults } from '@/components/empty-results'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CardInfoButton } from '@/components/card/card-info-button'
 import { CardRotate } from '@/components/card/card-rotate'
@@ -80,6 +81,7 @@ export function DeckCardBrowser({
   onAdd: (view: Omit<DeckCardView, 'zone' | 'quantity'>, zone: DeckZone) => void
 }) {
   const t = useTranslations('decks')
+  const tf = useTranslations('filters')
   const locale = useLocale()
   const [query, setQuery] = useState('')
   const [lessons, setLessons] = useState<string[]>([])
@@ -224,9 +226,16 @@ export function DeckCardBrowser({
             <Skeleton key={i} className="aspect-[5/7] w-full rounded-lg" />
           ))}
         {result.hits.length === 0 && !pending && (
-          <p className="col-span-full py-10 text-center text-sm text-muted-foreground" role="status">
-            {t('browse.noResults')}
-          </p>
+          <EmptyResults
+            size="compact"
+            className="col-span-full"
+            heading={t('browse.empty.heading')}
+            description={t('browse.empty.description')}
+          >
+            {filtersActive ? (
+              <Button size="sm" onClick={clearFilters}>{tf('clearFilters')}</Button>
+            ) : null}
+          </EmptyResults>
         )}
         {result.hits.map((hit) => {
           const view = toAddView(hit)

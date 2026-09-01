@@ -7,6 +7,7 @@ import { formatReleaseMonth } from '@/lib/set-sort'
 import { getSearchClient, runSearch } from '@/lib/server/search-client'
 import { FULL_SET_LIMIT } from '@/lib/search-params'
 import { CardGrid } from '@/components/card/card-grid'
+import { EmptyResults } from '@/components/empty-results'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
@@ -62,7 +63,13 @@ export default async function SetPage({
           {t('meta', { count: set.cardCount, date: formatReleaseMonth(set.releaseDate) })}
         </p>
       </header>
-      <CardGrid hits={results.hits} imageBase={IMAGE_BASE} />
+      <CardGrid
+        hits={results.hits}
+        imageBase={IMAGE_BASE}
+        empty={
+          <EmptyResults heading={t('empty.heading')} description={t('empty.description')} />
+        }
+      />
     </main>
   )
 }

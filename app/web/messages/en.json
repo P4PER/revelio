@@ -57,7 +57,13 @@
     "clear": "Clear search",
     "results": "{count, plural, one {# card} other {# cards}}",
     "resultRange": "{from, number}–{to, number} of {total, number} cards",
-    "noResults": "No cards found.",
+    "empty": {
+      "heading": "No cards match",
+      "queryAndFilters": "Nothing in the archive matches “{query}” with these filters.",
+      "filters": "Nothing in the archive matches these filters.",
+      "query": "Nothing in the archive matches “{query}”.",
+      "plain": "There are no cards to show here."
+    },
     "sort": {
       "label": "Sort by",
       "relevance": "Relevance",
@@ -86,7 +92,11 @@
     "title": "Sets",
     "meta": "{count, plural, one {# card} other {# cards}} · released {date}",
     "original": "Original",
-    "fanMade": "Fan-made"
+    "fanMade": "Fan-made",
+    "empty": {
+      "heading": "No cards in this set",
+      "description": "This set has no cards in the archive yet."
+    }
   },
   "filters": {
     "button": "Advanced",
@@ -333,7 +343,10 @@
       "lessonsLabel": "Lessons",
       "count": "{count, plural, one {# deck} other {# decks}}",
       "countRange": "{from, number}–{to, number} of {total, number} decks",
-      "empty": "No decks match your filters.",
+      "empty": {
+        "heading": "No decks match",
+        "description": "No decks match your filters."
+      },
       "prev": "Previous",
       "next": "Next",
       "pageOf": "Page {page} of {total}",
@@ -467,7 +480,10 @@
     },
     "browse": {
       "searchPlaceholder": "Search {format} cards…",
-      "noResults": "No cards found.",
+      "empty": {
+        "heading": "No cards match",
+        "description": "Try a different search, or clear the filters."
+      },
       "loading": "Loading cards…",
       "add": "+ Add",
       "addAria": "Add {name}",
@@ -607,7 +623,14 @@
       "cancel": "Cancel"
     },
     "searchPlaceholder": "Search collection…",
-    "empty": "You don't own any cards yet.",
+    "emptySet": {
+      "heading": "No cards from this set yet",
+      "description": "You don't own any cards from this set yet."
+    },
+    "emptyBrowse": {
+      "heading": "No cards match",
+      "description": "No cards in your collection match these filters."
+    },
     "loggedOut": {
       "title": "Track what you own",
       "desc": "Mark cards as owned, watch each set fill up, and share your collection with a single link.",

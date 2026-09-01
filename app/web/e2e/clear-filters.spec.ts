@@ -9,11 +9,15 @@ import { test, expect } from '@playwright/test'
 test('applying a filter does not resize the result-count row', async ({ page }) => {
   await page.goto('/decks')
 
-  const row = page.locator('[role="status"]').last().locator('..')
+  // The count row is the first live region on the page. An empty result set
+  // renders a second one (the empty state), so this must not be positional.
+  const row = page.locator('[role="status"]').first().locator('..')
   const before = await row.evaluate((n: HTMLElement) => n.offsetHeight)
 
   await page.getByRole('button', { name: 'Charms', exact: true }).click()
-  const clear = page.getByRole('button', { name: /clear filters/i })
+  // The empty state offers its own Clear filters button; measure the one in
+  // the count row, which is the control this test is about.
+  const clear = page.getByRole('button', { name: /clear filters/i }).first()
   await expect(clear).toBeVisible()
 
   expect(await row.evaluate((n: HTMLElement) => n.offsetHeight)).toBe(before)

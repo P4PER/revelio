@@ -135,7 +135,7 @@ export function CollectionView({
             description={t('emptyBrowse.description')}
           >
             {hasFilters ? (
-              <Button onClick={clearFilters}>{tf('clearFilters')}</Button>
+              <Button size="sm" onClick={clearFilters}>{tf('clearFilters')}</Button>
             ) : null}
           </EmptyResults>
         )}

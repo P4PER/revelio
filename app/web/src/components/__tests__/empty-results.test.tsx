@@ -24,7 +24,7 @@ describe('EmptyResults', () => {
   it('uses the medium motif by default and the small one when compact', () => {
     const { container: def } = render(<EmptyResults heading="a" />)
     const { container: compact } = render(<EmptyResults heading="b" size="compact" />)
-    expect(def.querySelector('.h-40')).not.toBeNull()
+    expect(def.querySelector('.h-48')).not.toBeNull()
     expect(compact.querySelector('.h-24')).not.toBeNull()
   })
 

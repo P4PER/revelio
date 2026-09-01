@@ -15,7 +15,7 @@ const SIZES: Record<
     motif: 'md',
     pad: 'py-14',
     gap: 'mb-6',
-    heading: 'text-xl',
+    heading: 'text-lg',
     desc: 'mt-2 max-w-sm text-sm',
     actions: 'mt-6',
   },

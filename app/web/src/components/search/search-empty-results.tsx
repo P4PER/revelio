@@ -43,10 +43,10 @@ export function SearchEmptyResults() {
   return (
     <EmptyResults heading={t('empty.heading')} description={description}>
       {canClearFilters ? (
-        <Button onClick={() => patch(CLEARED_FILTERS)}>{tf('clearFilters')}</Button>
+        <Button size="sm" onClick={() => patch(CLEARED_FILTERS)}>{tf('clearFilters')}</Button>
       ) : null}
       {query ? (
-        <Button variant="outline" onClick={() => patch({ q: null })}>
+        <Button variant="outline" size="sm" onClick={() => patch({ q: null })}>
           {t('clear')}
         </Button>
       ) : null}

@@ -38,7 +38,7 @@ const SIZES: Record<
     stripe: 9,
   },
   md: {
-    card: 'h-40',
+    card: 'h-48',
     radius: 'rounded-xl',
     inset: 'inset-2.5 rounded-md',
     symbol: 'text-4xl',

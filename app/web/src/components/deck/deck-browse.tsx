@@ -147,7 +147,7 @@ export function DeckBrowse({
           description={t('explore.empty.description')}
         >
           {hasFilters ? (
-            <Button onClick={() => push({ lessons: [], format: null })}>
+            <Button size="sm" onClick={() => push({ lessons: [], format: null })}>
               {tf('clearFilters')}
             </Button>
           ) : null}

@@ -17,9 +17,11 @@ test.describe('theme', () => {
     expect(await page.evaluate(pageBackground)).toBe(MIDNIGHT)
   })
 
-  test('an explicit choice beats the OS setting', async ({ page, context }) => {
+  // The cookie is scoped to the server under test rather than a hard-coded
+  // port, so it still lands when the suite runs on E2E_PORT.
+  test('an explicit choice beats the OS setting', async ({ page, context, baseURL }) => {
     await context.addCookies([
-      { name: 'revelio.theme', value: 'light', url: 'http://localhost:3000' },
+      { name: 'revelio.theme', value: 'light', url: baseURL! },
     ])
     await page.emulateMedia({ colorScheme: 'dark' })
     await page.goto('/en')

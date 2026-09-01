@@ -2,7 +2,7 @@
 import { useTranslations } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
 import { useRouter, usePathname } from '@/../i18n/navigation'
-import { parseSearchParams, withParams } from '@/lib/search-params'
+import { CLEARED_FILTERS, hasActiveFilters, parseSearchParams, withParams } from '@/lib/search-params'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { CollectionSetNav } from '@/components/collection/collection-set-nav'
 import { CollectionCardTile, type CollectionCard } from '@/components/collection/collection-card-tile'
@@ -16,13 +16,14 @@ import { Button } from '@/components/ui/button'
 import type { SetDTO, SetProgress, OwnedQuantities } from '@revelio/core'
 
 export function CollectionView({
-  sets, progress, selectedSet, cards, browseCards, quantities, editable, locale, mode,
+  sets, progress, selectedSet, cards, setTotal, browseCards, quantities, editable, locale, mode,
   browseTotal, browsePage, browsePageSize,
 }: {
   sets: SetDTO[]
   progress: SetProgress[]
   selectedSet: string
   cards: CollectionCard[]        // cards of the selected set (By set mode)
+  setTotal: number               // the set's full size, which `cards` may be capped below
   browseCards: CollectionCard[]  // flat search results (Browse all mode)
   quantities: OwnedQuantities
   editable: boolean
@@ -33,6 +34,10 @@ export function CollectionView({
   browsePageSize: number
 }) {
   const t = useTranslations('collection')
+  // The by-set empty state is the same statement /sets/[code] makes about the
+  // same situation, so both read it from the one key rather than keeping two
+  // copies that can drift.
+  const ts = useTranslations('sets')
   const tf = useTranslations('filters')
   const router = useRouter()
   const pathname = usePathname()
@@ -50,25 +55,16 @@ export function CollectionView({
   }
 
   // Browse-tab filter state: the shared advanced filters plus the collection's
-  // own ownership facet. Clearing drops them all in one navigation while keeping
-  // the search query, sort and the browse tab.
+  // own ownership facet, which lives outside SearchState and so is counted and
+  // cleared alongside the shared set rather than in place of it. Clearing drops
+  // them all in one navigation while keeping the search query, sort and tab.
   const browseState = parseSearchParams(new URLSearchParams(params.toString()))
-  const hasFilters =
-    browseState.types.length > 0 ||
-    browseState.lessons.length > 0 ||
-    browseState.rarities.length > 0 ||
-    browseState.finishes.length > 0 ||
-    browseState.legalities.length > 0 ||
-    Boolean(browseState.set) ||
-    browseState.costMin != null ||
-    browseState.costMax != null ||
-    browseState.official !== null ||
-    params.get('owned') != null
+  const hasFilters = hasActiveFilters(browseState) || params.get('owned') != null
 
   function clearFilters() {
     const next = withParams(new URLSearchParams(params.toString()), {
-      type: null, lesson: null, rarity: null, finish: null, legality: null,
-      set: null, costMin: null, costMax: null, official: null, owned: null,
+      ...CLEARED_FILTERS,
+      owned: null,
     })
     router.push(`${pathname}?${next.toString()}`)
   }
@@ -107,10 +103,19 @@ export function CollectionView({
           <CollectionSetNav sets={sets} progress={progress} selected={selectedSet}
             hrefFor={(c) => `?tab=sets&set=${c}`} />
           <section className="min-w-0 flex-1 min-[1024px]:max-w-[76rem]">
+            {/* The set is rendered whole rather than paged, so the count is
+                always the plain total -- pageSize tracks it to keep lastPage at
+                1, which is what suppresses the range. It is the panel's live
+                region, the way the Browse tab's is: switching sets is a soft
+                navigation, so without it an empty set would change the panel
+                silently. */}
+            <div className="mb-4">
+              <ResultCount page={1} pageSize={Math.max(setTotal, 1)} total={setTotal} />
+            </div>
             {cards.length ? grid(cards) : (
               <EmptyResults
-                heading={t('emptySet.heading')}
-                description={t('emptySet.description')}
+                heading={ts('empty.heading')}
+                description={ts('empty.description')}
               />
             )}
           </section>

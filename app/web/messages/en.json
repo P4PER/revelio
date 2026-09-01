@@ -624,10 +624,6 @@
       "cancel": "Cancel"
     },
     "searchPlaceholder": "Search collection…",
-    "emptySet": {
-      "heading": "No cards in this set",
-      "description": "This set has no cards in the archive yet."
-    },
     "emptyBrowse": {
       "heading": "No cards match",
       "filters": "No cards in your collection match these filters.",

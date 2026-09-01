@@ -7,6 +7,19 @@ import { VanishedCard, type VanishedCardSize } from '@/components/vanished-card'
 // inside a page that already owns an h1. `compact` exists for the deck
 // builder's browse rail, the only container narrow enough that the default
 // would crowd the grid it replaces.
+//
+// Deliberately NOT a live region: the list's own result count is, and marking
+// both meant screen readers got two announcements for one navigation. The
+// count is the better of the two -- it stays mounted across the update, where
+// this state is only inserted, and "0 cards" says what happened more precisely
+// than the heading does. The recovery button inside is reached by navigating
+// the state, not by hearing it announced.
+//
+// So every list that can reach this state owes itself a count: ResultCount on
+// /search and on both collection tabs, the count span on /decks, the count row
+// in the deck builder. The one caller without one is /sets/[code], which
+// states its total in the page header instead and is a full route change
+// rather than an in-place update.
 const SIZES: Record<
   'default' | 'compact',
   { motif: VanishedCardSize; pad: string; gap: string; heading: string; desc: string; actions: string }
@@ -44,10 +57,7 @@ export function EmptyResults({
 }) {
   const s = SIZES[size]
   return (
-    <div
-      role="status"
-      className={cn('flex flex-col items-center justify-center px-6 text-center', s.pad, className)}
-    >
+    <div className={cn('flex flex-col items-center justify-center px-6 text-center', s.pad, className)}>
       <VanishedCard variant="missing" size={s.motif} className={s.gap} />
       <h2 className={cn('font-semibold text-foreground', s.heading)}>{heading}</h2>
       {description ? (

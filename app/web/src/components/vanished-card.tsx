@@ -3,10 +3,33 @@ import { cn } from '@/lib/utils'
 export type VanishedCardVariant = 'missing' | 'dissolving' | 'dark'
 export type VanishedCardSize = 'lg' | 'md' | 'sm'
 
-const VARIANTS: Record<VanishedCardVariant, { symbol: string; mask: boolean }> = {
-  missing: { symbol: '?', mask: false },
-  dissolving: { symbol: '✦', mask: true },
-  dark: { symbol: '✦', mask: false },
+const VARIANTS: Record<VanishedCardVariant, { symbol: 'question' | 'sparkle'; mask: boolean }> = {
+  missing: { symbol: 'question', mask: false },
+  dissolving: { symbol: 'sparkle', mask: true },
+  dark: { symbol: 'sparkle', mask: false },
+}
+
+// The four-pointed star is drawn, not typed. U+2726 is in neither Poppins nor
+// most system UI fonts, so as text it fell back to whatever each platform
+// happened to have and changed shape between macOS, Windows and Android. As a
+// path it is the same mark everywhere. It sizes off the font-size it inherits
+// (0.82em is about the ink an em of the glyph used to cover) and takes its fill
+// from currentColor, so every existing text-* and ink class keeps working.
+//
+// The "?" stays text on purpose: every font ships one, so there is nothing to
+// stabilise, and a hand-drawn path would only be a worse question mark than the
+// one the font already draws.
+function Sparkle({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+      className={cn('block size-[0.82em]', className)}
+    >
+      <path d="M12 0c0 6.6 5.4 12 12 12-6.6 0-12 5.4-12 12 0-6.6-5.4-12-12-12 6.6 0 12-5.4 12-12Z" />
+    </svg>
+  )
 }
 
 // The symbol takes whichever ink carries against the ground it sits on:
@@ -101,29 +124,26 @@ export function VanishedCard({
             '[filter:drop-shadow(0_0_18px_var(--glow-symbol))]',
             s.symbol,
             SYMBOL_INK,
+            // leading-none only matters for the drawn mark: it keeps the span
+            // exactly as tall as the svg instead of the inherited line box.
+            symbol === 'sparkle' && 'inline-block leading-none',
           )}
         >
-          {symbol}
+          {symbol === 'sparkle' ? <Sparkle /> : '?'}
         </span>
       </div>
-      <span
-        aria-hidden="true"
+      <Sparkle
         className={cn(
           'absolute text-primary-ink [filter:drop-shadow(0_0_8px_var(--glow-sparkle))]',
           s.sparkleTop,
         )}
-      >
-        {'✦'}
-      </span>
-      <span
-        aria-hidden="true"
+      />
+      <Sparkle
         className={cn(
           'absolute text-primary-ink [filter:drop-shadow(0_0_6px_var(--glow-sparkle-sm))]',
           s.sparkleBottom,
         )}
-      >
-        {'✦'}
-      </span>
+      />
     </div>
   )
 }

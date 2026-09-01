@@ -8,9 +8,19 @@ describe('VanishedCard', () => {
     expect(screen.getByText('?')).toBeInTheDocument()
   })
 
-  it('shows a star for the dissolving variant', () => {
+  // Drawn, not typed: a text star would render from whatever font the platform
+  // happens to fall back to, so the mark has to be a path.
+  it('draws the star for the dissolving variant instead of typing it', () => {
     const { container } = render(<VanishedCard variant="dissolving" />)
-    expect(container.textContent).toContain('✦')
+    expect(container.textContent).not.toContain('✦')
+    // the centre mark plus the two corner sparkles
+    expect(container.querySelectorAll('svg')).toHaveLength(3)
+  })
+
+  it('draws the corner sparkles as paths on the missing variant too', () => {
+    const { container } = render(<VanishedCard variant="missing" />)
+    expect(container.textContent).toBe('?')
+    expect(container.querySelectorAll('svg')).toHaveLength(2)
   })
 
   it('scales the card box with the size prop', () => {

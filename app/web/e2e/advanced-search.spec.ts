@@ -7,6 +7,7 @@ test('filter drawer narrows results and shows a removable chip', async ({ page }
     test.skip(true, 'Search index has no data — run with a seeded stack to verify fully')
   }
   const before = await page.getByRole('status').textContent()
+  expect(before, 'the count row is the page live region').toBeTruthy()
 
   // filters.button reads "Advanced", not "Filters".
   await page.getByRole('button', { name: /advanced/i }).click()

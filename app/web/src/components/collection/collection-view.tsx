@@ -102,6 +102,13 @@ export function CollectionView({
           <CollectionSetNav sets={sets} progress={progress} selected={selectedSet}
             hrefFor={(c) => `?tab=sets&set=${c}`} />
           <section className="min-w-0 flex-1 min-[1024px]:max-w-[76rem]">
+            {/* The set is rendered whole rather than paged, so the count is
+                always the plain total. It is the panel's live region, the way
+                the Browse tab's is: switching sets is a soft navigation, so
+                without it an empty set would change the panel silently. */}
+            <div className="mb-4">
+              <ResultCount page={1} pageSize={Math.max(cards.length, 1)} total={cards.length} />
+            </div>
             {cards.length ? grid(cards) : (
               <EmptyResults
                 heading={ts('empty.heading')}

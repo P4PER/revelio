@@ -14,13 +14,13 @@ describe('VanishedCard', () => {
     const { container } = render(<VanishedCard variant="dissolving" />)
     expect(container.textContent).not.toContain('✦')
     // the centre mark plus the two corner sparkles
-    expect(container.querySelectorAll('svg path')).toHaveLength(3)
+    expect(container.querySelectorAll('svg')).toHaveLength(3)
   })
 
   it('draws the corner sparkles as paths on the missing variant too', () => {
     const { container } = render(<VanishedCard variant="missing" />)
     expect(container.textContent).toBe('?')
-    expect(container.querySelectorAll('svg path')).toHaveLength(2)
+    expect(container.querySelectorAll('svg')).toHaveLength(2)
   })
 
   it('scales the card box with the size prop', () => {

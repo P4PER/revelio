@@ -12,7 +12,7 @@ import { defineConfig } from '@playwright/test'
 // a free port to run a real production server alongside a dev server:
 //
 //   E2E_PORT=3100 npm run e2e -w web
-export const E2E_PORT = Number(process.env.E2E_PORT ?? 3000)
+const E2E_PORT = Number(process.env.E2E_PORT ?? 3000)
 
 const baseURL = `http://localhost:${E2E_PORT}`
 

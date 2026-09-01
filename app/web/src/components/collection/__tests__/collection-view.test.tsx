@@ -146,4 +146,17 @@ describe('CollectionView announcements', () => {
     expect(live).toHaveLength(1)
     expect(live[0]).toHaveTextContent(/cards?$/)
   })
+
+  // Sets are switched by a soft navigation, so the panel is patched in place.
+  // Without a count of its own an empty set would change it silently.
+  it('announces the by-set count, including when the set is empty', () => {
+    const { unmount } = renderView({ cards: [card] })
+    expect(screen.getByRole('status')).toHaveTextContent('1 card')
+    unmount()
+
+    renderView()
+    const live = screen.getAllByRole('status')
+    expect(live).toHaveLength(1)
+    expect(live[0]).toHaveTextContent('0 cards')
+  })
 })

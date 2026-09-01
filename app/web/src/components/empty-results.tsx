@@ -8,14 +8,18 @@ import { VanishedCard, type VanishedCardSize } from '@/components/vanished-card'
 // builder's browse rail, the only container narrow enough that the default
 // would crowd the grid it replaces.
 //
-// Deliberately NOT a live region. Every list that can swap to this state
-// already keeps a result count above it (ResultCount on /search and the
-// collection, the count span on /decks, the count row in the deck builder),
-// and that count is the better announcement: it is stably mounted across the
-// update, where this state is only inserted, and "0 cards" says what happened
-// more precisely than the heading does. Marking both meant screen readers got
-// two announcements for one navigation. The recovery button inside is reached
-// by navigating the state, not by hearing it announced.
+// Deliberately NOT a live region: the list's own result count is, and marking
+// both meant screen readers got two announcements for one navigation. The
+// count is the better of the two -- it stays mounted across the update, where
+// this state is only inserted, and "0 cards" says what happened more precisely
+// than the heading does. The recovery button inside is reached by navigating
+// the state, not by hearing it announced.
+//
+// So every list that can reach this state owes itself a count: ResultCount on
+// /search and on both collection tabs, the count span on /decks, the count row
+// in the deck builder. The one caller without one is /sets/[code], which
+// states its total in the page header instead and is a full route change
+// rather than an in-place update.
 const SIZES: Record<
   'default' | 'compact',
   { motif: VanishedCardSize; pad: string; gap: string; heading: string; desc: string; actions: string }

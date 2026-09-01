@@ -3,13 +3,12 @@ import { describe, it, expect } from 'vitest'
 import { EmptyResults } from '@/components/empty-results'
 
 describe('EmptyResults', () => {
-  it('announces itself and renders heading, description and actions', () => {
+  it('renders heading, description and actions', () => {
     render(
       <EmptyResults heading="No cards match" description="Try another spell">
         <button>Clear filters</button>
       </EmptyResults>,
     )
-    expect(screen.getByRole('status')).toHaveTextContent('No cards match')
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('No cards match')
     expect(screen.getByText('Try another spell')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Clear filters' })).toBeInTheDocument()
@@ -29,7 +28,15 @@ describe('EmptyResults', () => {
   })
 
   it('merges a className onto the container so callers can span a grid', () => {
-    render(<EmptyResults heading="a" className="col-span-full" />)
-    expect(screen.getByRole('status').className).toContain('col-span-full')
+    const { container } = render(<EmptyResults heading="a" className="col-span-full" />)
+    expect(container.firstElementChild?.className).toContain('col-span-full')
+  })
+
+  // Every list that can show this state already keeps a result count above it,
+  // and that count is the live region. Marking this one too announced the same
+  // update twice.
+  it('stays silent so it does not announce over the result count', () => {
+    render(<EmptyResults heading="No cards match" description="Try another spell" />)
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 })

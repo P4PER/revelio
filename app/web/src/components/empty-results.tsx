@@ -7,6 +7,15 @@ import { VanishedCard, type VanishedCardSize } from '@/components/vanished-card'
 // inside a page that already owns an h1. `compact` exists for the deck
 // builder's browse rail, the only container narrow enough that the default
 // would crowd the grid it replaces.
+//
+// Deliberately NOT a live region. Every list that can swap to this state
+// already keeps a result count above it (ResultCount on /search and the
+// collection, the count span on /decks, the count row in the deck builder),
+// and that count is the better announcement: it is stably mounted across the
+// update, where this state is only inserted, and "0 cards" says what happened
+// more precisely than the heading does. Marking both meant screen readers got
+// two announcements for one navigation. The recovery button inside is reached
+// by navigating the state, not by hearing it announced.
 const SIZES: Record<
   'default' | 'compact',
   { motif: VanishedCardSize; pad: string; gap: string; heading: string; desc: string; actions: string }
@@ -44,10 +53,7 @@ export function EmptyResults({
 }) {
   const s = SIZES[size]
   return (
-    <div
-      role="status"
-      className={cn('flex flex-col items-center justify-center px-6 text-center', s.pad, className)}
-    >
+    <div className={cn('flex flex-col items-center justify-center px-6 text-center', s.pad, className)}>
       <VanishedCard variant="missing" size={s.motif} className={s.gap} />
       <h2 className={cn('font-semibold text-foreground', s.heading)}>{heading}</h2>
       {description ? (

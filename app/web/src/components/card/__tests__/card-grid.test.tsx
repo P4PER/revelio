@@ -24,7 +24,7 @@ describe('CardGrid', () => {
 
   it('shows the default empty state when there are no hits', () => {
     renderWithIntl(<CardGrid hits={[]} imageBase="http://img" />)
-    expect(screen.getByRole('status')).toHaveTextContent(en.search.empty.heading)
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(en.search.empty.heading)
     expect(screen.getByText(en.search.empty.plain)).toBeInTheDocument()
   })
 

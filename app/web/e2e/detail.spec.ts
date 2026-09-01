@@ -13,7 +13,9 @@ test('search result links to a card detail page', async ({ page }) => {
 
 test('sets index links to a set page', async ({ page }) => {
   await page.goto('/sets')
-  const firstSet = page.getByRole('link').filter({ hasText: /.+/ }).first()
+  // Scope to actual set links: the first text-bearing link on the page is the
+  // header's own "Sets" nav item, and clicking that never leaves /sets.
+  const firstSet = page.locator('a[href*="/sets/"]').first()
   if (!(await firstSet.isVisible().catch(() => false))) {
     test.skip(true, 'DB not seeded — run with a seeded stack to verify fully')
   }

@@ -4,10 +4,13 @@ import { test, expect } from '@playwright/test'
 // (the compose stack). Skipped automatically if the search index has no data.
 test('search from home shows results and a type filter narrows them', async ({ page }) => {
   await page.goto('/')
+  // The home search submits on Enter; it has no submit button to click.
   await page.getByRole('search').getByRole('searchbox').fill('harry')
-  await page.getByRole('button', { name: /^search$/i }).click()
+  await page.getByRole('search').getByRole('searchbox').press('Enter')
   await expect(page).toHaveURL(/\/search\?q=harry/)
-  await expect(page.getByText(/\d+ cards/)).toBeVisible()
+  // The count row is the page's one live region. Matching on the text alone
+  // would also hit the pager, which repeats the count without announcing it.
+  await expect(page.getByRole('status')).toHaveText(/\d+ cards/)
 
   // If no result tiles appear within a short timeout, the search index is empty or
   // unreachable — skip so `npx playwright test` stays green without seeded data.

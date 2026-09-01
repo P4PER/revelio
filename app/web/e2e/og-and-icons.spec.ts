@@ -3,6 +3,14 @@ import { test, expect } from '@playwright/test'
 // PNG magic number — the first 8 bytes of every PNG file.
 const PNG_SIGNATURE = '89504e470d0a1a0a'
 
+// og:image is absolute and built from the configured site URL, which is not
+// the host under test. Strip it back to a path so the request goes to the
+// server this run actually started.
+function servedPath(absolute: string) {
+  const url = new URL(absolute)
+  return url.pathname + url.search
+}
+
 // A legal page needs no seeded data, so it renders (and exposes the inherited
 // default OG image) even against an empty stack.
 test('the default Open Graph image renders as a real PNG', async ({ page, request }) => {
@@ -10,7 +18,7 @@ test('the default Open Graph image renders as a real PNG', async ({ page, reques
   const ogUrl = await page.locator('meta[property="og:image"]').getAttribute('content')
   expect(ogUrl, 'og:image meta tag is present').toBeTruthy()
 
-  const res = await request.get(ogUrl!)
+  const res = await request.get(servedPath(ogUrl!))
   expect(res.status()).toBe(200)
   expect(res.headers()['content-type']).toContain('image/png')
 
@@ -36,7 +44,7 @@ test('a public deck OG image renders as a real PNG when decks exist', async ({ p
   const ogUrl = await page.locator('meta[property="og:image"]').getAttribute('content')
   expect(ogUrl, 'deck og:image is present').toBeTruthy()
 
-  const res = await request.get(ogUrl!)
+  const res = await request.get(servedPath(ogUrl!))
   expect(res.status()).toBe(200)
   expect(res.headers()['content-type']).toContain('image/png')
   const body = await res.body()

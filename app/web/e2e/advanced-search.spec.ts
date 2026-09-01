@@ -1,4 +1,13 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
+
+// The trailing figure of the count row -- "1-24 of 100 cards" -> 100. Read as a
+// number so "narrows" is an actual comparison rather than two strings differing.
+async function total(page: Page) {
+  const text = await page.getByRole('status').textContent()
+  const match = text?.match(/([\d,.\u202f\u00a0]+)\s+\S+$/)
+  expect(match, `count row should end in a total, got ${text}`).toBeTruthy()
+  return Number(match![1].replace(/\D/g, ''))
+}
 
 test('filter drawer narrows results and shows a removable chip', async ({ page }) => {
   await page.goto('/search?q=harry')
@@ -6,8 +15,7 @@ test('filter drawer narrows results and shows a removable chip', async ({ page }
   if (!(await grid.isVisible().catch(() => false))) {
     test.skip(true, 'Search index has no data — run with a seeded stack to verify fully')
   }
-  const before = await page.getByRole('status').textContent()
-  expect(before, 'the count row is the page live region').toBeTruthy()
+  const before = await total(page)
 
   // filters.button reads "Advanced", not "Filters".
   await page.getByRole('button', { name: /advanced/i }).click()
@@ -22,6 +30,6 @@ test('filter drawer narrows results and shows a removable chip', async ({ page }
   // The sheet aria-hides the page behind it, so nothing on the results page is
   // reachable by role until it has finished closing.
   await sheet.waitFor({ state: 'hidden' })
-  await expect(page.getByRole('status')).not.toHaveText(before ?? '')
+  expect(await total(page)).toBeLessThan(before)
   await expect(page.getByRole('button', { name: 'remove Rare' })).toBeVisible()
 })

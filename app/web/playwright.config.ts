@@ -8,8 +8,11 @@ import { defineConfig } from '@playwright/test'
 // to whatever already answers on the port instead of starting anything, and it
 // cannot tell a production server from a dev one -- so with `next dev` running,
 // the whole suite silently runs against the server this config exists to avoid
-// and fails for reasons that have nothing to do with the code. Set E2E_PORT to
-// a free port to run a real production server alongside a dev server:
+// and fails for reasons that have nothing to do with the code. So reuse is
+// opt-in: without E2E_PORT the suite always builds and starts its own server,
+// and a squatted port fails loudly instead of quietly testing the wrong thing.
+// Set E2E_PORT to a free port to run a real production server alongside a dev
+// server -- or to 3000 to deliberately reuse one you started yourself:
 //
 //   E2E_PORT=3100 npm run e2e -w web
 const E2E_PORT = Number(process.env.E2E_PORT ?? 3000)
@@ -21,7 +24,7 @@ export default defineConfig({
   webServer: {
     command: `npm run build && npm run start -- --port ${E2E_PORT}`,
     url: `${baseURL}/`,
-    reuseExistingServer: true,
+    reuseExistingServer: Boolean(process.env.E2E_PORT),
     timeout: 180_000,
   },
   use: { baseURL },

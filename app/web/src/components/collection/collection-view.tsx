@@ -16,13 +16,14 @@ import { Button } from '@/components/ui/button'
 import type { SetDTO, SetProgress, OwnedQuantities } from '@revelio/core'
 
 export function CollectionView({
-  sets, progress, selectedSet, cards, browseCards, quantities, editable, locale, mode,
+  sets, progress, selectedSet, cards, setTotal, browseCards, quantities, editable, locale, mode,
   browseTotal, browsePage, browsePageSize,
 }: {
   sets: SetDTO[]
   progress: SetProgress[]
   selectedSet: string
   cards: CollectionCard[]        // cards of the selected set (By set mode)
+  setTotal: number               // the set's full size, which `cards` may be capped below
   browseCards: CollectionCard[]  // flat search results (Browse all mode)
   quantities: OwnedQuantities
   editable: boolean
@@ -103,11 +104,13 @@ export function CollectionView({
             hrefFor={(c) => `?tab=sets&set=${c}`} />
           <section className="min-w-0 flex-1 min-[1024px]:max-w-[76rem]">
             {/* The set is rendered whole rather than paged, so the count is
-                always the plain total. It is the panel's live region, the way
-                the Browse tab's is: switching sets is a soft navigation, so
-                without it an empty set would change the panel silently. */}
+                always the plain total -- pageSize tracks it to keep lastPage at
+                1, which is what suppresses the range. It is the panel's live
+                region, the way the Browse tab's is: switching sets is a soft
+                navigation, so without it an empty set would change the panel
+                silently. */}
             <div className="mb-4">
-              <ResultCount page={1} pageSize={Math.max(cards.length, 1)} total={cards.length} />
+              <ResultCount page={1} pageSize={Math.max(setTotal, 1)} total={setTotal} />
             </div>
             {cards.length ? grid(cards) : (
               <EmptyResults

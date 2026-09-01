@@ -27,6 +27,7 @@ export type CollectionPageData = {
   selectedSet: string
   tab: 'sets' | 'browse'
   setCards: CollectionCard[]
+  setTotal: number
   browseCards: CollectionCard[]
   browseTotal: number
   browsePage: number
@@ -73,6 +74,10 @@ export async function loadCollectionPage(
   return {
     sets, progress, summary, selectedSet, tab,
     setCards: toCollectionCards(setRes.hits, imageBase),
+    // The set's own total, not setCards.length: the grid is capped at
+    // FULL_SET_LIMIT and has no pagination, so a set past that cap would
+    // otherwise report the truncated page as the whole set.
+    setTotal: setRes.total,
     browseCards: toCollectionCards(browseRes.hits, imageBase),
     browseTotal: browseRes.total,
     browsePage: browseRes.page,

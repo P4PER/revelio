@@ -34,6 +34,7 @@ const base = {
   progress,
   selectedSet: 'BS',
   cards: [],
+  setTotal: 0,
   browseCards: [],
   quantities: {},
   editable: true,
@@ -67,7 +68,7 @@ describe('CollectionView by-set tab', () => {
   })
 
   it('shows the grid instead of the empty state once the set has cards', () => {
-    renderView({ cards: [card] })
+    renderView({ cards: [card], setTotal: 1 })
     expect(screen.getByTestId('card-tile-bs-1')).toBeInTheDocument()
     expect(screen.queryByText(en.sets.empty.description)).not.toBeInTheDocument()
   })
@@ -150,7 +151,7 @@ describe('CollectionView announcements', () => {
   // Sets are switched by a soft navigation, so the panel is patched in place.
   // Without a count of its own an empty set would change it silently.
   it('announces the by-set count, including when the set is empty', () => {
-    const { unmount } = renderView({ cards: [card] })
+    const { unmount } = renderView({ cards: [card], setTotal: 1 })
     expect(screen.getByRole('status')).toHaveTextContent('1 card')
     unmount()
 
@@ -158,5 +159,15 @@ describe('CollectionView announcements', () => {
     const live = screen.getAllByRole('status')
     expect(live).toHaveLength(1)
     expect(live[0]).toHaveTextContent('0 cards')
+  })
+})
+
+describe('CollectionView by-set count', () => {
+  // The by-set grid is capped at FULL_SET_LIMIT and has no pagination, so the
+  // count has to come from the set's own total or it would report a truncated
+  // page as the whole set -- and it stays a plain total, never a range.
+  it('counts the whole set, not the cards the grid could fit', () => {
+    renderView({ cards: [card], setTotal: 260 })
+    expect(screen.getByRole('status')).toHaveTextContent('260 cards')
   })
 })

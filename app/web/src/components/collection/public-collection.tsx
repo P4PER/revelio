@@ -42,7 +42,7 @@ export async function PublicCollection({
       <div className="mt-6">
         <CollectionView
           sets={data.sets} progress={data.progress} selectedSet={data.selectedSet}
-          cards={data.setCards} browseCards={data.browseCards}
+          cards={data.setCards} setTotal={data.setTotal} browseCards={data.browseCards}
           browseTotal={data.browseTotal} browsePage={data.browsePage} browsePageSize={data.browsePageSize}
           quantities={data.quantities} editable={false} locale={locale} mode={data.tab}
         />

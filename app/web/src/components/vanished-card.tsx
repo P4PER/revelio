@@ -41,7 +41,7 @@ const SIZES: Record<
     card: 'h-48',
     radius: 'rounded-xl',
     inset: 'inset-2.5 rounded-md',
-    symbol: 'text-4xl',
+    symbol: 'text-5xl',
     sparkleTop: '-left-2 -top-1.5 text-base',
     sparkleBottom: '-bottom-1 -right-2 text-xs',
     stripe: 6,

@@ -132,7 +132,7 @@ export function CollectionView({
         {browseCards.length ? grid(browseCards) : (
           <EmptyResults
             heading={t('emptyBrowse.heading')}
-            description={t('emptyBrowse.description')}
+            description={hasFilters ? t('emptyBrowse.filters') : t('emptyBrowse.plain')}
           >
             {hasFilters ? (
               <Button size="sm" onClick={clearFilters}>{tf('clearFilters')}</Button>

@@ -345,7 +345,8 @@
       "countRange": "{from, number}–{to, number} of {total, number} decks",
       "empty": {
         "heading": "No decks match",
-        "description": "No decks match your filters."
+        "filters": "No decks match your filters.",
+        "plain": "No decks match your search."
       },
       "prev": "Previous",
       "next": "Next",
@@ -624,12 +625,13 @@
     },
     "searchPlaceholder": "Search collection…",
     "emptySet": {
-      "heading": "No cards from this set yet",
-      "description": "You don't own any cards from this set yet."
+      "heading": "No cards in this set",
+      "description": "This set has no cards in the archive yet."
     },
     "emptyBrowse": {
       "heading": "No cards match",
-      "description": "No cards in your collection match these filters."
+      "filters": "No cards in your collection match these filters.",
+      "plain": "No cards in your collection match your search."
     },
     "loggedOut": {
       "title": "Track what you own",

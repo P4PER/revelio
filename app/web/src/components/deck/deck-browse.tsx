@@ -144,7 +144,7 @@ export function DeckBrowse({
       {entries.length === 0 ? (
         <EmptyResults
           heading={t('explore.empty.heading')}
-          description={t('explore.empty.description')}
+          description={hasFilters ? t('explore.empty.filters') : t('explore.empty.plain')}
         >
           {hasFilters ? (
             <Button size="sm" onClick={() => push({ lessons: [], format: null })}>

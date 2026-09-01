@@ -345,7 +345,8 @@
       "countRange": "{from, number}–{to, number} von {total, number} Decks",
       "empty": {
         "heading": "Keine Decks gefunden",
-        "description": "Keine Decks entsprechen deinen Filtern."
+        "filters": "Keine Decks entsprechen deinen Filtern.",
+        "plain": "Keine Decks entsprechen deiner Suche."
       },
       "prev": "Zurück",
       "next": "Weiter",
@@ -624,12 +625,13 @@
     },
     "searchPlaceholder": "Sammlung durchsuchen",
     "emptySet": {
-      "heading": "Noch keine Karten aus diesem Set",
-      "description": "Du besitzt noch keine Karten aus diesem Set."
+      "heading": "Keine Karten in diesem Set",
+      "description": "Dieses Set enthält noch keine Karten im Archiv."
     },
     "emptyBrowse": {
       "heading": "Keine Karten gefunden",
-      "description": "Keine Karten in deiner Sammlung passen zu diesen Filtern."
+      "filters": "Keine Karten in deiner Sammlung passen zu diesen Filtern.",
+      "plain": "Keine Karten in deiner Sammlung passen zu deiner Suche."
     },
     "loggedOut": {
       "title": "Behalte deine Sammlung im Blick",

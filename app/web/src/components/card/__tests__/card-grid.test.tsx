@@ -22,9 +22,16 @@ describe('CardGrid', () => {
     expect(screen.getByAltText('Flobberworm')).toBeInTheDocument()
   })
 
-  it('shows an empty state when there are no hits', () => {
+  it('shows the default empty state when there are no hits', () => {
     renderWithIntl(<CardGrid hits={[]} imageBase="http://img" />)
-    expect(screen.getByRole('status')).toHaveTextContent(en.search.noResults)
+    expect(screen.getByRole('status')).toHaveTextContent(en.search.empty.heading)
+    expect(screen.getByText(en.search.empty.plain)).toBeInTheDocument()
+  })
+
+  it('renders a caller-supplied empty state instead of the default', () => {
+    renderWithIntl(<CardGrid hits={[]} imageBase="http://img" empty={<p>Nothing in this set</p>} />)
+    expect(screen.getByText('Nothing in this set')).toBeInTheDocument()
+    expect(screen.queryByText(en.search.empty.plain)).not.toBeInTheDocument()
   })
 })
 

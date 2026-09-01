@@ -3,14 +3,18 @@ import { cn } from '@/lib/utils'
 export type VanishedCardVariant = 'missing' | 'dissolving' | 'dark'
 export type VanishedCardSize = 'lg' | 'md' | 'sm'
 
-const VARIANTS: Record<
-  VanishedCardVariant,
-  { symbol: string; color: string; mask: boolean }
-> = {
-  missing: { symbol: '?', color: 'text-primary-ink', mask: false },
-  dissolving: { symbol: '✦', color: 'text-secondary-ink', mask: true },
-  dark: { symbol: '✦', color: 'text-secondary-ink', mask: false },
+const VARIANTS: Record<VanishedCardVariant, { symbol: string; mask: boolean }> = {
+  missing: { symbol: '?', mask: false },
+  dissolving: { symbol: '✦', mask: true },
+  dark: { symbol: '✦', mask: false },
 }
+
+// The symbol takes whichever ink carries against the ground it sits on:
+// indigo on parchment, gold on midnight. Neither reads in both. The light gold
+// is a dark bronze that muddies against the striped card, and the dark indigo
+// washes out against it. The sparkles stay gold in both themes: they are small
+// and sit outside the card, where the ground is the page rather than stripes.
+const SYMBOL_INK = 'text-secondary-ink dark:text-primary-ink'
 
 // One motif at three scales. `stripe` is the width in px of a single diagonal
 // band; the gradient repeats at twice that. It shrinks with the card so the
@@ -66,7 +70,7 @@ export function VanishedCard({
   size?: VanishedCardSize
   className?: string
 }) {
-  const { symbol, color, mask } = VARIANTS[variant]
+  const { symbol, mask } = VARIANTS[variant]
   const s = SIZES[size]
   return (
     <div className={cn('relative inline-block', className)}>
@@ -96,7 +100,7 @@ export function VanishedCard({
           className={cn(
             '[filter:drop-shadow(0_0_18px_var(--glow-symbol))]',
             s.symbol,
-            color,
+            SYMBOL_INK,
           )}
         >
           {symbol}

@@ -91,7 +91,10 @@ export function DeckBrowse({
           they'd read as undersized). Sort is not here — it lives in the
           results header below. */}
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex flex-wrap gap-2" aria-label={t('explore.lessonsLabel')}>
+        {/* role="group" is what carries the label: aria-label on a bare div is
+            dropped, since the generic role takes no author-supplied name. The
+            search lanes name their chip groups the same way. */}
+        <div className="flex flex-wrap gap-2" role="group" aria-label={t('explore.lessonsLabel')}>
           <LessonFilterChips selected={state.lessons} onToggle={toggleLesson} />
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">

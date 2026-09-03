@@ -86,6 +86,22 @@ describe('DeckBrowse view toggle', () => {
   })
 })
 
+describe('DeckBrowse lesson filter', () => {
+  // The bug this guards: the label sat on a bare div, and a generic role takes
+  // no author-supplied name, so screen readers announced five unexplained
+  // toggles. The role is what carries the label into the a11y tree.
+  it('exposes the lesson chips as a group named in the active locale', () => {
+    renderBrowse()
+    const group = screen.getByRole('group', { name: en.decks.explore.lessonsLabel })
+    expect(group.querySelectorAll('button')).toHaveLength(5)
+  })
+
+  it('names the group in German too', () => {
+    renderBrowseInGerman()
+    expect(screen.getByRole('group', { name: de.decks.explore.lessonsLabel })).toBeInTheDocument()
+  })
+})
+
 describe('DeckBrowse empty state', () => {
   it('blames the filters and offers to clear them when a filter is set', () => {
     renderBrowse({ state: { ...base.state, lessons: ['charms'] } })

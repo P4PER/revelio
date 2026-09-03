@@ -117,3 +117,31 @@ describe('DeckBuilder save-on-login prompt', () => {
     expect(screen.queryByText('Save this deck to your account?')).not.toBeInTheDocument()
   })
 })
+
+describe('DeckBuilder command bar layout', () => {
+  it('stacks the command bar below sm so every control has a fixed place', () => {
+    // A single wrapping row put the format switch, import, export and save
+    // wherever they happened to land on a phone: one row right-aligned, the
+    // next left-aligned. Below sm the bar is a column instead.
+    renderBuilder()
+    const bar = screen.getByLabelText(en.decks.namePlaceholder).closest('div')
+    expect(bar).toHaveClass('flex-col')
+    expect(bar).toHaveClass('sm:flex-row')
+  })
+
+  it('gives the name, the format switch and save the full width below sm', () => {
+    renderBuilder({ loggedIn: true })
+    expect(screen.getByLabelText(en.decks.namePlaceholder)).toHaveClass('w-full', 'sm:w-[40rem]')
+    const formats = screen.getByRole('group', { name: en.decks.format.label })
+    expect(formats).toHaveClass('w-full', 'sm:w-auto')
+    expect(screen.getByRole('button', { name: en.decks.save })).toHaveClass('w-full', 'sm:w-auto')
+  })
+
+  it('pairs import and export on one row below sm', () => {
+    renderBuilder()
+    const actions = screen.getByRole('button', { name: en.decks.import.button }).parentElement
+    expect(actions).toHaveClass('max-sm:*:flex-1')
+    expect(actions).toHaveClass('sm:contents')
+    expect(actions).toContainElement(screen.getByRole('button', { name: en.decks.export.button }))
+  })
+})

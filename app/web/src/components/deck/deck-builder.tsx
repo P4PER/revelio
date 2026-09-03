@@ -167,16 +167,23 @@ export function DeckBuilder({
 
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-border/60">
-      <div className="flex flex-wrap items-center gap-3 border-b border-border/60 bg-card/60 px-4 py-3">
+      {/* Below sm the bar stacks in a fixed order - name, format switch, the two
+          secondary actions side by side, then save. Letting the single row wrap
+          freely dropped each control wherever it happened to land. */}
+      <div className="flex flex-col gap-3 border-b border-border/60 bg-card/60 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center">
         <Input
           value={state.name}
           onChange={(e) => setState((s) => ({ ...s, name: e.target.value }))}
           placeholder={t('namePlaceholder')}
           aria-label={t('namePlaceholder')}
-          className="h-9 w-[40rem] max-w-full rounded-md px-3 text-lg font-semibold shadow-none md:text-lg"
+          className="h-9 w-full max-w-full rounded-md px-3 text-lg font-semibold shadow-none sm:w-[40rem] md:text-lg"
         />
-        <div className="flex-1" />
-        <div role="group" aria-label={t('format.label')} className="inline-flex rounded-full border border-input bg-muted p-0.5">
+        <div className="hidden flex-1 sm:block" />
+        <div
+          role="group"
+          aria-label={t('format.label')}
+          className="flex w-full rounded-full border border-input bg-muted p-0.5 sm:inline-flex sm:w-auto"
+        >
           {FORMATS.map((f) => (
             <button
               key={f}
@@ -184,7 +191,7 @@ export function DeckBuilder({
               aria-pressed={state.format === f}
               onClick={() => setState((s) => setFormat(s, f))}
               className={cn(
-                'cursor-pointer rounded-full px-3 py-1.5 text-xs font-medium transition',
+                'flex-1 cursor-pointer rounded-full px-3 py-1.5 text-xs font-medium transition sm:flex-none',
                 state.format === f
                   ? 'bg-gradient-to-b from-primary to-primary/80 text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground',
@@ -194,14 +201,16 @@ export function DeckBuilder({
             </button>
           ))}
         </div>
-        <DeckImportDialog state={state} onImport={setState} />
-        <DeckExportMenu state={state} variant="outline" />
+        <div className="flex items-center gap-3 max-sm:*:flex-1 sm:contents">
+          <DeckImportDialog state={state} onImport={setState} />
+          <DeckExportMenu state={state} variant="outline" />
+        </div>
         {loggedIn ? (
-          <Button type="button" size="sm" disabled={saving} onClick={handleSave}>
+          <Button type="button" size="sm" disabled={saving} onClick={handleSave} className="w-full sm:w-auto">
             {t('save')}
           </Button>
         ) : (
-          <Button type="button" size="sm" variant="outline" asChild>
+          <Button type="button" size="sm" variant="outline" asChild className="w-full sm:w-auto">
             <Link href="/login">{t('loginToSave')}</Link>
           </Button>
         )}

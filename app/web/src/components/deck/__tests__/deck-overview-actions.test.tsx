@@ -46,6 +46,14 @@ describe('DeckOverviewActions visibility', () => {
     expect(screen.getByText('Copy this deck')).toBeInTheDocument()
   })
 
+  it('keeps the export label here, where it sits in a row of labelled buttons', () => {
+    // The builder's command bar folds this label away below sm via
+    // compactLabel. The overview must not opt in, or Export alone would go
+    // icon-only beside Duplicate and Delete.
+    renderWithIntl(<DeckOverviewActions {...base} visibility="private" isOwner loggedIn />)
+    expect(screen.getByText('Export').className).not.toContain('max-sm:hidden')
+  })
+
   it('asks for confirmation before deleting, then deletes and redirects', async () => {
     renderWithIntl(<DeckOverviewActions {...base} visibility="private" isOwner loggedIn />)
     // Clicking Delete opens a confirm dialog rather than deleting immediately.

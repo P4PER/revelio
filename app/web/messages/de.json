@@ -422,6 +422,13 @@
       "unparsedTitle": "Diese Zeilen konnten nicht gelesen werden:",
       "unresolvedTitle": "Diese Karten konnten nicht zugeordnet werden:"
     },
+    "panes": {
+      "label": "Builder-Ansicht",
+      "browse": "Karten durchsuchen",
+      "browseShort": "Durchsuchen",
+      "deck": "Deck",
+      "deckAria": "Deck, {count, plural, one {# Karte} other {# Karten}}"
+    },
     "format": {
       "label": "Format",
       "classic": "Classic",

@@ -10,16 +10,21 @@ const own = ['offsetLeft', 'offsetWidth', 'clientWidth', 'scrollWidth'] as const
 const saved = own.map((k) => Object.getOwnPropertyDescriptor(HTMLElement.prototype, k))
 
 // The setup file's ResizeObserver is inert; swap in one that hands the test its
-// callback, so a lane can be re-measured after its width changes.
+// callback and records what it was pointed at, so a lane can be re-measured
+// after its width changes and the test can see which boxes are watched.
 let resize: (() => void) | undefined
+let observed: Element[] = []
 const savedRO = window.ResizeObserver
 
 beforeAll(() => {
   window.ResizeObserver = class {
     constructor(cb: () => void) {
       resize = cb
+      observed = []
     }
-    observe() {}
+    observe(target: Element) {
+      observed.push(target)
+    }
     unobserve() {}
     disconnect() {}
   } as unknown as typeof ResizeObserver
@@ -86,6 +91,15 @@ describe('FilterRail', () => {
     expect(screen.getByRole('group', { name: 'Type' }).scrollLeft).toBe(100)
   })
 
+  // offsetLeft is read straight into scrollLeft, so it has to be measured from
+  // the lane. Without a positioned ancestor of its own the lane's chips report
+  // offsets from the page, and the centring overshoots by the gutter plus the
+  // lane label.
+  it('positions itself so its chips report offsets from the lane', () => {
+    renderRail()
+    expect(screen.getByRole('group', { name: 'Type' })).toHaveClass('relative')
+  })
+
   it('leaves the lane at the start when nothing is active', () => {
     renderRail()
     expect(screen.getByRole('group', { name: 'Type' }).scrollLeft).toBe(0)
@@ -112,6 +126,18 @@ describe('FilterRail', () => {
     lane.dataset.clientwidth = '400'
     act(() => resize?.())
     expect(lane.style.maskImage).toBe('')
+  })
+
+  it('watches the chips as well as the lane', () => {
+    const { container } = renderRail()
+    // A late web font widens the chips without resizing the lane, whose width
+    // its grid track pins. Watching only the lane, that new overflow would
+    // never get its fade.
+    const lane = screen.getByRole('group', { name: 'Type' })
+    expect(observed).toContain(lane)
+    for (const chip of Array.from(container.querySelectorAll('button'))) {
+      expect(observed).toContain(chip)
+    }
   })
 
   it('wears no mask when every chip already fits', () => {

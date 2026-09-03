@@ -32,14 +32,23 @@ export function FilterRail({ className, children, ...props }: ComponentProps<'di
     // soft navigation does not remount, so toggling a chip never yanks the
     // lane out from under the finger.
     const active = el.querySelector<HTMLElement>('[aria-pressed="true"]')
+    // offsetLeft is measured from the nearest positioned ancestor, which is
+    // what the rail's own `relative` makes it. Drop that class and the offset
+    // silently grows by the page gutter and the lane label, and the chip
+    // lands off the right of the lane instead of in the middle of it.
     if (active) el.scrollLeft = active.offsetLeft - (el.clientWidth - active.offsetWidth) / 2
     sync(el)
     // Whether the lane overflows is not fixed at mount: widen the window past
-    // md and it wraps instead of scrolling, and a late web font changes the
-    // chip widths under it. Without this the fade painted for a phone survives
-    // onto the desktop layout, where nothing scrolls to clear it.
+    // md and it wraps instead of scrolling. Without this the fade painted for
+    // a phone survives onto the desktop layout, where nothing scrolls to
+    // clear it.
     const observer = new ResizeObserver(() => sync(el))
     observer.observe(el)
+    // The chips too: the lane's own width is pinned by its grid track, so a
+    // late web font that widens them grows scrollWidth without ever resizing
+    // the box above. Watching only the lane, the fade for that new overflow
+    // would never be painted.
+    for (const chip of Array.from(el.children)) observer.observe(chip)
     return () => observer.disconnect()
   }, [])
 
@@ -64,7 +73,7 @@ export function FilterRail({ className, children, ...props }: ComponentProps<'di
       // from the scrollport, so without it the lane snaps its first chip 6px
       // past the resting scrollLeft and sits permanently half-faded.
       className={cn(
-        'no-scrollbar -my-1.5 -ml-1.5 -mr-6 flex min-w-0 snap-x snap-proximity gap-2 overflow-x-auto py-1.5 pr-6 pl-1.5 scroll-pr-6 scroll-pl-1.5 [&>*]:snap-start',
+        'no-scrollbar relative -my-1.5 -ml-1.5 -mr-6 flex min-w-0 snap-x snap-proximity gap-2 overflow-x-auto py-1.5 pr-6 pl-1.5 scroll-pr-6 scroll-pl-1.5 [&>*]:snap-start',
         'md:mr-0 md:flex-wrap md:overflow-visible md:pr-0',
         className,
       )}

@@ -299,9 +299,10 @@ export function DeckBuilder({
       {/* Below md the panes used to stack, which left the deck a full
           screen-scroll under the browser: you added a card and nothing you
           could see changed. This switch hands each pane the viewport instead.
-          Both stay mounted, so the browser's query, filters, page and scroll
-          position all survive a trip to the deck and back. Same segmented
-          shape as the format toggle in the bar above.
+          Both stay mounted, so the browser's query, filters and page all
+          survive a trip to the deck and back; its scroll position does not,
+          because display:none drops a scroll container's scrollTop. Same
+          segmented shape as the format toggle in the bar above.
 
           Fixed, not inline: inline it scrolled off the top the moment you
           started browsing, so reaching the deck meant scrolling back up. left-6

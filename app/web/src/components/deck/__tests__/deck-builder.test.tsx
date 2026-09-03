@@ -216,8 +216,8 @@ describe('DeckBuilder mobile pane switch', () => {
   // Below md the two panes used to stack, which put the deck a full
   // screen-scroll under the card browser: you added a card and nothing you
   // could see changed. A segmented switch gives each pane the viewport
-  // instead, and both stay mounted so the browser's query, filters and
-  // scroll position survive a trip to the deck and back.
+  // instead, and both stay mounted so the browser's query, filters and page
+  // survive a trip to the deck and back.
   it('opens on the card browser with the deck a tap away', () => {
     renderBuilder()
     const group = screen.getByRole('group', { name: en.decks.panes.label })

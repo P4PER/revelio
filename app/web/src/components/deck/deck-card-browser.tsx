@@ -6,7 +6,7 @@ import type { DeckCardView, DeckFormat, DeckZone, SetDTO } from '@revelio/core'
 import type { SearchDocument, SearchResult } from '@revelio/search'
 import { searchDeckCards } from '@/lib/actions/deck-actions'
 import { DECK_BROWSE_PAGE_SIZE } from '@/lib/deck-view'
-import { LessonFilter } from '@/components/search/lesson-filter'
+import { LessonFilterChips } from '@/components/search/lesson-filter-chips'
 import { ClearFiltersButton } from '@/components/search/clear-filters-button'
 import { cn } from '@/lib/utils'
 import { SearchField } from '@/components/search/search-field'
@@ -182,7 +182,9 @@ export function DeckCardBrowser({
           placeholder={t('browse.searchPlaceholder', { format: t(`format.${format}`) })}
         />
         <div className="flex flex-wrap items-center gap-1.5">
-          <LessonFilter selected={lessons} onToggle={toggleLesson} />
+          <div className="flex flex-wrap gap-2">
+            <LessonFilterChips selected={lessons} onToggle={toggleLesson} />
+          </div>
           <div className="ml-auto">
             <DeckFilterDrawer sets={sets} value={filters} onApply={setFilters} />
           </div>
@@ -214,7 +216,12 @@ export function DeckCardBrowser({
 
       <div
         ref={gridRef}
-        className="grid flex-1 auto-rows-min gap-4 overflow-y-auto px-4 py-3 [grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]"
+        // Fixed column counts below md, matching card-grid and collection-view.
+        // A 190px auto-fill floor never fit two tracks here: nested inside the
+        // page's and this pane's padding a 390px phone leaves ~308px, so every
+        // phone got a single tile per row. From md the pane is a sized grid
+        // column rather than the whole screen, and auto-fill is right again.
+        className="grid flex-1 auto-rows-min grid-cols-2 gap-4 overflow-y-auto px-4 py-3 sm:grid-cols-3 md:[grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]"
         role={showSkeleton ? 'status' : undefined}
         aria-label={showSkeleton ? t('browse.loading') : undefined}
         aria-busy={showSkeleton || undefined}

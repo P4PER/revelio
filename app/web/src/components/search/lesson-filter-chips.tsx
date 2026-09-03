@@ -5,10 +5,14 @@ import { attrLabel } from '@/lib/attribute-labels'
 import { lessonVar } from '@/lib/lesson-colors'
 import { Chip } from '@/components/ui/chip'
 
-// Lesson filter as wrapping chips: five toggles (lesson icon + label) that fill
-// with the lesson colour when active. Labels collapse to icon-only on narrow
-// (touch) widths. Returns the chip row so callers drop it into their toolbar.
-export function LessonFilter({
+// The five lesson toggles (icon + label), filled with the lesson colour when
+// active; labels collapse to icon-only on narrow (touch) widths.
+//
+// Chips, not a row: this returns the bare siblings and the caller supplies the
+// container they sit in, which is why the name says chips. /search scrolls
+// them sideways in a FilterRail while the deck toolbars wrap them, so there is
+// no one row that suits all three call sites.
+export function LessonFilterChips({
   selected,
   onToggle,
 }: {
@@ -17,7 +21,7 @@ export function LessonFilter({
 }) {
   const locale = useLocale()
   return (
-    <div className="flex flex-wrap gap-2">
+    <>
       {LESSONS.map((l) => {
         const active = selected.includes(l.code)
         const label = attrLabel('lessons', l.code, locale)
@@ -62,6 +66,6 @@ export function LessonFilter({
           </Chip>
         )
       })}
-    </div>
+    </>
   )
 }

@@ -7,7 +7,7 @@ import type { DeckFormat } from '@revelio/core'
 import { useRouter } from '@/../i18n/navigation'
 import { type BrowseState, browseToQuery } from '@/lib/browse-params'
 import { DECK_VIEW_COOKIE, type DeckView } from '@/lib/deck-view'
-import { LessonFilter } from '@/components/search/lesson-filter'
+import { LessonFilterChips } from '@/components/search/lesson-filter-chips'
 import { ClearFiltersButton } from '@/components/search/clear-filters-button'
 import { PaginationNav } from '@/components/search/pagination-nav'
 import { countMessage } from '@/lib/page-range'
@@ -91,8 +91,11 @@ export function DeckBrowse({
           they'd read as undersized). Sort is not here — it lives in the
           results header below. */}
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex flex-wrap gap-2" aria-label={t('explore.lessonsLabel')}>
-          <LessonFilter selected={state.lessons} onToggle={toggleLesson} />
+        {/* role="group" is what carries the label: aria-label on a bare div is
+            dropped, since the generic role takes no author-supplied name. The
+            search lanes name their chip groups the same way. */}
+        <div className="flex flex-wrap gap-2" role="group" aria-label={t('explore.lessonsLabel')}>
+          <LessonFilterChips selected={state.lessons} onToggle={toggleLesson} />
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <Select

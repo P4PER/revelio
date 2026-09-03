@@ -184,9 +184,11 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>
-        <Button type="button" variant="outline" size="sm">
+        {/* Label folds away below sm, where this shares a row with the format
+            switch and Export. aria-label carries the name either way. */}
+        <Button type="button" variant="outline" size="sm" aria-label={t('import.button')}>
           <ClipboardPaste className="size-4" />
-          {t('import.button')}
+          <span className="max-sm:hidden">{t('import.button')}</span>
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="w-full gap-0 overflow-y-auto sm:max-w-md">

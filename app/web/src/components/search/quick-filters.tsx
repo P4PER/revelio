@@ -7,14 +7,17 @@ import { TYPES } from '@revelio/core'
 import { withParams, parseSearchParams } from '@/lib/search-params'
 import { attrLabel } from '@/lib/attribute-labels'
 import { Chip } from '@/components/ui/chip'
-import { LessonFilter } from '@/components/search/lesson-filter'
+import { FilterRail } from '@/components/search/filter-rail'
+import { LessonFilterChips } from '@/components/search/lesson-filter-chips'
 
 // The one-click facet lanes above the search results: one labelled row per
 // facet, so fourteen chips read as two named groups rather than one wrapping
 // wall. The label column is sized to its content and the chips take the rest,
-// which keeps both lanes' chips on a shared left edge. `trailing` takes the
-// advanced-filter trigger; it sits at the top right of the block instead of
-// occupying a row of its own.
+// which keeps both lanes' chips on a shared left edge. Each lane is a
+// FilterRail, so on a phone the nine type chips scroll sideways on one line
+// instead of wrapping onto three. `trailing` takes the advanced-filter
+// trigger; it sits at the top right of the block instead of occupying a row of
+// its own.
 export function QuickFilters({ locale, trailing }: { locale: string; trailing?: ReactNode }) {
   const t = useTranslations('filters')
   // Each lane is named by its own visible label rather than a duplicate
@@ -41,13 +44,16 @@ export function QuickFilters({ locale, trailing }: { locale: string; trailing?: 
   const laneLabel = 'text-[11px] leading-8 font-medium tracking-wider text-muted-foreground/75 uppercase'
 
   // Below md the trailing trigger drops under the lanes: kept beside them it
-  // reserves its width on every wrapped row, which squeezes the chip column
-  // down to one chip per line on a phone.
+  // would take a third of a phone's width off every lane, leaving the rails
+  // scrolling through two chips at a time. It stays pinned to the right edge
+  // there (self-end), which is where this page puts it at md and up and where
+  // the collection and deck-builder filter rows put it at every width, so the
+  // Advanced button never moves between pages.
   return (
     <div className="flex flex-col items-start gap-3 md:flex-row md:gap-4">
-      <div className="grid w-full min-w-0 grid-cols-[auto_1fr] items-start gap-x-4 gap-y-2 md:flex-1">
+      <div className="grid w-full min-w-0 grid-cols-[auto_minmax(0,1fr)] items-start gap-x-4 gap-y-2 md:flex-1">
         <span id={typeLabelId} className={laneLabel}>{t('type')}</span>
-        <div className="flex flex-wrap gap-2" role="group" aria-labelledby={typeLabelId}>
+        <FilterRail role="group" aria-labelledby={typeLabelId}>
           {TYPES.map((ty) => {
             const active = state.types.includes(ty.code)
             return (
@@ -65,16 +71,16 @@ export function QuickFilters({ locale, trailing }: { locale: string; trailing?: 
               </Chip>
             )
           })}
-        </div>
+        </FilterRail>
         <span id={lessonLabelId} className={laneLabel}>{t('lesson')}</span>
-        <div role="group" aria-labelledby={lessonLabelId}>
-          <LessonFilter
+        <FilterRail role="group" aria-labelledby={lessonLabelId}>
+          <LessonFilterChips
             selected={state.lessons}
             onToggle={(code) => toggle('lesson', state.lessons, code)}
           />
-        </div>
+        </FilterRail>
       </div>
-      {trailing ? <div className="shrink-0">{trailing}</div> : null}
+      {trailing ? <div className="shrink-0 self-end md:self-start">{trailing}</div> : null}
     </div>
   )
 }

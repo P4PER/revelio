@@ -14,6 +14,16 @@
 /* Touch devices (no hover): reveal controls that are otherwise hover-only. */
 @custom-variant touch (@media (hover: none));
 
+/* Sideways-scrolling lanes (the search facet rails) hide the native bar: it
+   would sit under the chips and, on a browser that reserves space for one,
+   add a row of height to a lane that exists to save height. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

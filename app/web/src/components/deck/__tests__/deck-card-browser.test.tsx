@@ -72,6 +72,18 @@ beforeEach(() => {
 })
 
 describe('DeckCardBrowser', () => {
+  it('fits two card tiles per row on the narrowest screens', async () => {
+    // The grid floored its tracks at 190px. Nested inside the page's and the
+    // browser's own padding that leaves ~308px on a 390px phone, so auto-fill
+    // could only ever place a single tile per row. Fixed counts below md,
+    // matching card-grid and collection-view; auto-fill takes over from md,
+    // where the pane is a sized grid column rather than the whole screen.
+    renderBrowser(() => false)
+    const grid = screen.getByRole('status', { name: en.decks.browse.loading })
+    expect(grid).toHaveClass('grid-cols-2', 'sm:grid-cols-3')
+    expect(grid.className).toContain('md:[grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]')
+  })
+
   it('disables the Add trigger for a banned card in Revival, but not for a plain legal card', async () => {
     renderBrowser(() => false)
 

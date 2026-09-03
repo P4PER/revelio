@@ -422,6 +422,13 @@
       "unparsedTitle": "These lines couldn't be read:",
       "unresolvedTitle": "These cards couldn't be matched:"
     },
+    "panes": {
+      "label": "Builder view",
+      "browse": "Browse cards",
+      "browseShort": "Browse",
+      "deck": "Deck",
+      "deckAria": "Deck, {count, plural, one {# card} other {# cards}}"
+    },
     "format": {
       "label": "Format",
       "classic": "Classic",

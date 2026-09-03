@@ -7,6 +7,7 @@ import type { DeckDTO } from '@revelio/core'
 import type { BuilderState } from '@/lib/deck-model'
 import { renderDeckPng } from '@/lib/deck-png'
 import { OTHER_GROUP } from '@/lib/deck-groups'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -41,11 +42,13 @@ export function DeckExportMenu({
   align = 'end',
   variant = 'ghost',
   size = 'sm',
+  compactLabel = false,
 }: {
   state: BuilderState
   align?: 'start' | 'end'
   variant?: 'ghost' | 'outline'
   size?: 'sm' | 'default'
+  compactLabel?: boolean
 }) {
   const t = useTranslations('decks')
 
@@ -100,9 +103,18 @@ export function DeckExportMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant={variant} size={size}>
+        {/* compactLabel folds the label away below sm, leaving the icon, and
+            aria-label carries the name - see DeckImportDialog. Opt-in, and only
+            the builder's command bar opts in: the deck overview sits this menu
+            in a row of labelled buttons, which it has to match. */}
+        <Button
+          type="button"
+          variant={variant}
+          size={size}
+          aria-label={compactLabel ? t('export.button') : undefined}
+        >
           {variant === 'outline' && <Upload className="size-4" />}
-          {t('export.button')}
+          <span className={cn(compactLabel && 'max-sm:hidden')}>{t('export.button')}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align={align} className="w-fit min-w-56">

@@ -15,7 +15,7 @@ import { QuickFilters } from '@/components/search/quick-filters'
 const messages = { filters: { type: 'Type', lesson: 'Lesson' } }
 
 function renderFilters(trailing?: ReactNode) {
-  // LessonFilter (shared) calls useLocale(), so an intl provider is needed.
+  // LessonFilterChips (shared) calls useLocale(), so an intl provider is needed.
   return render(
     <NextIntlClientProvider locale="en" messages={messages}>
       <QuickFilters locale="en" trailing={trailing} />
@@ -51,5 +51,15 @@ describe('QuickFilters', () => {
   it('renders the trailing slot alongside the lanes', () => {
     renderFilters(<button type="button">Advanced</button>)
     expect(screen.getByRole('button', { name: 'Advanced' })).toBeInTheDocument()
+  })
+
+  it('pins the trailing slot to the right edge below md', () => {
+    // Below md the trigger drops under the lanes, where a left-aligned button
+    // would sit in a different place than it does on the collection and
+    // deck-builder filter rows (and than it does here at md and up).
+    renderFilters(<button type="button">Advanced</button>)
+    const slot = screen.getByRole('button', { name: 'Advanced' }).parentElement
+    expect(slot).toHaveClass('self-end')
+    expect(slot).toHaveClass('md:self-start')
   })
 })

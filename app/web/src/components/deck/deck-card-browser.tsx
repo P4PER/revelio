@@ -216,7 +216,12 @@ export function DeckCardBrowser({
 
       <div
         ref={gridRef}
-        className="grid flex-1 auto-rows-min gap-4 overflow-y-auto px-4 py-3 [grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]"
+        // Fixed column counts below md, matching card-grid and collection-view.
+        // A 190px auto-fill floor never fit two tracks here: nested inside the
+        // page's and this pane's padding a 390px phone leaves ~308px, so every
+        // phone got a single tile per row. From md the pane is a sized grid
+        // column rather than the whole screen, and auto-fill is right again.
+        className="grid flex-1 auto-rows-min grid-cols-2 gap-4 overflow-y-auto px-4 py-3 sm:grid-cols-3 md:[grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]"
         role={showSkeleton ? 'status' : undefined}
         aria-label={showSkeleton ? t('browse.loading') : undefined}
         aria-busy={showSkeleton || undefined}

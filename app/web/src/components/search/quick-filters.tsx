@@ -8,7 +8,7 @@ import { withParams, parseSearchParams } from '@/lib/search-params'
 import { attrLabel } from '@/lib/attribute-labels'
 import { Chip } from '@/components/ui/chip'
 import { FilterRail } from '@/components/search/filter-rail'
-import { LessonFilter } from '@/components/search/lesson-filter'
+import { LessonFilterChips } from '@/components/search/lesson-filter-chips'
 
 // The one-click facet lanes above the search results: one labelled row per
 // facet, so fourteen chips read as two named groups rather than one wrapping
@@ -71,7 +71,7 @@ export function QuickFilters({ locale, trailing }: { locale: string; trailing?: 
         </FilterRail>
         <span id={lessonLabelId} className={laneLabel}>{t('lesson')}</span>
         <FilterRail role="group" aria-labelledby={lessonLabelId}>
-          <LessonFilter
+          <LessonFilterChips
             selected={state.lessons}
             onToggle={(code) => toggle('lesson', state.lessons, code)}
           />

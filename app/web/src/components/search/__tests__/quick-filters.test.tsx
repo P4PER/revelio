@@ -15,7 +15,7 @@ import { QuickFilters } from '@/components/search/quick-filters'
 const messages = { filters: { type: 'Type', lesson: 'Lesson' } }
 
 function renderFilters(trailing?: ReactNode) {
-  // LessonFilter (shared) calls useLocale(), so an intl provider is needed.
+  // LessonFilterChips (shared) calls useLocale(), so an intl provider is needed.
   return render(
     <NextIntlClientProvider locale="en" messages={messages}>
       <QuickFilters locale="en" trailing={trailing} />

@@ -7,7 +7,7 @@ import type { DeckFormat } from '@revelio/core'
 import { useRouter } from '@/../i18n/navigation'
 import { type BrowseState, browseToQuery } from '@/lib/browse-params'
 import { DECK_VIEW_COOKIE, type DeckView } from '@/lib/deck-view'
-import { LessonFilter } from '@/components/search/lesson-filter'
+import { LessonFilterChips } from '@/components/search/lesson-filter-chips'
 import { ClearFiltersButton } from '@/components/search/clear-filters-button'
 import { PaginationNav } from '@/components/search/pagination-nav'
 import { countMessage } from '@/lib/page-range'
@@ -92,7 +92,7 @@ export function DeckBrowse({
           results header below. */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex flex-wrap gap-2" aria-label={t('explore.lessonsLabel')}>
-          <LessonFilter selected={state.lessons} onToggle={toggleLesson} />
+          <LessonFilterChips selected={state.lessons} onToggle={toggleLesson} />
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <Select

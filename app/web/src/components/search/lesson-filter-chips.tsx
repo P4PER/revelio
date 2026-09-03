@@ -5,12 +5,14 @@ import { attrLabel } from '@/lib/attribute-labels'
 import { lessonVar } from '@/lib/lesson-colors'
 import { Chip } from '@/components/ui/chip'
 
-// Lesson filter chips: five toggles (lesson icon + label) that fill with the
-// lesson colour when active. Labels collapse to icon-only on narrow (touch)
-// widths. Returns the bare chips, not a row: each caller owns the layout they
-// sit in, because /search scrolls them sideways in a FilterRail while the deck
-// views wrap them into a toolbar.
-export function LessonFilter({
+// The five lesson toggles (icon + label), filled with the lesson colour when
+// active; labels collapse to icon-only on narrow (touch) widths.
+//
+// Chips, not a row: this returns the bare siblings and the caller supplies the
+// container they sit in, which is why the name says chips. /search scrolls
+// them sideways in a FilterRail while the deck toolbars wrap them, so there is
+// no one row that suits all three call sites.
+export function LessonFilterChips({
   selected,
   onToggle,
 }: {

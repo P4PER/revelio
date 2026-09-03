@@ -6,7 +6,7 @@ import type { DeckCardView, DeckFormat, DeckZone, SetDTO } from '@revelio/core'
 import type { SearchDocument, SearchResult } from '@revelio/search'
 import { searchDeckCards } from '@/lib/actions/deck-actions'
 import { DECK_BROWSE_PAGE_SIZE } from '@/lib/deck-view'
-import { LessonFilter } from '@/components/search/lesson-filter'
+import { LessonFilterChips } from '@/components/search/lesson-filter-chips'
 import { ClearFiltersButton } from '@/components/search/clear-filters-button'
 import { cn } from '@/lib/utils'
 import { SearchField } from '@/components/search/search-field'
@@ -183,7 +183,7 @@ export function DeckCardBrowser({
         />
         <div className="flex flex-wrap items-center gap-1.5">
           <div className="flex flex-wrap gap-2">
-            <LessonFilter selected={lessons} onToggle={toggleLesson} />
+            <LessonFilterChips selected={lessons} onToggle={toggleLesson} />
           </div>
           <div className="ml-auto">
             <DeckFilterDrawer sets={sets} value={filters} onApply={setFilters} />

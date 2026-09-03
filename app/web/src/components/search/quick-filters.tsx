@@ -45,7 +45,10 @@ export function QuickFilters({ locale, trailing }: { locale: string; trailing?: 
 
   // Below md the trailing trigger drops under the lanes: kept beside them it
   // would take a third of a phone's width off every lane, leaving the rails
-  // scrolling through two chips at a time.
+  // scrolling through two chips at a time. It stays pinned to the right edge
+  // there (self-end), which is where this page puts it at md and up and where
+  // the collection and deck-builder filter rows put it at every width, so the
+  // Advanced button never moves between pages.
   return (
     <div className="flex flex-col items-start gap-3 md:flex-row md:gap-4">
       <div className="grid w-full min-w-0 grid-cols-[auto_minmax(0,1fr)] items-start gap-x-4 gap-y-2 md:flex-1">
@@ -77,7 +80,7 @@ export function QuickFilters({ locale, trailing }: { locale: string; trailing?: 
           />
         </FilterRail>
       </div>
-      {trailing ? <div className="shrink-0">{trailing}</div> : null}
+      {trailing ? <div className="shrink-0 self-end md:self-start">{trailing}</div> : null}
     </div>
   )
 }

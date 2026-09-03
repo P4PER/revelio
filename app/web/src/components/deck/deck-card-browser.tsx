@@ -182,7 +182,9 @@ export function DeckCardBrowser({
           placeholder={t('browse.searchPlaceholder', { format: t(`format.${format}`) })}
         />
         <div className="flex flex-wrap items-center gap-1.5">
-          <LessonFilter selected={lessons} onToggle={toggleLesson} />
+          <div className="flex flex-wrap gap-2">
+            <LessonFilter selected={lessons} onToggle={toggleLesson} />
+          </div>
           <div className="ml-auto">
             <DeckFilterDrawer sets={sets} value={filters} onApply={setFilters} />
           </div>

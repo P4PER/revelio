@@ -132,40 +132,68 @@ describe('DeckBuilder save-on-login prompt', () => {
   })
 })
 
-describe('DeckBuilder command bar layout', () => {
-  // Every control stays in the one bar, which sits above both panes and so
-  // stays reachable whichever pane is on screen - the format in particular,
-  // since it picks the pool the browser searches. What changed is the shape:
-  // below sm the bar is a three-column grid laying those controls out in two
-  // rows rather than stacking each into its own.
-  it('keeps the name, format, import, export and save in a single bar', () => {
+
+describe('DeckBuilder command bar', () => {
+  // Every control stays in the one bar, which is inside the sheet on a phone
+  // and spans the top of the workbench from md up - the format in particular,
+  // since it picks the pool the browser searches.
+  it('keeps the name, format, import and export in a single bar', () => {
     renderBuilder({ loggedIn: true })
     const bar = screen.getByLabelText(en.decks.namePlaceholder).closest('div')!
     expect(bar).toContainElement(screen.getByRole('group', { name: en.decks.format.label }))
     expect(bar).toContainElement(screen.getByRole('button', { name: en.decks.import.button }))
     expect(bar).toContainElement(screen.getByRole('button', { name: en.decks.export.button }))
-    expect(bar).toContainElement(screen.getByRole('button', { name: en.decks.save }))
   })
 
-  it('lays the bar out in two rows below sm and one from sm up', () => {
+  it('stacks into full-width rows below md and one row from md up', () => {
+    // The bar used to be a grid-cols-[1fr_auto_auto] squeezing the name, the
+    // format, both transfer buttons and Save into a 322px box, where an `auto`
+    // column let "Zum Speichern anmelden" decide the row: the German name got
+    // clipped to "Unbenanntes D" and Export was pushed off the card's edge.
+    // Inside the sheet the width is no longer contested, so the rows can be
+    // honest and nothing has to yield.
     renderBuilder({ loggedIn: true })
     const bar = screen.getByLabelText(en.decks.namePlaceholder).closest('div')!
-    expect(bar).toHaveClass('grid', 'grid-cols-[1fr_auto_auto]', 'sm:flex')
-    // row one: the deck's name and the primary action
-    expect(screen.getByLabelText(en.decks.namePlaceholder)).toHaveClass('col-span-2', 'row-start-1')
-    expect(screen.getByRole('button', { name: en.decks.save })).toHaveClass('col-start-3', 'row-start-1')
-    // row two: the format and the two secondary actions
-    // justify-self-start, or the 1fr name column stretches it to full width
-    expect(screen.getByRole('group', { name: en.decks.format.label })).toHaveClass(
-      'col-start-1',
-      'row-start-2',
-      'justify-self-start',
+    expect(bar).toHaveClass('flex', 'flex-col', 'md:flex-row')
+    expect(bar.className).not.toContain('grid-cols-[1fr_auto_auto]')
+
+    // The name gets the whole row rather than whatever a sibling leaves over.
+    expect(screen.getByLabelText(en.decks.namePlaceholder)).toHaveClass('w-full', 'min-w-0')
+
+    // Format plus the two buttons share row two, and md:contents folds that
+    // row back into the bar's own flex row on the workbench.
+    const group = screen.getByRole('group', { name: en.decks.format.label })
+    expect(group.parentElement).toHaveClass('flex', 'md:contents')
+    expect(group.parentElement).toContainElement(
+      screen.getByRole('button', { name: en.decks.export.button }),
     )
-    expect(screen.getByRole('button', { name: en.decks.import.button }).parentElement).toHaveClass(
-      'col-start-2',
-      'row-start-2',
-      'sm:contents',
-    )
+  })
+
+  it('keeps its Save on the workbench and hands the phone a full-width one', () => {
+    // Save stays in the bar where it has always been from md up. On a phone it
+    // sits at the foot of the sheet instead, full width - which is what stops
+    // "Zum Speichern anmelden", the longest string in the builder, from
+    // squeezing the bar the way it used to.
+    //
+    // Two elements, because the two live in different parents and no grid
+    // placement moves a node between them; only ever one is perceivable, since
+    // display:none takes the other out of the a11y tree and the tab order both.
+    renderBuilder({ loggedIn: true })
+    const bar = screen.getByLabelText(en.decks.namePlaceholder).closest('div')!
+    const saves = screen.getAllByRole('button', { name: en.decks.save })
+    expect(saves).toHaveLength(2)
+
+    const inBar = saves.find((b) => bar.contains(b))!
+    const inSheet = saves.find((b) => !bar.contains(b))!
+    expect(inBar).toHaveClass('hidden', 'md:inline-flex')
+    expect(inSheet).toHaveClass('w-full', 'md:hidden')
+  })
+
+  it('offers the guest the same two Saves, as Log in to save', () => {
+    renderBuilder({ loggedIn: false })
+    const links = screen.getAllByRole('link', { name: en.decks.loginToSave })
+    expect(links).toHaveLength(2)
+    for (const link of links) expect(link).toHaveAttribute('href', '/login')
   })
 
   it('wires the format switch into the builder state', async () => {
@@ -196,7 +224,7 @@ describe('DeckBuilder command bar layout', () => {
   })
 
   it('folds the import and export labels away below sm, keeping their names', () => {
-    // Row two only fits the format switch plus both actions once the labels
+    // The row only fits the format switch plus both actions once the labels
     // give way to their icons; aria-label carries the accessible name.
     renderBuilder()
     for (const label of [en.decks.import.button, en.decks.export.button]) {
@@ -207,52 +235,66 @@ describe('DeckBuilder command bar layout', () => {
   })
 })
 
-// The deck pane's accessible name is an ICU plural, so match the parts the
+// The sheet handle's accessible name is an ICU plural, so match the parts the
 // tests are about - the label out of en.json and the live count - rather than
 // pasting the rendered English back in.
-const deckTabName = (count: number) => new RegExp(`^${en.decks.panes.deck}\\b.*\\b${count}\\b`)
+const handleName = (count: number) => new RegExp(`^Deck\\b.*\\b${count}\\b`)
 
-describe('DeckBuilder mobile pane switch', () => {
+describe('DeckBuilder mobile deck sheet', () => {
   // Below md the two panes used to stack, which put the deck a full
   // screen-scroll under the card browser: you added a card and nothing you
-  // could see changed. A segmented switch gives each pane the viewport
-  // instead, and both stay mounted so the browser's query, filters and page
-  // survive a trip to the deck and back.
-  it('opens on the card browser with the deck a tap away', () => {
+  // could see changed. A segmented switch fixed that but left two bars at the
+  // bottom of the browse pane and no room for the command bar. Now browsing is
+  // the whole screen and the deck is a sheet that peeks a handle.
+  it('opens with browsing on screen and the deck peeking a handle', () => {
     renderBuilder()
-    const group = screen.getByRole('group', { name: en.decks.panes.label })
-    expect(group).toHaveClass('md:hidden')
-    expect(screen.getByRole('button', { name: en.decks.panes.browse })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: deckTabName(0) })).toHaveAttribute('aria-pressed', 'false')
+    const handle = screen.getByRole('button', { name: handleName(0) })
+    expect(handle).toHaveAttribute('aria-expanded', 'false')
+    expect(handle).toHaveClass('md:hidden')
   })
 
-  it('swaps which pane is on screen when the deck is picked', async () => {
+  it('holds the command bar, the deck and the save action inside the sheet', () => {
+    // This is the whole point of the direction: the controls that could not fit
+    // above a 402px card grid have somewhere roomy to live, and one command bar
+    // serves both layouts instead of being rendered twice.
+    const { container } = renderBuilder({ loggedIn: true })
+    const handle = screen.getByRole('button', { name: handleName(0) })
+    const body = document.getElementById(handle.getAttribute('aria-controls')!)!
+
+    expect(body).toContainElement(screen.getByLabelText(en.decks.namePlaceholder))
+    expect(body).toContainElement(container.querySelector('[data-pane="deck"]'))
+    // Both Saves sit inside the sheet's subtree - the bar's copy included,
+    // since the bar itself does - so assert on the phone's full-width one.
+    const saves = screen.getAllByRole('button', { name: en.decks.save })
+    expect(saves.filter((b) => body.contains(b) && b.className.includes('md:hidden'))).toHaveLength(1)
+    // Browsing is the page, not part of the sheet.
+    expect(body).not.toContainElement(container.querySelector('[data-pane="browse"]'))
+  })
+
+  it('opens and shuts on the handle', async () => {
+    renderBuilder()
+    const handle = screen.getByRole('button', { name: handleName(0) })
+    const user = userEvent.setup()
+
+    await user.click(handle)
+    expect(handle).toHaveAttribute('aria-expanded', 'true')
+
+    await user.click(handle)
+    expect(handle).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('lays both panes out side by side from md up', () => {
+    // From md the sheet is display:contents, so its children become items of
+    // the builder's own grid and `expanded` stops meaning anything.
     const { container } = renderBuilder()
     const browse = container.querySelector('[data-pane="browse"]')!
-    const deck = container.querySelector('[data-pane="deck"]')!
-    expect(browse).not.toHaveClass('hidden')
-    expect(deck).toHaveClass('hidden')
-
-    const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: deckTabName(0) }))
-
-    expect(deck).not.toHaveClass('hidden')
-    expect(browse).toHaveClass('hidden')
+    expect(browse.parentElement).toHaveClass('md:grid', 'md:grid-cols-[1.15fr_0.85fr]')
+    expect(container.querySelector('[data-deck-sheet]')).toHaveClass('md:contents')
+    expect(browse).toHaveClass('md:col-start-1', 'md:row-start-2')
+    expect(container.querySelector('[data-pane="deck"]')).toHaveClass('md:col-start-2', 'md:row-start-2')
   })
 
-  it('shows both panes from md up, whichever one the switch has selected', async () => {
-    const { container } = renderBuilder()
-    const browse = container.querySelector('[data-pane="browse"]')!
-    const deck = container.querySelector('[data-pane="deck"]')!
-
-    const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: deckTabName(0) }))
-
-    expect(browse).toHaveClass('md:block')
-    expect(deck).toHaveClass('md:flex')
-  })
-
-  it('counts every copy in every zone on the deck button', () => {
+  it('counts every copy in every zone on the handle', () => {
     renderBuilder({
       initial: {
         ...emptyState,
@@ -262,42 +304,100 @@ describe('DeckBuilder mobile pane switch', () => {
         ],
       },
     })
-    expect(screen.getByRole('button', { name: deckTabName(5) })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: handleName(5) })).toBeInTheDocument()
   })
 
-  it('pins the switch to the bottom of the viewport, outside the builder card', () => {
-    // Inline, the switch scrolled off the top the moment you started browsing,
-    // so reaching the deck meant scrolling back up. It has to sit outside the
-    // builder's own root, whose overflow-hidden would clip it, and its inset
-    // matches the page container's px-6 so its edges line up with the card.
-    // The bottom inset clears the iOS home indicator where there is one.
-    renderBuilder()
-    const group = screen.getByRole('group', { name: en.decks.panes.label })
-    expect(group).toHaveClass('fixed', 'left-6', 'right-6', 'md:hidden')
-    expect(group.className).toContain('bottom-[max(1rem,env(safe-area-inset-bottom))]')
-    expect(group.closest('.overflow-hidden')).toBeNull()
+  it('names the deck and its format on the shut handle', () => {
+    // Shut, the handle is the only readout of what you are building.
+    renderBuilder({ initial: { ...emptyState, name: 'Gryffindor Aggro', entries: [draftEntry] } })
+    expect(screen.getByText('Gryffindor Aggro')).toBeInTheDocument()
+    expect(screen.getByText(new RegExp(`2 cards.*${en.decks.format.revival}`))).toBeInTheDocument()
   })
 
-  it('retires the floating switch once the builder has scrolled out of view', () => {
-    // Fixed to the viewport, the bar would otherwise hover over the footer and
-    // sit on top of its language switcher for the whole page.
-    renderBuilder()
-    const group = screen.getByRole('group', { name: en.decks.panes.label })
-    expect(group).not.toHaveClass('hidden')
+  it('rests the sheet flush on the bottom edge, not floating above it', () => {
+    // The old switch added env(safe-area-inset-bottom) to `bottom`, but a fixed
+    // element already sits inside Safari's own viewport, so the home indicator
+    // was counted twice and the bar floated about 39px too high.
+    const { container } = renderBuilder()
+    const sheet = container.querySelector('[data-deck-sheet]')!
+    expect(sheet).toHaveClass('fixed', 'bottom-0')
+    expect(sheet.className).not.toContain('bottom-[')
+  })
+
+  it('isolates the browse pane only while the sheet is open', async () => {
+    // Isolating stops the tiles' z-30 overlays painting over an open sheet.
+    // Doing it unconditionally would also trap CardRotate, which deliberately
+    // escapes to a fixed z-50 image over a z-40 dismiss backdrop: under a
+    // stacking context both fall behind the shut sheet's opaque peek handle,
+    // stranding a rotated card behind a band whose tap opens the sheet.
+    const { container } = renderBuilder()
+    const browse = container.querySelector('[data-pane="browse"]')!
+    expect(browse).not.toHaveClass('max-md:isolate')
+
+    await userEvent.setup().click(screen.getByRole('button', { name: handleName(0) }))
+    expect(browse).toHaveClass('max-md:isolate')
+  })
+
+  it('reserves the peeking band under the card grid', () => {
+    // Without this the last row of cards sits under the shut sheet.
+    const { container } = renderBuilder()
+    expect(container.querySelector('[data-pane="browse"]')).toHaveClass(
+      'pb-[var(--deck-sheet-peek)]',
+      'md:pb-0',
+    )
+  })
+
+  it('retires the sheet once the builder has scrolled out of view', () => {
+    // Fixed to the viewport, it would otherwise hover over the footer and sit
+    // on top of its language switcher for the whole page. Hidden, not
+    // unmounted, so the deck's scroll position survives.
+    const { container } = renderBuilder()
+    const sheet = container.querySelector('[data-deck-sheet]')!
+    expect(sheet).not.toHaveClass('max-md:hidden')
 
     act(() => observers.forEach((cb) => cb([{ isIntersecting: false }])))
-    expect(group).toHaveClass('hidden')
+    expect(sheet).toHaveClass('max-md:hidden')
 
     act(() => observers.forEach((cb) => cb([{ isIntersecting: true }])))
-    expect(group).not.toHaveClass('hidden')
+    expect(sheet).not.toHaveClass('max-md:hidden')
+  })
+
+  it('opens the sheet for the save-on-login prompt, which lives inside it', async () => {
+    // The prompt asks to save a guest draft the moment you log in. Inside a
+    // shut sheet nobody would ever see it.
+    draftBox.current = { name: 'My Draft', format: 'revival', visibility: 'private', entries: [draftEntry] }
+    renderBuilder({ loggedIn: true, deckId: null })
+
+    expect(await screen.findByText(en.decks.savePrompt.message)).toBeInTheDocument()
+    // The same mount pass loads the draft into state, so the handle already
+    // counts its two copies.
+    expect(screen.getByRole('button', { name: handleName(2) })).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('leaves no empty strip under the deck list on the workbench', () => {
+    // The sheet's foot always holds the phone's full-width Save. From md up
+    // that copy is hidden and the bar's Save takes over, so for a signed-in
+    // user with no draft notice and no save prompt the foot has nothing left to
+    // show - and rendered as an empty bordered box under the deck list.
+    const { container } = renderBuilder({ loggedIn: true, deckId: 'existing-id' })
+    expect(container.querySelector('[data-deck-sheet-foot]')).toHaveClass('md:hidden')
+  })
+
+  it('keeps the foot on the workbench when it has something to say', () => {
+    // A guest gets the draft notice there, and it belongs beside the deck at
+    // every width.
+    const { container } = renderBuilder({ loggedIn: false, deckId: null })
+    const foot = container.querySelector('[data-deck-sheet-foot]')!
+    expect(foot).not.toHaveClass('md:hidden')
+    expect(foot).toHaveTextContent(en.decks.draftNotice)
   })
 
   it('replays the badge animation on every add by keying it to the add nonce', () => {
-    // The count is the only feedback an add gives while you are on the browse
-    // pane. Remounting the badge per add replays its enter animation, so the
-    // number does not just quietly tick over.
+    // The count is the only feedback an add gives while the sheet is shut.
+    // Remounting the badge per add replays its enter animation, so the number
+    // does not just quietly tick over.
     renderBuilder()
-    const badge = screen.getByTestId('deck-pane-count')
+    const badge = screen.getByTestId('deck-sheet-count')
     expect(badge).toHaveClass('motion-safe:animate-in', 'motion-safe:zoom-in-50')
   })
 })

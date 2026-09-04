@@ -422,12 +422,9 @@
       "unparsedTitle": "These lines couldn't be read:",
       "unresolvedTitle": "These cards couldn't be matched:"
     },
-    "panes": {
-      "label": "Builder view",
-      "browse": "Browse cards",
-      "browseShort": "Browse",
-      "deck": "Deck",
-      "deckAria": "Deck, {count, plural, one {# card} other {# cards}}"
+    "sheet": {
+      "toggle": "Deck, {count, plural, one {# card} other {# cards}}",
+      "summary": "{count, plural, one {# card} other {# cards}} · {format}"
     },
     "format": {
       "label": "Format",
@@ -597,7 +594,8 @@
     "label": "Pagination",
     "prev": "Previous",
     "next": "Next",
-    "pageStatus": "Showing {from, number}–{to, number} of {total, number}"
+    "pageStatus": "Showing {from, number}–{to, number} of {total, number}",
+    "pageOf": "{page, number} / {lastPage, number}"
   },
   "collection": {
     "title": "My Collection",

@@ -34,10 +34,17 @@ function assigned(source: string): string[] {
   return [...source.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]).sort()
 }
 
-/** The alias names: everything except the value sets and the non-colour --radius. */
+/**
+ * Layout constants that live in :root beside the theme aliases but are the same
+ * in every theme, so they have no light or dark counterpart and must not be
+ * required of the dark blocks. Add to this set, don't loosen the filter.
+ */
+const NON_THEME = new Set(['--radius', '--header-h'])
+
+/** The alias names: everything except the value sets and the layout constants. */
 function aliases(source: string): string[] {
   return assigned(source).filter(
-    (t) => !t.startsWith('--light-') && !t.startsWith('--dark-') && t !== '--radius',
+    (t) => !t.startsWith('--light-') && !t.startsWith('--dark-') && !NON_THEME.has(t),
   )
 }
 

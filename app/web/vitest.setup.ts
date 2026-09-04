@@ -33,6 +33,9 @@ if (typeof globalThis.setTimeout === 'function') {
 if (typeof window !== 'undefined') {
   if (!Element.prototype.hasPointerCapture) Element.prototype.hasPointerCapture = () => false
   if (!Element.prototype.releasePointerCapture) Element.prototype.releasePointerCapture = () => {}
+  // DeckSheet's drag handle captures the pointer so a drag that leaves the
+  // handle keeps reporting to it.
+  if (!Element.prototype.setPointerCapture) Element.prototype.setPointerCapture = () => {}
   if (!Element.prototype.scrollIntoView) Element.prototype.scrollIntoView = () => {}
   // input-otp's password-manager-badge detection calls elementFromPoint when the
   // field is focused (e.g. via autoFocus); jsdom doesn't implement it.

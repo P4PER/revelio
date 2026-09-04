@@ -192,7 +192,12 @@ export function DeckCardBrowser({
         {/* Clearing sits beside the count, as it does on /search: it belongs
             with the run of things that appear once filters are applied, not in
             the toolbar above. It stays outside the live region so a new count
-            does not announce the button along with it. */}
+            does not announce the button along with it.
+
+            On a phone the pager sits here too, because a bar under the grid
+            landed directly on top of the sheet peeking below it - two bars
+            stacked at the bottom of a 402px screen. The workbench keeps its
+            pager under the grid, where it has always been. */}
         <div className="flex flex-wrap items-center gap-2">
           {/* The live region stays mounted across a search so a new count reaches
               screen readers as an update to its text; swapping it for the ghost
@@ -202,7 +207,11 @@ export function DeckCardBrowser({
               across the app, and it keeps this row the same height whether or
               not the clear control is mounted beside it. The ghost matches that
               line box (h-5) and roughly the count's width, so the row does not
-              resize when the real text arrives. */}
+              resize when the real text arrives.
+
+              PaginationNav renders nothing at all on a single page, so this
+              stays the count's home rather than moving into it; the phone's
+              pager beside it takes status={null} and is only its controls. */}
           <div className="text-sm text-muted-foreground" role="status">
             {showSkeleton ? (
               <Skeleton className="h-5 w-28" />
@@ -211,6 +220,16 @@ export function DeckCardBrowser({
             )}
           </div>
           <ClearFiltersButton active={filtersActive} onClear={clearFilters} />
+          <PaginationNav
+            page={result.page}
+            pageSize={result.hitsPerPage}
+            total={result.total}
+            status={null}
+            compactLabel
+            className="ml-auto justify-end md:hidden"
+            onPrev={() => { setPage((p) => Math.max(1, p - 1)); scrollTopPending.current = true }}
+            onNext={() => { setPage((p) => p + 1); scrollTopPending.current = true }}
+          />
         </div>
       </div>
 
@@ -278,8 +297,22 @@ export function DeckCardBrowser({
                 </div>
               </div>
 
+              {/* Dimming veil, so the gold Add pill reads against the art once
+                  hover reveals it. It tracks that button: hover, or the button's
+                  own focus-visible.
+
+                  It used to key off group-focus-within, which fires for pointer
+                  and touch focus too - so closing the Add menu, which returns
+                  focus to the trigger inside this group, latched the veil on and
+                  read as a hover state stuck to the card. That happened on a
+                  mouse as well, until focus left the tile.
+
+                  touch:hidden on top, because a phone has nothing to reveal:
+                  Add, info and rotate are all permanently visible there, so a
+                  veil would either dim the art for good or flicker on a
+                  keyboard that most of those devices do not have. */}
               <div
-                className="pointer-events-none absolute inset-0 bg-background/45 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
+                className="pointer-events-none absolute inset-0 bg-background/45 opacity-0 transition-opacity group-has-[:focus-visible]:opacity-100 group-hover:opacity-100 touch:hidden"
                 aria-hidden
               />
 
@@ -319,12 +352,14 @@ export function DeckCardBrowser({
         })}
       </div>
 
+      {/* Workbench only - on a phone this would stack a second bar on top of
+          the deck sheet, so the pager moves up into the toolbar row there. */}
       <PaginationNav
         status={resultCount}
         page={result.page}
         pageSize={result.hitsPerPage}
         total={result.total}
-        className="border-t border-border/60 px-4 py-2"
+        className="hidden border-t border-border/60 px-4 py-2 md:flex"
         onPrev={() => { setPage((p) => Math.max(1, p - 1)); scrollTopPending.current = true }}
         onNext={() => { setPage((p) => p + 1); scrollTopPending.current = true }}
       />

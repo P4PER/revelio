@@ -17,6 +17,9 @@ export function pageRange(page: number, pageSize: number, total: number) {
     from: total === 0 ? 0 : (clamped - 1) * pageSize + 1,
     to: Math.min(clamped * pageSize, total),
     lastPage,
+    // The requested page pulled into range, so a readout can never say
+    // "999 / 26" beside controls that already treat 26 as the last page.
+    page: clamped,
   }
 }
 

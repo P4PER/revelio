@@ -137,7 +137,17 @@ export function CardNav({
   const chevron =
     'pointer-events-none absolute top-1/2 -translate-y-1/2 rounded-full bg-background/70 text-foreground opacity-0 backdrop-blur ' +
     'transition-opacity duration-700 ease-out hover:bg-background/90 focus-visible:opacity-100 focus-visible:pointer-events-auto focus-visible:duration-150'
-  const scrim = 'pointer-events-none absolute inset-y-0 w-24 opacity-0 transition-opacity group-focus-within:opacity-100'
+  // The scrim darkens the card edge so a revealed chevron reads against the art,
+  // so it has to appear on exactly the condition the chevron does. It used to
+  // key off group-focus-within, which is broader: any focused descendant lit it,
+  // and focus-within (unlike focus-visible) also fires for pointer and touch
+  // focus. Children is a prop, so the first focusable thing placed inside this
+  // wrapper would have shown a dark band with no chevron behind it - and on a
+  // phone that band would then latch until you tapped elsewhere. Keyed to the
+  // chevrons' own marker so the pair cannot drift apart.
+  const scrim =
+    'pointer-events-none absolute inset-y-0 w-24 opacity-0 transition-opacity ' +
+    'group-has-[[data-nav-chevron]:focus-visible]:opacity-100'
 
   return (
     <div
@@ -156,6 +166,7 @@ export function CardNav({
             variant="ghost"
             size="icon"
             aria-label={labels.prev}
+            data-nav-chevron
             className={cn(chevron, 'left-2', hintMode === 'keys' && !hintFading && 'opacity-100 animate-chevron-hint pointer-events-auto')}
           >
             <Link href={prev.href}><ChevronLeft className="size-5" /></Link>
@@ -170,6 +181,7 @@ export function CardNav({
             variant="ghost"
             size="icon"
             aria-label={labels.next}
+            data-nav-chevron
             className={cn(chevron, 'right-2', hintMode === 'keys' && !hintFading && 'opacity-100 animate-chevron-hint pointer-events-auto')}
           >
             <Link href={next.href}><ChevronRight className="size-5" /></Link>

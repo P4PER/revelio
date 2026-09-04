@@ -239,6 +239,15 @@
 
   --radius: 0.6rem;
 
+  /* Rendered height of the site header, border included. The tallest child of
+     its inner row is the h-9 brand mark (both wordmark variants and the phone
+     icon are h-9); the header search field is h-8 and the mobile nav trigger is
+     icon-sm, so neither exceeds it. 36px + py-2 (16px) + border-b (1px) = 53px.
+     The deck builder sizes its mobile app shell as 100dvh minus this, so an
+     e2e assertion checks the header's real offsetHeight against it - change
+     the header's height and that test tells you to change this. */
+  --header-h: 3.3125rem;
+
   /* Default aliases: light. */
   --background: var(--light-background);
   --foreground: var(--light-foreground);

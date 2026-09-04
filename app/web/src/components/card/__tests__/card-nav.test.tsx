@@ -5,8 +5,11 @@ const push = vi.fn()
 const prefetch = vi.fn()
 vi.mock('@/../i18n/navigation', () => ({
   useRouter: () => ({ push, prefetch }),
-  Link: (p: { href: string; children: React.ReactNode; 'aria-label'?: string }) => (
-    <a href={p.href} aria-label={p['aria-label']}>{p.children}</a>
+  // Spreads every prop: Button asChild merges its own onto this element, so a
+  // mock that cherry-picks would silently drop className and data attributes
+  // the component under test relies on.
+  Link: ({ children, ...rest }: { href: string; children: React.ReactNode }) => (
+    <a {...rest}>{children}</a>
   ),
 }))
 
@@ -36,6 +39,27 @@ function frame(el: HTMLElement) {
 }
 
 describe('CardNav', () => {
+  it('lights the scrim on the chevrons alone, not on any focus in the frame', () => {
+    // The scrim darkens the card edge so a revealed chevron reads against the
+    // art, so it must appear on exactly the condition the chevron does.
+    // group-focus-within was broader on both counts: any focused descendant lit
+    // it, and focus-within (unlike focus-visible) also fires for pointer and
+    // touch focus - so a focusable child would have shown a dark band with no
+    // chevron behind it, latched until you tapped away.
+    const { container } = render(
+      <CardNav prev={prev} next={next} labels={labels}><div>card</div></CardNav>,
+    )
+    for (const label of [labels.prev, labels.next]) {
+      expect(screen.getByRole('link', { name: label })).toHaveAttribute('data-nav-chevron')
+    }
+    const scrims = frame(container).querySelectorAll('[class*="group-has-"]')
+    expect(scrims).toHaveLength(2)
+    for (const scrim of scrims) {
+      expect(scrim).toHaveClass('group-has-[[data-nav-chevron]:focus-visible]:opacity-100')
+      expect(scrim.className).not.toContain('group-focus-within')
+    }
+  })
+
   it('ArrowRight navigates to next, ArrowLeft to prev', () => {
     render(<CardNav prev={prev} next={next} labels={labels}><div>card</div></CardNav>)
     fireEvent.keyDown(window, { key: 'ArrowRight' })

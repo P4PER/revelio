@@ -72,6 +72,52 @@ beforeEach(() => {
 })
 
 describe('DeckCardBrowser', () => {
+  it('drops the hover veil on touch, where nothing needs revealing', async () => {
+    // The veil dims the art so the gold Add pill reads once hover reveals it,
+    // so it tracks that button: hover, or the button's own focus-visible. It
+    // used to key off group-focus-within, which fires for pointer and touch
+    // focus too - closing the Add menu returns focus to the trigger inside the
+    // group, and the veil latched on as a hover state stuck to the card.
+    // touch:hidden on top, because a phone reveals nothing: Add, info and
+    // rotate are all permanently visible there.
+    renderBrowser(() => false)
+    await screen.findAllByText('OK Card')
+    const veil = document.querySelector('.bg-background\\/45')!
+    expect(veil).toHaveClass('group-hover:opacity-100', 'group-has-[:focus-visible]:opacity-100')
+    expect(veil.className).not.toContain('group-focus-within')
+    expect(veil).toHaveClass('touch:hidden')
+  })
+
+  it('pages from the toolbar row on a phone and from under the grid on the workbench', async () => {
+    // A bar under the grid lands directly on top of the deck sheet peeking
+    // below it on a phone - two bars stacked at the bottom of a 402px screen -
+    // so there the pager moves up beside the count. The workbench keeps its
+    // pager where it has always been. Two navs, only ever one of them painted.
+    searchDeckCards.mockResolvedValueOnce({ ...FIXED_RESULT, total: 1098, hitsPerPage: 30 })
+    const { container } = renderBrowser(() => false)
+
+    // Two elements carry the count now: the toolbar's live region and the
+    // workbench pager that repeats it.
+    await screen.findAllByText(/1–30 of 1,098 cards/)
+    const pagers = screen.getAllByRole('navigation', { name: en.pagination.label })
+    expect(pagers).toHaveLength(2)
+
+    const count = container.querySelector('[role="status"]')! as HTMLElement
+    const inToolbar = pagers.find((n) => n.parentElement!.contains(count))!
+    const underGrid = pagers.find((n) => n !== inToolbar)!
+
+    expect(inToolbar).toHaveClass('md:hidden')
+    // The count is right beside it, so the phone's pager must not print it again.
+    expect(inToolbar).not.toHaveTextContent(/of 1,098/)
+    // Folded to chevrons plus a readout, because the pane is one 402px column.
+    expect(inToolbar).toHaveTextContent('1 / 37')
+
+    expect(underGrid).toHaveClass('hidden', 'md:flex')
+    // Under the grid there is no sibling count, so it repeats the header's.
+    expect(underGrid).toHaveTextContent(/1–30 of 1,098 cards/)
+    expect(underGrid).not.toHaveTextContent('1 / 37')
+  })
+
   it('fits two card tiles per row on the narrowest screens', async () => {
     // The grid floored its tracks at 190px. Nested inside the page's and the
     // browser's own padding that leaves ~308px on a 390px phone, so auto-fill

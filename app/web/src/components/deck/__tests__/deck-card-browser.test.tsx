@@ -72,6 +72,19 @@ beforeEach(() => {
 })
 
 describe('DeckCardBrowser', () => {
+  it('drops the hover veil on touch, where nothing needs revealing', async () => {
+    // The veil dims the art so the gold Add pill reads once hover reveals it.
+    // A phone reveals nothing - Add, info and rotate are all permanently
+    // visible - and group-focus-within is not hover-gated the way group-hover
+    // is, so closing the Add menu returned focus to the trigger inside the
+    // group and latched the veil on: a hover state stuck to the card.
+    renderBrowser(() => false)
+    await screen.findAllByText('OK Card')
+    const veil = document.querySelector('.bg-background\\/45')!
+    expect(veil).toHaveClass('group-hover:opacity-100', 'group-focus-within:opacity-100')
+    expect(veil).toHaveClass('touch:hidden')
+  })
+
   it('pages from the toolbar row on a phone and from under the grid on the workbench', async () => {
     // A bar under the grid lands directly on top of the deck sheet peeking
     // below it on a phone - two bars stacked at the bottom of a 402px screen -

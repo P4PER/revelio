@@ -297,8 +297,15 @@ export function DeckCardBrowser({
                 </div>
               </div>
 
+              {/* Dimming veil, so the gold Add pill reads against the art once
+                  hover reveals it. touch:hidden because a phone has nothing to
+                  reveal - Add, info and rotate are all permanently visible
+                  there - and because group-focus-within is not hover-gated the
+                  way group-hover is: closing the Add menu returns focus to the
+                  trigger inside this group, which latched the veil on and read
+                  as a hover state stuck to the card. */}
               <div
-                className="pointer-events-none absolute inset-0 bg-background/45 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
+                className="pointer-events-none absolute inset-0 bg-background/45 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 touch:hidden"
                 aria-hidden
               />
 

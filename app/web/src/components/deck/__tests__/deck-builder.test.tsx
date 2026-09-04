@@ -324,15 +324,18 @@ describe('DeckBuilder mobile deck sheet', () => {
     expect(sheet.className).not.toContain('bottom-[')
   })
 
-  it('keeps the card tiles from painting over an open sheet', () => {
-    // The tiles carry their own stacking: CardInfoButton and CardRotate's
-    // button are both z-30 - the same as the sheet - and a rotated card lifts
-    // itself to a fixed z-50 to escape its tile. The pane sits after the sheet
-    // in the DOM, so on equal z-index those overlays won and painted straight
-    // over an open sheet, taking clicks through its scrim. Isolating the pane
-    // settles it once, rather than racing the numbers upward.
+  it('isolates the browse pane only while the sheet is open', async () => {
+    // Isolating stops the tiles' z-30 overlays painting over an open sheet.
+    // Doing it unconditionally would also trap CardRotate, which deliberately
+    // escapes to a fixed z-50 image over a z-40 dismiss backdrop: under a
+    // stacking context both fall behind the shut sheet's opaque peek handle,
+    // stranding a rotated card behind a band whose tap opens the sheet.
     const { container } = renderBuilder()
-    expect(container.querySelector('[data-pane="browse"]')).toHaveClass('isolate')
+    const browse = container.querySelector('[data-pane="browse"]')!
+    expect(browse).not.toHaveClass('max-md:isolate')
+
+    await userEvent.setup().click(screen.getByRole('button', { name: handleName(0) }))
+    expect(browse).toHaveClass('max-md:isolate')
   })
 
   it('reserves the peeking band under the card grid', () => {

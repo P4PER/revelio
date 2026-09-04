@@ -326,17 +326,26 @@ export function DeckBuilder({
 
       <div
         data-pane="browse"
-        // isolate, because the card tiles carry their own stacking: the rotate
-        // and info overlays are z-30 - the same as the sheet - and a rotated
-        // card lifts itself to a fixed z-50 to escape its tile. The pane sits
-        // after the sheet in the DOM, so on equal z-index the overlays won, and
-        // they painted straight over an open sheet and took clicks through its
-        // scrim. Isolation makes those z-indices the pane's own business
-        // instead of racing the sheet's, whatever they grow into.
-        //
         // pb reserves the band the shut sheet peeks over, so the last card row
         // is never trapped underneath it.
-        className="isolate min-h-0 flex-1 overflow-hidden pb-[var(--deck-sheet-peek)] md:col-start-1 md:row-start-2 md:row-span-2 md:border-r md:border-border/60 md:pb-0"
+        //
+        // isolate only while the sheet is open. The tiles carry their own
+        // stacking - the info and rotate buttons are z-30, the same as the
+        // sheet - and the pane sits after the sheet in the DOM, so on equal
+        // z-index they won and painted over an open sheet, taking clicks
+        // through its scrim. Isolating makes those the pane's own business.
+        //
+        // Not while it is shut, though: CardRotate deliberately escapes to a
+        // fixed z-50 image over a z-40 dismiss backdrop, and a stacking context
+        // would trap both under the peek handle - leaving a rotated card behind
+        // an opaque band whose tap toggles the sheet instead of dismissing it.
+        // Shut, there is nothing to protect anyway: the pb above keeps the
+        // tiles clear of the peek, so nothing of theirs overlaps it.
+        className={cn(
+          'min-h-0 flex-1 overflow-hidden pb-[var(--deck-sheet-peek)]',
+          'md:col-start-1 md:row-start-2 md:row-span-2 md:border-r md:border-border/60 md:pb-0',
+          sheetOpen && 'max-md:isolate',
+        )}
       >
         <DeckCardBrowser
           format={state.format}

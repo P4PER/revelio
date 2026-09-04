@@ -73,15 +73,18 @@ beforeEach(() => {
 
 describe('DeckCardBrowser', () => {
   it('drops the hover veil on touch, where nothing needs revealing', async () => {
-    // The veil dims the art so the gold Add pill reads once hover reveals it.
-    // A phone reveals nothing - Add, info and rotate are all permanently
-    // visible - and group-focus-within is not hover-gated the way group-hover
-    // is, so closing the Add menu returned focus to the trigger inside the
-    // group and latched the veil on: a hover state stuck to the card.
+    // The veil dims the art so the gold Add pill reads once hover reveals it,
+    // so it tracks that button: hover, or the button's own focus-visible. It
+    // used to key off group-focus-within, which fires for pointer and touch
+    // focus too - closing the Add menu returns focus to the trigger inside the
+    // group, and the veil latched on as a hover state stuck to the card.
+    // touch:hidden on top, because a phone reveals nothing: Add, info and
+    // rotate are all permanently visible there.
     renderBrowser(() => false)
     await screen.findAllByText('OK Card')
     const veil = document.querySelector('.bg-background\\/45')!
-    expect(veil).toHaveClass('group-hover:opacity-100', 'group-focus-within:opacity-100')
+    expect(veil).toHaveClass('group-hover:opacity-100', 'group-has-[:focus-visible]:opacity-100')
+    expect(veil.className).not.toContain('group-focus-within')
     expect(veil).toHaveClass('touch:hidden')
   })
 

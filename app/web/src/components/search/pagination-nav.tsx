@@ -52,7 +52,7 @@ export function PaginationNav({
   onNext?: () => void
 }) {
   const t = useTranslations('pagination')
-  const { from, to, lastPage } = pageRange(page, pageSize, total)
+  const { from, to, lastPage, page: currentPage } = pageRange(page, pageSize, total)
   if (lastPage <= 1) return null
 
   const hasPrev = page > 1
@@ -101,7 +101,7 @@ export function PaginationNav({
             telling you, so the chevrons get a readout between them. */}
         {compactLabel && (
           <span className="shrink-0 tabular-nums text-muted-foreground md:hidden">
-            {t('pageOf', { page, lastPage })}
+            {t('pageOf', { page: currentPage, lastPage })}
           </span>
         )}
         {arrow(hasNext, nextHref, onNext, t('next'), ChevronRight)}

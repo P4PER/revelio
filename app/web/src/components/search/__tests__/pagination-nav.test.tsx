@@ -79,6 +79,25 @@ describe('PaginationNav', () => {
     expect(screen.queryByText('2 / 37')).not.toBeInTheDocument()
   })
 
+  it('shows the clamped page in the compact readout, never the requested one', () => {
+    // Nothing upstream knows the page count early enough to clamp a URL, so a
+    // caller can arrive on ?page=999 of 37. The buttons already reflect the
+    // last page; the readout must not contradict them.
+    renderWithIntl(
+      <PaginationNav
+        page={999}
+        pageSize={30}
+        total={1098}
+        status={null}
+        compactLabel
+        onPrev={() => {}}
+        onNext={() => {}}
+      />,
+    )
+    expect(screen.getByText('37 / 37')).toBeInTheDocument()
+    expect(screen.queryByText('999 / 37')).not.toBeInTheDocument()
+  })
+
   it('groups thousands in the record range', () => {
     renderWithIntl(
       <PaginationNav page={1} pageSize={24} total={14181} prevHref="?page=0" nextHref="?page=2" />,

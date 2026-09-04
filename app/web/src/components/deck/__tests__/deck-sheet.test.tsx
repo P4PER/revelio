@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import { useState } from 'react'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DeckSheet, snapExpanded } from '@/components/deck/deck-sheet'
 
@@ -148,6 +148,23 @@ describe('DeckSheet', () => {
       'aria-expanded',
       'false',
     )
+  })
+
+  it('still opens on the tap after a gesture that never produced a click', async () => {
+    // handleClick consumes the drag flag, but not every gesture ends in a click
+    // for it to consume: a pointercancel never produces one, and a flick that
+    // carries the finger off the handle retargets the click to an ancestor.
+    // The flag then stayed latched and ate the next tap, so opening took two.
+    render(<Harness />)
+    const handle = screen.getByRole('button', { name: 'Deck, 12 cards' })
+
+    // A drag that is cancelled mid-gesture, with no click after it.
+    fireEvent.pointerDown(handle, { pointerId: 1, clientY: 400 })
+    fireEvent.pointerMove(handle, { pointerId: 1, clientY: 300 })
+    fireEvent.pointerCancel(handle, { pointerId: 1, clientY: 300 })
+
+    await userEvent.setup().click(handle)
+    expect(handle).toHaveAttribute('aria-expanded', 'true')
   })
 })
 

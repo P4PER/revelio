@@ -120,6 +120,12 @@ export function DeckSheet({
     const sheet = sheetRef.current
     const handle = handleRef.current
     if (!sheet || !handle) return
+    // Clear here, not only in handleClick: a gesture does not always end in a
+    // click for that handler to consume the flag on. A pointercancel never
+    // produces one, and a flick that carries the finger off the handle retargets
+    // the click to an ancestor - either way the flag stayed latched and ate the
+    // next tap, so opening the sheet took two.
+    dragged.current = false
     // The handle's own height IS the peek, so the gap between the two snap
     // positions needs no parsing of the calc() behind --deck-sheet-peek.
     drag.current = {

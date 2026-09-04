@@ -422,12 +422,9 @@
       "unparsedTitle": "Diese Zeilen konnten nicht gelesen werden:",
       "unresolvedTitle": "Diese Karten konnten nicht zugeordnet werden:"
     },
-    "panes": {
-      "label": "Builder-Ansicht",
-      "browse": "Karten durchsuchen",
-      "browseShort": "Durchsuchen",
-      "deck": "Deck",
-      "deckAria": "Deck, {count, plural, one {# Karte} other {# Karten}}"
+    "sheet": {
+      "toggle": "Deck, {count, plural, one {# Karte} other {# Karten}}",
+      "summary": "{count, plural, one {# Karte} other {# Karten}} · {format}"
     },
     "format": {
       "label": "Format",
@@ -597,7 +594,8 @@
     "label": "Seitennavigation",
     "prev": "Zurück",
     "next": "Weiter",
-    "pageStatus": "Zeige {from, number}–{to, number} von {total, number}"
+    "pageStatus": "Zeige {from, number}–{to, number} von {total, number}",
+    "pageOf": "{page, number} / {lastPage, number}"
   },
   "collection": {
     "title": "Meine Sammlung",

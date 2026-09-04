@@ -20,26 +20,18 @@ import { createDeckAction, updateDeckAction } from '@/lib/actions/deck-actions'
 import { DeckStatsPanel } from '@/components/deck/deck-stats-panel'
 import { DeckPanel } from '@/components/deck/deck-panel'
 import { DeckCardBrowser } from '@/components/deck/deck-card-browser'
-import {
-  DeckFormatSwitch,
-  SEGMENT_SELECTED,
-  SEGMENT_UNSELECTED,
-} from '@/components/deck/deck-format-switch'
-import { DeckExportMenu } from '@/components/deck/deck-export-menu'
-import { DeckImportDialog } from '@/components/deck/deck-import-dialog'
-import { Input } from '@/components/ui/input'
+import { DeckCommandBar } from '@/components/deck/deck-command-bar'
+import { DeckSheet, DECK_SHEET_PEEK_CLASS } from '@/components/deck/deck-sheet'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-const PANE_TAB =
-  'flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition'
-const PANE_TAB_ON = `${SEGMENT_SELECTED} shadow-sm`
-const PANE_TAB_OFF = SEGMENT_UNSELECTED
-
-// Owns BuilderState for the whole builder: the command bar (name, format
-// toggle, legality seal, save/import/export) plus the two-pane Workbench
-// layout (card browser left, curve + deck panel right). Guests without a
-// deckId get their state persisted to localStorage on every change.
+// Owns BuilderState for the whole builder. Below md browsing is the whole
+// screen and the deck lives in DeckSheet, a bottom sheet that peeks a handle
+// and carries the command bar and the save action inside it; from md up the
+// sheet is display:contents and the same children lay out as the two-pane
+// Workbench (card browser left, curve + deck panel right) with the command bar
+// spanning the top. Guests without a deckId get their state persisted to
+// localStorage on every change.
 export function DeckBuilder({
   initial,
   deckId,
@@ -56,10 +48,10 @@ export function DeckBuilder({
   const t = useTranslations('decks')
   const router = useRouter()
   const [state, setState] = useState<BuilderState>(initial)
-  // Which pane owns the screen below md, where the two do not fit side by
-  // side. Ignored from md up, which shows both.
-  const [pane, setPane] = useState<'browse' | 'deck'>('browse')
-  // The pane switch is fixed to the viewport, so without this it would go on
+  // Whether the deck sheet is open, below md where it is a sheet at all. From
+  // md up the sheet is display:contents and this has no meaning.
+  const [sheetOpen, setSheetOpen] = useState(false)
+  // The sheet is fixed to the viewport, so without this it would go on
   // hovering over the footer once the builder itself had scrolled past -
   // sitting on top of the footer's own controls.
   const [builderOnScreen, setBuilderOnScreen] = useState(true)
@@ -93,8 +85,14 @@ export function DeckBuilder({
     if (loggedIn && !deckId) {
       const draft = loadDraft()
       const hasContent = !!draft && (draft.entries.length > 0 || draft.name.trim().length > 0)
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (hasContent) setShowSavePrompt(true)
+      if (hasContent) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setShowSavePrompt(true)
+        // The prompt lives at the bottom of the sheet, so on a phone it would
+        // otherwise ask to save a draft nobody can see. This is the one thing
+        // that opens the sheet on the builder's behalf.
+        setSheetOpen(true)
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -192,171 +190,133 @@ export function DeckBuilder({
     }
   }
 
+  const sheetTitle = state.name.trim() || t('namePlaceholder')
+  const sheetSummary = t('sheet.summary', {
+    count: deckCount,
+    format: t(`format.${state.format}`),
+  })
+
   return (
-    <>
-      {/* Below md the builder is the screen: no page padding, no card edge, and
-          the full viewport height under the header. The border and radius would
-          cost about 50px of every card row on a 402px phone, and the card shape
-          only means anything once the builder sits inside a page. */}
-      <div
-        ref={cardRef}
-        className="flex h-[calc(100dvh-var(--header-h))] flex-col overflow-hidden md:h-auto md:rounded-xl md:border md:border-border/60"
-      >
-        {/* Below sm a three-column grid: name and save take row one, the format
-          switch and the two secondary actions row two. Giving each control its
-          own row stacked five rows of chrome above the card grid, and letting a
-          single flex row wrap dropped them wherever they happened to land. The
-          children are placed explicitly, and that placement goes inert when the
-          container turns back into a flex row at sm - which is the original
-          one-row bar, unchanged. */}
-        <div className="grid grid-cols-[1fr_auto_auto] items-center gap-2 border-b border-border/60 bg-card/60 px-4 py-3 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
-          <Input
-            value={state.name}
-            onChange={(e) => setState((s) => ({ ...s, name: e.target.value }))}
-            placeholder={t('namePlaceholder')}
-            aria-label={t('namePlaceholder')}
-            className="col-span-2 row-start-1 h-9 w-full max-w-full min-w-0 rounded-md px-3 text-lg font-semibold shadow-none sm:w-[40rem] md:text-lg"
-          />
-          <div className="hidden flex-1 sm:block" />
-          <DeckFormatSwitch
-            value={state.format}
-            onChange={(f) => setState((s) => setFormat(s, f))}
-            // Column one is the 1fr track the name spans on row one; without
-            // this the switch would stretch to fill it instead of sitting at its
-            // own width.
-            className="col-start-1 row-start-2 justify-self-start"
-          />
-          <div className="col-span-2 col-start-2 row-start-2 flex items-center justify-end gap-2 sm:contents">
-            <DeckImportDialog state={state} onImport={setState} />
-            <DeckExportMenu state={state} variant="outline" compactLabel />
-          </div>
-          {loggedIn ? (
-            <Button
-              type="button"
-              size="sm"
-              disabled={saving}
-              onClick={handleSave}
-              className="col-start-3 row-start-1 shrink-0"
-            >
-              {t('save')}
-            </Button>
-          ) : (
-            <Button type="button" size="sm" variant="outline" asChild className="col-start-3 row-start-1 shrink-0">
-              <Link href="/login">{t('loginToSave')}</Link>
-            </Button>
-          )}
-        </div>
-
-        {!deckId && !loggedIn && (
-          <p className="border-b border-border/60 bg-card/40 px-4 py-1.5 text-xs text-muted-foreground">
-            {t('draftNotice')}
-          </p>
-        )}
-
-        {showSavePrompt && (
-          <div className="flex flex-wrap items-center gap-3 border-b border-border/60 bg-primary/10 px-4 py-2">
-            <p className="flex-1 text-xs text-foreground">{t('savePrompt.message')}</p>
-            <Button type="button" size="sm" disabled={savingDraft} onClick={handleSaveDraftToAccount}>
-              {t('savePrompt.accept')}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              disabled={savingDraft}
-              onClick={() => setShowSavePrompt(false)}
-            >
-              {t('savePrompt.dismiss')}
-            </Button>
-          </div>
-        )}
-
-        {/* Below md the panes fill the viewport under the header rather than a
-            fraction of it: 70dvh left the page barely scrollable, so the 80px
-            spacer that used to sit under the builder was never scrolled past -
-            it just parked 104px of empty space above the footer. */}
-        <div className="grid min-h-0 flex-1 grid-cols-1 md:h-[calc(100dvh-11rem)] md:min-h-[560px] md:flex-none md:grid-cols-[1.15fr_0.85fr]">
-          <div
-            data-pane="browse"
-            className={cn(
-              'min-h-0 overflow-hidden border-b border-border/60 md:block md:border-r md:border-b-0',
-              pane === 'browse' ? 'block' : 'hidden',
-            )}
-          >
-            <DeckCardBrowser
-              format={state.format}
-              imageBase={imageBase}
-              sets={sets}
-              copyLimitReached={(cardId, isLesson) => copyLimitReached(state, cardId, isLesson)}
-              onAdd={handleAdd}
-            />
-          </div>
-          <div
-            data-pane="deck"
-            className={cn(
-              'min-h-0 flex-col overflow-hidden bg-gradient-to-b from-card/40 to-transparent md:flex',
-              pane === 'deck' ? 'flex' : 'hidden',
-            )}
-          >
-            <DeckStatsPanel entries={state.entries} />
-            <DeckPanel entries={state.entries} imageBase={imageBase} status={evaluation.status} highlight={highlight} onQuantityChange={handleQuantityChange} />
-          </div>
-        </div>
-      </div>
-
-      {/* Below md the panes used to stack, which left the deck a full
-          screen-scroll under the browser: you added a card and nothing you
-          could see changed. This switch hands each pane the viewport instead.
-          Both stay mounted, so the browser's query, filters and page all
-          survive a trip to the deck and back; its scroll position does not,
-          because display:none drops a scroll container's scrollTop. Same
-          segmented shape as the format toggle in the bar above.
-
-          Fixed, not inline: inline it scrolled off the top the moment you
-          started browsing, so reaching the deck meant scrolling back up. left-6
-          / right-6 match the page container's px-6, lining its edges up with
-          the builder card. It has to sit outside the builder's own root, whose
-          overflow-hidden would clip it. */}
-      <div
-        role="group"
-        aria-label={t('panes.label')}
-        className={cn(
-          // bottom clears the iOS home indicator where there is one, and falls
-          // back to the same 1rem everywhere else.
-          'fixed right-6 bottom-[max(1rem,env(safe-area-inset-bottom))] left-6 z-30 gap-1 rounded-xl border border-border/60 bg-card p-1.5 shadow-lg md:hidden',
-          builderOnScreen ? 'flex' : 'hidden',
-        )}
-      >
-        <button
-          type="button"
-          aria-label={t('panes.browse')}
-          aria-pressed={pane === 'browse'}
-          onClick={() => setPane('browse')}
-          className={cn(PANE_TAB, pane === 'browse' ? PANE_TAB_ON : PANE_TAB_OFF)}
-        >
-          {t('panes.browseShort')}
-        </button>
-        <button
-          type="button"
-          aria-label={t('panes.deckAria', { count: deckCount })}
-          aria-pressed={pane === 'deck'}
-          onClick={() => setPane('deck')}
-          className={cn(PANE_TAB, pane === 'deck' ? PANE_TAB_ON : PANE_TAB_OFF)}
-        >
-          {t('panes.deck')}
-          {/* Keyed to the add nonce so the badge remounts - and replays its
-              enter animation - on every add. While you are on the browse pane
-              this count is the only sign an add landed. */}
+    // Below md the builder is the screen: no page padding, no card edge, and
+    // the full viewport height under the header. The border and radius would
+    // cost about 50px of every card row on a 402px phone, and the card shape
+    // only means anything once the builder sits inside a page. overflow-hidden
+    // is md-only so it can never clip the fixed sheet below md.
+    //
+    // From md up this is the workbench grid and DeckSheet is display:contents,
+    // so the bar lands on row one across both columns, the browser takes the
+    // left column down both body rows, and the deck column plus its save footer
+    // stack in the right one.
+    //
+    // The sheet comes before the browser in the DOM on purpose: on a phone it
+    // is the thing on top, so tabbing reaches its handle first and then the
+    // browser, and while the sheet is shut its body is inert and skipped
+    // entirely. The cost is that on the workbench the deck column is reached
+    // before the card browser, which is the smaller of the two wrongs.
+    <div
+      ref={cardRef}
+      className={cn(
+        'flex h-[calc(100dvh-var(--header-h))] flex-col',
+        'md:grid md:h-[calc(100dvh-11rem)] md:min-h-[560px] md:grid-cols-[1.15fr_0.85fr]',
+        'md:grid-rows-[auto_minmax(0,1fr)_auto] md:overflow-hidden md:rounded-xl md:border md:border-border/60',
+        DECK_SHEET_PEEK_CLASS,
+      )}
+    >
+      <DeckSheet
+        expanded={sheetOpen}
+        onExpandedChange={setSheetOpen}
+        onScreen={builderOnScreen}
+        toggleLabel={t('sheet.toggle', { count: deckCount })}
+        title={sheetTitle}
+        subtitle={sheetSummary}
+        badge={
+          /* Keyed to the add nonce so the badge remounts - and replays its
+             enter animation - on every add. While the sheet is shut this count
+             is the only sign an add landed. */
           <span
             key={highlight?.nonce ?? 0}
-            data-testid="deck-pane-count"
+            data-testid="deck-sheet-count"
             aria-hidden
-            className="min-w-5 rounded-full bg-foreground px-1.5 text-xs font-semibold text-background tabular-nums motion-safe:animate-in motion-safe:zoom-in-50"
+            className="min-w-5 shrink-0 rounded-full bg-foreground px-1.5 text-xs font-semibold text-background tabular-nums motion-safe:animate-in motion-safe:zoom-in-50"
           >
             {deckCount}
           </span>
-        </button>
+        }
+      >
+        <DeckCommandBar
+          state={state}
+          onNameChange={(name) => setState((s) => ({ ...s, name }))}
+          onFormatChange={(f) => setState((s) => setFormat(s, f))}
+          onImport={setState}
+          className="md:col-span-2 md:row-start-1"
+        />
+
+        <div
+          data-pane="deck"
+          className="flex min-h-0 flex-1 flex-col overflow-hidden bg-gradient-to-b from-card/40 to-transparent md:col-start-2 md:row-start-2"
+        >
+          <DeckStatsPanel entries={state.entries} />
+          <DeckPanel
+            entries={state.entries}
+            imageBase={imageBase}
+            status={evaluation.status}
+            highlight={highlight}
+            onQuantityChange={handleQuantityChange}
+          />
+        </div>
+
+        {/* Saving lives with the deck rather than up in the chrome, which is
+            also what stops a long label from deciding a layout: full width, so
+            "Zum Speichern anmelden" costs nothing. */}
+        <div className="shrink-0 border-t border-border/60 bg-card/60 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:col-start-2 md:row-start-3 md:pb-3">
+          {showSavePrompt && (
+            <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg bg-primary/10 px-3 py-2">
+              <p className="flex-1 text-xs text-foreground">{t('savePrompt.message')}</p>
+              <Button type="button" size="sm" disabled={savingDraft} onClick={handleSaveDraftToAccount}>
+                {t('savePrompt.accept')}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                disabled={savingDraft}
+                onClick={() => setShowSavePrompt(false)}
+              >
+                {t('savePrompt.dismiss')}
+              </Button>
+            </div>
+          )}
+
+          {loggedIn ? (
+            <Button type="button" disabled={saving} onClick={handleSave} className="w-full">
+              {t('save')}
+            </Button>
+          ) : (
+            <Button type="button" variant="outline" asChild className="w-full">
+              <Link href="/login">{t('loginToSave')}</Link>
+            </Button>
+          )}
+
+          {!deckId && !loggedIn && (
+            <p className="mt-2 text-xs text-muted-foreground">{t('draftNotice')}</p>
+          )}
+        </div>
+      </DeckSheet>
+
+      <div
+        data-pane="browse"
+        // pb reserves the band the shut sheet peeks over, so the last card row
+        // is never trapped underneath it.
+        className="min-h-0 flex-1 overflow-hidden pb-[var(--deck-sheet-peek)] md:col-start-1 md:row-start-2 md:row-span-2 md:border-r md:border-border/60 md:pb-0"
+      >
+        <DeckCardBrowser
+          format={state.format}
+          imageBase={imageBase}
+          sets={sets}
+          copyLimitReached={(cardId, isLesson) => copyLimitReached(state, cardId, isLesson)}
+          onAdd={handleAdd}
+        />
       </div>
-    </>
+    </div>
   )
 }

@@ -79,6 +79,7 @@ function useIsPhone() {
 export function DeckSheet({
   expanded,
   onExpandedChange,
+  onScreen = true,
   toggleLabel,
   title,
   subtitle,
@@ -87,6 +88,14 @@ export function DeckSheet({
 }: {
   expanded: boolean
   onExpandedChange: (expanded: boolean) => void
+  /**
+   * Whether the builder itself is still in view. The sheet is fixed to the
+   * viewport, so once the page has scrolled past the builder to the footer it
+   * has to get out of the way rather than sit on the footer's own controls.
+   * Hidden rather than unmounted, so the deck's scroll position and the stats
+   * panel's open state survive; only below md, where it is a sheet at all.
+   */
+  onScreen?: boolean
   /** Accessible name for the handle, which carries the live card count. */
   toggleLabel: string
   title: string
@@ -163,7 +172,7 @@ export function DeckSheet({
 
   return (
     <>
-      {expanded && (
+      {expanded && onScreen && (
         // Tap-anywhere-to-go-back, which is how the state becomes obvious. Not
         // keyboard reachable on purpose: the handle already collapses the sheet
         // and a full-screen tab stop would be worse than none.
@@ -183,6 +192,9 @@ export function DeckSheet({
           'shadow-[0_-14px_40px_rgba(0,0,0,0.35)] transition-transform duration-[260ms] ease-[cubic-bezier(.32,.72,0,1)]',
           'motion-reduce:transition-none md:contents',
           expanded ? 'translate-y-0' : 'translate-y-[calc(100%-var(--deck-sheet-peek))]',
+          // max-md only: from md up the sheet has to stay display:contents
+          // whatever the page has scrolled past.
+          !onScreen && 'max-md:hidden',
         )}
       >
         <button

@@ -191,6 +191,13 @@ export function DeckBuilder({
     }
   }
 
+  // The sheet's foot always has the phone's full-width Save in it. From md up
+  // that copy is hidden and the bar's own Save takes over, so the foot is left
+  // holding only the guest's draft notice and the save-on-login prompt - and
+  // for a signed-in user with neither, nothing at all. Without this it renders
+  // as an empty bordered strip under the deck list.
+  const footHasWorkbenchContent = showSavePrompt || (!deckId && !loggedIn)
+
   const sheetTitle = state.name.trim() || t('namePlaceholder')
   const sheetSummary = t('sheet.summary', {
     count: deckCount,
@@ -278,7 +285,14 @@ export function DeckBuilder({
         {/* On a phone saving lives with the deck, full width, so its label
             cannot squeeze the command bar the way it used to. The workbench
             keeps its Save up in the bar, where it has always been. */}
-        <div className="shrink-0 border-t border-border/60 bg-card/60 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:col-start-2 md:row-start-3 md:pb-3">
+        <div
+          data-deck-sheet-foot
+          className={cn(
+            'shrink-0 border-t border-border/60 bg-card/60 px-4 pt-3',
+            'pb-[max(0.75rem,env(safe-area-inset-bottom))] md:col-start-2 md:row-start-3 md:pb-3',
+            !footHasWorkbenchContent && 'md:hidden',
+          )}
+        >
           {showSavePrompt && (
             <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg bg-primary/10 px-3 py-2">
               <p className="flex-1 text-xs text-foreground">{t('savePrompt.message')}</p>

@@ -360,6 +360,24 @@ describe('DeckBuilder mobile deck sheet', () => {
     expect(screen.getByRole('button', { name: handleName(2) })).toHaveAttribute('aria-expanded', 'true')
   })
 
+  it('leaves no empty strip under the deck list on the workbench', () => {
+    // The sheet's foot always holds the phone's full-width Save. From md up
+    // that copy is hidden and the bar's Save takes over, so for a signed-in
+    // user with no draft notice and no save prompt the foot has nothing left to
+    // show - and rendered as an empty bordered box under the deck list.
+    const { container } = renderBuilder({ loggedIn: true, deckId: 'existing-id' })
+    expect(container.querySelector('[data-deck-sheet-foot]')).toHaveClass('md:hidden')
+  })
+
+  it('keeps the foot on the workbench when it has something to say', () => {
+    // A guest gets the draft notice there, and it belongs beside the deck at
+    // every width.
+    const { container } = renderBuilder({ loggedIn: false, deckId: null })
+    const foot = container.querySelector('[data-deck-sheet-foot]')!
+    expect(foot).not.toHaveClass('md:hidden')
+    expect(foot).toHaveTextContent(en.decks.draftNotice)
+  })
+
   it('replays the badge animation on every add by keying it to the add nonce', () => {
     // The count is the only feedback an add gives while the sheet is shut.
     // Remounting the badge per add replays its enter animation, so the number

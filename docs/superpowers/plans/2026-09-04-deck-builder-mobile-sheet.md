@@ -138,7 +138,6 @@ The `builderOnScreen` IntersectionObserver **stays**: the sheet is still fixed t
 - `app/web/src/components/deck/deck-card-browser.tsx` - `PaginationNav` moves into the toolbar row, bottom bar and separate count div removed, `pb-[var(--peek)]` on the grid.
 - `app/web/src/components/search/pagination-nav.tsx` - `compactLabel` and `announce`.
 - `app/web/src/app/globals.css` - `--header-h`.
-- `app/web/src/components/layout/site-header.tsx` - pin the inner row to `--header-h` so the value cannot drift from the real header.
 - `app/web/src/app/[locale]/decks/new/page.tsx`, `app/web/src/app/[locale]/decks/[id]/edit/page.tsx` - `px-0 py-0 md:px-6 md:py-6`.
 - `app/web/messages/en.json`, `app/web/messages/de.json`.
 - `app/web/src/components/deck/__tests__/deck-builder.test.tsx` - the command-bar-layout and pane-switch suites are rewritten.
@@ -151,7 +150,7 @@ The `builderOnScreen` IntersectionObserver **stays**: the sheet is still fixed t
 
 ### Phase 1 - Page shell, dead space and borders (P2, P4)
 
-- [ ] **1.1** Add `--header-h` to `globals.css` and pin `site-header.tsx`'s inner row to it. Measure the rendered header first (`h-9` brand mark + `py-2` + 1px border reads as 53px; confirm in the browser, and confirm it does not change at `min-[640px]`). Record the measured value in a comment.
+- [ ] **1.1** Add `--header-h` to `globals.css` as a documented constant. Both brand-mark variants are `h-9`, the header search field is `h-8` and the mobile nav trigger is `icon-sm`, so the tallest child is 36px: `36 + py-2 (16) + border-b (1) = 53px = 3.3125rem`. Do **not** pin `site-header.tsx` to it - forcing a height on a component every page renders risks clipping for the sake of a mobile-only need. Instead assert the relationship in e2e (task 6.2a), so drift fails CI rather than silently mis-sizing the builder.
 - [ ] **1.2** `decks/new/page.tsx` and `decks/[id]/edit/page.tsx`: `px-0 py-0 md:px-6 md:py-6` on `<main>`.
 - [ ] **1.3** `deck-builder.tsx`: `rounded-xl border border-border/60` becomes `md:rounded-xl md:border md:border-border/60`; the pane grid's `h-[70dvh] min-h-[420px]` becomes `h-[calc(100dvh-var(--header-h))]` below `md` (the `md:` half is unchanged); delete the `h-20 md:hidden` spacer.
 - [ ] **1.4** Verify at 402x874 in Playwright that there is no dead space between the builder and the footer and no horizontal body scroll. Commit.
@@ -185,7 +184,8 @@ The `builderOnScreen` IntersectionObserver **stays**: the sheet is still fixed t
 ### Phase 6 - Verification
 
 - [ ] **6.1** `npm test`, `npm run typecheck`, `npm run lint -w web` all green.
-- [ ] **6.2** `E2E_PORT=3100 npm run e2e -w web` green (16/16). The suite needs a prod build; the port override lets the dev server stay up.
+- [ ] **6.2** `E2E_PORT=3100 npm run e2e -w web` green. The suite needs a prod build; the port override lets the dev server stay up.
+- [ ] **6.2a** Add an e2e assertion that the site header's rendered `offsetHeight` equals the `--header-h` constant, so the builder's `100dvh - --header-h` cannot silently drift when the header changes.
 - [ ] **6.3** Playwright pass at 402x874, German locale, logged out: the command bar no longer overflows; no dead space; the sheet rests flush on the bottom edge; the browse pane's last row is reachable; one bottom bar. Screenshot each state.
 - [ ] **6.4** Re-check 768px and 1440px to confirm the desktop workbench is visually unchanged apart from the pagination move.
 - [ ] **6.5** Ask the reporter to confirm P3 on the actual iPhone 16 Pro - the safe-area double-count is reasoned, not measured.

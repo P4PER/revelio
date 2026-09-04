@@ -30,7 +30,7 @@ export default async function NewDeckPage({
   const [sets, session] = await Promise.all([listSets(getDb(), locale), getSession()])
 
   return (
-    <main className="mx-auto max-w-[2100px] px-6 py-6">
+    <main className="mx-auto max-w-[2100px] md:px-6 md:py-6">
       <DeckBuilder
         initial={emptyDeck()}
         deckId={null}

@@ -194,7 +194,14 @@ export function DeckBuilder({
 
   return (
     <>
-      <div ref={cardRef} className="flex flex-col overflow-hidden rounded-xl border border-border/60">
+      {/* Below md the builder is the screen: no page padding, no card edge, and
+          the full viewport height under the header. The border and radius would
+          cost about 50px of every card row on a 402px phone, and the card shape
+          only means anything once the builder sits inside a page. */}
+      <div
+        ref={cardRef}
+        className="flex h-[calc(100dvh-var(--header-h))] flex-col overflow-hidden md:h-auto md:rounded-xl md:border md:border-border/60"
+      >
         {/* Below sm a three-column grid: name and save take row one, the format
           switch and the two secondary actions row two. Giving each control its
           own row stacked five rows of chrome above the card grid, and letting a
@@ -264,7 +271,11 @@ export function DeckBuilder({
           </div>
         )}
 
-        <div className="grid h-[70dvh] min-h-[420px] grid-cols-1 md:h-[calc(100dvh-11rem)] md:min-h-[560px] md:grid-cols-[1.15fr_0.85fr]">
+        {/* Below md the panes fill the viewport under the header rather than a
+            fraction of it: 70dvh left the page barely scrollable, so the 80px
+            spacer that used to sit under the builder was never scrolled past -
+            it just parked 104px of empty space above the footer. */}
+        <div className="grid min-h-0 flex-1 grid-cols-1 md:h-[calc(100dvh-11rem)] md:min-h-[560px] md:flex-none md:grid-cols-[1.15fr_0.85fr]">
           <div
             data-pane="browse"
             className={cn(
@@ -292,9 +303,6 @@ export function DeckBuilder({
           </div>
         </div>
       </div>
-
-      {/* Keeps the last of the deck list clear of the fixed bar. */}
-      <div className="h-20 md:hidden" aria-hidden />
 
       {/* Below md the panes used to stack, which left the deck a full
           screen-scroll under the browser: you added a card and nothing you

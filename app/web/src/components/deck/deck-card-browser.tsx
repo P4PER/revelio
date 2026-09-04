@@ -192,7 +192,13 @@ export function DeckCardBrowser({
         {/* Clearing sits beside the count, as it does on /search: it belongs
             with the run of things that appear once filters are applied, not in
             the toolbar above. It stays outside the live region so a new count
-            does not announce the button along with it. */}
+            does not announce the button along with it.
+
+            Paging sits here too rather than in a bar under the grid. On a phone
+            that bar landed directly on top of the sheet peeking below it - two
+            bars stacked at the bottom of a 402px screen - and it repeated this
+            very count at the other end of the pane. One row now carries the
+            count, the clear control and the pager at every width. */}
         <div className="flex flex-wrap items-center gap-2">
           {/* The live region stays mounted across a search so a new count reaches
               screen readers as an update to its text; swapping it for the ghost
@@ -202,7 +208,11 @@ export function DeckCardBrowser({
               across the app, and it keeps this row the same height whether or
               not the clear control is mounted beside it. The ghost matches that
               line box (h-5) and roughly the count's width, so the row does not
-              resize when the real text arrives. */}
+              resize when the real text arrives.
+
+              PaginationNav renders nothing at all on a single page, so this
+              stays the count's home rather than moving into it; the nav beside
+              it takes status={null} and is only its controls. */}
           <div className="text-sm text-muted-foreground" role="status">
             {showSkeleton ? (
               <Skeleton className="h-5 w-28" />
@@ -211,6 +221,16 @@ export function DeckCardBrowser({
             )}
           </div>
           <ClearFiltersButton active={filtersActive} onClear={clearFilters} />
+          <PaginationNav
+            page={result.page}
+            pageSize={result.hitsPerPage}
+            total={result.total}
+            status={null}
+            compactLabel
+            className="ml-auto justify-end"
+            onPrev={() => { setPage((p) => Math.max(1, p - 1)); scrollTopPending.current = true }}
+            onNext={() => { setPage((p) => p + 1); scrollTopPending.current = true }}
+          />
         </div>
       </div>
 
@@ -318,16 +338,6 @@ export function DeckCardBrowser({
           )
         })}
       </div>
-
-      <PaginationNav
-        status={resultCount}
-        page={result.page}
-        pageSize={result.hitsPerPage}
-        total={result.total}
-        className="border-t border-border/60 px-4 py-2"
-        onPrev={() => { setPage((p) => Math.max(1, p - 1)); scrollTopPending.current = true }}
-        onNext={() => { setPage((p) => p + 1); scrollTopPending.current = true }}
-      />
 
       <CardDetailSheet
         cardId={detail?.id ?? null}

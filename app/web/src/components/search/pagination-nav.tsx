@@ -1,5 +1,6 @@
 'use client'
 import { useTranslations } from 'next-intl'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import { Button } from '@/components/ui/button'
 import { pageRange } from '@/lib/page-range'
@@ -20,20 +21,31 @@ import { cn } from '@/lib/utils'
  * header that announces it already, and two live regions with the same text
  * read the sentence out twice per page change. Every list that renders its own
  * count header passes one; the ones that do not keep the default and announce
- * from here.
+ * from here. `status={null}` is the third case: the caller renders the count as
+ * its own sibling element, so this drops the status slot entirely and is just
+ * the controls.
+ *
+ * `compactLabel` folds the Previous/Next labels down to chevrons below md and
+ * puts a "page / lastPage" readout between them - same prop name and meaning it
+ * has on DeckExportMenu. It exists for the deck builder's browse pane, which is
+ * a single 402px column on a phone; aria-label carries the accessible name
+ * either way, and from md up it is the labelled pair, unchanged.
  *
  * Two modes, so it works from both server pages and client tables:
  * - link mode: pass `prevHref`/`nextHref` (server-safe — strings, no closures)
  * - button mode: pass `onPrev`/`onNext` (client callers: tanstack tables, browse)
  */
 export function PaginationNav({
-  page, pageSize, total, className, status, prevHref, nextHref, onPrev, onNext,
+  page, pageSize, total, className, status, compactLabel,
+  prevHref, nextHref, onPrev, onNext,
 }: {
   page: number
   pageSize: number
   total: number
   className?: string
-  status?: string
+  /** Text for the status slot; `null` drops the slot for a caller that owns the count. */
+  status?: string | null
+  compactLabel?: boolean
   prevHref?: string
   nextHref?: string
   onPrev?: () => void
@@ -46,14 +58,30 @@ export function PaginationNav({
   const hasPrev = page > 1
   const hasNext = page < lastPage
 
-  const arrow = (enabled: boolean, href: string | undefined, onClick: (() => void) | undefined, label: string) =>
+  // One button per direction at every width: the label folds to a chevron
+  // rather than a second control appearing, which is how the export menu does
+  // it too. aria-label carries the name whichever half is painted.
+  const face = (label: string, Icon: typeof ChevronLeft) => (
+    <>
+      {compactLabel && <Icon className="size-4 md:hidden" />}
+      <span className={cn(compactLabel && 'max-md:hidden')}>{label}</span>
+    </>
+  )
+
+  const arrow = (
+    enabled: boolean,
+    href: string | undefined,
+    onClick: (() => void) | undefined,
+    label: string,
+    Icon: typeof ChevronLeft,
+  ) =>
     enabled && href !== undefined ? (
       <Button variant="outline" size="sm" asChild aria-label={label}>
-        <Link href={href}>{label}</Link>
+        <Link href={href}>{face(label, Icon)}</Link>
       </Button>
     ) : (
       <Button variant="outline" size="sm" aria-label={label} disabled={!enabled} onClick={onClick}>
-        {label}
+        {face(label, Icon)}
       </Button>
     )
 
@@ -62,12 +90,21 @@ export function PaginationNav({
       className={cn('flex items-center justify-between gap-4 text-sm', className)}
       aria-label={t('label')}
     >
-      <span className="text-muted-foreground" role={status ? undefined : 'status'}>
-        {status ?? t('pageStatus', { from, to, total })}
-      </span>
+      {status !== null && (
+        <span className="text-muted-foreground" role={status ? undefined : 'status'}>
+          {status ?? t('pageStatus', { from, to, total })}
+        </span>
+      )}
       <div className="flex items-center gap-2">
-        {arrow(hasPrev, prevHref, onPrev, t('prev'))}
-        {arrow(hasNext, nextHref, onNext, t('next'))}
+        {arrow(hasPrev, prevHref, onPrev, t('prev'), ChevronLeft)}
+        {/* Which page you are on is the one thing the folded labels stop
+            telling you, so the chevrons get a readout between them. */}
+        {compactLabel && (
+          <span className="shrink-0 tabular-nums text-muted-foreground md:hidden">
+            {t('pageOf', { page, lastPage })}
+          </span>
+        )}
+        {arrow(hasNext, nextHref, onNext, t('next'), ChevronRight)}
       </div>
     </nav>
   )

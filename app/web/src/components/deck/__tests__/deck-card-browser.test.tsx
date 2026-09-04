@@ -72,6 +72,24 @@ beforeEach(() => {
 })
 
 describe('DeckCardBrowser', () => {
+  it('pages from the toolbar row rather than a bar under the grid', async () => {
+    // The bottom bar repeated this very count at the other end of the pane,
+    // and on a phone it landed directly on top of the deck sheet peeking below
+    // it - two bars stacked at the bottom of a 402px screen. One row now
+    // carries the count, the clear control and the pager at every width.
+    searchDeckCards.mockResolvedValueOnce({ ...FIXED_RESULT, total: 1098, hitsPerPage: 30 })
+    const { container } = renderBrowser(() => false)
+
+    const pager = await screen.findByRole('navigation', { name: en.pagination.label })
+    const count = container.querySelector('[role="status"]')!
+    expect(pager.parentElement).toContainElement(count as HTMLElement)
+
+    // The count lives in the toolbar, so the pager must not print it again.
+    expect(pager).not.toHaveTextContent(/of 1,098/)
+    // Folded to chevrons plus a readout, because the pane is one 402px column.
+    expect(screen.getByText('1 / 37')).toBeInTheDocument()
+  })
+
   it('fits two card tiles per row on the narrowest screens', async () => {
     // The grid floored its tracks at 190px. Nested inside the page's and the
     // browser's own padding that leaves ~308px on a 390px phone, so auto-fill

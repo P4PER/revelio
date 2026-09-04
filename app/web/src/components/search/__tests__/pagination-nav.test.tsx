@@ -33,6 +33,52 @@ describe('PaginationNav', () => {
   })
 
 
+  it('drops the status slot entirely for a caller that owns the count', () => {
+    // The deck builder's browse pane shows the count in its own live region in
+    // the toolbar row and puts the pager beside it. Rendering the default range
+    // here would print the same sentence twice in one row.
+    renderWithIntl(
+      <PaginationNav page={2} pageSize={30} total={1098} status={null} onPrev={() => {}} onNext={() => {}} />,
+    )
+    expect(screen.queryByText(/Showing/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Previous' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument()
+  })
+
+  it('folds the labels to chevrons below md and adds a page readout', () => {
+    // One button per direction at every width - the label gives way to an icon
+    // rather than a second control appearing - and aria-label keeps the name.
+    renderWithIntl(
+      <PaginationNav
+        page={2}
+        pageSize={30}
+        total={1098}
+        status={null}
+        compactLabel
+        onPrev={() => {}}
+        onNext={() => {}}
+      />,
+    )
+    for (const name of ['Previous', 'Next']) {
+      const button = screen.getByRole('button', { name })
+      expect(button).toHaveAttribute('aria-label', name)
+      expect(button.querySelector('span')).toHaveClass('max-md:hidden')
+      expect(button.querySelector('svg')).toHaveClass('md:hidden')
+    }
+    // 1098 / 30 = 37 pages, and the readout is the only thing that still says
+    // which one you are on once the labels are folded away.
+    expect(screen.getByText('2 / 37')).toHaveClass('md:hidden')
+  })
+
+  it('leaves the labelled pair alone without compactLabel', () => {
+    renderWithIntl(
+      <PaginationNav page={2} pageSize={30} total={1098} status={null} onPrev={() => {}} onNext={() => {}} />,
+    )
+    expect(screen.getByRole('button', { name: 'Next' }).querySelector('svg')).toBeNull()
+    expect(screen.queryByText('2 / 37')).not.toBeInTheDocument()
+  })
+
   it('groups thousands in the record range', () => {
     renderWithIntl(
       <PaginationNav page={1} pageSize={24} total={14181} prevHref="?page=0" nextHref="?page=2" />,

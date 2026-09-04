@@ -194,11 +194,10 @@ export function DeckCardBrowser({
             the toolbar above. It stays outside the live region so a new count
             does not announce the button along with it.
 
-            Paging sits here too rather than in a bar under the grid. On a phone
-            that bar landed directly on top of the sheet peeking below it - two
-            bars stacked at the bottom of a 402px screen - and it repeated this
-            very count at the other end of the pane. One row now carries the
-            count, the clear control and the pager at every width. */}
+            On a phone the pager sits here too, because a bar under the grid
+            landed directly on top of the sheet peeking below it - two bars
+            stacked at the bottom of a 402px screen. The workbench keeps its
+            pager under the grid, where it has always been. */}
         <div className="flex flex-wrap items-center gap-2">
           {/* The live region stays mounted across a search so a new count reaches
               screen readers as an update to its text; swapping it for the ghost
@@ -211,8 +210,8 @@ export function DeckCardBrowser({
               resize when the real text arrives.
 
               PaginationNav renders nothing at all on a single page, so this
-              stays the count's home rather than moving into it; the nav beside
-              it takes status={null} and is only its controls. */}
+              stays the count's home rather than moving into it; the phone's
+              pager beside it takes status={null} and is only its controls. */}
           <div className="text-sm text-muted-foreground" role="status">
             {showSkeleton ? (
               <Skeleton className="h-5 w-28" />
@@ -227,7 +226,7 @@ export function DeckCardBrowser({
             total={result.total}
             status={null}
             compactLabel
-            className="ml-auto justify-end"
+            className="ml-auto justify-end md:hidden"
             onPrev={() => { setPage((p) => Math.max(1, p - 1)); scrollTopPending.current = true }}
             onNext={() => { setPage((p) => p + 1); scrollTopPending.current = true }}
           />
@@ -338,6 +337,18 @@ export function DeckCardBrowser({
           )
         })}
       </div>
+
+      {/* Workbench only - on a phone this would stack a second bar on top of
+          the deck sheet, so the pager moves up into the toolbar row there. */}
+      <PaginationNav
+        status={resultCount}
+        page={result.page}
+        pageSize={result.hitsPerPage}
+        total={result.total}
+        className="hidden border-t border-border/60 px-4 py-2 md:flex"
+        onPrev={() => { setPage((p) => Math.max(1, p - 1)); scrollTopPending.current = true }}
+        onNext={() => { setPage((p) => p + 1); scrollTopPending.current = true }}
+      />
 
       <CardDetailSheet
         cardId={detail?.id ?? null}

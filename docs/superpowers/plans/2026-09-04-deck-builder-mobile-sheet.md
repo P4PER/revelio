@@ -59,7 +59,9 @@ DeckBuilder root  (below md: h-[calc(100dvh-var(--header-h))]; from md: the exis
 
 `display: contents` generates no box, so at `md` the sheet's `position`, `height`, `transform`, `background`, `border-radius` and `overflow` are all inert and its children become direct grid items. That is what lets the command bar live inside the sheet on a phone and span the top of the workbench on a desktop **without rendering it twice**. Duplicating it would mean two name inputs bound to one state, two format switches, doubled accessible names and ambiguous `getByRole` in every test.
 
-`SheetFooter` is `md:hidden` because from `md` up the save/login button belongs in the command bar, where it already is. It is therefore the one control that *is* rendered twice - but only one of the two is ever in the layout, they are a button and not a stateful input, and the mobile one is `md:hidden` while the bar one is `hidden md:inline-flex`. Tests must query by breakpoint-scoped class, not by role alone.
+Save is the one control rendered twice, in `DeckSaveButton`: `hidden md:inline-flex` in the command bar, where it has always been on the workbench, and `w-full md:hidden` at the foot of the sheet on a phone. The two live in different parents and no grid placement moves a node between them, so this is the honest shape - and only ever one of them is perceivable, since `display: none` takes the other out of the accessibility tree and the tab order both. They share one component so the logged-in branch cannot drift. Tests must query by breakpoint-scoped class, not by role alone.
+
+The full-width mobile copy is the point: "Zum Speichern anmelden" is the longest string in the builder, and full width is the shape where its length costs nothing.
 
 > **Rejected:** vaul / shadcn `Drawer`. It portals content to `document.body` and drives `position: fixed` and `transform` through inline styles, so the same node can never become a static grid column - which forces either a second `DeckPanel` (and a second `CardDetailSheet`) or a JS-media-query tree swap that flashes the mobile sheet on desktop first paint and drops scroll state on resize. Both `DeckPanel` and `DeckCardBrowser` also render a `CardDetailSheet` (Radix Dialog) and `DeckFilterDrawer` renders a `FilterSheet`, so a Dialog-based persistent sheet would hold real modals inside a permanently-open one. If this sheet is ever made modal, vaul becomes the correct answer and this decision should be revisited.
 
@@ -166,6 +168,7 @@ The `builderOnScreen` IntersectionObserver **stays**: the sheet is still fixed t
 
 - [x] **3.1** Extract `DeckCommandBar` from `deck-builder.tsx` with no layout change yet, so the diff that follows is only about layout. Tests stay green.
 - [x] **3.2** Re-lay the bar for the sheet: name input full width on its own row, then format switch + import + export on one row, and the save/login button `hidden md:inline-flex`. Delete `grid-cols-[1fr_auto_auto]` and the `col-start-*` placements - inside the sheet there is no 402px squeeze to solve, which is the whole point of direction C.
+  - Save was briefly moved out of the bar entirely, which also moved it on the workbench. Reverted on review: the bar keeps its Save from md up, and `DeckSaveButton` is shared by both copies.
 - [x] **3.3** Compose in `deck-builder.tsx`: `DeckSheet` wraps `DeckCommandBar`, the deck column and the new mobile `SheetFooter` (save/login + draft notice + the save prompt). Remove the `pane` state, the pane switch and `decks.panes.*` usage. Place the children for the `md` grid (`md:col-span-2 md:row-start-1` etc.).
 - [x] **3.4** Handle summary copy: `sheet.summary` (`{count} cards · {format}`) collapsed, and the main/sideboard breakdown expanded. Keep the count badge's remount-on-add animation (keyed to the add nonce) - while the sheet is collapsed the count is the only sign an add landed.
 - [x] **3.5** Rewrite the affected suites in `deck-builder.test.tsx`. Commit.
@@ -187,7 +190,7 @@ The `builderOnScreen` IntersectionObserver **stays**: the sheet is still fixed t
 - [x] **6.2** `E2E_PORT=3100 npm run e2e -w web` green. The suite needs a prod build; the port override lets the dev server stay up.
 - [x] **6.2a** Add an e2e assertion that the site header's rendered `offsetHeight` equals the `--header-h` constant, so the builder's `100dvh - --header-h` cannot silently drift when the header changes.
 - [x] **6.3** Playwright pass at 402x874, German locale, logged out: the command bar no longer overflows; no dead space (builder-to-footer gap measured 0, was 104px); the sheet rests flush on the bottom edge; the browse pane reserves the peek; one bottom bar. Screenshot each state.
-  - **Not verified by eye:** the compact pager. The local Meilisearch has no indexes (Postgres still holds 1098 cards), so every result set is empty and PaginationNav correctly renders nothing on a single page. Covered by unit test plus three mutation checks instead; re-shoot once Meili is reindexed.
+  - Verified with a seeded Meili: the compact pager reads `< 1 / 37 >` beside `1-30 von 1.098 Karten` in the toolbar row, and the full-bleed grid gives each of the two tiles per row 177px instead of ~140px.
 - [x] **6.4** Re-check 768px and 1440px to confirm the desktop workbench is visually unchanged apart from the pagination move.
 - [ ] **6.5** Ask the reporter to confirm P3 on the actual iPhone 16 Pro - the safe-area double-count is reasoned, not measured.
 

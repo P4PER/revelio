@@ -169,15 +169,31 @@ describe('DeckBuilder command bar', () => {
     )
   })
 
-  it('keeps the save action out of the bar so no label can size it', () => {
-    // Save moved down to the deck, which is both where it belongs and what
-    // stops the longest string in the UI from dictating a layout: full width,
-    // so the label costs nothing at any length.
+  it('keeps its Save on the workbench and hands the phone a full-width one', () => {
+    // Save stays in the bar where it has always been from md up. On a phone it
+    // sits at the foot of the sheet instead, full width - which is what stops
+    // "Zum Speichern anmelden", the longest string in the builder, from
+    // squeezing the bar the way it used to.
+    //
+    // Two elements, because the two live in different parents and no grid
+    // placement moves a node between them; only ever one is perceivable, since
+    // display:none takes the other out of the a11y tree and the tab order both.
     renderBuilder({ loggedIn: true })
     const bar = screen.getByLabelText(en.decks.namePlaceholder).closest('div')!
-    const save = screen.getByRole('button', { name: en.decks.save })
-    expect(bar).not.toContainElement(save)
-    expect(save).toHaveClass('w-full')
+    const saves = screen.getAllByRole('button', { name: en.decks.save })
+    expect(saves).toHaveLength(2)
+
+    const inBar = saves.find((b) => bar.contains(b))!
+    const inSheet = saves.find((b) => !bar.contains(b))!
+    expect(inBar).toHaveClass('hidden', 'md:inline-flex')
+    expect(inSheet).toHaveClass('w-full', 'md:hidden')
+  })
+
+  it('offers the guest the same two Saves, as Log in to save', () => {
+    renderBuilder({ loggedIn: false })
+    const links = screen.getAllByRole('link', { name: en.decks.loginToSave })
+    expect(links).toHaveLength(2)
+    for (const link of links) expect(link).toHaveAttribute('href', '/login')
   })
 
   it('wires the format switch into the builder state', async () => {
@@ -247,7 +263,10 @@ describe('DeckBuilder mobile deck sheet', () => {
 
     expect(body).toContainElement(screen.getByLabelText(en.decks.namePlaceholder))
     expect(body).toContainElement(container.querySelector('[data-pane="deck"]'))
-    expect(body).toContainElement(screen.getByRole('button', { name: en.decks.save }))
+    // Both Saves sit inside the sheet's subtree - the bar's copy included,
+    // since the bar itself does - so assert on the phone's full-width one.
+    const saves = screen.getAllByRole('button', { name: en.decks.save })
+    expect(saves.filter((b) => body.contains(b) && b.className.includes('md:hidden'))).toHaveLength(1)
     // Browsing is the page, not part of the sheet.
     expect(body).not.toContainElement(container.querySelector('[data-pane="browse"]'))
   })

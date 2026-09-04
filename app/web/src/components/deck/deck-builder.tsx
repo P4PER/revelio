@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { Link, useRouter } from '@/../i18n/navigation'
+import { useRouter } from '@/../i18n/navigation'
 import type { DeckCardView, DeckZone, SetDTO } from '@revelio/core'
 import { evaluateDeck } from '@revelio/core'
 import {
@@ -22,6 +22,7 @@ import { DeckPanel } from '@/components/deck/deck-panel'
 import { DeckCardBrowser } from '@/components/deck/deck-card-browser'
 import { DeckCommandBar } from '@/components/deck/deck-command-bar'
 import { DeckSheet, DECK_SHEET_PEEK_CLASS } from '@/components/deck/deck-sheet'
+import { DeckSaveButton } from '@/components/deck/deck-save-button'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -208,6 +209,12 @@ export function DeckBuilder({
     // left column down both body rows, and the deck column plus its save footer
     // stack in the right one.
     //
+    // The md height is the viewport less the header and the page's own py-6.
+    // It used to be a flat 100dvh-11rem, but that 11rem was the header plus the
+    // padding plus the command bar plus the draft notice - all of which sat
+    // outside the grid it sized. The bar is inside this box now, so counting it
+    // again left 75px of nothing between the builder and the footer.
+    //
     // The sheet comes before the browser in the DOM on purpose: on a phone it
     // is the thing on top, so tabbing reaches its handle first and then the
     // browser, and while the sheet is shut its body is inert and skipped
@@ -217,7 +224,7 @@ export function DeckBuilder({
       ref={cardRef}
       className={cn(
         'flex h-[calc(100dvh-var(--header-h))] flex-col',
-        'md:grid md:h-[calc(100dvh-11rem)] md:min-h-[560px] md:grid-cols-[1.15fr_0.85fr]',
+        'md:grid md:h-[calc(100dvh-var(--header-h)-3rem)] md:min-h-[560px] md:grid-cols-[1.15fr_0.85fr]',
         'md:grid-rows-[auto_minmax(0,1fr)_auto] md:overflow-hidden md:rounded-xl md:border md:border-border/60',
         DECK_SHEET_PEEK_CLASS,
       )}
@@ -248,6 +255,9 @@ export function DeckBuilder({
           onNameChange={(name) => setState((s) => ({ ...s, name }))}
           onFormatChange={(f) => setState((s) => setFormat(s, f))}
           onImport={setState}
+          loggedIn={loggedIn}
+          saving={saving}
+          onSave={handleSave}
           className="md:col-span-2 md:row-start-1"
         />
 
@@ -265,9 +275,9 @@ export function DeckBuilder({
           />
         </div>
 
-        {/* Saving lives with the deck rather than up in the chrome, which is
-            also what stops a long label from deciding a layout: full width, so
-            "Zum Speichern anmelden" costs nothing. */}
+        {/* On a phone saving lives with the deck, full width, so its label
+            cannot squeeze the command bar the way it used to. The workbench
+            keeps its Save up in the bar, where it has always been. */}
         <div className="shrink-0 border-t border-border/60 bg-card/60 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:col-start-2 md:row-start-3 md:pb-3">
           {showSavePrompt && (
             <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg bg-primary/10 px-3 py-2">
@@ -287,15 +297,12 @@ export function DeckBuilder({
             </div>
           )}
 
-          {loggedIn ? (
-            <Button type="button" disabled={saving} onClick={handleSave} className="w-full">
-              {t('save')}
-            </Button>
-          ) : (
-            <Button type="button" variant="outline" asChild className="w-full">
-              <Link href="/login">{t('loginToSave')}</Link>
-            </Button>
-          )}
+          <DeckSaveButton
+            loggedIn={loggedIn}
+            saving={saving}
+            onSave={handleSave}
+            className="w-full md:hidden"
+          />
 
           {!deckId && !loggedIn && (
             <p className="mt-2 text-xs text-muted-foreground">{t('draftNotice')}</p>

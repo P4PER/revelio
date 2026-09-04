@@ -5,6 +5,7 @@ import type { BuilderState } from '@/lib/deck-model'
 import { DeckFormatSwitch } from '@/components/deck/deck-format-switch'
 import { DeckImportDialog } from '@/components/deck/deck-import-dialog'
 import { DeckExportMenu } from '@/components/deck/deck-export-menu'
+import { DeckSaveButton } from '@/components/deck/deck-save-button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
@@ -27,12 +28,18 @@ export function DeckCommandBar({
   onNameChange,
   onFormatChange,
   onImport,
+  loggedIn,
+  saving,
+  onSave,
   className,
 }: {
   state: BuilderState
   onNameChange: (name: string) => void
   onFormatChange: (format: DeckFormat) => void
   onImport: (next: BuilderState) => void
+  loggedIn: boolean
+  saving: boolean
+  onSave: () => void
   className?: string
 }) {
   const t = useTranslations('decks')
@@ -62,6 +69,16 @@ export function DeckCommandBar({
         <DeckImportDialog state={state} onImport={onImport} />
         <DeckExportMenu state={state} variant="outline" compactLabel />
       </div>
+      {/* Workbench only. On a phone this action sits at the foot of the sheet,
+          beside the deck it commits and full width, so its label - the longest
+          string in the builder - cannot squeeze this bar the way it used to. */}
+      <DeckSaveButton
+        loggedIn={loggedIn}
+        saving={saving}
+        onSave={onSave}
+        size="sm"
+        className="hidden md:inline-flex"
+      />
     </div>
   )
 }

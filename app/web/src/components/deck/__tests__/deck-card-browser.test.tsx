@@ -72,22 +72,34 @@ beforeEach(() => {
 })
 
 describe('DeckCardBrowser', () => {
-  it('pages from the toolbar row rather than a bar under the grid', async () => {
-    // The bottom bar repeated this very count at the other end of the pane,
-    // and on a phone it landed directly on top of the deck sheet peeking below
-    // it - two bars stacked at the bottom of a 402px screen. One row now
-    // carries the count, the clear control and the pager at every width.
+  it('pages from the toolbar row on a phone and from under the grid on the workbench', async () => {
+    // A bar under the grid lands directly on top of the deck sheet peeking
+    // below it on a phone - two bars stacked at the bottom of a 402px screen -
+    // so there the pager moves up beside the count. The workbench keeps its
+    // pager where it has always been. Two navs, only ever one of them painted.
     searchDeckCards.mockResolvedValueOnce({ ...FIXED_RESULT, total: 1098, hitsPerPage: 30 })
     const { container } = renderBrowser(() => false)
 
-    const pager = await screen.findByRole('navigation', { name: en.pagination.label })
-    const count = container.querySelector('[role="status"]')!
-    expect(pager.parentElement).toContainElement(count as HTMLElement)
+    // Two elements carry the count now: the toolbar's live region and the
+    // workbench pager that repeats it.
+    await screen.findAllByText(/1–30 of 1,098 cards/)
+    const pagers = screen.getAllByRole('navigation', { name: en.pagination.label })
+    expect(pagers).toHaveLength(2)
 
-    // The count lives in the toolbar, so the pager must not print it again.
-    expect(pager).not.toHaveTextContent(/of 1,098/)
+    const count = container.querySelector('[role="status"]')! as HTMLElement
+    const inToolbar = pagers.find((n) => n.parentElement!.contains(count))!
+    const underGrid = pagers.find((n) => n !== inToolbar)!
+
+    expect(inToolbar).toHaveClass('md:hidden')
+    // The count is right beside it, so the phone's pager must not print it again.
+    expect(inToolbar).not.toHaveTextContent(/of 1,098/)
     // Folded to chevrons plus a readout, because the pane is one 402px column.
-    expect(screen.getByText('1 / 37')).toBeInTheDocument()
+    expect(inToolbar).toHaveTextContent('1 / 37')
+
+    expect(underGrid).toHaveClass('hidden', 'md:flex')
+    // Under the grid there is no sibling count, so it repeats the header's.
+    expect(underGrid).toHaveTextContent(/1–30 of 1,098 cards/)
+    expect(underGrid).not.toHaveTextContent('1 / 37')
   })
 
   it('fits two card tiles per row on the narrowest screens', async () => {

@@ -326,9 +326,17 @@ export function DeckBuilder({
 
       <div
         data-pane="browse"
+        // isolate, because the card tiles carry their own stacking: the rotate
+        // and info overlays are z-30 - the same as the sheet - and a rotated
+        // card lifts itself to a fixed z-50 to escape its tile. The pane sits
+        // after the sheet in the DOM, so on equal z-index the overlays won, and
+        // they painted straight over an open sheet and took clicks through its
+        // scrim. Isolation makes those z-indices the pane's own business
+        // instead of racing the sheet's, whatever they grow into.
+        //
         // pb reserves the band the shut sheet peeks over, so the last card row
         // is never trapped underneath it.
-        className="min-h-0 flex-1 overflow-hidden pb-[var(--deck-sheet-peek)] md:col-start-1 md:row-start-2 md:row-span-2 md:border-r md:border-border/60 md:pb-0"
+        className="isolate min-h-0 flex-1 overflow-hidden pb-[var(--deck-sheet-peek)] md:col-start-1 md:row-start-2 md:row-span-2 md:border-r md:border-border/60 md:pb-0"
       >
         <DeckCardBrowser
           format={state.format}

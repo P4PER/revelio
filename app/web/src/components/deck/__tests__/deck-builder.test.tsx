@@ -324,6 +324,17 @@ describe('DeckBuilder mobile deck sheet', () => {
     expect(sheet.className).not.toContain('bottom-[')
   })
 
+  it('keeps the card tiles from painting over an open sheet', () => {
+    // The tiles carry their own stacking: CardInfoButton and CardRotate's
+    // button are both z-30 - the same as the sheet - and a rotated card lifts
+    // itself to a fixed z-50 to escape its tile. The pane sits after the sheet
+    // in the DOM, so on equal z-index those overlays won and painted straight
+    // over an open sheet, taking clicks through its scrim. Isolating the pane
+    // settles it once, rather than racing the numbers upward.
+    const { container } = renderBuilder()
+    expect(container.querySelector('[data-pane="browse"]')).toHaveClass('isolate')
+  })
+
   it('reserves the peeking band under the card grid', () => {
     // Without this the last row of cards sits under the shut sheet.
     const { container } = renderBuilder()

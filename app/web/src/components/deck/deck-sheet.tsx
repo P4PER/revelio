@@ -15,9 +15,12 @@ import { cn } from '@/lib/utils'
 export const DECK_SHEET_PEEK_CLASS =
   '[--deck-sheet-peek:calc(4.5rem+env(safe-area-inset-bottom,0px))]'
 
-// Matches Tailwind's md breakpoint. Only `inert` reads this: everything about
-// the layout is decided by CSS, so there is no JS breakpoint to get wrong.
-const PHONE_QUERY = '(max-width: 767px)'
+// The exact complement of Tailwind's `md:` (min-width: 48rem), phrased the way
+// Tailwind's own `max-md` variant is so the two can never disagree on a
+// fractional viewport - or when the reader has changed their root font size,
+// which a px value would ignore. Only `inert` reads this: the layout is decided
+// entirely in CSS, so there is no JS breakpoint to get wrong.
+const PHONE_QUERY = 'not all and (min-width: 48rem)'
 
 // A flick beats distance: past this speed the direction alone decides, so a
 // short sharp swipe opens the sheet without dragging it a quarter of the way.

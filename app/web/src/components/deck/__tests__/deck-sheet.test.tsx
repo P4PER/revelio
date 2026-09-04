@@ -11,7 +11,7 @@ import { DeckSheet, snapExpanded } from '@/components/deck/deck-sheet'
 function mockViewport(isPhone: boolean) {
   const listeners = new Set<() => void>()
   window.matchMedia = ((query: string) => ({
-    matches: isPhone && query.includes('max-width'),
+    matches: isPhone && query.includes('48rem'),
     media: query,
     onchange: null,
     addEventListener: (_: string, cb: () => void) => void listeners.add(cb),

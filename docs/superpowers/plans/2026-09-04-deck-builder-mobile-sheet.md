@@ -150,44 +150,45 @@ The `builderOnScreen` IntersectionObserver **stays**: the sheet is still fixed t
 
 ### Phase 1 - Page shell, dead space and borders (P2, P4)
 
-- [ ] **1.1** Add `--header-h` to `globals.css` as a documented constant. Both brand-mark variants are `h-9`, the header search field is `h-8` and the mobile nav trigger is `icon-sm`, so the tallest child is 36px: `36 + py-2 (16) + border-b (1) = 53px = 3.3125rem`. Do **not** pin `site-header.tsx` to it - forcing a height on a component every page renders risks clipping for the sake of a mobile-only need. Instead assert the relationship in e2e (task 6.2a), so drift fails CI rather than silently mis-sizing the builder.
-- [ ] **1.2** `decks/new/page.tsx` and `decks/[id]/edit/page.tsx`: `px-0 py-0 md:px-6 md:py-6` on `<main>`.
-- [ ] **1.3** `deck-builder.tsx`: `rounded-xl border border-border/60` becomes `md:rounded-xl md:border md:border-border/60`; the pane grid's `h-[70dvh] min-h-[420px]` becomes `h-[calc(100dvh-var(--header-h))]` below `md` (the `md:` half is unchanged); delete the `h-20 md:hidden` spacer.
-- [ ] **1.4** Verify at 402x874 in Playwright that there is no dead space between the builder and the footer and no horizontal body scroll. Commit.
+- [x] **1.1** Add `--header-h` to `globals.css` as a documented constant. Both brand-mark variants are `h-9`, the header search field is `h-8` and the mobile nav trigger is `icon-sm`, so the tallest child is 36px: `36 + py-2 (16) + border-b (1) = 53px = 3.3125rem`. Do **not** pin `site-header.tsx` to it - forcing a height on a component every page renders risks clipping for the sake of a mobile-only need. Instead assert the relationship in e2e (task 6.2a), so drift fails CI rather than silently mis-sizing the builder.
+- [x] **1.2** `decks/new/page.tsx` and `decks/[id]/edit/page.tsx`: `px-0 py-0 md:px-6 md:py-6` on `<main>`.
+- [x] **1.3** `deck-builder.tsx`: `rounded-xl border border-border/60` becomes `md:rounded-xl md:border md:border-border/60`; the pane grid's `h-[70dvh] min-h-[420px]` becomes `h-[calc(100dvh-var(--header-h))]` below `md` (the `md:` half is unchanged); delete the `h-20 md:hidden` spacer.
+- [x] **1.4** Verify at 402x874 in Playwright that there is no dead space between the builder and the footer and no horizontal body scroll. Commit.
 
 ### Phase 2 - The sheet primitive
 
-- [ ] **2.1** Write `deck-sheet.test.tsx` first: collapsed by default; the handle is a `button` with `aria-expanded=false` and `aria-controls` matching the body's `id`; clicking toggles `aria-expanded`; the body carries `inert` when collapsed and not when expanded (mock `matchMedia` to report mobile); the root carries `md:contents`; the handle renders the deck count.
-- [ ] **2.2** Build `deck-sheet.tsx`: the geometry above, the disclosure button, the scrim, the `useSyncExternalStore` `matchMedia` gate with a `false` server snapshot, and `motion-reduce` handling. Drag lands in 2.3, so keep the pointer handlers out of this task.
-- [ ] **2.3** Add the handle-only drag: `setPointerCapture`, clamped inline offset, distance-or-velocity snap, transition suppressed while dragging. Test the snap decision as a pure function rather than simulating pointer physics in jsdom.
-- [ ] **2.4** Mutation-check the new tests: flip `inert` to always-on and the default state to expanded, and confirm the suite fails. Commit.
+- [x] **2.1** Write `deck-sheet.test.tsx` first: collapsed by default; the handle is a `button` with `aria-expanded=false` and `aria-controls` matching the body's `id`; clicking toggles `aria-expanded`; the body carries `inert` when collapsed and not when expanded (mock `matchMedia` to report mobile); the root carries `md:contents`; the handle renders the deck count.
+- [x] **2.2** Build `deck-sheet.tsx`: the geometry above, the disclosure button, the scrim, the `useSyncExternalStore` `matchMedia` gate with a `false` server snapshot, and `motion-reduce` handling. Drag lands in 2.3, so keep the pointer handlers out of this task.
+- [x] **2.3** Add the handle-only drag: `setPointerCapture`, clamped inline offset, distance-or-velocity snap, transition suppressed while dragging. Test the snap decision as a pure function rather than simulating pointer physics in jsdom.
+- [x] **2.4** Mutation-check the new tests: flip `inert` to always-on and the default state to expanded, and confirm the suite fails. Commit.
 
 ### Phase 3 - Move the command bar into the sheet (P1)
 
-- [ ] **3.1** Extract `DeckCommandBar` from `deck-builder.tsx` with no layout change yet, so the diff that follows is only about layout. Tests stay green.
-- [ ] **3.2** Re-lay the bar for the sheet: name input full width on its own row, then format switch + import + export on one row, and the save/login button `hidden md:inline-flex`. Delete `grid-cols-[1fr_auto_auto]` and the `col-start-*` placements - inside the sheet there is no 402px squeeze to solve, which is the whole point of direction C.
-- [ ] **3.3** Compose in `deck-builder.tsx`: `DeckSheet` wraps `DeckCommandBar`, the deck column and the new mobile `SheetFooter` (save/login + draft notice + the save prompt). Remove the `pane` state, the pane switch and `decks.panes.*` usage. Place the children for the `md` grid (`md:col-span-2 md:row-start-1` etc.).
-- [ ] **3.4** Handle summary copy: `sheet.summary` (`{count} cards · {format}`) collapsed, and the main/sideboard breakdown expanded. Keep the count badge's remount-on-add animation (keyed to the add nonce) - while the sheet is collapsed the count is the only sign an add landed.
-- [ ] **3.5** Rewrite the affected suites in `deck-builder.test.tsx`. Commit.
+- [x] **3.1** Extract `DeckCommandBar` from `deck-builder.tsx` with no layout change yet, so the diff that follows is only about layout. Tests stay green.
+- [x] **3.2** Re-lay the bar for the sheet: name input full width on its own row, then format switch + import + export on one row, and the save/login button `hidden md:inline-flex`. Delete `grid-cols-[1fr_auto_auto]` and the `col-start-*` placements - inside the sheet there is no 402px squeeze to solve, which is the whole point of direction C.
+- [x] **3.3** Compose in `deck-builder.tsx`: `DeckSheet` wraps `DeckCommandBar`, the deck column and the new mobile `SheetFooter` (save/login + draft notice + the save prompt). Remove the `pane` state, the pane switch and `decks.panes.*` usage. Place the children for the `md` grid (`md:col-span-2 md:row-start-1` etc.).
+- [x] **3.4** Handle summary copy: `sheet.summary` (`{count} cards · {format}`) collapsed, and the main/sideboard breakdown expanded. Keep the count badge's remount-on-add animation (keyed to the add nonce) - while the sheet is collapsed the count is the only sign an add landed.
+- [x] **3.5** Rewrite the affected suites in `deck-builder.test.tsx`. Commit.
 
 ### Phase 4 - Pagination (defect C)
 
-- [ ] **4.1** `PaginationNav`: add `compactLabel` and `announce`, extending the existing docblock. Chevrons below `md` with `aria-label` intact, labels from `md` up, `page / lastPage` readout below `md` only. New `pagination.pageOf` key.
-- [ ] **4.2** `deck-card-browser.tsx`: move `PaginationNav` into the toolbar row with `compactLabel announce`, delete the bottom bar and the separate count div, keep the `Skeleton` loading state and the scroll-to-top-on-page-change behaviour, and add `pb-[var(--peek)]` to the grid.
-- [ ] **4.3** Update `pagination-nav.test.tsx` and `deck-card-browser.test.tsx`. Commit.
+- [x] **4.1** `PaginationNav`: add `compactLabel` and `announce`, extending the existing docblock. Chevrons below `md` with `aria-label` intact, labels from `md` up, `page / lastPage` readout below `md` only. New `pagination.pageOf` key.
+- [x] **4.2** `deck-card-browser.tsx`: move `PaginationNav` into the toolbar row with `compactLabel announce`, delete the bottom bar and the separate count div, keep the `Skeleton` loading state and the scroll-to-top-on-page-change behaviour, and add `pb-[var(--peek)]` to the grid.
+- [x] **4.3** Update `pagination-nav.test.tsx` and `deck-card-browser.test.tsx`. Commit.
 
 ### Phase 5 - i18n
 
-- [ ] **5.1** Add `decks.sheet.*` and `pagination.pageOf` to `en.json` **and** `de.json`; remove `decks.panes.*`. Keep German short: this is the locale that broke, so check each new string at 402px.
-- [ ] **5.2** Grep for orphaned keys and for any hardcoded string introduced in phases 2-4.
+- [x] **5.1** Add `decks.sheet.*` and `pagination.pageOf` to `en.json` **and** `de.json`; remove `decks.panes.*`. Keep German short: this is the locale that broke, so check each new string at 402px.
+- [x] **5.2** Grep for orphaned keys and for any hardcoded string introduced in phases 2-4.
 
 ### Phase 6 - Verification
 
-- [ ] **6.1** `npm test`, `npm run typecheck`, `npm run lint -w web` all green.
-- [ ] **6.2** `E2E_PORT=3100 npm run e2e -w web` green. The suite needs a prod build; the port override lets the dev server stay up.
-- [ ] **6.2a** Add an e2e assertion that the site header's rendered `offsetHeight` equals the `--header-h` constant, so the builder's `100dvh - --header-h` cannot silently drift when the header changes.
-- [ ] **6.3** Playwright pass at 402x874, German locale, logged out: the command bar no longer overflows; no dead space; the sheet rests flush on the bottom edge; the browse pane's last row is reachable; one bottom bar. Screenshot each state.
-- [ ] **6.4** Re-check 768px and 1440px to confirm the desktop workbench is visually unchanged apart from the pagination move.
+- [x] **6.1** `npm test`, `npm run typecheck`, `npm run lint -w web` all green.
+- [x] **6.2** `E2E_PORT=3100 npm run e2e -w web` green. The suite needs a prod build; the port override lets the dev server stay up.
+- [x] **6.2a** Add an e2e assertion that the site header's rendered `offsetHeight` equals the `--header-h` constant, so the builder's `100dvh - --header-h` cannot silently drift when the header changes.
+- [x] **6.3** Playwright pass at 402x874, German locale, logged out: the command bar no longer overflows; no dead space (builder-to-footer gap measured 0, was 104px); the sheet rests flush on the bottom edge; the browse pane reserves the peek; one bottom bar. Screenshot each state.
+  - **Not verified by eye:** the compact pager. The local Meilisearch has no indexes (Postgres still holds 1098 cards), so every result set is empty and PaginationNav correctly renders nothing on a single page. Covered by unit test plus three mutation checks instead; re-shoot once Meili is reindexed.
+- [x] **6.4** Re-check 768px and 1440px to confirm the desktop workbench is visually unchanged apart from the pagination move.
 - [ ] **6.5** Ask the reporter to confirm P3 on the actual iPhone 16 Pro - the safe-area double-count is reasoned, not measured.
 
 ---

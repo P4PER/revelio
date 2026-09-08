@@ -1,4 +1,4 @@
-import { Compass, Wand2, Library, type LucideIcon } from 'lucide-react'
+import { Compass, WandSparkles, Library, type LucideIcon } from 'lucide-react'
 
 // Deck destinations shared by DecksMenu (desktop dropdown) and MobileNav
 // (drawer), so both stay in sync when a route or label changes. `labelKey` is a
@@ -13,6 +13,6 @@ export type DeckLink = {
 
 export const DECK_LINKS: readonly DeckLink[] = [
   { href: '/decks', labelKey: 'browse', Icon: Compass },
-  { href: '/decks/new', labelKey: 'deckBuilder', Icon: Wand2 },
+  { href: '/decks/new', labelKey: 'deckBuilder', Icon: WandSparkles },
   { href: '/decks/mine', labelKey: 'myDecks', Icon: Library },
 ]

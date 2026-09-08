@@ -3,7 +3,7 @@ import { useState } from 'react'
 import {
   Menu,
   Layers,
-  LibraryBig,
+  Album,
   Dices,
   Globe,
   Shield,
@@ -71,7 +71,7 @@ export function MobileNav({
             </Link>
           ))}
           <Link href="/collection" onClick={close} className={rowClass}>
-            <LibraryBig className="size-4 opacity-70" />
+            <Album className="size-4 opacity-70" />
             {t('collection')}
           </Link>
           {/* Home has its own hero random button, mirroring RandomNavButton. */}

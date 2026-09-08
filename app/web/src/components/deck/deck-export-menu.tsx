@@ -1,7 +1,7 @@
 'use client'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { Copy, Download, FileJson, FileText, Image as ImageIcon, Upload } from 'lucide-react'
+import { Copy, Download, FileBraces, FileText, Image as ImageIcon, Upload } from 'lucide-react'
 import { toJson, toText } from '@revelio/core'
 import type { DeckDTO } from '@revelio/core'
 import type { BuilderState } from '@/lib/deck-model'
@@ -140,7 +140,7 @@ export function DeckExportMenu({
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuLabel className="flex items-center gap-2">
-          <FileJson className="size-4" />
+          <FileBraces className="size-4" />
           {t('export.json')}
         </DropdownMenuLabel>
         <div className="grid grid-cols-2 gap-1 px-1.5 pb-1.5">

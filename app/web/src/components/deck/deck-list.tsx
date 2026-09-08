@@ -2,7 +2,7 @@
 import { useState, useTransition } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { MoreHorizontal, Pencil, SquarePen, Copy, Trash2, Eye, EyeOff, Check, X, Star } from 'lucide-react'
+import { Ellipsis, Pencil, SquarePen, Copy, Trash, Eye, EyeOff, Check, X, Star } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import type { DeckSummary } from '@revelio/db'
 import { duplicateDeckAction, deleteDeckAction, updateDeckMetaAction } from '@/lib/actions/deck-actions'
@@ -196,7 +196,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
                       aria-label={t('list.actions.menuLabel', { name: deck.name })}
                       className="relative z-10"
                     >
-                      <MoreHorizontal className="size-4" />
+                      <Ellipsis className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -228,7 +228,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
                       onSelect={() => setDeckToDelete(deck)}
                       className="text-destructive focus:bg-destructive/20 focus:text-destructive"
                     >
-                      <Trash2 />
+                      <Trash />
                       {t('list.actions.delete')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { Home, RotateCw } from 'lucide-react'
+import { House, RotateCw } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import { Button } from '@/components/ui/button'
 import { ErrorCardState } from '@/components/error-card-state'
@@ -35,7 +35,7 @@ export function RuntimeError({
       </Button>
       <Button asChild variant="outline">
         <Link href="/">
-          <Home className="size-4" />
+          <House className="size-4" />
           {t('runtime.homeCta')}
         </Link>
       </Button>

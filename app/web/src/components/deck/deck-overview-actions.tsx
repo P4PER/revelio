@@ -2,7 +2,7 @@
 import { useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { ChevronDown, Copy, Globe, Link2, Lock, Pencil, Trash2 } from 'lucide-react'
+import { ChevronDown, Copy, Globe, Link2, Lock, Pencil, Trash } from 'lucide-react'
 import type { DeckCardView, DeckFormat } from '@revelio/core'
 import { Link, useRouter } from '@/../i18n/navigation'
 import { deleteDeckAction, duplicateDeckAction, updateDeckMetaAction } from '@/lib/actions/deck-actions'
@@ -161,7 +161,7 @@ export function DeckOverviewActions({
               disabled={pending}
               className="text-destructive hover:text-destructive focus-visible:ring-destructive/20"
             >
-              <Trash2 className="size-4" />
+              <Trash className="size-4" />
               {t('list.actions.delete')}
             </Button>
           </AlertDialogTrigger>

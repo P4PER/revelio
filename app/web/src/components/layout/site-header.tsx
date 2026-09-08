@@ -4,7 +4,7 @@ import { HeaderSearch } from '@/components/search/header-search'
 import { HeaderSearchFallback } from '@/components/search/header-search-field'
 import { Link } from '@/../i18n/navigation'
 import { BRAND_NAME } from '@/lib/brand'
-import { Layers, Library } from 'lucide-react'
+import { Layers, Album } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { HeaderBrandMark } from '@/components/layout/header-brand-mark'
 import { DecksMenu } from '@/components/layout/decks-menu'
@@ -43,7 +43,7 @@ export async function SiteHeader() {
           </Button>
           <DecksMenu />
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/collection"><Library className="size-4 opacity-70" />{t('collection')}</Link>
+            <Link href="/collection"><Album className="size-4 opacity-70" />{t('collection')}</Link>
           </Button>
           <RandomNavButton />
           <span className="h-5 w-px bg-foreground/20" aria-hidden />

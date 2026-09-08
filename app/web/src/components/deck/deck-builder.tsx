@@ -191,12 +191,9 @@ export function DeckBuilder({
     }
   }
 
-  // The sheet's foot always has the phone's full-width Save in it. From md up
-  // that copy is hidden and the bar's own Save takes over, so the only thing
-  // left for the foot to hold there is the save-on-login prompt - and without
-  // one it renders as an empty bordered strip under the deck list.
-  const footHasWorkbenchContent = showSavePrompt
-  // A guest's unsaved draft is the only state the notice speaks to.
+  // A guest's unsaved draft is the only state the notice speaks to. It and the
+  // save-on-login prompt are exclusive - that one needs a session - so on the
+  // workbench they share a grid row under the command bar.
   const showDraftNotice = !deckId && !loggedIn
 
   const sheetTitle = state.name.trim() || t('namePlaceholder')
@@ -214,11 +211,11 @@ export function DeckBuilder({
     //
     // From md up this is the workbench grid and DeckSheet is display:contents,
     // so its children are placed by row and column rather than by DOM order:
-    // the bar lands on row one across both columns, the guest's draft notice on
-    // row two across both, the browser takes the left column down both
-    // remaining rows, and the deck column plus its save footer stack in the
-    // right one. Rows two and four collapse to nothing when neither the notice
-    // nor the footer has anything to show.
+    // the bar lands on row one across both columns, whichever of the draft
+    // notice and the save-on-login prompt applies on row two across both, and
+    // the two panes share row three. Row two collapses to nothing when there
+    // is neither, and the sheet's foot is phone-only, so it takes no row at
+    // all - everything it holds has a home in the command bar up here.
     //
     // The md height is the viewport less the header and the page's own py-6.
     // It used to be a flat 100dvh-11rem, but that 11rem was the header plus the
@@ -236,7 +233,7 @@ export function DeckBuilder({
       className={cn(
         'flex h-[calc(100dvh-var(--header-h))] flex-col',
         'md:grid md:h-[calc(100dvh-var(--header-h)-3rem)] md:min-h-[560px] md:grid-cols-[1.15fr_0.85fr]',
-        'md:grid-rows-[auto_auto_minmax(0,1fr)_auto] md:overflow-hidden md:rounded-xl md:border md:border-border/60',
+        'md:grid-rows-[auto_auto_minmax(0,1fr)] md:overflow-hidden md:rounded-xl md:border md:border-border/60',
         DECK_SHEET_PEEK_CLASS,
       )}
     >
@@ -286,22 +283,19 @@ export function DeckBuilder({
           />
         </div>
 
-        {/* On a phone saving lives with the deck, full width, so its label
-            cannot squeeze the command bar the way it used to. The workbench
-            keeps its Save up in the bar, where it has always been. */}
-        <div
-          data-deck-sheet-foot
-          className={cn(
-            'shrink-0 border-t border-border/60 bg-card/60 px-4 pt-3',
-            'md:col-start-2 md:row-start-4 md:pb-3',
-            // The notice below carries the phone's bottom inset when it is
-            // there, so the two do not each reserve the home indicator.
-            showDraftNotice ? 'pb-2' : 'pb-[max(0.75rem,env(safe-area-inset-bottom))]',
-            !footHasWorkbenchContent && 'md:hidden',
-          )}
-        >
-          {showSavePrompt && (
-            <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg bg-primary/10 px-3 py-2">
+        {/* The offer to keep a guest draft. On a phone it sits just above the
+            Save it is really about; on the workbench that Save is up in the
+            command bar, so the offer follows it there onto row two - the same
+            row the draft notice uses, which is free whenever this shows. */}
+        {showSavePrompt && (
+          <div
+            data-deck-save-prompt
+            className={cn(
+              'shrink-0 border-t border-border/60 bg-card/60 px-4 py-3',
+              'md:col-span-2 md:row-start-2 md:border-t-0 md:border-b md:bg-card/40 md:py-2',
+            )}
+          >
+            <div className="flex flex-wrap items-center gap-2 rounded-lg bg-primary/10 px-3 py-2">
               <p className="flex-1 text-xs text-foreground">{t('savePrompt.message')}</p>
               <Button type="button" size="sm" disabled={savingDraft} onClick={handleSaveDraftToAccount}>
                 {t('savePrompt.accept')}
@@ -316,8 +310,22 @@ export function DeckBuilder({
                 {t('savePrompt.dismiss')}
               </Button>
             </div>
-          )}
+          </div>
+        )}
 
+        {/* On a phone saving lives with the deck, full width, so its label
+            cannot squeeze the command bar the way it used to. The workbench
+            keeps its Save up in the bar, where it has always been, so nothing
+            is left for this band to hold there. */}
+        <div
+          data-deck-sheet-foot
+          className={cn(
+            'shrink-0 border-t border-border/60 bg-card/60 px-4 pt-3 md:hidden',
+            // The notice below carries the phone's bottom inset when it is
+            // there, so the two do not each reserve the home indicator.
+            showDraftNotice ? 'pb-2' : 'pb-[max(0.75rem,env(safe-area-inset-bottom))]',
+          )}
+        >
           <DeckSaveButton
             loggedIn={loggedIn}
             saving={saving}
@@ -363,7 +371,7 @@ export function DeckBuilder({
         // tiles clear of the peek, so nothing of theirs overlaps it.
         className={cn(
           'min-h-0 flex-1 overflow-hidden pb-[var(--deck-sheet-peek)]',
-          'md:col-start-1 md:row-start-3 md:row-span-2 md:border-r md:border-border/60 md:pb-0',
+          'md:col-start-1 md:row-start-3 md:border-r md:border-border/60 md:pb-0',
           sheetOpen && 'max-md:isolate',
         )}
       >

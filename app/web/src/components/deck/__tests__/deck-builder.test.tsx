@@ -375,21 +375,31 @@ describe('DeckBuilder mobile deck sheet', () => {
   })
 
   it('leaves no empty strip under the deck list on the workbench', () => {
-    // The sheet's foot always holds the phone's full-width Save. From md up
-    // that copy is hidden and the bar's Save takes over, so with no save
-    // prompt the foot has nothing left to show - and rendered as an empty
-    // bordered box under the deck list.
+    // The foot only ever holds the phone's full-width Save; from md up the
+    // bar's own Save takes over, so it has nothing left to show there - and
+    // rendered as an empty bordered box under the deck list.
     const { container } = renderBuilder({ loggedIn: false, deckId: null })
     expect(container.querySelector('[data-deck-sheet-foot]')).toHaveClass('md:hidden')
   })
 
-  it('keeps the foot on the workbench when it has something to say', async () => {
-    // The save-on-login prompt is the one thing that belongs beside the deck
-    // at every width.
+  it("puts the save-on-login prompt on the command bar's row, not under the deck list", async () => {
+    // It belongs with the Save it is about, and on the workbench that Save is
+    // up in the command bar - not down in the phone's foot.
     draftBox.current = { name: 'My Draft', format: 'revival', visibility: 'private', entries: [draftEntry] }
     const { container } = renderBuilder({ loggedIn: true, deckId: null })
-    expect(await screen.findByText(en.decks.savePrompt.message)).toBeInTheDocument()
-    expect(container.querySelector('[data-deck-sheet-foot]')).not.toHaveClass('md:hidden')
+    await screen.findByText(en.decks.savePrompt.message)
+    const prompt = container.querySelector('[data-deck-save-prompt]')!
+    expect(prompt).toHaveClass('md:col-span-2', 'md:row-start-2')
+    expect(container.querySelector('[data-deck-sheet-foot]')).not.toContainElement(prompt as HTMLElement)
+  })
+
+  it('never shows the draft notice and the save prompt at once, so they can share a row', async () => {
+    // Both are placed on row two of the workbench grid, which only works
+    // because the notice is for guests and the prompt needs a session.
+    draftBox.current = { name: 'My Draft', format: 'revival', visibility: 'private', entries: [draftEntry] }
+    renderBuilder({ loggedIn: true, deckId: null })
+    await screen.findByText(en.decks.savePrompt.message)
+    expect(screen.queryByText(en.decks.draftNotice)).not.toBeInTheDocument()
   })
 
   it("puts the guest's draft notice on the command bar's row, right after the foot", () => {

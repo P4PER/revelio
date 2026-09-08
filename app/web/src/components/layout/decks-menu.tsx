@@ -12,9 +12,9 @@ import {
 import { DECK_LINKS } from '@/components/layout/nav-links'
 
 // Groups every deck-related destination under one "Decks" menu: discovering
-// public decks, building a new one, and (when signed in) the user's own decks —
-// which previously lived out of place in the account menu.
-export function DecksMenu({ isLoggedIn }: { isLoggedIn: boolean }) {
+// public decks, building a new one, and the user's own decks. My Decks shows
+// signed out too, where /decks/mine answers with its own teaser.
+export function DecksMenu() {
   const t = useTranslations('nav')
   return (
     <DropdownMenu>
@@ -26,7 +26,7 @@ export function DecksMenu({ isLoggedIn }: { isLoggedIn: boolean }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" onCloseAutoFocus={(e) => e.preventDefault()}>
-        {DECK_LINKS.filter((l) => !l.requiresAuth || isLoggedIn).map((l) => (
+        {DECK_LINKS.map((l) => (
           <DropdownMenuItem key={l.href} asChild>
             <Link href={l.href}><l.Icon />{t(l.labelKey)}</Link>
           </DropdownMenuItem>

@@ -35,11 +35,12 @@ describe('MobileNav', () => {
     expect(screen.getByRole('link', { name: 'Random' })).toHaveAttribute('href', '/random')
   })
 
-  it('shows a sign-in link and hides account-only items when signed out', async () => {
+  it('keeps the personal destinations and offers sign-in when signed out', async () => {
     await openMenu(false, null)
     expect(await screen.findByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login')
-    expect(screen.queryByRole('link', { name: 'Collection' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'My Decks' })).not.toBeInTheDocument()
+    // Both land on their own signed-out teaser, so they stay in the drawer.
+    expect(screen.getByRole('link', { name: 'Collection' })).toHaveAttribute('href', '/collection')
+    expect(screen.getByRole('link', { name: 'My Decks' })).toHaveAttribute('href', '/decks/mine')
     expect(screen.queryByText('Sign out')).not.toBeInTheDocument()
   })
 

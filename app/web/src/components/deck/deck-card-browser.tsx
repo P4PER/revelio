@@ -190,12 +190,18 @@ export function DeckCardBrowser({
             Advanced keeps the right end of the row, which is where the
             collection and discover toolbars put it too.
 
+            alwaysScrolls because this pane is a column of the workbench from md
+            up rather than the width of the page: the room the rail assumes it
+            has there is room this lane never gets. The cost is that a wide
+            window scrolls a lane it could have wrapped, which is the trade
+            asked for - one row everywhere.
+
             The rail's own gutter bleed is for a lane that runs to the screen
             edge; here it ends at a button, so mr-0 keeps it off Advanced and
             pr-1.5 mirrors the padding that buys the first chip's focus ring
             room. */}
         <div className="flex items-center gap-1.5">
-          <FilterRail className="mr-0 pr-1.5 scroll-pr-1.5">
+          <FilterRail alwaysScrolls className="mr-0 pr-1.5 scroll-pr-1.5">
             <LessonFilterChips selected={lessons} onToggle={toggleLesson} />
           </FilterRail>
           <div className="ml-auto shrink-0">

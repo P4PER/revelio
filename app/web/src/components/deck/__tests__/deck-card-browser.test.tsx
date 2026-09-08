@@ -130,8 +130,10 @@ describe('DeckCardBrowser', () => {
     expect(row).not.toHaveClass('flex-wrap')
     const rail = row.querySelector('img')!.closest('div')!
     expect(rail).toHaveClass('overflow-x-auto')
-    // md:flex-wrap is the rail's own: the workbench column has room to wrap.
+    // Neither width wraps: the pane is a workbench column from md up, where
+    // the labelled chips took four rows of it.
     expect(rail.classList.contains('flex-wrap')).toBe(false)
+    expect(rail.className).not.toContain('md:flex-wrap')
     // The button stays pinned to the right end of that row.
     expect(advanced.parentElement).toHaveClass('ml-auto', 'shrink-0')
   })

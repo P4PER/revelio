@@ -11,10 +11,10 @@ vi.mock('@/components/layout/language-switcher', () => ({
   LanguageSwitcher: () => <div data-testid="language-switcher" />,
 }))
 
-function renderFooter(isLoggedIn = true, githubUrl: string | null = null) {
+function renderFooter(githubUrl: string | null = null) {
   render(
     <NextIntlClientProvider locale="en" messages={en}>
-      <SiteFooterView isLoggedIn={isLoggedIn} githubUrl={githubUrl} />
+      <SiteFooterView githubUrl={githubUrl} />
     </NextIntlClientProvider>,
   )
 }
@@ -37,6 +37,8 @@ describe('SiteFooter', () => {
     expect(within(browse).getByRole('link', { name: 'Discover decks' })).toHaveAttribute('href', '/decks')
     expect(within(browse).getByRole('link', { name: 'Random card' })).toHaveAttribute('href', '/random')
 
+    // The Build column is the same for every visitor: My Decks and Collection
+    // both answer signed out with their own teaser.
     const build = screen.getByRole('navigation', { name: 'Build' })
     expect(within(build).getByRole('link', { name: 'Deck Builder' })).toHaveAttribute('href', '/decks/new')
     expect(within(build).getByRole('link', { name: 'My Decks' })).toHaveAttribute('href', '/decks/mine')
@@ -45,14 +47,6 @@ describe('SiteFooter', () => {
     const about = screen.getByRole('navigation', { name: 'About' })
     expect(within(about).getByRole('link', { name: 'About' })).toHaveAttribute('href', '/about')
     expect(within(about).getByRole('link', { name: 'Contact' })).toHaveAttribute('href', '/contact')
-  })
-
-  it('hides personal Build links when logged out but keeps the deck builder', () => {
-    renderFooter(false)
-    const build = screen.getByRole('navigation', { name: 'Build' })
-    expect(within(build).getByRole('link', { name: 'Deck Builder' })).toHaveAttribute('href', '/decks/new')
-    expect(within(build).queryByRole('link', { name: 'My Decks' })).not.toBeInTheDocument()
-    expect(within(build).queryByRole('link', { name: 'Collection' })).not.toBeInTheDocument()
   })
 
   it('renders the copyright and back-to-top control', () => {
@@ -69,12 +63,12 @@ describe('SiteFooter', () => {
   })
 
   it('hides the GitHub link when githubUrl is unset', () => {
-    renderFooter(true, null)
+    renderFooter(null)
     expect(screen.queryByRole('link', { name: /GitHub/ })).not.toBeInTheDocument()
   })
 
   it('renders an external GitHub link when githubUrl is set', () => {
-    renderFooter(true, 'https://github.com/P4PER/revelio')
+    renderFooter('https://github.com/P4PER/revelio')
     const link = screen.getByRole('link', { name: /GitHub/ })
     expect(link).toHaveAttribute('href', 'https://github.com/P4PER/revelio')
     expect(link).toHaveAttribute('target', '_blank')

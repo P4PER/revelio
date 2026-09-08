@@ -173,7 +173,7 @@ export function DeckCardBrowser({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-col gap-2.5 border-b border-border/60 px-4 py-3">
+      <div className="flex flex-col gap-2.5 border-b border-border/60 px-4 py-4">
         <SearchField
           primary
           value={query}

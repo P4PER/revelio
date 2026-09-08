@@ -3,7 +3,7 @@ import { useRef, useState } from 'react'
 import { useRouter } from '@/../i18n/navigation'
 import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { ImagePlus, Trash2, Loader2 } from 'lucide-react'
+import { ImagePlus, Trash, LoaderCircle } from 'lucide-react'
 import { uploadCardImage, removeCardImage } from '@/lib/actions/image-actions'
 import { FieldError } from '@/components/ui/field-error'
 import { cn } from '@/lib/utils'
@@ -132,7 +132,7 @@ export function ImageUploader({
 
         {busy ? (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-            <Loader2 className="size-6 animate-spin text-white" />
+            <LoaderCircle className="size-6 animate-spin text-white" />
           </div>
         ) : null}
       </div>
@@ -163,7 +163,7 @@ export function ImageUploader({
           disabled={busy}
           className="inline-flex cursor-pointer items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Trash2 className="size-3.5" />
+          <Trash className="size-3.5" />
           {t('removeImage')}
         </button>
       ) : null}

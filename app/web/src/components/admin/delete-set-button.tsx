@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { Trash2 } from 'lucide-react'
+import { Trash } from 'lucide-react'
 import { useRouter } from '@/../i18n/navigation'
 import { deleteSetAction } from '@/lib/actions/set-actions'
 import { Button } from '@/components/ui/button'
@@ -31,7 +31,7 @@ export function DeleteSetButton({ code, cardCount }: { code: string; cardCount: 
   return (
     <div className="space-y-1.5">
       <Button variant="destructive" onClick={onDelete} disabled={busy || blocked} className="gap-1.5">
-        <Trash2 className="size-4" />
+        <Trash className="size-4" />
         {t('delete')}
       </Button>
       {blocked ? <p className="text-xs text-muted-foreground">{t('deleteBlocked')}</p> : null}

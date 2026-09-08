@@ -290,8 +290,8 @@ describe('DeckBuilder mobile deck sheet', () => {
     const browse = container.querySelector('[data-pane="browse"]')!
     expect(browse.parentElement).toHaveClass('md:grid', 'md:grid-cols-[1.15fr_0.85fr]')
     expect(container.querySelector('[data-deck-sheet]')).toHaveClass('md:contents')
-    expect(browse).toHaveClass('md:col-start-1', 'md:row-start-2')
-    expect(container.querySelector('[data-pane="deck"]')).toHaveClass('md:col-start-2', 'md:row-start-2')
+    expect(browse).toHaveClass('md:col-start-1', 'md:row-start-3')
+    expect(container.querySelector('[data-pane="deck"]')).toHaveClass('md:col-start-2', 'md:row-start-3')
   })
 
   it('counts every copy in every zone on the handle', () => {
@@ -376,20 +376,35 @@ describe('DeckBuilder mobile deck sheet', () => {
 
   it('leaves no empty strip under the deck list on the workbench', () => {
     // The sheet's foot always holds the phone's full-width Save. From md up
-    // that copy is hidden and the bar's Save takes over, so for a signed-in
-    // user with no draft notice and no save prompt the foot has nothing left to
-    // show - and rendered as an empty bordered box under the deck list.
-    const { container } = renderBuilder({ loggedIn: true, deckId: 'existing-id' })
+    // that copy is hidden and the bar's Save takes over, so with no save
+    // prompt the foot has nothing left to show - and rendered as an empty
+    // bordered box under the deck list.
+    const { container } = renderBuilder({ loggedIn: false, deckId: null })
     expect(container.querySelector('[data-deck-sheet-foot]')).toHaveClass('md:hidden')
   })
 
-  it('keeps the foot on the workbench when it has something to say', () => {
-    // A guest gets the draft notice there, and it belongs beside the deck at
-    // every width.
+  it('keeps the foot on the workbench when it has something to say', async () => {
+    // The save-on-login prompt is the one thing that belongs beside the deck
+    // at every width.
+    draftBox.current = { name: 'My Draft', format: 'revival', visibility: 'private', entries: [draftEntry] }
+    const { container } = renderBuilder({ loggedIn: true, deckId: null })
+    expect(await screen.findByText(en.decks.savePrompt.message)).toBeInTheDocument()
+    expect(container.querySelector('[data-deck-sheet-foot]')).not.toHaveClass('md:hidden')
+  })
+
+  it("puts the guest's draft notice on the command bar's row, right after the foot", () => {
+    // On the workbench the foot sits in the deck column, so a notice rendered
+    // inside it ended up beneath the deck list; it spans the bar's own row
+    // instead. Grid placement is by row, so it can still follow the foot in
+    // the DOM - which is where a phone wants it, just under Save.
     const { container } = renderBuilder({ loggedIn: false, deckId: null })
+    const notice = screen.getByText(en.decks.draftNotice)
     const foot = container.querySelector('[data-deck-sheet-foot]')!
-    expect(foot).not.toHaveClass('md:hidden')
-    expect(foot).toHaveTextContent(en.decks.draftNotice)
+    expect(notice).toHaveClass('md:col-span-2', 'md:row-start-2')
+    expect(foot).not.toContainElement(notice)
+    expect(foot.nextElementSibling).toBe(notice)
+    // The foot hands the phone's bottom inset to the notice below it.
+    expect(foot).toHaveClass('pb-2')
   })
 
   it('replays the badge animation on every add by keying it to the add nonce', () => {

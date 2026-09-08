@@ -192,11 +192,12 @@ export function DeckBuilder({
   }
 
   // The sheet's foot always has the phone's full-width Save in it. From md up
-  // that copy is hidden and the bar's own Save takes over, so the foot is left
-  // holding only the guest's draft notice and the save-on-login prompt - and
-  // for a signed-in user with neither, nothing at all. Without this it renders
-  // as an empty bordered strip under the deck list.
-  const footHasWorkbenchContent = showSavePrompt || (!deckId && !loggedIn)
+  // that copy is hidden and the bar's own Save takes over, so the only thing
+  // left for the foot to hold there is the save-on-login prompt - and without
+  // one it renders as an empty bordered strip under the deck list.
+  const footHasWorkbenchContent = showSavePrompt
+  // A guest's unsaved draft is the only state the notice speaks to.
+  const showDraftNotice = !deckId && !loggedIn
 
   const sheetTitle = state.name.trim() || t('namePlaceholder')
   const sheetSummary = t('sheet.summary', {
@@ -212,9 +213,12 @@ export function DeckBuilder({
     // is md-only so it can never clip the fixed sheet below md.
     //
     // From md up this is the workbench grid and DeckSheet is display:contents,
-    // so the bar lands on row one across both columns, the browser takes the
-    // left column down both body rows, and the deck column plus its save footer
-    // stack in the right one.
+    // so its children are placed by row and column rather than by DOM order:
+    // the bar lands on row one across both columns, the guest's draft notice on
+    // row two across both, the browser takes the left column down both
+    // remaining rows, and the deck column plus its save footer stack in the
+    // right one. Rows two and four collapse to nothing when neither the notice
+    // nor the footer has anything to show.
     //
     // The md height is the viewport less the header and the page's own py-6.
     // It used to be a flat 100dvh-11rem, but that 11rem was the header plus the
@@ -232,7 +236,7 @@ export function DeckBuilder({
       className={cn(
         'flex h-[calc(100dvh-var(--header-h))] flex-col',
         'md:grid md:h-[calc(100dvh-var(--header-h)-3rem)] md:min-h-[560px] md:grid-cols-[1.15fr_0.85fr]',
-        'md:grid-rows-[auto_minmax(0,1fr)_auto] md:overflow-hidden md:rounded-xl md:border md:border-border/60',
+        'md:grid-rows-[auto_auto_minmax(0,1fr)_auto] md:overflow-hidden md:rounded-xl md:border md:border-border/60',
         DECK_SHEET_PEEK_CLASS,
       )}
     >
@@ -270,7 +274,7 @@ export function DeckBuilder({
 
         <div
           data-pane="deck"
-          className="flex min-h-0 flex-1 flex-col overflow-hidden bg-gradient-to-b from-card/40 to-transparent md:col-start-2 md:row-start-2"
+          className="flex min-h-0 flex-1 flex-col overflow-hidden bg-gradient-to-b from-card/40 to-transparent md:col-start-2 md:row-start-3"
         >
           <DeckStatsPanel entries={state.entries} />
           <DeckPanel
@@ -289,7 +293,10 @@ export function DeckBuilder({
           data-deck-sheet-foot
           className={cn(
             'shrink-0 border-t border-border/60 bg-card/60 px-4 pt-3',
-            'pb-[max(0.75rem,env(safe-area-inset-bottom))] md:col-start-2 md:row-start-3 md:pb-3',
+            'md:col-start-2 md:row-start-4 md:pb-3',
+            // The notice below carries the phone's bottom inset when it is
+            // there, so the two do not each reserve the home indicator.
+            showDraftNotice ? 'pb-2' : 'pb-[max(0.75rem,env(safe-area-inset-bottom))]',
             !footHasWorkbenchContent && 'md:hidden',
           )}
         >
@@ -317,11 +324,24 @@ export function DeckBuilder({
             onSave={handleSave}
             className="w-full md:hidden"
           />
-
-          {!deckId && !loggedIn && (
-            <p className="mt-2 text-xs text-muted-foreground">{t('draftNotice')}</p>
-          )}
         </div>
+
+        {/* Under Save on a phone, closing out the foot's band - it says what
+            that button is for. The workbench keeps Save up in the command bar,
+            so there the notice takes its own grid row directly under that bar,
+            spanning both columns. That is the whole reason it sits outside the
+            foot: the foot is a box in the deck column, and inside it the
+            notice ended up beneath the deck list. */}
+        {showDraftNotice && (
+          <p
+            className={cn(
+              'shrink-0 bg-card/60 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-xs text-muted-foreground',
+              'md:col-span-2 md:row-start-2 md:border-b md:border-border/60 md:bg-card/40 md:pt-1.5 md:pb-1.5',
+            )}
+          >
+            {t('draftNotice')}
+          </p>
+        )}
       </DeckSheet>
 
       <div
@@ -343,7 +363,7 @@ export function DeckBuilder({
         // tiles clear of the peek, so nothing of theirs overlaps it.
         className={cn(
           'min-h-0 flex-1 overflow-hidden pb-[var(--deck-sheet-peek)]',
-          'md:col-start-1 md:row-start-2 md:row-span-2 md:border-r md:border-border/60 md:pb-0',
+          'md:col-start-1 md:row-start-3 md:row-span-2 md:border-r md:border-border/60 md:pb-0',
           sheetOpen && 'max-md:isolate',
         )}
       >

@@ -177,6 +177,13 @@ export function DeckSheet({
         // Tap-anywhere-to-go-back, which is how the state becomes obvious. Not
         // keyboard reachable on purpose: the handle already collapses the sheet
         // and a full-screen tab stop would be worse than none.
+        //
+        // Absolute, so it covers the builder box rather than the viewport, and
+        // so it travels and leaves with the sheet it belongs to. A fixed scrim
+        // would dim a viewport the sheet had already scrolled out of, which is
+        // the case the IntersectionObserver used to paper over. The cost is
+        // that the header above the builder is neither dimmed nor a dismiss
+        // target: tapping a link up there navigates instead of collapsing.
         <div
           data-deck-sheet-scrim
           aria-hidden
@@ -188,8 +195,15 @@ export function DeckSheet({
         ref={sheetRef}
         data-deck-sheet
         style={offset === null ? undefined : { transform: `translateY(${offset}px)`, transition: 'none' }}
+        // 85dvh is the share of the screen an open sheet wants, but it is the
+        // builder box that clips it now, and that box is a header shorter than
+        // the screen. Below about 353px of dvh - a phone held sideways - 85 of
+        // them are taller than what is left, and the box would cut the grabber
+        // and the rounded corners off the top. The 100% caps it at its own
+        // container. The collapsed transform is a share of the sheet's own
+        // height, so the peek is the same either way.
         className={cn(
-          'absolute inset-x-0 bottom-0 z-30 flex h-[85dvh] flex-col overflow-hidden rounded-t-2xl border-t border-border/60 bg-card',
+          'absolute inset-x-0 bottom-0 z-30 flex h-[min(85dvh,100%)] flex-col overflow-hidden rounded-t-2xl border-t border-border/60 bg-card',
           'shadow-[0_-14px_40px_rgba(0,0,0,0.35)] transition-transform duration-[260ms] ease-[cubic-bezier(.32,.72,0,1)]',
           'motion-reduce:transition-none md:contents',
           expanded ? 'translate-y-0' : 'translate-y-[calc(100%-var(--deck-sheet-peek))]',

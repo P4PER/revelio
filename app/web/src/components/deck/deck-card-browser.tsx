@@ -199,9 +199,20 @@ export function DeckCardBrowser({
             The rail's own gutter bleed is for a lane that runs to the screen
             edge; here it ends at a button, so mr-0 keeps it off Advanced and
             pr-1.5 mirrors the padding that buys the first chip's focus ring
-            room. */}
+            room.
+
+            role="group" is what carries the label: aria-label on a bare div is
+            dropped, since the generic role takes no author-supplied name. The
+            search lanes and the discover toolbar name their chip groups the
+            same way, and this lane needs it more than either - it scrolls, so
+            what is on screen is only ever part of it. */}
         <div className="flex items-center gap-1.5">
-          <FilterRail alwaysScrolls className="mr-0 pr-1.5 scroll-pr-1.5">
+          <FilterRail
+            alwaysScrolls
+            role="group"
+            aria-label={tf('lesson')}
+            className="mr-0 pr-1.5 scroll-pr-1.5"
+          >
             <LessonFilterChips selected={lessons} onToggle={toggleLesson} />
           </FilterRail>
           <div className="ml-auto shrink-0">

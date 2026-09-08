@@ -41,12 +41,10 @@ export async function SiteHeader() {
           <Button variant="ghost" size="sm" asChild>
             <Link href="/sets"><Layers className="size-4 opacity-70" />{t('sets')}</Link>
           </Button>
-          <DecksMenu isLoggedIn={!!session?.user} />
-          {session?.user && (
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/collection"><Library className="size-4 opacity-70" />{t('collection')}</Link>
-            </Button>
-          )}
+          <DecksMenu />
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/collection"><Library className="size-4 opacity-70" />{t('collection')}</Link>
+          </Button>
           <RandomNavButton />
           <span className="h-5 w-px bg-foreground/20" aria-hidden />
           <LanguageSwitcher />

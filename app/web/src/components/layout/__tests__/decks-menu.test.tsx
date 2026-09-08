@@ -10,33 +10,22 @@ vi.mock('@/../i18n/navigation', () => ({
 
 import { DecksMenu } from '@/components/layout/decks-menu'
 
-function renderMenu(isLoggedIn = false) {
+function renderMenu() {
   return render(
     <NextIntlClientProvider locale="en" messages={en}>
-      <DecksMenu isLoggedIn={isLoggedIn} />
+      <DecksMenu />
     </NextIntlClientProvider>,
   )
 }
 
 describe('DecksMenu', () => {
-  it('links to discover and the deck builder for everyone', async () => {
-    renderMenu(false)
+  it('links to every deck destination, signed in or out', async () => {
+    renderMenu()
     await userEvent.click(screen.getByRole('button', { name: /Decks/ }))
     expect((await screen.findByText('Discover decks')).closest('a')).toHaveAttribute('href', '/decks')
     expect(screen.getByText('Deck Builder').closest('a')).toHaveAttribute('href', '/decks/new')
-  })
-
-  it('shows My Decks linking to /decks/mine when signed in', async () => {
-    renderMenu(true)
-    await userEvent.click(screen.getByRole('button', { name: /Decks/ }))
-    const item = await screen.findByText('My Decks')
-    expect(item.closest('a')).toHaveAttribute('href', '/decks/mine')
-  })
-
-  it('omits My Decks when signed out', async () => {
-    renderMenu(false)
-    await userEvent.click(screen.getByRole('button', { name: /Decks/ }))
-    expect(await screen.findByText('Discover decks')).toBeInTheDocument()
-    expect(screen.queryByText('My Decks')).not.toBeInTheDocument()
+    // My Decks shows to every visitor. Signed out, /decks/mine renders its own
+    // teaser, so the link is a pitch for signing up rather than a dead end.
+    expect(screen.getByText('My Decks').closest('a')).toHaveAttribute('href', '/decks/mine')
   })
 })

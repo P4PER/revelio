@@ -7,7 +7,6 @@ import { Separator } from '@/components/ui/separator'
 import { BrandMark } from '@/components/layout/brand-mark'
 import { LanguageSwitcher } from '@/components/layout/language-switcher'
 import { BackToTopButton } from '@/components/layout/back-to-top-button'
-import { getSession } from '@/lib/server/session'
 import { getCachedSiteSettings } from '@/lib/server/site-settings'
 import { BRAND_NAME } from '@/lib/brand'
 
@@ -46,23 +45,21 @@ function LegalLink({ href, children }: { href: string; children: ReactNode }) {
   )
 }
 
-/** Async server wrapper: resolves the session, then renders the presentational view. */
+/** Async server wrapper: resolves site settings, then renders the presentational view. */
 export async function SiteFooter() {
-  const session = await getSession()
   const settings = await getCachedSiteSettings()
-  return <SiteFooterView isLoggedIn={!!session?.user} githubUrl={settings?.githubUrl ?? null} />
+  return <SiteFooterView githubUrl={settings?.githubUrl ?? null} />
 }
 
 /**
  * Presentational footer. Kept sync + prop-driven so it renders in both server and
- * test trees. `isLoggedIn` gates the personal Build links (My Decks, Collection),
- * mirroring the header — the Deck Builder stays visible since it works for guests.
+ * test trees. Every column is the same for every visitor: the personal Build
+ * links (My Decks, Collection) answer signed out with their own teaser, so the
+ * footer needs no session at all.
  */
 export function SiteFooterView({
-  isLoggedIn,
   githubUrl,
 }: {
-  isLoggedIn: boolean
   githubUrl: string | null
 }) {
   const t = useTranslations('footer')
@@ -85,8 +82,8 @@ export function SiteFooterView({
 
           <FooterColumn label={t('build')}>
             <FooterLink href="/decks/new">{t('deckBuilder')}</FooterLink>
-            {isLoggedIn && <FooterLink href="/decks/mine">{t('myDecks')}</FooterLink>}
-            {isLoggedIn && <FooterLink href="/collection">{t('collection')}</FooterLink>}
+            <FooterLink href="/decks/mine">{t('myDecks')}</FooterLink>
+            <FooterLink href="/collection">{t('collection')}</FooterLink>
           </FooterColumn>
 
           <FooterColumn label={t('about')}>

@@ -46,7 +46,6 @@ export function MobileNav({
   const signOut = useSignOut()
   const [open, setOpen] = useState(false)
   const close = () => setOpen(false)
-  const isLoggedIn = !!user
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -65,18 +64,16 @@ export function MobileNav({
             <Layers className="size-4 opacity-70" />
             {t('sets')}
           </Link>
-          {DECK_LINKS.filter((l) => !l.requiresAuth || isLoggedIn).map((l) => (
+          {DECK_LINKS.map((l) => (
             <Link key={l.href} href={l.href} onClick={close} className={rowClass}>
               <l.Icon className="size-4 opacity-70" />
               {t(l.labelKey)}
             </Link>
           ))}
-          {isLoggedIn && (
-            <Link href="/collection" onClick={close} className={rowClass}>
-              <LibraryBig className="size-4 opacity-70" />
-              {t('collection')}
-            </Link>
-          )}
+          <Link href="/collection" onClick={close} className={rowClass}>
+            <LibraryBig className="size-4 opacity-70" />
+            {t('collection')}
+          </Link>
           {/* Home has its own hero random button, mirroring RandomNavButton. */}
           {pathname !== '/' && (
             <Link href="/random" onClick={close} className={rowClass}>

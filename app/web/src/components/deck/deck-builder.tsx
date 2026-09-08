@@ -52,16 +52,11 @@ export function DeckBuilder({
   // Whether the deck sheet is open, below md where it is a sheet at all. From
   // md up the sheet is display:contents and this has no meaning.
   const [sheetOpen, setSheetOpen] = useState(false)
-  // The sheet is fixed to the viewport, so without this it would go on
-  // hovering over the footer once the builder itself had scrolled past -
-  // sitting on top of the footer's own controls.
-  const [builderOnScreen, setBuilderOnScreen] = useState(true)
   const [saving, setSaving] = useState(false)
   const [savingDraft, setSavingDraft] = useState(false)
   const [showSavePrompt, setShowSavePrompt] = useState(false)
   const [highlight, setHighlight] = useState<{ zone: DeckZone; cardId: string; nonce: number } | null>(null)
   const isFirstSave = useRef(true)
-  const cardRef = useRef<HTMLDivElement>(null)
   const addNonce = useRef(0)
 
   // Anyone without a deckId (guest or a logged-in user landing on /decks/new)
@@ -105,16 +100,6 @@ export function DeckBuilder({
     }
     if (!deckId && !loggedIn) saveDraft(state)
   }, [state, deckId, loggedIn])
-
-  useEffect(() => {
-    const el = cardRef.current
-    // jsdom has no IntersectionObserver; leaving the bar mounted is the right
-    // fallback anywhere the API is missing.
-    if (!el || typeof IntersectionObserver === 'undefined') return
-    const observer = new IntersectionObserver(([entry]) => setBuilderOnScreen(entry.isIntersecting))
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
 
   function handleQuantityChange(cardId: string, zone: DeckZone, qty: number) {
     setState((s) => {
@@ -206,8 +191,9 @@ export function DeckBuilder({
     // Below md the builder is the screen: no page padding, no card edge, and
     // the full viewport height under the header. The border and radius would
     // cost about 50px of every card row on a 402px phone, and the card shape
-    // only means anything once the builder sits inside a page. overflow-hidden
-    // is md-only so it can never clip the fixed sheet below md.
+    // only means anything once the builder sits inside a page. It clips at
+    // every width: the shut sheet is positioned against this box and hangs
+    // below it, and without the clip that hanging body paints over the footer.
     //
     // From md up this is the workbench grid and DeckSheet is display:contents,
     // so its children are placed by row and column rather than by DOM order:
@@ -223,24 +209,30 @@ export function DeckBuilder({
     // outside the grid it sized. The bar is inside this box now, so counting it
     // again left 75px of nothing between the builder and the footer.
     //
+    // The sheet is positioned against this box rather than the viewport. The
+    // browse pane reserves the peek as padding in the page flow, so the two
+    // only line up while they are measured the same way - anchored to the
+    // viewport, the sheet drifted a pixel from its band for every pixel the
+    // page scrolled, and the gap under the last card row grew as you scrolled
+    // toward the footer. Sharing this box also means the sheet leaves with the
+    // builder on its own, which an IntersectionObserver used to fake.
+    //
     // The sheet comes before the browser in the DOM on purpose: on a phone it
     // is the thing on top, so tabbing reaches its handle first and then the
     // browser, and while the sheet is shut its body is inert and skipped
     // entirely. The cost is that on the workbench the deck column is reached
     // before the card browser, which is the smaller of the two wrongs.
     <div
-      ref={cardRef}
       className={cn(
-        'flex h-[calc(100dvh-var(--header-h))] flex-col',
+        'relative flex h-[calc(100dvh-var(--header-h))] flex-col overflow-hidden',
         'md:grid md:h-[calc(100dvh-var(--header-h)-3rem)] md:min-h-[560px] md:grid-cols-[1.15fr_0.85fr]',
-        'md:grid-rows-[auto_auto_minmax(0,1fr)] md:overflow-hidden md:rounded-xl md:border md:border-border/60',
+        'md:grid-rows-[auto_auto_minmax(0,1fr)] md:rounded-xl md:border md:border-border/60',
         DECK_SHEET_PEEK_CLASS,
       )}
     >
       <DeckSheet
         expanded={sheetOpen}
         onExpandedChange={setSheetOpen}
-        onScreen={builderOnScreen}
         toggleLabel={t('sheet.toggle', { count: deckCount })}
         title={sheetTitle}
         subtitle={sheetSummary}

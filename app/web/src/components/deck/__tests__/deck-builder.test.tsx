@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import type { SearchResult } from '@revelio/search'
@@ -48,19 +48,6 @@ vi.mock('@/lib/deck-model', async (importOriginal) => {
   }
 })
 
-// jsdom ships no IntersectionObserver. The builder uses one to retire the
-// floating pane switch once the builder itself has scrolled out of view, so
-// stub it and keep a handle on the callback to drive that from a test.
-const observers: Array<(entries: { isIntersecting: boolean }[]) => void> = []
-class StubIntersectionObserver {
-  constructor(cb: (entries: { isIntersecting: boolean }[]) => void) {
-    observers.push(cb)
-  }
-  observe() {}
-  disconnect() {}
-}
-vi.stubGlobal('IntersectionObserver', StubIntersectionObserver)
-
 const emptyState: BuilderState = { name: '', format: 'revival', visibility: 'private', entries: [] }
 
 const draftEntry = {
@@ -81,7 +68,6 @@ beforeEach(() => {
   updateDeckAction.mockClear()
   push.mockClear()
   draftBox.current = null
-  observers.length = 0
 })
 
 describe('DeckBuilder save-on-login prompt', () => {
@@ -315,12 +301,13 @@ describe('DeckBuilder mobile deck sheet', () => {
   })
 
   it('rests the sheet flush on the bottom edge, not floating above it', () => {
-    // The old switch added env(safe-area-inset-bottom) to `bottom`, but a fixed
-    // element already sits inside Safari's own viewport, so the home indicator
-    // was counted twice and the bar floated about 39px too high.
+    // The old switch added env(safe-area-inset-bottom) to `bottom`, but the
+    // builder it sits in is already 100dvh tall less the header, and that dvh
+    // stops at the top of Safari's toolbar - so the home indicator was counted
+    // twice and the bar floated about 39px too high.
     const { container } = renderBuilder()
     const sheet = container.querySelector('[data-deck-sheet]')!
-    expect(sheet).toHaveClass('fixed', 'bottom-0')
+    expect(sheet).toHaveClass('absolute', 'bottom-0')
     expect(sheet.className).not.toContain('bottom-[')
   })
 
@@ -347,19 +334,15 @@ describe('DeckBuilder mobile deck sheet', () => {
     )
   })
 
-  it('retires the sheet once the builder has scrolled out of view', () => {
-    // Fixed to the viewport, it would otherwise hover over the footer and sit
-    // on top of its language switcher for the whole page. Hidden, not
-    // unmounted, so the deck's scroll position survives.
+  it('anchors the sheet to the builder, not to the viewport', () => {
+    // The band the pane reserves is padding in the page flow, so the sheet has
+    // to be measured the same way or it drifts out of that band as the page
+    // scrolls toward the footer. Anchoring it here also takes it off screen
+    // with the builder, and the clip keeps its shut body off the footer.
     const { container } = renderBuilder()
-    const sheet = container.querySelector('[data-deck-sheet]')!
-    expect(sheet).not.toHaveClass('max-md:hidden')
-
-    act(() => observers.forEach((cb) => cb([{ isIntersecting: false }])))
-    expect(sheet).toHaveClass('max-md:hidden')
-
-    act(() => observers.forEach((cb) => cb([{ isIntersecting: true }])))
-    expect(sheet).not.toHaveClass('max-md:hidden')
+    const shell = container.querySelector('[data-pane="browse"]')!.parentElement!
+    expect(shell).toHaveClass('relative', 'overflow-hidden')
+    expect(container.querySelector('[data-deck-sheet]')).toHaveClass('absolute')
   })
 
   it('opens the sheet for the save-on-login prompt, which lives inside it', async () => {

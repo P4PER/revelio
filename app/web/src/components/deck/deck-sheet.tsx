@@ -9,9 +9,10 @@ import { cn } from '@/lib/utils'
 // reachable - the two are siblings, so the value has to live on their ancestor.
 //
 // The inset belongs here and in the handle's own padding, never in the sheet's
-// `bottom`. A fixed element already sits inside Safari's viewport, which stops
-// at the top of its toolbar, so adding the inset to `bottom` counts the home
-// indicator twice - that is what made the old pane switch float 39px high.
+// `bottom`. The sheet sits at the foot of a box that is itself 100dvh tall
+// less the header, and that dvh already stops at the top of Safari's toolbar,
+// so adding the inset to `bottom` counts the home indicator twice - that is
+// what made the old pane switch float 39px high.
 export const DECK_SHEET_PEEK_CLASS =
   '[--deck-sheet-peek:calc(4.5rem+env(safe-area-inset-bottom,0px))]'
 
@@ -82,7 +83,6 @@ function useIsPhone() {
 export function DeckSheet({
   expanded,
   onExpandedChange,
-  onScreen = true,
   toggleLabel,
   title,
   subtitle,
@@ -91,14 +91,6 @@ export function DeckSheet({
 }: {
   expanded: boolean
   onExpandedChange: (expanded: boolean) => void
-  /**
-   * Whether the builder itself is still in view. The sheet is fixed to the
-   * viewport, so once the page has scrolled past the builder to the footer it
-   * has to get out of the way rather than sit on the footer's own controls.
-   * Hidden rather than unmounted, so the deck's scroll position and the stats
-   * panel's open state survive; only below md, where it is a sheet at all.
-   */
-  onScreen?: boolean
   /** Accessible name for the handle, which carries the live card count. */
   toggleLabel: string
   title: string
@@ -181,7 +173,7 @@ export function DeckSheet({
 
   return (
     <>
-      {expanded && onScreen && (
+      {expanded && (
         // Tap-anywhere-to-go-back, which is how the state becomes obvious. Not
         // keyboard reachable on purpose: the handle already collapses the sheet
         // and a full-screen tab stop would be worse than none.
@@ -189,7 +181,7 @@ export function DeckSheet({
           data-deck-sheet-scrim
           aria-hidden
           onClick={() => onExpandedChange(false)}
-          className="fixed inset-0 z-20 bg-background/60 md:hidden"
+          className="absolute inset-0 z-20 bg-background/60 md:hidden"
         />
       )}
       <div
@@ -197,13 +189,10 @@ export function DeckSheet({
         data-deck-sheet
         style={offset === null ? undefined : { transform: `translateY(${offset}px)`, transition: 'none' }}
         className={cn(
-          'fixed inset-x-0 bottom-0 z-30 flex h-[85dvh] flex-col overflow-hidden rounded-t-2xl border-t border-border/60 bg-card',
+          'absolute inset-x-0 bottom-0 z-30 flex h-[85dvh] flex-col overflow-hidden rounded-t-2xl border-t border-border/60 bg-card',
           'shadow-[0_-14px_40px_rgba(0,0,0,0.35)] transition-transform duration-[260ms] ease-[cubic-bezier(.32,.72,0,1)]',
           'motion-reduce:transition-none md:contents',
           expanded ? 'translate-y-0' : 'translate-y-[calc(100%-var(--deck-sheet-peek))]',
-          // max-md only: from md up the sheet has to stay display:contents
-          // whatever the page has scrolled past.
-          !onScreen && 'max-md:hidden',
         )}
       >
         <button

@@ -288,7 +288,10 @@ export function DeckBuilder({
             )}
           >
             <div className="flex flex-wrap items-center gap-2 rounded-lg bg-primary/10 px-3 py-2">
-              <p className="flex-1 text-xs text-foreground">{t('savePrompt.message')}</p>
+              {/* text-xs is for the phone, where this sits in a 402px band beside
+                  two buttons. From md it spans the workbench and reads as fine
+                  print next to sm-sized buttons, so it takes their size. */}
+              <p className="flex-1 text-xs text-foreground md:text-sm">{t('savePrompt.message')}</p>
               <Button type="button" size="sm" disabled={savingDraft} onClick={handleSaveDraftToAccount}>
                 {t('savePrompt.accept')}
               </Button>

@@ -71,6 +71,14 @@ beforeEach(() => {
 })
 
 describe('DeckBuilder save-on-login prompt', () => {
+  it('sizes the prompt with the buttons it sits beside from md up', async () => {
+    // text-xs is for the phone band, where the message shares 402px with two
+    // buttons. Across the workbench it read as fine print beside them.
+    draftBox.current = { name: 'My Draft', format: 'revival', visibility: 'private', entries: [draftEntry] }
+    renderBuilder({ loggedIn: true, deckId: null })
+    expect(await screen.findByText(en.decks.savePrompt.message)).toHaveClass('text-xs', 'md:text-sm')
+  })
+
   it('offers to save a non-empty guest draft once the user is logged in, and saves it on accept', async () => {
     draftBox.current = { name: 'My Draft', format: 'revival', visibility: 'private', entries: [draftEntry] }
     renderBuilder({ loggedIn: true, deckId: null })

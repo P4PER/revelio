@@ -19,6 +19,11 @@ import { cn } from '@/lib/utils'
  * The mobile copy is full width on purpose: "Zum Speichern anmelden" is the
  * longest string in the builder, and a full-width button is the shape where its
  * length costs nothing.
+ *
+ * Both branches are the primary variant: this slot is the builder's one call to
+ * action whoever is looking at it, and an outlined guest version read as a
+ * third utility button beside Import and Export - which is exactly backwards,
+ * since the guest is the one who needs the nudge.
  */
 export function DeckSaveButton({
   loggedIn,
@@ -37,7 +42,7 @@ export function DeckSaveButton({
 
   if (!loggedIn) {
     return (
-      <Button type="button" size={size} variant="outline" asChild className={cn('shrink-0', className)}>
+      <Button type="button" size={size} asChild className={cn('shrink-0', className)}>
         <Link href="/login">{t('loginToSave')}</Link>
       </Button>
     )

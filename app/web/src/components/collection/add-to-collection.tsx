@@ -1,6 +1,6 @@
 'use client'
 import { useTranslations } from 'next-intl'
-import { Library } from 'lucide-react'
+import { Album } from 'lucide-react'
 import { CardFinishStepper } from '@/components/card/card-finish-stepper'
 import { attrLabel } from '@/lib/attribute-labels'
 import { cn } from '@/lib/utils'
@@ -24,7 +24,7 @@ export function AddToCollection({
     <div className={cn('overflow-hidden rounded-xl border border-input bg-card', className)}>
       <div className="flex items-center justify-between gap-2 border-b border-border/60 px-3 py-2">
         <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          <Library className="size-3.5" />
+          <Album className="size-3.5" />
           {total > 0 ? t('inCollection') : t('addToCollection')}
         </span>
         {/* The count sits on bg-card, not on card art, so it takes the

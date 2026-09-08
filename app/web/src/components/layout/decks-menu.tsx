@@ -1,5 +1,5 @@
 'use client'
-import { ChevronDown, LibraryBig } from 'lucide-react'
+import { ChevronDown, PlayingCardsFan } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/../i18n/navigation'
 import { Button } from '@/components/ui/button'
@@ -20,7 +20,7 @@ export function DecksMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="gap-1.5">
-          <LibraryBig className="size-4 opacity-70" />
+          <PlayingCardsFan className="size-4 opacity-70" />
           {t('decks')}
           <ChevronDown className="size-4 opacity-50" />
         </Button>

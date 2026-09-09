@@ -28,4 +28,15 @@ describe('searchUrl', () => {
     expect(searchUrl('https://revelio.cards', 'nimbus', 'de'))
       .toBe('https://revelio.cards/de/search?q=nimbus')
   })
+
+  it('carries the applied filters so the link matches the embed', () => {
+    // web/src/lib/search-params.ts reads repeated `lesson` and `type` params.
+    expect(searchUrl('https://revelio.cards', 'nimbus', 'en', { lesson: 'charms', type: 'item' }))
+      .toBe('https://revelio.cards/search?q=nimbus&lesson=charms&type=item')
+  })
+
+  it('omits filters that were not applied', () => {
+    expect(searchUrl('https://revelio.cards', 'nimbus', 'en', {}))
+      .toBe('https://revelio.cards/search?q=nimbus')
+  })
 })

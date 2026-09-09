@@ -65,7 +65,10 @@ export async function execute(
     await interaction.editReply({ content: t(locale, 'search.noResults') })
     return
   }
-  if (page.page > page.pages) {
+  // `pages` is derived from Meilisearch's estimatedTotalHits, which over-estimates,
+  // so a page can sit inside `pages` and still come back empty. Both cases are the
+  // same thing to the user: the page they asked for is not there.
+  if (page.page > page.pages || page.hits.length === 0) {
     await interaction.editReply({
       content: t(locale, 'search.pageOutOfRange', { pages: page.pages }),
     })
@@ -73,6 +76,11 @@ export async function execute(
   }
 
   await interaction.editReply({
-    embeds: [searchEmbed(page, { locale, query, siteBase: deps.env.SITE_BASE_URL })],
+    embeds: [searchEmbed(page, {
+      locale,
+      query,
+      siteBase: deps.env.SITE_BASE_URL,
+      filters: { lesson, type },
+    })],
   })
 }

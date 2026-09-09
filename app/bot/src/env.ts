@@ -4,8 +4,13 @@ const Env = z.object({
   DISCORD_TOKEN: z.string().min(1),
   DISCORD_CLIENT_ID: z.string().min(1),
   // Set to register commands into one guild, which is instant. Unset registers
-  // globally, which Discord can take up to an hour to propagate.
-  DISCORD_GUILD_ID: z.string().min(1).optional(),
+  // globally, which Discord can take up to an hour to propagate. .env.example
+  // ships this key blank and compose forwards ${DISCORD_GUILD_ID} unconditionally,
+  // so an empty string is how "unset" actually arrives and must mean the same.
+  DISCORD_GUILD_ID: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().min(1).optional(),
+  ),
   DATABASE_URL: z.string().min(1),
   MEILI_HOST: z.string().url(),
   MEILI_SEARCH_KEY: z.string().default(''),

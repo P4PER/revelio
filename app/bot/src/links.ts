@@ -11,7 +11,19 @@ export function cardUrl(siteBase: string, id: string, locale: string): string {
   return `${localeRoot(siteBase, locale)}/card/${id}`
 }
 
-export function searchUrl(siteBase: string, query: string, locale: string): string {
+// The filters the embed was built with travel with the link, so "view all on
+// revelio.cards" lands on the same result set the user is looking at.
+// web/src/lib/search-params.ts reads `lesson` and `type` as repeatable params.
+export type SearchLinkFilters = { lesson?: string | null; type?: string | null }
+
+export function searchUrl(
+  siteBase: string,
+  query: string,
+  locale: string,
+  filters: SearchLinkFilters = {},
+): string {
   const params = new URLSearchParams({ q: query })
+  if (filters.lesson) params.append('lesson', filters.lesson)
+  if (filters.type) params.append('type', filters.type)
   return `${localeRoot(siteBase, locale)}/search?${params.toString()}`
 }

@@ -29,7 +29,9 @@ export async function findCards(meili: MeiliSearch, input: CardSearchInput): Pro
     hitsPerPage: pageSize,
   })
   // At least one page even when empty, so "page 1 of 1" reads sensibly rather
-  // than "page 1 of 0".
+  // than "page 1 of 0". Note `res.total` is Meilisearch's estimatedTotalHits,
+  // not an exact count, so `pages` is an upper bound: a page within it can still
+  // return no hits. Callers must handle an empty `hits` on an in-range page.
   const pages = Math.max(1, Math.ceil(res.total / pageSize))
   return { hits: res.hits, total: res.total, page, pageSize, pages }
 }

@@ -35,6 +35,14 @@ describe('searchEmbed', () => {
     expect(json.footer?.text).toContain('Page 3 of 5')
   })
 
+  it('does not throw when the page carries no hits', () => {
+    // total comes from Meilisearch's estimatedTotalHits, which over-estimates, so a
+    // page inside `pages` can still come back empty. setDescription('') would throw.
+    const page = { hits: [], total: 25, page: 3, pageSize: 10, pages: 3 }
+    const json = searchEmbed(page, opts).toJSON()
+    expect(json.description ?? '').toBe('')
+  })
+
   it('keeps the description inside the 4096 character limit', () => {
     const many = Array.from({ length: 10 }, (_, i) => ({ ...hit(i), name: 'z'.repeat(600) }))
     const page = { hits: many, total: 10, page: 1, pageSize: 10, pages: 1 }

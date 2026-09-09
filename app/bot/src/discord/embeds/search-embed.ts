@@ -1,12 +1,17 @@
 import { EmbedBuilder } from 'discord.js'
 import type { CardPage } from '../../data/cards'
 import { t } from '../../i18n/t'
-import { searchUrl } from '../../links'
+import { searchUrl, type SearchLinkFilters } from '../../links'
 
 const DESCRIPTION_LIMIT = 4096
 const BRAND_GOLD = 0xd4a83a
 
-export type SearchEmbedOptions = { locale: string; query: string; siteBase: string }
+export type SearchEmbedOptions = {
+  locale: string
+  query: string
+  siteBase: string
+  filters?: SearchLinkFilters
+}
 
 export function searchEmbed(page: CardPage, opts: SearchEmbedOptions): EmbedBuilder {
   const { locale } = opts
@@ -20,10 +25,14 @@ export function searchEmbed(page: CardPage, opts: SearchEmbedOptions): EmbedBuil
     if (lines.join('\n').length + line.length + 1 > DESCRIPTION_LIMIT) break
     lines.push(line)
   }
-  return new EmbedBuilder()
+  const embed = new EmbedBuilder()
     .setTitle(t(locale, 'search.title', { total: page.total }))
-    .setURL(searchUrl(opts.siteBase, opts.query, locale))
+    .setURL(searchUrl(opts.siteBase, opts.query, locale, opts.filters))
     .setColor(BRAND_GOLD)
-    .setDescription(lines.join('\n'))
     .setFooter({ text: t(locale, 'search.footer', { page: page.page, pages: page.pages }) })
+  // Discord rejects an empty description outright. Callers guard against an
+  // empty page, but a renderer that throws on validly-shaped input is a trap
+  // for the later phases that reuse it.
+  if (lines.length) embed.setDescription(lines.join('\n'))
+  return embed
 }

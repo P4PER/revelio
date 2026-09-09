@@ -26,7 +26,12 @@ export async function execute(
 
   const doc = await findOneCard(deps.meili, { query: name, locale })
   if (!doc) {
-    await interaction.editReply({ content: t(locale, 'card.notFound', { name }) })
+    // The raw option value is echoed back, so mentions must be inert: without
+    // this, `/card name:@everyone` turns the bot into a mass ping.
+    await interaction.editReply({
+      content: t(locale, 'card.notFound', { name }),
+      allowedMentions: { parse: [] },
+    })
     return
   }
 

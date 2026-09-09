@@ -24,8 +24,8 @@ describe('parseEnv', () => {
   })
 
   it('treats an empty DISCORD_GUILD_ID as unset', () => {
-    // .env.example ships `DISCORD_GUILD_ID=` and compose forwards ${DISCORD_GUILD_ID},
-    // so the documented "unset = register globally" setup arrives as an empty string.
+    // .env.example ships `DISCORD_GUILD_ID=` blank, so the documented
+    // "unset = register globally" setup arrives as an empty string.
     expect(parseEnv({ ...complete, DISCORD_GUILD_ID: '' }).DISCORD_GUILD_ID).toBeUndefined()
   })
 

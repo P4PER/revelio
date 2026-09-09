@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import { REST, Routes } from 'discord.js'
 import { parseEnv, type BotEnv } from '../env'
 import { COMMANDS } from './commands/index'
@@ -15,7 +16,10 @@ export async function registerCommands(env: BotEnv): Promise<number> {
   return body.length
 }
 
-const isMain = process.argv[1] === new URL(import.meta.url).pathname
+// fileURLToPath, not the URL pathname: argv[1] is a raw filesystem path while
+// the pathname is percent-encoded, so a space in the checkout path would make
+// this false and the script would exit having registered nothing.
+const isMain = process.argv[1] === fileURLToPath(import.meta.url)
 if (isMain) {
   const env = parseEnv()
   registerCommands(env)

@@ -80,7 +80,10 @@ services:
       MEILI_SEARCH_KEY: masterKey
       IMAGE_BASE_URL: http://localhost:9000/images
       SITE_BASE_URL: http://localhost:3000
-    restart: unless-stopped
+    # No restart policy: this is the local dev stack, and bot/.env.local is
+    # optional, so `unless-stopped` would crash-loop on a fresh clone instead
+    # of showing the env error once. Matches ingest/migrate.
+    restart: "no"
 
   migrate:
     image: revelio-ingest:local

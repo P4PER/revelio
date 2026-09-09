@@ -117,7 +117,7 @@ export function DeckSheet({
   //
   // Phone only, and that matters twice over: from md up the sheet is
   // display:contents, so there is no sheet to hold anything still for, and a
-  // lock up there would take the scrollbar with it and shift the page sideways.
+  // lock up there would hold still a page that has nothing to hold still for.
   useEffect(() => {
     if (!isPhone || !expanded) return
     // Opening the sheet with the page already scrolled would put it partly off
@@ -125,15 +125,45 @@ export function DeckSheet({
     // to the workbench first, so open always means the same thing.
     window.scrollTo(0, 0)
     const root = document.documentElement
-    const overflow = root.style.overflow
-    const overscroll = root.style.overscrollBehavior
+    const body = document.body
+    // Measured before anything is locked, while the scrollbar is still there.
+    // A phone-width viewport is not a phone: a desktop window dragged below
+    // 48rem gets this layout too, and there the scrollbar is a classic one that
+    // takes up space. Take that width back as an inset on the body, or hiding
+    // the bar widens the page and every column on it jumps sideways for as long
+    // as the sheet is open.
+    const gutter = Math.max(0, window.innerWidth - root.clientWidth)
+    const previous = {
+      overflow: root.style.overflow,
+      overscroll: root.style.overscrollBehavior,
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+    }
     root.style.overflow = 'hidden'
     // Without this a touch drag still rubber-bands the locked page, which
     // reads as the sheet sliding rather than the page refusing to move.
     root.style.overscrollBehavior = 'none'
+    // `overflow: hidden` on its own is not a lock on iOS Safari, which is most
+    // of what this path serves. Focusing the deck name field in the command bar
+    // raises the keyboard, and iOS scrolls the document to reveal that field
+    // whatever the root's overflow says - leaving the page at an offset the
+    // lock then holds it at, which is the stranded sheet all over again. Taking
+    // the body out of flow leaves nothing to scroll in the first place. `right`
+    // is where the gutter goes: with `left: 0` alone the fixed body would span
+    // the full viewport, reclaimed scrollbar space included.
+    body.style.position = 'fixed'
+    body.style.top = '0'
+    body.style.left = '0'
+    body.style.right = `${gutter}px`
     return () => {
-      root.style.overflow = overflow
-      root.style.overscrollBehavior = overscroll
+      root.style.overflow = previous.overflow
+      root.style.overscrollBehavior = previous.overscroll
+      body.style.position = previous.position
+      body.style.top = previous.top
+      body.style.left = previous.left
+      body.style.right = previous.right
     }
   }, [isPhone, expanded])
 

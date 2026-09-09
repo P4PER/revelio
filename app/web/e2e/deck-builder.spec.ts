@@ -93,12 +93,25 @@ test('the phone page holds still while the deck sheet is open, and scrolls once 
 })
 
 // From md up the sheet is display:contents and the deck is a column of the
-// workbench, so there is no open state to lock the page for.
+// workbench, so there is no open state to lock the page for. Open the sheet at
+// phone width first and then widen: asserting on a desktop that never opened it
+// would pass on `expanded` alone and say nothing about the breakpoint guard.
 test('the desktop workbench never locks the page', async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.setViewportSize({ width: 402, height: 874 })
   await page.goto('/decks/new')
+
+  const handle = page.locator('[data-deck-sheet] button').first()
+  await handle.click()
+  await expect(handle).toHaveAttribute('aria-expanded', 'true')
+  // The lock is on, so the release below is the breakpoint's doing.
+  expect(await page.evaluate(() => document.documentElement.style.overflow)).toBe('hidden')
+
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.style.overflow))
+    .toBe('')
+  expect(await page.evaluate(() => document.body.style.position)).toBe('')
 
   await page.evaluate(() => window.scrollTo(0, 200))
   expect(await page.evaluate(() => window.scrollY)).toBe(200)
-  expect(await page.evaluate(() => document.documentElement.style.overflow)).toBe('')
 })

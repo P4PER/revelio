@@ -1,6 +1,6 @@
 import type { MeiliSearch } from 'meilisearch'
 import { searchCards, type CardFilters, type SearchDocument } from '@revelio/search'
-import { getCardById, type DB } from '@revelio/db'
+import { getCardRulings, type DB } from '@revelio/db'
 
 export type CardRuling = { date: string | null; source: string | null; text: string }
 
@@ -49,12 +49,12 @@ export async function findOneCard(
 // Rulings carry one text per language. Prefer the reader's language, fall back
 // to the card's default, then to any translation that exists; a ruling with no
 // text at all is dropped rather than rendered as an empty bullet.
-export async function getCardRulings(
+export async function resolveCardRulings(
   db: DB,
   cardId: string,
   locale: string,
 ): Promise<CardRuling[]> {
-  const card = await getCardById(db, cardId, locale)
+  const card = await getCardRulings(db, cardId)
   if (!card) return []
   const out: CardRuling[] = []
   for (const r of card.rulings) {

@@ -50,6 +50,14 @@ export type RulingDTO = {
   text: Record<string, string>
 }
 
+// Just the rulings of one card, for consumers that render rulings and nothing
+// else. `defaultLanguage` comes along because a ruling may have no text in the
+// reader's language and the card's own language is the first fallback.
+export type CardRulingsDTO = {
+  defaultLanguage: string
+  rulings: RulingDTO[]
+}
+
 // The full card as the detail page needs it (superset of CardDTO).
 export type CardDetailDTO = CardDTO & {
   artist: string[]

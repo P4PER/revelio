@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto'
 import type { DB } from './client'
 import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations, setLocalizations, decks, deckCards, deckLikes, deckViews, collections, userCards, siteSettings } from './schema'
 import { user } from './auth-schema'
-import type { SetDTO, CardLocalizationDTO, CardDetailDTO, AdventureData, MatchData, DeckDTO, DeckCardView, DeckFormat, DeckVisibility, CollectionVisibility, OwnedQuantities, SetProgress, CollectionSummary } from '@revelio/core'
+import type { SetDTO, CardLocalizationDTO, CardDetailDTO, RulingDTO, CardRulingsDTO, AdventureData, MatchData, DeckDTO, DeckCardView, DeckFormat, DeckVisibility, CollectionVisibility, OwnedQuantities, SetProgress, CollectionSummary } from '@revelio/core'
 import { deckCardMeta } from '@revelio/core'
 import type { CardIndexData } from '@revelio/search'
 
@@ -200,6 +200,41 @@ export async function getCardById(db: DB, id: string, locale?: string): Promise<
     })),
     set: toSetDTO(setRow, setName),
   }
+}
+
+// The rulings of one card in a single round trip. getCardById answers this too,
+// but it runs eight queries to assemble a whole CardDetailDTO; callers that only
+// render rulings (the Discord bot's /card) pay that for two fields.
+export async function getCardRulings(db: DB, cardId: string): Promise<CardRulingsDTO | null> {
+  const rows = await db
+    .select({
+      defaultLanguage: cards.defaultLanguage,
+      rulingId: cardRulings.id,
+      seq: cardRulings.seq,
+      date: cardRulings.date,
+      source: cardRulings.source,
+      lang: cardRulingLocalizations.lang,
+      text: cardRulingLocalizations.text,
+    })
+    .from(cards)
+    .leftJoin(cardRulings, eq(cardRulings.cardId, cards.id))
+    .leftJoin(cardRulingLocalizations, eq(cardRulingLocalizations.rulingId, cardRulings.id))
+    .where(eq(cards.id, cardId))
+    .orderBy(asc(cardRulings.seq))
+  // No rows means no such card. A card with no rulings still yields one row,
+  // with every joined column null.
+  if (rows.length === 0) return null
+  const byId = new Map<string, RulingDTO>()
+  for (const row of rows) {
+    if (row.rulingId === null || row.seq === null) continue
+    let ruling = byId.get(row.rulingId)
+    if (!ruling) {
+      ruling = { id: row.rulingId, seq: row.seq, date: row.date, source: row.source, text: {} }
+      byId.set(row.rulingId, ruling)
+    }
+    if (row.lang !== null && row.text !== null) ruling.text[row.lang] = row.text
+  }
+  return { defaultLanguage: rows[0].defaultLanguage, rulings: [...byId.values()] }
 }
 
 export async function getRandomCardId(db: DB): Promise<string | null> {

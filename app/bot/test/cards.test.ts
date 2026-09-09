@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import type { MeiliSearch } from 'meilisearch'
 import * as dbModule from '@revelio/db'
-import { findCards, findOneCard, getCardRulings } from '../src/data/cards'
+import { findCards, findOneCard, resolveCardRulings } from '../src/data/cards'
 
 function stubMeili(hits: unknown[], estimatedTotalHits: number) {
   const search = vi.fn().mockResolvedValue({ hits, estimatedTotalHits })
@@ -50,7 +50,7 @@ describe('findOneCard', () => {
   })
 })
 
-describe('getCardRulings', () => {
+describe('resolveCardRulings', () => {
   const card = {
     defaultLanguage: 'en',
     rulings: [
@@ -61,19 +61,19 @@ describe('getCardRulings', () => {
   }
 
   it('picks the requested language, falling back to the card default', async () => {
-    vi.spyOn(dbModule, 'getCardById').mockResolvedValue(card as never)
-    const rulings = await getCardRulings({} as never, 'base-12', 'de')
+    vi.spyOn(dbModule, 'getCardRulings').mockResolvedValue(card as never)
+    const rulings = await resolveCardRulings({} as never, 'base-12', 'de')
     expect(rulings.map((r) => r.text)).toEqual(['Deutscher Text', 'Only English'])
   })
 
   it('drops rulings with no text in any language', async () => {
-    vi.spyOn(dbModule, 'getCardById').mockResolvedValue(card as never)
-    const rulings = await getCardRulings({} as never, 'base-12', 'en')
+    vi.spyOn(dbModule, 'getCardRulings').mockResolvedValue(card as never)
+    const rulings = await resolveCardRulings({} as never, 'base-12', 'en')
     expect(rulings).toHaveLength(2)
   })
 
   it('returns an empty list for a card that does not exist', async () => {
-    vi.spyOn(dbModule, 'getCardById').mockResolvedValue(null)
-    expect(await getCardRulings({} as never, 'nope', 'en')).toEqual([])
+    vi.spyOn(dbModule, 'getCardRulings').mockResolvedValue(null)
+    expect(await resolveCardRulings({} as never, 'nope', 'en')).toEqual([])
   })
 })

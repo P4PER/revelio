@@ -4,7 +4,7 @@ import { COMMANDS } from '../src/discord/commands/index'
 
 // /card reaches Postgres for rulings. The fake deps carry no real db, so stub
 // the query itself; a card with no rulings is the common case anyway.
-beforeEach(() => { vi.spyOn(dbModule, 'getCardById').mockResolvedValue(null) })
+beforeEach(() => { vi.spyOn(dbModule, 'getCardRulings').mockResolvedValue(null) })
 afterEach(() => { vi.restoreAllMocks() })
 
 function fakeInteraction(options: Record<string, string | number | null>, locale = 'en') {

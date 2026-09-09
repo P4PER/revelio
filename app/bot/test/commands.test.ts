@@ -29,6 +29,14 @@ function fakeDeps(hits: unknown[], total: number) {
   }
 }
 
+function fakeAutocomplete(focused: string, locale = 'en') {
+  return {
+    locale,
+    respond: vi.fn().mockResolvedValue(undefined),
+    options: { getFocused: () => focused, getSubcommand: () => null },
+  }
+}
+
 const doc = {
   id: 'base-12', setCode: 'base', number: '12', numberSort: '0:12', name: 'Nimbus 2000',
   text: null, flavorText: null, types: [], subTypes: [], lesson: null, rarity: null,
@@ -107,5 +115,59 @@ describe('the command registry', () => {
     for (const [key, command] of COMMANDS) {
       expect(command.data.name).toBe(key)
     }
+  })
+})
+
+describe('/card autocomplete', () => {
+  it('responds with name/value pairs where the value is the card id', async () => {
+    const interaction = fakeAutocomplete('nim')
+    await COMMANDS.get('card')!.autocomplete!(interaction as never, fakeDeps([doc], 1) as never)
+    expect(interaction.respond).toHaveBeenCalledWith([
+      { name: 'Nimbus 2000 (base #12)', value: 'base-12' },
+    ])
+  })
+
+  it('responds with an empty list for an empty query', async () => {
+    const interaction = fakeAutocomplete('  ')
+    await COMMANDS.get('card')!.autocomplete!(interaction as never, fakeDeps([], 0) as never)
+    expect(interaction.respond).toHaveBeenCalledWith([])
+  })
+
+  it('answers with an empty list rather than throwing when Meilisearch fails', async () => {
+    const interaction = fakeAutocomplete('nim')
+    const deps = { meili: { index: () => ({ search: vi.fn().mockRejectedValue(new Error('down')) }) } }
+    await COMMANDS.get('card')!.autocomplete!(interaction as never, deps as never)
+    expect(interaction.respond).toHaveBeenCalledWith([])
+  })
+})
+
+describe('/card id fast path', () => {
+  it('fetches by id when the submitted value is a document id', async () => {
+    const interaction = fakeInteraction({ name: 'base-12' })
+    const getDocument = vi.fn().mockResolvedValue(doc)
+    const search = vi.fn()
+    const deps = {
+      meili: { index: () => ({ getDocument, search }) },
+      db: {},
+      sets: { name: vi.fn().mockResolvedValue('Base Set') },
+      env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
+    }
+    await COMMANDS.get('card')!.execute(interaction as never, deps as never)
+    expect(getDocument).toHaveBeenCalledWith('base-12')
+    expect(search).not.toHaveBeenCalled()
+  })
+
+  it('falls back to a text search when the value is not an id', async () => {
+    const interaction = fakeInteraction({ name: 'nimbus' })
+    const getDocument = vi.fn().mockRejectedValue(new Error('not found'))
+    const search = vi.fn().mockResolvedValue({ hits: [doc], estimatedTotalHits: 1 })
+    const deps = {
+      meili: { index: () => ({ getDocument, search }) },
+      db: {},
+      sets: { name: vi.fn().mockResolvedValue('Base Set') },
+      env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
+    }
+    await COMMANDS.get('card')!.execute(interaction as never, deps as never)
+    expect(search).toHaveBeenCalled()
   })
 })

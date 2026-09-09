@@ -1,6 +1,10 @@
-import { SlashCommandBuilder, type ChatInputCommandInteraction } from 'discord.js'
+import {
+  SlashCommandBuilder,
+  type AutocompleteInteraction,
+  type ChatInputCommandInteraction,
+} from 'discord.js'
 import type { Deps } from '../../clients'
-import { findOneCard, resolveCardRulings } from '../../data/cards'
+import { findCardById, findOneCard, resolveCardRulings, suggestCards } from '../../data/cards'
 import { toRevelioLocale } from '../../i18n/locale'
 import { t } from '../../i18n/t'
 import { cardEmbed } from '../embeds/card-embed'
@@ -13,7 +17,8 @@ export const data = new SlashCommandBuilder()
     o.setName('name')
       .setDescription(t('en', 'command.card.option.name'))
       .setDescriptionLocalizations({ de: t('de', 'command.card.option.name') })
-      .setRequired(true),
+      .setRequired(true)
+      .setAutocomplete(true),
   )
 
 export async function execute(
@@ -24,7 +29,9 @@ export async function execute(
   const locale = toRevelioLocale(interaction.locale)
   const name = interaction.options.getString('name') ?? ''
 
-  const doc = await findOneCard(deps.meili, { query: name, locale })
+  // A chosen suggestion submits the card id; typed free text does not.
+  const doc = (await findCardById(deps.meili, name, locale))
+    ?? (await findOneCard(deps.meili, { query: name, locale }))
   if (!doc) {
     // The raw option value is echoed back, so mentions must be inert: without
     // this, `/card name:@everyone` turns the bot into a mass ping.
@@ -49,4 +56,23 @@ export async function execute(
       siteBase: deps.env.SITE_BASE_URL,
     })],
   })
+}
+
+export async function autocomplete(
+  interaction: AutocompleteInteraction,
+  deps: Deps,
+): Promise<void> {
+  const focused = interaction.options.getFocused()
+  try {
+    const suggestions = await suggestCards(deps.meili, {
+      query: focused,
+      locale: toRevelioLocale(interaction.locale),
+    })
+    await interaction.respond(suggestions.map((s) => ({ name: s.label, value: s.id })))
+  } catch (err) {
+    // A failed suggestion must not surface as an error banner mid-typing; an
+    // empty list degrades to plain free-text entry.
+    console.error('card autocomplete failed:', err)
+    await interaction.respond([]).catch(() => {})
+  }
 }

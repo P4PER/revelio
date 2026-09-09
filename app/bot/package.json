@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "tsx src/main.ts",
+    "dev": "node --env-file-if-exists=.env.local --import tsx src/main.ts",
     "register": "tsx src/discord/register.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json"

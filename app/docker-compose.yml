@@ -68,10 +68,13 @@ services:
         condition: service_healthy
       meilisearch:
         condition: service_healthy
+    # The bot owns its env, like web does. One file serves both a host run and
+    # this container; `environment` below wins over it, so the localhost values
+    # in .env.local stay correct for `npm run dev -w @revelio/bot`.
+    env_file:
+      - path: bot/.env.local
+        required: false
     environment:
-      DISCORD_TOKEN: ${DISCORD_TOKEN}
-      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID}
-      DISCORD_GUILD_ID: ${DISCORD_GUILD_ID}
       DATABASE_URL: postgres://revelio:revelio@postgres:5432/revelio
       MEILI_HOST: http://meilisearch:7700
       MEILI_SEARCH_KEY: masterKey

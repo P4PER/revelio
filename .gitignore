@@ -9,7 +9,12 @@ __pycache__/
 *$py.class
 .venv/
 venv/
-.env
+
+# === Environment ===
+# Covers every workspace: .env, .env.local, .env.production, ...
+# Templates are the deliberate exception and stay versioned.
+.env*
+!.env.example
 
 # === Node ===
 node_modules/

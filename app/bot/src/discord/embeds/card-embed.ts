@@ -5,6 +5,14 @@ import type { CardRuling } from '../../data/cards'
 import { t } from '../../i18n/t'
 import { cardUrl } from '../../links'
 
+export type CardEmbedOptions = {
+  locale: string
+  setName: string
+  imageBase: string
+  siteBase: string
+  rulings: CardRuling[]
+}
+
 // Discord rejects the entire response if an embed breaks a limit, so clamp
 // rather than risk a 400 on a wordy card.
 const DESCRIPTION_LIMIT = 4096
@@ -21,14 +29,6 @@ function clamp(value: string, limit: number): string {
 function lessonColor(lesson: string | null): number {
   const hex = LESSONS.find((l) => l.code === lesson)?.color
   return hex ? parseInt(hex.slice(1), 16) : FALLBACK_COLOR
-}
-
-export type CardEmbedOptions = {
-  locale: string
-  setName: string
-  imageBase: string
-  siteBase: string
-  rulings: CardRuling[]
 }
 
 export function cardEmbed(doc: SearchDocument, opts: CardEmbedOptions): EmbedBuilder {

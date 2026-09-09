@@ -3,15 +3,15 @@ import type { CardPage } from '../../data/cards'
 import { t } from '../../i18n/t'
 import { searchUrl, type SearchLinkFilters } from '../../links'
 
-const DESCRIPTION_LIMIT = 4096
-const BRAND_GOLD = 0xd4a83a
-
 export type SearchEmbedOptions = {
   locale: string
   query: string
   siteBase: string
   filters?: SearchLinkFilters
 }
+
+const DESCRIPTION_LIMIT = 4096
+const BRAND_GOLD = 0xd4a83a
 
 export function searchEmbed(page: CardPage, opts: SearchEmbedOptions): EmbedBuilder {
   const { locale } = opts

@@ -2,7 +2,7 @@ import type { MeiliSearch } from 'meilisearch'
 import { searchCards, type CardFilters, type SearchDocument } from '@revelio/search'
 import { getCardById, type DB } from '@revelio/db'
 
-export const DEFAULT_PAGE_SIZE = 10
+export type CardRuling = { date: string | null; source: string | null; text: string }
 
 export type CardPage = {
   hits: SearchDocument[]
@@ -19,6 +19,8 @@ export type CardSearchInput = {
   page?: number
   pageSize?: number
 }
+
+export const DEFAULT_PAGE_SIZE = 10
 
 export async function findCards(meili: MeiliSearch, input: CardSearchInput): Promise<CardPage> {
   const pageSize = input.pageSize ?? DEFAULT_PAGE_SIZE
@@ -43,8 +45,6 @@ export async function findOneCard(
   const res = await searchCards(meili, input.locale, input.query, { hitsPerPage: 1 })
   return res.hits[0] ?? null
 }
-
-export type CardRuling = { date: string | null; source: string | null; text: string }
 
 // Rulings carry one text per language. Prefer the reader's language, fall back
 // to the card's default, then to any translation that exists; a ruling with no

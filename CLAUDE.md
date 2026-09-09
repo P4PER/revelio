@@ -106,6 +106,7 @@ Design specs and phased implementation plans live in `docs/superpowers/specs/` a
 - **Conventional Commits** for commit messages.
 - Documentation filenames are UPPERCASE (`README.md`, `MIGRATIONS.md`, `BRAND-GUIDE.md`).
 - All docs/specs/prose in English.
+- **Declaration order within a file: types → constants → helpers → exported functions.** Imports first, then every `type`/`interface`, then module constants, then unexported helpers, then the exported functions (`search/src/search.ts` and `core/src/deck-legality.ts` are the reference). A type buried between two functions is the thing to avoid: readers look for the shape before the behaviour.
 - **Shared types → `types.ts`.** When a type is used by two or more sibling modules in a folder, define it once in a folder-scoped `types.ts` (e.g. `src/lib/email/types.ts` exports `RenderedEmail`, shared by `otp-template.tsx` and `contact-template.tsx`) and import it with `import type`. Keep single-use types local to their module — don't pre-emptively create a `types.ts` for a type with one consumer.
 
 ## Subagents

@@ -24,8 +24,8 @@ attribute filters, per-language card images, and rulings.
 
 ## Architecture
 
-The app is five npm workspaces under `app/`, with a strict dependency direction
-`core ← {search, db} ← {ingest, web}`:
+The app is six npm workspaces under `app/`, with a strict dependency direction
+`core ← {search, db} ← {ingest, web, bot}`:
 
 - **`@revelio/core`** — framework-agnostic domain layer (Zod schemas, card
   domain model, attribute definitions). No I/O; every other workspace imports it.
@@ -34,8 +34,11 @@ The app is five npm workspaces under `app/`, with a strict dependency direction
 - **`@revelio/ingest`** — one-shot job that runs migrations, seeds Postgres from
   `card-data`, indexes Meilisearch, and uploads card images to S3/MinIO.
 - **`@revelio/web`** — the Next.js 16 (App Router, React 19) app that ships to users.
+- **`@revelio/bot`** — a Discord bot (`/card`, `/search`) built on discord.js. It
+  reads Meilisearch and Postgres directly, with no HTTP API between it and the web
+  app, and never writes.
 
-**Stack:** Next.js · React · Postgres + Drizzle · Meilisearch · S3/MinIO · Better Auth · shadcn/Radix/Tailwind v4 · `next-intl`.
+**Stack:** Next.js · React · Postgres + Drizzle · Meilisearch · S3/MinIO · Better Auth · shadcn/Radix/Tailwind v4 · `next-intl` · discord.js.
 
 ## Getting started
 
@@ -47,8 +50,9 @@ cd app
 # 1. Start local infrastructure (postgres, meilisearch, minio)
 docker compose up -d
 
-# 2. Configure environment
-cp .env.example .env      # then fill in the values
+# 2. Configure environment (each workspace reads its own file)
+cp .env.example .env                # compose only - uses container hostnames
+cp web/.env.example web/.env.local  # what the web dev server actually reads
 
 # 3. Install dependencies
 npm ci
@@ -66,8 +70,23 @@ Common workspace commands (from `app/`):
 npm test                 # all workspace tests (vitest)
 npm run typecheck        # tsc --noEmit across all workspaces
 npm run lint -w web      # lint the web workspace
+npm run dev -w @revelio/bot  # run the Discord bot (see below)
 npm run build -w web     # next build (requires build-time env vars)
 ```
+
+### Discord bot (optional)
+
+The bot is not needed for web development. To run it you need your own Discord
+application and a server to test in:
+
+```bash
+cp bot/.env.example bot/.env.local  # then add your token, app id and guild id
+npm run dev -w @revelio/bot
+```
+
+`bot/.env.example` documents each variable. Setting `DISCORD_GUILD_ID` registers
+the slash commands to one server instantly; leaving it blank registers them
+globally, which Discord can take up to an hour to propagate.
 
 For the card dataset and how the pipeline produces the data the app ingests, see
 [`card-data/README.md`](card-data/README.md). For schema changes and the

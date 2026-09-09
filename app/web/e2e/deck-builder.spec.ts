@@ -38,3 +38,67 @@ test('the browse pane keeps its reserved band under the deck sheet while the pag
   expect(scrolled.scrollY).toBe(300)
   expect(scrolled.gap).toBeCloseTo(atTop.gap, 0)
 })
+
+// Which is the other half of the same decision. Anchoring the sheet to the
+// workbench is what keeps that band honest, but it also means a page free to
+// scroll while the sheet is open would carry the sheet up the screen with it.
+// So the page holds still while the sheet is open, and scrolls to the footer
+// once it is shut.
+test('the phone page holds still while the deck sheet is open, and scrolls once it is shut', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 402, height: 874 })
+  await page.goto('/decks/new')
+
+  // A wheel, not window.scrollTo: `overflow: hidden` stops a user scrolling a
+  // box, never a script, so a programmatic scroll would report the page moving
+  // whether the lock was there or not.
+  //
+  // Over the header, which is the page. Almost everything below it is the
+  // workbench, and the card grid there is its own scroll container - a wheel
+  // over the cards scrolls the grid and tells us nothing about the page.
+  const wheelDown = async () => {
+    await page.mouse.move(200, 25)
+    await page.mouse.wheel(0, 300)
+    await page.waitForTimeout(150)
+    return page.evaluate(() => window.scrollY)
+  }
+
+  // Shut: the footer is reachable like on any other page.
+  expect(await wheelDown()).toBeGreaterThan(0)
+
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.click('[data-deck-sheet] button')
+  await expect(page.locator('[data-deck-sheet] button').first()).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  )
+
+  // Open: it does not.
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).toBe(
+    'hidden',
+  )
+  expect(await wheelDown()).toBe(0)
+
+  // Shut again, and the page is free again - the lock leaves nothing behind.
+  await page.click('[data-deck-sheet] button')
+  await expect(page.locator('[data-deck-sheet] button').first()).toHaveAttribute(
+    'aria-expanded',
+    'false',
+  )
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).not.toBe(
+    'hidden',
+  )
+  expect(await wheelDown()).toBeGreaterThan(0)
+})
+
+// From md up the sheet is display:contents and the deck is a column of the
+// workbench, so there is no open state to lock the page for.
+test('the desktop workbench never locks the page', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/decks/new')
+
+  await page.evaluate(() => window.scrollTo(0, 200))
+  expect(await page.evaluate(() => window.scrollY)).toBe(200)
+  expect(await page.evaluate(() => document.documentElement.style.overflow)).toBe('')
+})

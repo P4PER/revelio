@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useId, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { ChevronUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -107,6 +107,35 @@ export function DeckSheet({
   const dragged = useRef(false)
   // Live drag position in px from the expanded rest position. null when at rest.
   const [offset, setOffset] = useState<number | null>(null)
+
+  // While the sheet is open the page underneath holds still. The sheet is
+  // anchored to the workbench rather than to the viewport - it has to be, or
+  // the band the browse pane reserves for its peek drifts a pixel from it for
+  // every pixel the page scrolls - so a page free to scroll while the sheet is
+  // open carries the sheet up the screen with it and strands it there. Shut,
+  // the surface scrolls away to the footer like any other page.
+  //
+  // Phone only, and that matters twice over: from md up the sheet is
+  // display:contents, so there is no sheet to hold anything still for, and a
+  // lock up there would take the scrollbar with it and shift the page sideways.
+  useEffect(() => {
+    if (!isPhone || !expanded) return
+    // Opening the sheet with the page already scrolled would put it partly off
+    // the top of the screen, and the lock would then hold it there. Come back
+    // to the workbench first, so open always means the same thing.
+    window.scrollTo(0, 0)
+    const root = document.documentElement
+    const overflow = root.style.overflow
+    const overscroll = root.style.overscrollBehavior
+    root.style.overflow = 'hidden'
+    // Without this a touch drag still rubber-bands the locked page, which
+    // reads as the sheet sliding rather than the page refusing to move.
+    root.style.overscrollBehavior = 'none'
+    return () => {
+      root.style.overflow = overflow
+      root.style.overscrollBehavior = overscroll
+    }
+  }, [isPhone, expanded])
 
   const handlePointerDown = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
     const sheet = sheetRef.current

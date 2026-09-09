@@ -470,3 +470,31 @@ input[type='search']::-webkit-search-decoration {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
 }
+
+/* An app surface is a page that is the whole screen rather than a document in
+   it: the deck builder on a phone, where the workbench is exactly the viewport
+   less the header and the card grid scrolls inside itself.
+
+   The site footer sits below the fold on every page, so such a page still had
+   a screenful of scroll under it - and scrolling it dragged the whole surface
+   up, stranding the deck sheet in the middle of the screen with the footer
+   beneath and the card grid cut off behind it. Nothing up there wants to
+   scroll; the scroll only existed to reach chrome parked below.
+
+   So below md the surface claims the screen: no footer, and a shell measured
+   in dvh rather than the vh `min-h-screen` uses, which on mobile Safari is the
+   taller viewport and would leave a toolbar's worth of scroll behind. The page
+   is then exactly one viewport tall, the sheet is pinned to the bottom of it
+   for good, and the band the browse pane reserves can never drift from it.
+
+   The query is the exact complement of Tailwind's `md:`, phrased the way the
+   sheet's own PHONE_QUERY is so the two can never disagree on a fractional
+   viewport - or when the reader has changed their root font size. */
+@media not all and (min-width: 48rem) {
+  body:has([data-app-surface]) > footer {
+    display: none;
+  }
+  body:has([data-app-surface]) [data-site-shell] {
+    min-height: 100dvh;
+  }
+}

@@ -35,6 +35,11 @@ describe('searchUrl', () => {
       .toBe('https://revelio.cards/search?q=nimbus&lesson=charms&type=item')
   })
 
+  it('carries the chosen set, which web reads as a single param', () => {
+    expect(searchUrl('https://revelio.cards', 'nimbus', 'en', { set: 'base' }))
+      .toBe('https://revelio.cards/search?q=nimbus&set=base')
+  })
+
   it('omits filters that were not applied', () => {
     expect(searchUrl('https://revelio.cards', 'nimbus', 'en', {}))
       .toBe('https://revelio.cards/search?q=nimbus')

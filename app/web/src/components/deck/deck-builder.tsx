@@ -223,11 +223,6 @@ export function DeckBuilder({
     // entirely. The cost is that on the workbench the deck column is reached
     // before the card browser, which is the smaller of the two wrongs.
     <div
-      // Below md this is the whole screen, not a section of a document: the
-      // page it sits on drops the site footer and stops scrolling, so the
-      // sheet below stays pinned to the bottom of the viewport instead of
-      // being dragged up the page with it. globals.css owns the rule.
-      data-app-surface
       className={cn(
         'relative flex h-[calc(100dvh-var(--header-h))] flex-col overflow-hidden',
         'md:grid md:h-[calc(100dvh-var(--header-h)-3rem)] md:min-h-[560px] md:grid-cols-[1.15fr_0.85fr]',

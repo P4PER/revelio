@@ -70,10 +70,8 @@ export default async function LocaleLayout({
       <body className="min-h-screen bg-background text-foreground font-sans antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
           {/* Header + content fill at least the viewport, so the footer sits
-              just below the fold and only appears once you scroll down. An app
-              surface below it (the phone deck builder) opts out of both halves
-              of that in globals.css, which needs this hook to find the shell. */}
-          <div data-site-shell className="flex min-h-screen flex-col">
+              just below the fold and only appears once you scroll down. */}
+          <div className="flex min-h-screen flex-col">
             <SiteHeader />
             <div className="flex-1">{children}</div>
           </div>

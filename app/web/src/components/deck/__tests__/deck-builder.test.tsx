@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import type { SearchResult } from '@revelio/search'
@@ -48,19 +48,6 @@ vi.mock('@/lib/deck-model', async (importOriginal) => {
   }
 })
 
-// jsdom ships no IntersectionObserver. The builder uses one to retire the
-// floating pane switch once the builder itself has scrolled out of view, so
-// stub it and keep a handle on the callback to drive that from a test.
-const observers: Array<(entries: { isIntersecting: boolean }[]) => void> = []
-class StubIntersectionObserver {
-  constructor(cb: (entries: { isIntersecting: boolean }[]) => void) {
-    observers.push(cb)
-  }
-  observe() {}
-  disconnect() {}
-}
-vi.stubGlobal('IntersectionObserver', StubIntersectionObserver)
-
 const emptyState: BuilderState = { name: '', format: 'revival', visibility: 'private', entries: [] }
 
 const draftEntry = {
@@ -81,10 +68,17 @@ beforeEach(() => {
   updateDeckAction.mockClear()
   push.mockClear()
   draftBox.current = null
-  observers.length = 0
 })
 
 describe('DeckBuilder save-on-login prompt', () => {
+  it('sizes the prompt with the buttons it sits beside from md up', async () => {
+    // text-xs is for the phone band, where the message shares 402px with two
+    // buttons. Across the workbench it read as fine print beside them.
+    draftBox.current = { name: 'My Draft', format: 'revival', visibility: 'private', entries: [draftEntry] }
+    renderBuilder({ loggedIn: true, deckId: null })
+    expect(await screen.findByText(en.decks.savePrompt.message)).toHaveClass('text-xs', 'md:text-sm')
+  })
+
   it('offers to save a non-empty guest draft once the user is logged in, and saves it on accept', async () => {
     draftBox.current = { name: 'My Draft', format: 'revival', visibility: 'private', entries: [draftEntry] }
     renderBuilder({ loggedIn: true, deckId: null })
@@ -290,8 +284,8 @@ describe('DeckBuilder mobile deck sheet', () => {
     const browse = container.querySelector('[data-pane="browse"]')!
     expect(browse.parentElement).toHaveClass('md:grid', 'md:grid-cols-[1.15fr_0.85fr]')
     expect(container.querySelector('[data-deck-sheet]')).toHaveClass('md:contents')
-    expect(browse).toHaveClass('md:col-start-1', 'md:row-start-2')
-    expect(container.querySelector('[data-pane="deck"]')).toHaveClass('md:col-start-2', 'md:row-start-2')
+    expect(browse).toHaveClass('md:col-start-1', 'md:row-start-3')
+    expect(container.querySelector('[data-pane="deck"]')).toHaveClass('md:col-start-2', 'md:row-start-3')
   })
 
   it('counts every copy in every zone on the handle', () => {
@@ -315,12 +309,13 @@ describe('DeckBuilder mobile deck sheet', () => {
   })
 
   it('rests the sheet flush on the bottom edge, not floating above it', () => {
-    // The old switch added env(safe-area-inset-bottom) to `bottom`, but a fixed
-    // element already sits inside Safari's own viewport, so the home indicator
-    // was counted twice and the bar floated about 39px too high.
+    // The old switch added env(safe-area-inset-bottom) to `bottom`, but the
+    // builder it sits in is already 100dvh tall less the header, and that dvh
+    // stops at the top of Safari's toolbar - so the home indicator was counted
+    // twice and the bar floated about 39px too high.
     const { container } = renderBuilder()
     const sheet = container.querySelector('[data-deck-sheet]')!
-    expect(sheet).toHaveClass('fixed', 'bottom-0')
+    expect(sheet).toHaveClass('absolute', 'bottom-0')
     expect(sheet.className).not.toContain('bottom-[')
   })
 
@@ -347,19 +342,15 @@ describe('DeckBuilder mobile deck sheet', () => {
     )
   })
 
-  it('retires the sheet once the builder has scrolled out of view', () => {
-    // Fixed to the viewport, it would otherwise hover over the footer and sit
-    // on top of its language switcher for the whole page. Hidden, not
-    // unmounted, so the deck's scroll position survives.
+  it('anchors the sheet to the builder, not to the viewport', () => {
+    // The band the pane reserves is padding in the page flow, so the sheet has
+    // to be measured the same way or it drifts out of that band as the page
+    // scrolls toward the footer. Anchoring it here also takes it off screen
+    // with the builder, and the clip keeps its shut body off the footer.
     const { container } = renderBuilder()
-    const sheet = container.querySelector('[data-deck-sheet]')!
-    expect(sheet).not.toHaveClass('max-md:hidden')
-
-    act(() => observers.forEach((cb) => cb([{ isIntersecting: false }])))
-    expect(sheet).toHaveClass('max-md:hidden')
-
-    act(() => observers.forEach((cb) => cb([{ isIntersecting: true }])))
-    expect(sheet).not.toHaveClass('max-md:hidden')
+    const shell = container.querySelector('[data-pane="browse"]')!.parentElement!
+    expect(shell).toHaveClass('relative', 'overflow-hidden')
+    expect(container.querySelector('[data-deck-sheet]')).toHaveClass('absolute')
   })
 
   it('opens the sheet for the save-on-login prompt, which lives inside it', async () => {
@@ -375,21 +366,46 @@ describe('DeckBuilder mobile deck sheet', () => {
   })
 
   it('leaves no empty strip under the deck list on the workbench', () => {
-    // The sheet's foot always holds the phone's full-width Save. From md up
-    // that copy is hidden and the bar's Save takes over, so for a signed-in
-    // user with no draft notice and no save prompt the foot has nothing left to
-    // show - and rendered as an empty bordered box under the deck list.
-    const { container } = renderBuilder({ loggedIn: true, deckId: 'existing-id' })
+    // The foot only ever holds the phone's full-width Save; from md up the
+    // bar's own Save takes over, so it has nothing left to show there - and
+    // rendered as an empty bordered box under the deck list.
+    const { container } = renderBuilder({ loggedIn: false, deckId: null })
     expect(container.querySelector('[data-deck-sheet-foot]')).toHaveClass('md:hidden')
   })
 
-  it('keeps the foot on the workbench when it has something to say', () => {
-    // A guest gets the draft notice there, and it belongs beside the deck at
-    // every width.
+  it("puts the save-on-login prompt on the command bar's row, not under the deck list", async () => {
+    // It belongs with the Save it is about, and on the workbench that Save is
+    // up in the command bar - not down in the phone's foot.
+    draftBox.current = { name: 'My Draft', format: 'revival', visibility: 'private', entries: [draftEntry] }
+    const { container } = renderBuilder({ loggedIn: true, deckId: null })
+    await screen.findByText(en.decks.savePrompt.message)
+    const prompt = container.querySelector('[data-deck-save-prompt]')!
+    expect(prompt).toHaveClass('md:col-span-2', 'md:row-start-2')
+    expect(container.querySelector('[data-deck-sheet-foot]')).not.toContainElement(prompt as HTMLElement)
+  })
+
+  it('never shows the draft notice and the save prompt at once, so they can share a row', async () => {
+    // Both are placed on row two of the workbench grid, which only works
+    // because the notice is for guests and the prompt needs a session.
+    draftBox.current = { name: 'My Draft', format: 'revival', visibility: 'private', entries: [draftEntry] }
+    renderBuilder({ loggedIn: true, deckId: null })
+    await screen.findByText(en.decks.savePrompt.message)
+    expect(screen.queryByText(en.decks.draftNotice)).not.toBeInTheDocument()
+  })
+
+  it("puts the guest's draft notice on the command bar's row, right after the foot", () => {
+    // On the workbench the foot sits in the deck column, so a notice rendered
+    // inside it ended up beneath the deck list; it spans the bar's own row
+    // instead. Grid placement is by row, so it can still follow the foot in
+    // the DOM - which is where a phone wants it, just under Save.
     const { container } = renderBuilder({ loggedIn: false, deckId: null })
+    const notice = screen.getByText(en.decks.draftNotice)
     const foot = container.querySelector('[data-deck-sheet-foot]')!
-    expect(foot).not.toHaveClass('md:hidden')
-    expect(foot).toHaveTextContent(en.decks.draftNotice)
+    expect(notice).toHaveClass('md:col-span-2', 'md:row-start-2')
+    expect(foot).not.toContainElement(notice)
+    expect(foot.nextElementSibling).toBe(notice)
+    // The foot hands the phone's bottom inset to the notice below it.
+    expect(foot).toHaveClass('pb-2')
   })
 
   it('replays the badge animation on every add by keying it to the add nonce', () => {

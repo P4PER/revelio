@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useId, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { ChevronUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -9,9 +9,10 @@ import { cn } from '@/lib/utils'
 // reachable - the two are siblings, so the value has to live on their ancestor.
 //
 // The inset belongs here and in the handle's own padding, never in the sheet's
-// `bottom`. A fixed element already sits inside Safari's viewport, which stops
-// at the top of its toolbar, so adding the inset to `bottom` counts the home
-// indicator twice - that is what made the old pane switch float 39px high.
+// `bottom`. The sheet sits at the foot of a box that is itself 100dvh tall
+// less the header, and that dvh already stops at the top of Safari's toolbar,
+// so adding the inset to `bottom` counts the home indicator twice - that is
+// what made the old pane switch float 39px high.
 export const DECK_SHEET_PEEK_CLASS =
   '[--deck-sheet-peek:calc(4.5rem+env(safe-area-inset-bottom,0px))]'
 
@@ -82,7 +83,6 @@ function useIsPhone() {
 export function DeckSheet({
   expanded,
   onExpandedChange,
-  onScreen = true,
   toggleLabel,
   title,
   subtitle,
@@ -91,14 +91,6 @@ export function DeckSheet({
 }: {
   expanded: boolean
   onExpandedChange: (expanded: boolean) => void
-  /**
-   * Whether the builder itself is still in view. The sheet is fixed to the
-   * viewport, so once the page has scrolled past the builder to the footer it
-   * has to get out of the way rather than sit on the footer's own controls.
-   * Hidden rather than unmounted, so the deck's scroll position and the stats
-   * panel's open state survive; only below md, where it is a sheet at all.
-   */
-  onScreen?: boolean
   /** Accessible name for the handle, which carries the live card count. */
   toggleLabel: string
   title: string
@@ -115,6 +107,65 @@ export function DeckSheet({
   const dragged = useRef(false)
   // Live drag position in px from the expanded rest position. null when at rest.
   const [offset, setOffset] = useState<number | null>(null)
+
+  // While the sheet is open the page underneath holds still. The sheet is
+  // anchored to the workbench rather than to the viewport - it has to be, or
+  // the band the browse pane reserves for its peek drifts a pixel from it for
+  // every pixel the page scrolls - so a page free to scroll while the sheet is
+  // open carries the sheet up the screen with it and strands it there. Shut,
+  // the surface scrolls away to the footer like any other page.
+  //
+  // Phone only, and that matters twice over: from md up the sheet is
+  // display:contents, so there is no sheet to hold anything still for, and a
+  // lock up there would hold still a page that has nothing to hold still for.
+  useEffect(() => {
+    if (!isPhone || !expanded) return
+    // Opening the sheet with the page already scrolled would put it partly off
+    // the top of the screen, and the lock would then hold it there. Come back
+    // to the workbench first, so open always means the same thing.
+    window.scrollTo(0, 0)
+    const root = document.documentElement
+    const body = document.body
+    // Measured before anything is locked, while the scrollbar is still there.
+    // A phone-width viewport is not a phone: a desktop window dragged below
+    // 48rem gets this layout too, and there the scrollbar is a classic one that
+    // takes up space. Take that width back as an inset on the body, or hiding
+    // the bar widens the page and every column on it jumps sideways for as long
+    // as the sheet is open.
+    const gutter = Math.max(0, window.innerWidth - root.clientWidth)
+    const previous = {
+      overflow: root.style.overflow,
+      overscroll: root.style.overscrollBehavior,
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+    }
+    root.style.overflow = 'hidden'
+    // Without this a touch drag still rubber-bands the locked page, which
+    // reads as the sheet sliding rather than the page refusing to move.
+    root.style.overscrollBehavior = 'none'
+    // `overflow: hidden` on its own is not a lock on iOS Safari, which is most
+    // of what this path serves. Focusing the deck name field in the command bar
+    // raises the keyboard, and iOS scrolls the document to reveal that field
+    // whatever the root's overflow says - leaving the page at an offset the
+    // lock then holds it at, which is the stranded sheet all over again. Taking
+    // the body out of flow leaves nothing to scroll in the first place. `right`
+    // is where the gutter goes: with `left: 0` alone the fixed body would span
+    // the full viewport, reclaimed scrollbar space included.
+    body.style.position = 'fixed'
+    body.style.top = '0'
+    body.style.left = '0'
+    body.style.right = `${gutter}px`
+    return () => {
+      root.style.overflow = previous.overflow
+      root.style.overscrollBehavior = previous.overscroll
+      body.style.position = previous.position
+      body.style.top = previous.top
+      body.style.left = previous.left
+      body.style.right = previous.right
+    }
+  }, [isPhone, expanded])
 
   const handlePointerDown = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
     const sheet = sheetRef.current
@@ -181,29 +232,40 @@ export function DeckSheet({
 
   return (
     <>
-      {expanded && onScreen && (
+      {expanded && (
         // Tap-anywhere-to-go-back, which is how the state becomes obvious. Not
         // keyboard reachable on purpose: the handle already collapses the sheet
         // and a full-screen tab stop would be worse than none.
+        //
+        // Absolute, so it covers the builder box rather than the viewport, and
+        // so it travels and leaves with the sheet it belongs to. A fixed scrim
+        // would dim a viewport the sheet had already scrolled out of, which is
+        // the case the IntersectionObserver used to paper over. The cost is
+        // that the header above the builder is neither dimmed nor a dismiss
+        // target: tapping a link up there navigates instead of collapsing.
         <div
           data-deck-sheet-scrim
           aria-hidden
           onClick={() => onExpandedChange(false)}
-          className="fixed inset-0 z-20 bg-background/60 md:hidden"
+          className="absolute inset-0 z-20 bg-background/60 md:hidden"
         />
       )}
       <div
         ref={sheetRef}
         data-deck-sheet
         style={offset === null ? undefined : { transform: `translateY(${offset}px)`, transition: 'none' }}
+        // 85dvh is the share of the screen an open sheet wants, but it is the
+        // builder box that clips it now, and that box is a header shorter than
+        // the screen. Below about 353px of dvh - a phone held sideways - 85 of
+        // them are taller than what is left, and the box would cut the grabber
+        // and the rounded corners off the top. The 100% caps it at its own
+        // container. The collapsed transform is a share of the sheet's own
+        // height, so the peek is the same either way.
         className={cn(
-          'fixed inset-x-0 bottom-0 z-30 flex h-[85dvh] flex-col overflow-hidden rounded-t-2xl border-t border-border/60 bg-card',
+          'absolute inset-x-0 bottom-0 z-30 flex h-[min(85dvh,100%)] flex-col overflow-hidden rounded-t-2xl border-t border-border/60 bg-card',
           'shadow-[0_-14px_40px_rgba(0,0,0,0.35)] transition-transform duration-[260ms] ease-[cubic-bezier(.32,.72,0,1)]',
           'motion-reduce:transition-none md:contents',
           expanded ? 'translate-y-0' : 'translate-y-[calc(100%-var(--deck-sheet-peek))]',
-          // max-md only: from md up the sheet has to stay display:contents
-          // whatever the page has scrolled past.
-          !onScreen && 'max-md:hidden',
         )}
       >
         <button

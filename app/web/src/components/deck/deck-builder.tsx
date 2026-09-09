@@ -52,16 +52,11 @@ export function DeckBuilder({
   // Whether the deck sheet is open, below md where it is a sheet at all. From
   // md up the sheet is display:contents and this has no meaning.
   const [sheetOpen, setSheetOpen] = useState(false)
-  // The sheet is fixed to the viewport, so without this it would go on
-  // hovering over the footer once the builder itself had scrolled past -
-  // sitting on top of the footer's own controls.
-  const [builderOnScreen, setBuilderOnScreen] = useState(true)
   const [saving, setSaving] = useState(false)
   const [savingDraft, setSavingDraft] = useState(false)
   const [showSavePrompt, setShowSavePrompt] = useState(false)
   const [highlight, setHighlight] = useState<{ zone: DeckZone; cardId: string; nonce: number } | null>(null)
   const isFirstSave = useRef(true)
-  const cardRef = useRef<HTMLDivElement>(null)
   const addNonce = useRef(0)
 
   // Anyone without a deckId (guest or a logged-in user landing on /decks/new)
@@ -105,16 +100,6 @@ export function DeckBuilder({
     }
     if (!deckId && !loggedIn) saveDraft(state)
   }, [state, deckId, loggedIn])
-
-  useEffect(() => {
-    const el = cardRef.current
-    // jsdom has no IntersectionObserver; leaving the bar mounted is the right
-    // fallback anywhere the API is missing.
-    if (!el || typeof IntersectionObserver === 'undefined') return
-    const observer = new IntersectionObserver(([entry]) => setBuilderOnScreen(entry.isIntersecting))
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
 
   function handleQuantityChange(cardId: string, zone: DeckZone, qty: number) {
     setState((s) => {
@@ -191,12 +176,10 @@ export function DeckBuilder({
     }
   }
 
-  // The sheet's foot always has the phone's full-width Save in it. From md up
-  // that copy is hidden and the bar's own Save takes over, so the foot is left
-  // holding only the guest's draft notice and the save-on-login prompt - and
-  // for a signed-in user with neither, nothing at all. Without this it renders
-  // as an empty bordered strip under the deck list.
-  const footHasWorkbenchContent = showSavePrompt || (!deckId && !loggedIn)
+  // A guest's unsaved draft is the only state the notice speaks to. It and the
+  // save-on-login prompt are exclusive - that one needs a session - so on the
+  // workbench they share a grid row under the command bar.
+  const showDraftNotice = !deckId && !loggedIn
 
   const sheetTitle = state.name.trim() || t('namePlaceholder')
   const sheetSummary = t('sheet.summary', {
@@ -208,13 +191,17 @@ export function DeckBuilder({
     // Below md the builder is the screen: no page padding, no card edge, and
     // the full viewport height under the header. The border and radius would
     // cost about 50px of every card row on a 402px phone, and the card shape
-    // only means anything once the builder sits inside a page. overflow-hidden
-    // is md-only so it can never clip the fixed sheet below md.
+    // only means anything once the builder sits inside a page. It clips at
+    // every width: the shut sheet is positioned against this box and hangs
+    // below it, and without the clip that hanging body paints over the footer.
     //
     // From md up this is the workbench grid and DeckSheet is display:contents,
-    // so the bar lands on row one across both columns, the browser takes the
-    // left column down both body rows, and the deck column plus its save footer
-    // stack in the right one.
+    // so its children are placed by row and column rather than by DOM order:
+    // the bar lands on row one across both columns, whichever of the draft
+    // notice and the save-on-login prompt applies on row two across both, and
+    // the two panes share row three. Row two collapses to nothing when there
+    // is neither, and the sheet's foot is phone-only, so it takes no row at
+    // all - everything it holds has a home in the command bar up here.
     //
     // The md height is the viewport less the header and the page's own py-6.
     // It used to be a flat 100dvh-11rem, but that 11rem was the header plus the
@@ -222,24 +209,30 @@ export function DeckBuilder({
     // outside the grid it sized. The bar is inside this box now, so counting it
     // again left 75px of nothing between the builder and the footer.
     //
+    // The sheet is positioned against this box rather than the viewport. The
+    // browse pane reserves the peek as padding in the page flow, so the two
+    // only line up while they are measured the same way - anchored to the
+    // viewport, the sheet drifted a pixel from its band for every pixel the
+    // page scrolled, and the gap under the last card row grew as you scrolled
+    // toward the footer. Sharing this box also means the sheet leaves with the
+    // builder on its own, which an IntersectionObserver used to fake.
+    //
     // The sheet comes before the browser in the DOM on purpose: on a phone it
     // is the thing on top, so tabbing reaches its handle first and then the
     // browser, and while the sheet is shut its body is inert and skipped
     // entirely. The cost is that on the workbench the deck column is reached
     // before the card browser, which is the smaller of the two wrongs.
     <div
-      ref={cardRef}
       className={cn(
-        'flex h-[calc(100dvh-var(--header-h))] flex-col',
+        'relative flex h-[calc(100dvh-var(--header-h))] flex-col overflow-hidden',
         'md:grid md:h-[calc(100dvh-var(--header-h)-3rem)] md:min-h-[560px] md:grid-cols-[1.15fr_0.85fr]',
-        'md:grid-rows-[auto_minmax(0,1fr)_auto] md:overflow-hidden md:rounded-xl md:border md:border-border/60',
+        'md:grid-rows-[auto_auto_minmax(0,1fr)] md:rounded-xl md:border md:border-border/60',
         DECK_SHEET_PEEK_CLASS,
       )}
     >
       <DeckSheet
         expanded={sheetOpen}
         onExpandedChange={setSheetOpen}
-        onScreen={builderOnScreen}
         toggleLabel={t('sheet.toggle', { count: deckCount })}
         title={sheetTitle}
         subtitle={sheetSummary}
@@ -270,7 +263,7 @@ export function DeckBuilder({
 
         <div
           data-pane="deck"
-          className="flex min-h-0 flex-1 flex-col overflow-hidden bg-gradient-to-b from-card/40 to-transparent md:col-start-2 md:row-start-2"
+          className="flex min-h-0 flex-1 flex-col overflow-hidden bg-gradient-to-b from-card/40 to-transparent md:col-start-2 md:row-start-3"
         >
           <DeckStatsPanel entries={state.entries} />
           <DeckPanel
@@ -282,20 +275,23 @@ export function DeckBuilder({
           />
         </div>
 
-        {/* On a phone saving lives with the deck, full width, so its label
-            cannot squeeze the command bar the way it used to. The workbench
-            keeps its Save up in the bar, where it has always been. */}
-        <div
-          data-deck-sheet-foot
-          className={cn(
-            'shrink-0 border-t border-border/60 bg-card/60 px-4 pt-3',
-            'pb-[max(0.75rem,env(safe-area-inset-bottom))] md:col-start-2 md:row-start-3 md:pb-3',
-            !footHasWorkbenchContent && 'md:hidden',
-          )}
-        >
-          {showSavePrompt && (
-            <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg bg-primary/10 px-3 py-2">
-              <p className="flex-1 text-xs text-foreground">{t('savePrompt.message')}</p>
+        {/* The offer to keep a guest draft. On a phone it sits just above the
+            Save it is really about; on the workbench that Save is up in the
+            command bar, so the offer follows it there onto row two - the same
+            row the draft notice uses, which is free whenever this shows. */}
+        {showSavePrompt && (
+          <div
+            data-deck-save-prompt
+            className={cn(
+              'shrink-0 border-t border-border/60 bg-card/60 px-4 py-3',
+              'md:col-span-2 md:row-start-2 md:border-t-0 md:border-b md:bg-card/40 md:py-2',
+            )}
+          >
+            <div className="flex flex-wrap items-center gap-2 rounded-lg bg-primary/10 px-3 py-2">
+              {/* text-xs is for the phone, where this sits in a 402px band beside
+                  two buttons. From md it spans the workbench and reads as fine
+                  print next to sm-sized buttons, so it takes their size. */}
+              <p className="flex-1 text-xs text-foreground md:text-sm">{t('savePrompt.message')}</p>
               <Button type="button" size="sm" disabled={savingDraft} onClick={handleSaveDraftToAccount}>
                 {t('savePrompt.accept')}
               </Button>
@@ -309,19 +305,46 @@ export function DeckBuilder({
                 {t('savePrompt.dismiss')}
               </Button>
             </div>
-          )}
+          </div>
+        )}
 
+        {/* On a phone saving lives with the deck, full width, so its label
+            cannot squeeze the command bar the way it used to. The workbench
+            keeps its Save up in the bar, where it has always been, so nothing
+            is left for this band to hold there. */}
+        <div
+          data-deck-sheet-foot
+          className={cn(
+            'shrink-0 border-t border-border/60 bg-card/60 px-4 pt-3 md:hidden',
+            // The notice below carries the phone's bottom inset when it is
+            // there, so the two do not each reserve the home indicator.
+            showDraftNotice ? 'pb-2' : 'pb-[max(0.75rem,env(safe-area-inset-bottom))]',
+          )}
+        >
           <DeckSaveButton
             loggedIn={loggedIn}
             saving={saving}
             onSave={handleSave}
             className="w-full md:hidden"
           />
-
-          {!deckId && !loggedIn && (
-            <p className="mt-2 text-xs text-muted-foreground">{t('draftNotice')}</p>
-          )}
         </div>
+
+        {/* Under Save on a phone, closing out the foot's band - it says what
+            that button is for. The workbench keeps Save up in the command bar,
+            so there the notice takes its own grid row directly under that bar,
+            spanning both columns. That is the whole reason it sits outside the
+            foot: the foot is a box in the deck column, and inside it the
+            notice ended up beneath the deck list. */}
+        {showDraftNotice && (
+          <p
+            className={cn(
+              'shrink-0 bg-card/60 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-xs text-muted-foreground',
+              'md:col-span-2 md:row-start-2 md:border-b md:border-border/60 md:bg-card/40 md:pt-1.5 md:pb-1.5',
+            )}
+          >
+            {t('draftNotice')}
+          </p>
+        )}
       </DeckSheet>
 
       <div
@@ -343,7 +366,7 @@ export function DeckBuilder({
         // tiles clear of the peek, so nothing of theirs overlaps it.
         className={cn(
           'min-h-0 flex-1 overflow-hidden pb-[var(--deck-sheet-peek)]',
-          'md:col-start-1 md:row-start-2 md:row-span-2 md:border-r md:border-border/60 md:pb-0',
+          'md:col-start-1 md:row-start-3 md:border-r md:border-border/60 md:pb-0',
           sheetOpen && 'max-md:isolate',
         )}
       >

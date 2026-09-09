@@ -109,7 +109,7 @@ describe('DeckSheet', () => {
     // of the workbench on a desktop, instead of being rendered twice.
     const { container } = render(<Harness />)
     const sheet = container.querySelector('[data-deck-sheet]')!
-    expect(sheet).toHaveClass('fixed', 'md:contents')
+    expect(sheet).toHaveClass('absolute', 'md:contents')
     const handle = screen.getByRole('button', { name: 'Deck, 12 cards' })
     expect(handle).toHaveClass('md:hidden')
     expect(document.getElementById(handle.getAttribute('aria-controls')!)).toHaveClass('md:contents')

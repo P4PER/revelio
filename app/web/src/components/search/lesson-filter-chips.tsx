@@ -9,9 +9,9 @@ import { Chip } from '@/components/ui/chip'
 // active; labels collapse to icon-only on narrow (touch) widths.
 //
 // Chips, not a row: this returns the bare siblings and the caller supplies the
-// container they sit in, which is why the name says chips. /search scrolls
-// them sideways in a FilterRail while the deck toolbars wrap them, so there is
-// no one row that suits all three call sites.
+// container they sit in, which is why the name says chips. /search and the deck
+// builder scroll them sideways in a FilterRail while /decks wraps them, so
+// there is no one row that suits all three call sites.
 export function LessonFilterChips({
   selected,
   onToggle,

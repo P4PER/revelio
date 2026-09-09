@@ -7,7 +7,19 @@ import { cn } from '@/lib/utils'
 // the filter block; on one scrolling line they spend one row. From md up there
 // is room to wrap, so the rail reverts to the plain wrapping row it replaced
 // and the desktop layout is unchanged.
-export function FilterRail({ className, children, ...props }: ComponentProps<'div'>) {
+//
+// `alwaysScrolls` is for a lane that never gets that room. The deck builder's
+// runs inside a pane that is a column of the workbench from md up rather than
+// the width of the page, and the chips grow their labels back at sm - a
+// viewport rule for a box the viewport does not size - so there they wrapped
+// onto four rows in a 768px window. It drops the md overrides rather than
+// adding any: such a lane is simply the phone lane at every width.
+export function FilterRail({
+  className,
+  alwaysScrolls = false,
+  children,
+  ...props
+}: ComponentProps<'div'> & { alwaysScrolls?: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
   // Whether the lane is scrolled hard against each end. Both start true so a
   // lane that fits (the five lesson chips) never wears a fade, and so the
@@ -74,7 +86,7 @@ export function FilterRail({ className, children, ...props }: ComponentProps<'di
       // past the resting scrollLeft and sits permanently half-faded.
       className={cn(
         'no-scrollbar relative -my-1.5 -ml-1.5 -mr-6 flex min-w-0 snap-x snap-proximity gap-2 overflow-x-auto py-1.5 pr-6 pl-1.5 scroll-pr-6 scroll-pl-1.5 [&>*]:snap-start',
-        'md:mr-0 md:flex-wrap md:overflow-visible md:pr-0',
+        !alwaysScrolls && 'md:mr-0 md:flex-wrap md:overflow-visible md:pr-0',
         className,
       )}
       style={

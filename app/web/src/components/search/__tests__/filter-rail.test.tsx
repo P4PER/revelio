@@ -140,6 +140,18 @@ describe('FilterRail', () => {
     }
   })
 
+  it('keeps scrolling past md when the lane is told it never gets the room', () => {
+    // The deck builder's lane lives in a workbench column, not across the
+    // page, so the md overrides that let a lane wrap would strand its chips on
+    // four rows there. Dropping them is the whole of the opt-in.
+    const { rerender } = render(<FilterRail role="group" aria-label="Type" />)
+    expect(screen.getByRole('group').className).toContain('md:flex-wrap')
+
+    rerender(<FilterRail alwaysScrolls role="group" aria-label="Type" />)
+    expect(screen.getByRole('group').className).not.toContain('md:flex-wrap')
+    expect(screen.getByRole('group')).toHaveClass('overflow-x-auto')
+  })
+
   it('wears no mask when every chip already fits', () => {
     render(
       <FilterRail role="group" aria-label="Lesson" data-clientwidth="300" data-scrollwidth="300">

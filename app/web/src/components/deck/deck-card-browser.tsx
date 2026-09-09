@@ -7,6 +7,7 @@ import type { SearchDocument, SearchResult } from '@revelio/search'
 import { searchDeckCards } from '@/lib/actions/deck-actions'
 import { DECK_BROWSE_PAGE_SIZE } from '@/lib/deck-view'
 import { LessonFilterChips } from '@/components/search/lesson-filter-chips'
+import { FilterRail } from '@/components/search/filter-rail'
 import { ClearFiltersButton } from '@/components/search/clear-filters-button'
 import { cn } from '@/lib/utils'
 import { SearchField } from '@/components/search/search-field'
@@ -173,7 +174,7 @@ export function DeckCardBrowser({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-col gap-2.5 border-b border-border/60 px-4 py-3">
+      <div className="flex flex-col gap-2.5 border-b border-border/60 px-4 py-4">
         <SearchField
           primary
           value={query}
@@ -181,11 +182,40 @@ export function DeckCardBrowser({
           onClear={() => setQuery('')}
           placeholder={t('browse.searchPlaceholder', { format: t(`format.${format}`) })}
         />
-        <div className="flex flex-wrap items-center gap-1.5">
-          <div className="flex flex-wrap gap-2">
+        {/* One line at every width. Wrapping the chips left this row a hair
+            too wide for a 402px phone - the five of them fit, Advanced did not,
+            and it dropped onto a line of its own - and past sm, where the chips
+            grow their labels back, it dropped again. So the chips scroll
+            sideways in the same FilterRail /search uses for its lesson lane and
+            Advanced keeps the right end of the row, which is where the
+            collection and discover toolbars put it too.
+
+            alwaysScrolls because this pane is a column of the workbench from md
+            up rather than the width of the page: the room the rail assumes it
+            has there is room this lane never gets. The cost is that a wide
+            window scrolls a lane it could have wrapped, which is the trade
+            asked for - one row everywhere.
+
+            The rail's own gutter bleed is for a lane that runs to the screen
+            edge; here it ends at a button, so mr-0 keeps it off Advanced and
+            pr-1.5 mirrors the padding that buys the first chip's focus ring
+            room.
+
+            role="group" is what carries the label: aria-label on a bare div is
+            dropped, since the generic role takes no author-supplied name. The
+            search lanes and the discover toolbar name their chip groups the
+            same way, and this lane needs it more than either - it scrolls, so
+            what is on screen is only ever part of it. */}
+        <div className="flex items-center gap-1.5">
+          <FilterRail
+            alwaysScrolls
+            role="group"
+            aria-label={tf('lesson')}
+            className="mr-0 pr-1.5 scroll-pr-1.5"
+          >
             <LessonFilterChips selected={lessons} onToggle={toggleLesson} />
-          </div>
-          <div className="ml-auto">
+          </FilterRail>
+          <div className="ml-auto shrink-0">
             <DeckFilterDrawer sets={sets} value={filters} onApply={setFilters} />
           </div>
         </div>

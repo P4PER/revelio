@@ -118,6 +118,26 @@ describe('DeckCardBrowser', () => {
     expect(underGrid).not.toHaveTextContent('1 / 37')
   })
 
+  it('keeps the lesson chips and Advanced on one line', async () => {
+    // Wrapping them cost a whole row the moment the five chips and the button
+    // came to more than the pane is wide - which on a 402px phone they only
+    // just did, and past sm, where the chips grow their labels back, they
+    // clearly do. The chips scroll sideways instead, so Advanced never leaves
+    // the row.
+    renderBrowser(() => false)
+    const advanced = screen.getByRole('button', { name: en.filters.button })
+    const row = advanced.parentElement!.parentElement!
+    expect(row).not.toHaveClass('flex-wrap')
+    const rail = row.querySelector('img')!.closest('div')!
+    expect(rail).toHaveClass('overflow-x-auto')
+    // Neither width wraps: the pane is a workbench column from md up, where
+    // the labelled chips took four rows of it.
+    expect(rail.classList.contains('flex-wrap')).toBe(false)
+    expect(rail.className).not.toContain('md:flex-wrap')
+    // The button stays pinned to the right end of that row.
+    expect(advanced.parentElement).toHaveClass('ml-auto', 'shrink-0')
+  })
+
   it('fits two card tiles per row on the narrowest screens', async () => {
     // The grid floored its tracks at 190px. Nested inside the page's and the
     // browser's own padding that leaves ~308px on a 390px phone, so auto-fill

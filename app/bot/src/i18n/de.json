@@ -5,6 +5,7 @@
   "command.search.option.query": "Suchbegriffe",
   "command.search.option.lesson": "Lektion",
   "command.search.option.type": "Kartentyp",
+  "command.search.option.set": "Set",
   "command.search.option.page": "Seitenzahl",
   "card.notFound": "Keine Karte passt zu \"{name}\".",
   "card.field.type": "Typ",

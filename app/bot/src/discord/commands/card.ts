@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, type ChatInputCommandInteraction } from 'discord.js'
 import type { Deps } from '../../clients'
-import { findOneCard, getCardRulings } from '../../data/cards'
+import { findOneCard, resolveCardRulings } from '../../data/cards'
 import { toRevelioLocale } from '../../i18n/locale'
 import { t } from '../../i18n/t'
 import { cardEmbed } from '../embeds/card-embed'
@@ -37,7 +37,7 @@ export async function execute(
 
   const [setName, rulings] = await Promise.all([
     deps.sets.name(doc.setCode, locale),
-    getCardRulings(deps.db, doc.id, locale),
+    resolveCardRulings(deps.db, doc.id, locale),
   ])
 
   await interaction.editReply({

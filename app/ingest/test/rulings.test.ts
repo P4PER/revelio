@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { eq } from 'drizzle-orm'
-import { sets, cards, cardRulings, cardRulingLocalizations, saveRulings, getCardById } from '@revelio/db'
+import { sets, cards, cardRulings, cardRulingLocalizations, saveRulings, getCardById, getCardRulings } from '@revelio/db'
 import { withMigratedDb } from './helpers'
 
 let ctx: Awaited<ReturnType<typeof withMigratedDb>>
@@ -60,5 +60,49 @@ describe('saveRulings', () => {
     expect(parents.length).toBe(1) // the empty new row was dropped; the existing ruling stays (id preserved regardless of empty fields)
     const texts = await ctx.db.select().from(cardRulingLocalizations).where(eq(cardRulingLocalizations.rulingId, only.id))
     expect(texts.find((t) => t.lang === 'en')).toBeUndefined() // en text removed
+  })
+})
+
+describe('getCardRulings', () => {
+  beforeAll(async () => {
+    await ctx.db.insert(cards).values([
+      { id: 'x-2', setCode: 'X', number: '2', name: 'Second', defaultLanguage: 'en' },
+      { id: 'x-3', setCode: 'X', number: '3', name: 'Third', defaultLanguage: 'de' },
+    ])
+    // inserted out of seq order, so the ordering assertion means something
+    await ctx.db.insert(cardRulings).values([
+      { id: 'r-b', cardId: 'x-2', seq: 1 },
+      { id: 'r-a', cardId: 'x-2', seq: 0, date: '2001-08-31', source: 'WotC' },
+    ])
+    await ctx.db.insert(cardRulingLocalizations).values([
+      { rulingId: 'r-a', lang: 'en', text: 'first en' },
+      { rulingId: 'r-a', lang: 'de', text: 'erste de' },
+      { rulingId: 'r-b', lang: 'en', text: 'second en' },
+    ])
+  })
+
+  it('returns rulings ordered by seq, each with every language text', async () => {
+    const res = await getCardRulings(ctx.db, 'x-2')
+    expect(res!.defaultLanguage).toBe('en')
+    expect(res!.rulings.map((r) => r.id)).toEqual(['r-a', 'r-b'])
+    expect(res!.rulings[0]).toMatchObject({
+      seq: 0, date: '2001-08-31', source: 'WotC', text: { en: 'first en', de: 'erste de' },
+    })
+    expect(res!.rulings[1]).toMatchObject({ seq: 1, date: null, source: null, text: { en: 'second en' } })
+  })
+
+  it('returns an empty list for a card with no rulings', async () => {
+    expect(await getCardRulings(ctx.db, 'x-3')).toEqual({ defaultLanguage: 'de', rulings: [] })
+  })
+
+  it('returns null for a card that does not exist', async () => {
+    expect(await getCardRulings(ctx.db, 'nope')).toBeNull()
+  })
+
+  it('agrees with what getCardById assembles', async () => {
+    const full = await getCardById(ctx.db, 'x-2')
+    const only = await getCardRulings(ctx.db, 'x-2')
+    expect(only!.rulings).toEqual(full!.rulings)
+    expect(only!.defaultLanguage).toBe(full!.defaultLanguage)
   })
 })

@@ -1,0 +1,21 @@
+{
+  "name": "@revelio/bot",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "dev": "node --env-file-if-exists=.env.local --import tsx src/main.ts",
+    "register": "node --env-file-if-exists=.env.local --import tsx src/discord/register.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json"
+  },
+  "dependencies": {
+    "@revelio/core": "*",
+    "@revelio/db": "*",
+    "@revelio/search": "*",
+    "discord.js": "^14.27.0",
+    "drizzle-orm": "^0.38.0",
+    "postgres": "^3.4.0",
+    "zod": "^3.23.0"
+  }
+}

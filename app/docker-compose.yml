@@ -54,6 +54,37 @@ services:
       - ../card-data/assets:/assets:ro
     restart: "no"
 
+  bot:
+    image: revelio-bot:local
+    build:
+      context: .
+      dockerfile: bot/Dockerfile
+    # Not started by a bare `docker compose up`: it needs a real Discord token,
+    # which most local work does not have. Start it with
+    # `docker compose --profile bot up bot`.
+    profiles: ["bot"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+    # The bot owns its env, like web does. One file serves both a host run and
+    # this container; `environment` below wins over it, so the localhost values
+    # in .env.local stay correct for `npm run dev -w @revelio/bot`.
+    env_file:
+      - path: bot/.env.local
+        required: false
+    environment:
+      DATABASE_URL: postgres://revelio:revelio@postgres:5432/revelio
+      MEILI_HOST: http://meilisearch:7700
+      MEILI_SEARCH_KEY: masterKey
+      IMAGE_BASE_URL: http://localhost:9000/images
+      SITE_BASE_URL: http://localhost:3000
+    # No restart policy: this is the local dev stack, and bot/.env.local is
+    # optional, so `unless-stopped` would crash-loop on a fresh clone instead
+    # of showing the env error once. Matches ingest/migrate.
+    restart: "no"
+
   migrate:
     image: revelio-ingest:local
     build:

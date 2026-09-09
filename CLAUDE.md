@@ -31,6 +31,10 @@ npm run e2e -w web           # builds + starts prod server, runs against localho
 # lint (only the web workspace is linted — eslint-config-next)
 npm run lint -w web
 
+# Discord bot (needs bot/.env.local, see below)
+npm run dev -w @revelio/bot       # run against the local stack
+npm run register -w @revelio/bot  # publish slash commands without starting the gateway
+
 # database / migrations (see MIGRATIONS section)
 npm run db:generate          # alias for generate -w @revelio/db
 npm run check -w @revelio/db     # drizzle-kit journal/snapshot consistency
@@ -41,17 +45,20 @@ CI (`.github/workflows/ci.yml`) has three jobs: **check** (db check + verify, we
 
 ### Local infra
 
-`docker compose up` (from `app/`) starts postgres, meilisearch, and minio. Migrations run via the compose `tools` profile: `docker compose run --rm migrate`. Copy `app/.env.example` → `app/.env`; compose hostnames are the service names (`postgres`, `meilisearch`, `minio`), use `localhost` + published ports when running a service on the host.
+`docker compose up` (from `app/`) starts postgres, meilisearch, and minio. Migrations run via the compose `tools` profile: `docker compose run --rm migrate`. The bot is behind a `bot` profile so a bare `up` never needs a Discord token: `docker compose --profile bot up bot`.
+
+**Env files are per workspace, and `app/.env` is not the one the app reads.** Copy `app/.env.example` → `app/.env` for compose only — compose hostnames are the service names (`postgres`, `meilisearch`, `minio`). Next reads `app/web/.env.local`, and the bot reads `app/bot/.env.local` (both have a committed `.env.example` beside them). Use `localhost` + published ports in those two, since they run on the host; the compose `bot` service loads `bot/.env.local` via `env_file` and overrides the two hostnames.
 
 ## Architecture
 
-Five npm workspaces under `app/`, with a strict dependency direction `core ← {search, db} ← {ingest, web}`:
+Six npm workspaces under `app/`, with a strict dependency direction `core ← {search, db} ← {ingest, web, bot}`:
 
 - **`@revelio/core`** (`core/`) — framework-agnostic domain layer: Zod schemas (`schemas.ts`), the card domain model (`domain.ts`), attribute definitions (`attributes.ts`), image key helpers (`images.ts`). No I/O. Every other workspace imports from here.
 - **`@revelio/search`** (`search/`) — Meilisearch client + document shape + query builder. `createMeiliClient(host, key)` is the single client factory; `documents.ts` defines the indexed card document; `search.ts` builds queries/filters.
 - **`@revelio/db`** (`db/`) — Drizzle ORM over Postgres. `schema.ts` (card data) + `auth-schema.ts` (Better Auth tables), `queries.ts`, `client.ts`, and migration runners (`migrate.ts` / `migrate-cli.ts`). Migrations are checked-in SQL under `db/drizzle/`.
 - **`@revelio/ingest`** (`ingest/`) — one-shot job (`src/main.ts`, run with `tsx`) that runs migrations, seeds Postgres from `card-data`, indexes Meilisearch, and uploads card images to S3/MinIO. The `load-*.ts` files each own one data source; `build-documents.ts` + `index-cards.ts` produce the search index; `upload-images.ts` handles S3.
-- **`@revelio/web`** (`web/`) — Next.js 16 (App Router, React 19) app. This is the only workspace with a lint step and the only one that ships to users.
+- **`@revelio/web`** (`web/`) — Next.js 16 (App Router, React 19) app. This is the only workspace with a lint step, and the only one users reach in a browser.
+- **`@revelio/bot`** (`bot/`) — discord.js gateway bot serving `/card` and `/search` in Discord. It reads Meilisearch and Postgres directly on the private network; there is no HTTP API between it and `web`, and it must never import from `web`. Read-only: it uses `MEILI_SEARCH_KEY` and never `MEILI_WRITE_KEY`.
 
 ### Web app specifics
 
@@ -75,6 +82,17 @@ Five npm workspaces under `app/`, with a strict dependency direction `core ← {
   siblings share a type, its `types.ts`.
 - `NEXT_PUBLIC_*` env vars are inlined at `next build` — they must be set at build time, not just at runtime.
 
+### Discord bot specifics
+
+- **No privileged intents.** `GatewayIntentBits.Guilds` only — reading message content or member lists would require Discord verification, and slash commands need neither.
+- **Every user-facing string comes from `bot/src/i18n/{en,de}.json`**, never hardcoded copy; `test/catalog-parity.test.ts` enforces that both catalogs hold the same keys. Attribute codes (lesson/type/rarity/finish/legality) render via `attrLabel` from `@revelio/core`, which is shared with `web`.
+- **Discord embed limits are hard** and a breach fails the whole interaction with a 400: description 4096 chars, field value 1024, at most 25 fields. Clamp rather than risk it.
+- **Every command defers first** (`interaction.deferReply()`), then edits — a deferred reply has 15 minutes against Discord's 3-second initial budget.
+- **Replies must not be able to ping.** The client sets `allowedMentions: { parse: [] }`; commands echo user input back, so anything else lets `/card name:@everyone` mass-ping a guild.
+- **Meilisearch totals are estimates.** `estimatedTotalHits` over-counts, so a page inside the computed page count can still come back empty — treat that as out of range.
+- Commands are registered on every boot (Discord's `PUT` is a full replace), but a registration failure is logged and survived rather than fatal.
+- Card images use `thumbKey` (300px), never the full `imageKey`.
+
 ## Migrations (read before touching the schema)
 
 Drizzle migrations are **incremental and append-only**; full details in `docs/MIGRATIONS.md`. `db/drizzle/0000_*.sql` is the frozen baseline — **never** `rm` the `drizzle/` folder or regenerate `0000`. To change the schema: edit `db/src/schema.ts`, run `npm run generate` from `app/db`, review the generated `drizzle/NNNN_*.sql`, and commit the schema edit + migration together. `npm run verify` (CI-enforced) fails if you edited the schema but forgot to generate.
@@ -88,6 +106,7 @@ Design specs and phased implementation plans live in `docs/superpowers/specs/` a
 - **Conventional Commits** for commit messages.
 - Documentation filenames are UPPERCASE (`README.md`, `MIGRATIONS.md`, `BRAND-GUIDE.md`).
 - All docs/specs/prose in English.
+- **Declaration order within a file: types → constants → helpers → exported functions.** Imports first, then every `type`/`interface`, then module constants, then unexported helpers, then the exported functions (`search/src/search.ts` and `core/src/deck-legality.ts` are the reference). A type buried between two functions is the thing to avoid: readers look for the shape before the behaviour.
 - **Shared types → `types.ts`.** When a type is used by two or more sibling modules in a folder, define it once in a folder-scoped `types.ts` (e.g. `src/lib/email/types.ts` exports `RenderedEmail`, shared by `otp-template.tsx` and `contact-template.tsx`) and import it with `import type`. Keep single-use types local to their module — don't pre-emptively create a `types.ts` for a type with one consumer.
 
 ## Subagents

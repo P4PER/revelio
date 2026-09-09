@@ -1,7 +1,6 @@
 'use client'
 import { useLocale } from 'next-intl'
-import { LESSONS } from '@revelio/core'
-import { attrLabel } from '@/lib/attribute-labels'
+import { LESSONS, attrLabel } from '@revelio/core'
 import { lessonVar } from '@/lib/lesson-colors'
 import { Chip } from '@/components/ui/chip'
 

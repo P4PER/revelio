@@ -3,7 +3,7 @@ import { Link } from '@/../i18n/navigation'
 import { CardRotate } from '@/components/card/card-rotate'
 import { Badge } from '@/components/ui/badge'
 import { CardFinishStepper } from '@/components/card/card-finish-stepper'
-import { attrLabel } from '@/lib/attribute-labels'
+import { attrLabel } from '@revelio/core'
 import { cn } from '@/lib/utils'
 
 export type CollectionCard = {

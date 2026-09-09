@@ -2,8 +2,7 @@
 import { useTranslations } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from '@/../i18n/navigation'
-import type { SetDTO } from '@revelio/core'
-import { attrLabel } from '@/lib/attribute-labels'
+import { attrLabel, type SetDTO } from '@revelio/core'
 import { withParams } from '@/lib/search-params'
 import { Badge } from '@/components/ui/badge'
 

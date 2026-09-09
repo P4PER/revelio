@@ -1,5 +1,5 @@
 import { useLocale, useTranslations } from 'next-intl'
-import { attrLabel } from '@/lib/attribute-labels'
+import { attrLabel } from '@revelio/core'
 
 // Fixed-size row of lesson symbols for deck list entries. Plain component (no
 // 'use client') so it renders in both the server browse page and client entries.

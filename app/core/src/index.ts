@@ -1,4 +1,5 @@
 export * from './attributes'
+export * from './labels'
 export * from './schemas'
 export * from './domain'
 export * from './images'

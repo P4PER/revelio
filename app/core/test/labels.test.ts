@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { attrLabel } from '../attribute-labels'
+import { attrLabel } from '../src/labels'
+import { TYPES, LESSONS, RARITIES, FINISHES, LEGALITIES } from '../src/attributes'
 
 describe('attrLabel', () => {
   it('resolves English labels by code', () => {
@@ -12,7 +13,7 @@ describe('attrLabel', () => {
     expect(attrLabel('types', 'creature', 'de')).toBe('Kreatur')
   })
 
-  it('resolves legalities (formerly humanized)', () => {
+  it('resolves legalities', () => {
     expect(attrLabel('legalities', 'banned', 'en')).toBe('Banned')
     expect(attrLabel('legalities', 'banned', 'de')).toBe('Verboten')
   })
@@ -23,5 +24,20 @@ describe('attrLabel', () => {
 
   it('falls back to the code for an unknown key', () => {
     expect(attrLabel('lessons', 'nope', 'en')).toBe('nope')
+  })
+
+  it('covers every curated attribute code in both locales', () => {
+    const scopes = [
+      ['types', TYPES], ['lessons', LESSONS], ['rarities', RARITIES],
+      ['finishes', FINISHES], ['legalities', LEGALITIES],
+    ] as const
+    for (const [scope, metas] of scopes) {
+      for (const m of metas) {
+        for (const locale of ['en', 'de']) {
+          expect(attrLabel(scope, m.code, locale), `${locale}/${scope}/${m.code}`)
+            .not.toBe(m.code)
+        }
+      }
+    }
   })
 })

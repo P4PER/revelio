@@ -2,7 +2,7 @@
 import { useTranslations } from 'next-intl'
 import { Album } from 'lucide-react'
 import { CardFinishStepper } from '@/components/card/card-finish-stepper'
-import { attrLabel } from '@/lib/attribute-labels'
+import { attrLabel } from '@revelio/core'
 import { cn } from '@/lib/utils'
 
 // Always-visible collection panel shown under the card image on the detail page:

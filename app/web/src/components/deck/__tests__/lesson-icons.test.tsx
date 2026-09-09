@@ -3,7 +3,6 @@ import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import de from '@/../messages/de.json'
-import { attrLabel } from '@revelio/core'
 import { renderWithIntl } from '@/test/intl'
 import { LessonIcons } from '@/components/deck/lesson-icons'
 
@@ -18,7 +17,7 @@ describe('LessonIcons', () => {
   it('renders one image per lesson code', () => {
     renderWithIntl(<LessonIcons codes={['charms', 'potions']} />)
     expect(screen.getAllByRole('img')).toHaveLength(2)
-    expect(screen.getByAltText(attrLabel('lessons', 'potions', 'en'))).toHaveAttribute('src', '/lessons/potions.svg')
+    expect(screen.getByAltText('Potions')).toHaveAttribute('src', '/lessons/potions.svg')
   })
 
   it('caps icons and shows a +N overflow chip', () => {
@@ -35,7 +34,7 @@ describe('LessonIcons', () => {
   it('names the row and each symbol in the active locale', () => {
     renderInGerman(<LessonIcons codes={['potions', 'care_of_magical_creatures']} />)
     expect(screen.getByLabelText(de.decks.lessonsAria)).toBeInTheDocument()
-    expect(screen.getByAltText(attrLabel('lessons', 'potions', 'de'))).toBeInTheDocument()
-    expect(screen.getByAltText(attrLabel('lessons', 'care_of_magical_creatures', 'de'))).toBeInTheDocument()
+    expect(screen.getByAltText('Zaubertränke')).toBeInTheDocument()
+    expect(screen.getByAltText('Pflege magischer Geschöpfe')).toBeInTheDocument()
   })
 })

@@ -54,6 +54,31 @@ services:
       - ../card-data/assets:/assets:ro
     restart: "no"
 
+  bot:
+    image: revelio-bot:local
+    build:
+      context: .
+      dockerfile: bot/Dockerfile
+    # Not started by a bare `docker compose up`: it needs a real Discord token,
+    # which most local work does not have. Start it with
+    # `docker compose --profile bot up bot`.
+    profiles: ["bot"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+    environment:
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID}
+      DISCORD_GUILD_ID: ${DISCORD_GUILD_ID}
+      DATABASE_URL: postgres://revelio:revelio@postgres:5432/revelio
+      MEILI_HOST: http://meilisearch:7700
+      MEILI_SEARCH_KEY: masterKey
+      IMAGE_BASE_URL: http://localhost:9000/images
+      SITE_BASE_URL: http://localhost:3000
+    restart: unless-stopped
+
   migrate:
     image: revelio-ingest:local
     build:

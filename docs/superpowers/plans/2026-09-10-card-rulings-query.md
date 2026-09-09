@@ -67,12 +67,17 @@ Both halves of the concern are real: 8 queries for 2 fields, and `max: 1` costs 
 
 - `createClient` callers: `web/src/lib/server/db.ts`, `web/src/lib/server/auth.ts`,
   `bot/src/clients.ts`, `ingest/src/main.ts`, `db/src/migrate-cli.ts`. postgres.js opens
-  connections lazily, so the one-shot jobs (`ingest`, `migrate-cli`) that never issue
-  overlapping queries still use exactly one connection.
+  connections on demand, so a caller holds only as many as it has queries in flight:
+  one for `migrate-cli`, up to five for `ingest` (the parallel reads in
+  `build-documents.ts`, which is exactly the case this change speeds up).
 - `ingest` has no parallel writes: the only `Promise.all` over the db is the five reads in
   `build-documents.ts`, which get faster, and `upload-images.ts`'s workers are S3-bound.
 - Postgres defaults to `max_connections = 100`. Worst case here is web (2 pools: db + auth)
-  plus bot (1 pool) = 30 connections.
+  plus bot (1 pool) = 30 connections, and only at simultaneous peak: `createClient` also
+  sets `idle_timeout`, which postgres.js leaves off by default, so an idle process drops
+  back to no connections instead of holding its high-water mark. Folding `auth.ts` onto
+  `getDb()`'s pool would halve web's ceiling again, but it changes how that module
+  tolerates a missing `DATABASE_URL`, so it stays out of this branch.
 
 ---
 

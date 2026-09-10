@@ -96,7 +96,7 @@ describe('getPublicDeck', () => {
 })
 
 describe('getPublicDeck lesson tiebreak', () => {
-  // deck_cards is read without an ORDER BY (db/src/queries.ts), so two lessons on
+  // deck_cards is read without an ORDER BY (db/src/queries/decks.ts), so two lessons on
   // equal copies must not resolve by row order - the accent colour would flip
   // between two identical lookups of the same deck.
   const tied = [

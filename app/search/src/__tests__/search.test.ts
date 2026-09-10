@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { searchCardIds, searchCardSuggestions, searchCards } from '../search'
+import {
+  searchCardIds,
+  searchCardSuggestions,
+  searchCardSummaries,
+  searchCards,
+} from '../search'
 
 // Minimal fake Meili client that records the search options it was called with.
 function fakeClient(captured: Record<string, unknown>, hits: { id: string }[] = []) {
@@ -25,6 +30,30 @@ describe('searchCards', () => {
     const res = await searchCards(fakeClient({}), 'en', '', { page: 3, hitsPerPage: 24 })
     expect(res.page).toBe(3)
     expect(res.hitsPerPage).toBe(24)
+  })
+
+  it('asks for whole documents', async () => {
+    const captured: Record<string, unknown> = {}
+    await searchCards(fakeClient(captured), 'en', '', {})
+    expect(captured.attributesToRetrieve).toBeUndefined()
+  })
+})
+
+describe('searchCardSummaries', () => {
+  it('pages like searchCards but asks only for the label fields', async () => {
+    const captured: Record<string, unknown> = {}
+    await searchCardSummaries(fakeClient(captured), 'en', 'nim', { page: 2, hitsPerPage: 10 })
+    expect(captured.offset).toBe(10)
+    expect(captured.limit).toBe(10)
+    expect(captured.attributesToRetrieve).toEqual(['id', 'name', 'setCode', 'number'])
+  })
+
+  it('reports the window it read alongside the hits', async () => {
+    const res = await searchCardSummaries(
+      fakeClient({}, [{ id: 'a' }]), 'en', 'x', { page: 2, hitsPerPage: 10 },
+    )
+    expect(res).toMatchObject({ total: 1, page: 2, hitsPerPage: 10 })
+    expect(res.hits.map((h) => h.id)).toEqual(['a'])
   })
 })
 

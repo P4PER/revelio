@@ -29,6 +29,14 @@ describe('findCards', () => {
     expect(page.hits).toEqual([])
   })
 
+  it('asks Meilisearch only for the fields the result list renders', async () => {
+    const { client, search } = stubMeili([doc], 1)
+    await findCards(client, { query: 'nimbus', locale: 'en' })
+    expect(search).toHaveBeenCalledWith('nimbus', expect.objectContaining({
+      attributesToRetrieve: ['id', 'name', 'setCode', 'number'],
+    }))
+  })
+
   it('clamps a page below one', async () => {
     const { client, search } = stubMeili([], 5)
     await findCards(client, { query: 'x', locale: 'en', page: 0 })

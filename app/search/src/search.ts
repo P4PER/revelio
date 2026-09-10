@@ -33,10 +33,11 @@ export type IdWindowOptions = {
   limit: number
 }
 
-// A suggestion row: identity plus the few fields a picker label needs.
-// Deliberately not a SearchDocument - restricting attributesToRetrieve means the
-// hits are not whole documents, and typing them as such would be a lie.
-export type CardSuggestionHit = Pick<SearchDocument, 'id' | 'name' | 'setCode' | 'number'>
+// A summary row: identity plus the few fields a one-line label needs, shared by
+// autocomplete and by list views that render nothing else. Deliberately not a
+// SearchDocument - restricting attributesToRetrieve means the hits are not whole
+// documents, and typing them as such would be a lie.
+export type CardSummaryHit = Pick<SearchDocument, 'id' | 'name' | 'setCode' | 'number'>
 
 export type SearchResult = {
   hits: SearchDocument[]
@@ -45,11 +46,35 @@ export type SearchResult = {
   hitsPerPage: number
 }
 
-const SUGGESTION_ATTRIBUTES = ['id', 'name', 'setCode', 'number']
+export type CardSummaryResult = Omit<SearchResult, 'hits'> & { hits: CardSummaryHit[] }
+
+const SUMMARY_ATTRIBUTES = ['id', 'name', 'setCode', 'number']
 
 const ARRAY_FACETS: (keyof CardFilters)[] = [
   'setCode', 'types', 'subTypes', 'lesson', 'rarity', 'finishes', 'legality',
 ]
+
+// The paged read both searchCards and searchCardSummaries run, differing only in
+// how much of each document comes back. Hits stay untyped here: the caller knows
+// which shape its attributesToRetrieve asked for.
+async function pagedSearch(
+  client: MeiliSearch,
+  lang: string,
+  query: string,
+  opts: SearchOptions,
+  attributesToRetrieve?: string[],
+): Promise<{ hits: unknown[]; total: number; page: number; hitsPerPage: number }> {
+  const page = opts.page ?? 1
+  const hitsPerPage = opts.hitsPerPage ?? 20
+  const res = await client.index(cardsIndex(lang)).search(query, {
+    filter: buildFilter(opts.filters ?? {}),
+    sort: opts.sort,
+    limit: hitsPerPage,
+    offset: (page - 1) * hitsPerPage,
+    ...(attributesToRetrieve ? { attributesToRetrieve } : {}),
+  })
+  return { hits: res.hits, total: res.estimatedTotalHits ?? 0, page, hitsPerPage }
+}
 
 // Each returned string is AND-ed by Meilisearch; values within a facet are OR-ed.
 export function buildFilter(f: CardFilters): string[] {
@@ -78,20 +103,21 @@ export async function searchCards(
   query: string,
   opts: SearchOptions = {},
 ): Promise<SearchResult> {
-  const page = opts.page ?? 1
-  const hitsPerPage = opts.hitsPerPage ?? 20
-  const res = await client.index(cardsIndex(lang)).search(query, {
-    filter: buildFilter(opts.filters ?? {}),
-    sort: opts.sort,
-    limit: hitsPerPage,
-    offset: (page - 1) * hitsPerPage,
-  })
-  return {
-    hits: res.hits as SearchDocument[],
-    total: res.estimatedTotalHits ?? 0,
-    page,
-    hitsPerPage,
-  }
+  const res = await pagedSearch(client, lang, query, opts)
+  return { ...res, hits: res.hits as SearchDocument[] }
+}
+
+// A paged result list that renders "name (set #number)" per row wants the same
+// slice as autocomplete, not whole documents: a page of 10 otherwise ships ten
+// cards' rules text, flavor text and all 24 indexed fields to render three.
+export async function searchCardSummaries(
+  client: MeiliSearch,
+  lang: string,
+  query: string,
+  opts: SearchOptions = {},
+): Promise<CardSummaryResult> {
+  const res = await pagedSearch(client, lang, query, opts, SUMMARY_ATTRIBUTES)
+  return { ...res, hits: res.hits as CardSummaryHit[] }
 }
 
 // Ids-only search over a raw window. Neighbor walks need order and identity,
@@ -124,10 +150,10 @@ export async function searchCardSuggestions(
   lang: string,
   query: string,
   limit: number,
-): Promise<CardSuggestionHit[]> {
+): Promise<CardSummaryHit[]> {
   const res = await client.index(cardsIndex(lang)).search(query, {
     limit,
-    attributesToRetrieve: SUGGESTION_ATTRIBUTES,
+    attributesToRetrieve: SUMMARY_ATTRIBUTES,
   })
-  return res.hits as CardSuggestionHit[]
+  return res.hits as CardSummaryHit[]
 }

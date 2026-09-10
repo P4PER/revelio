@@ -1,8 +1,10 @@
 import type { MeiliSearch } from 'meilisearch'
 import {
   searchCardSuggestions,
+  searchCardSummaries,
   searchCards,
   type CardFilters,
+  type CardSummaryHit,
   type SearchDocument,
 } from '@revelio/search'
 import { getCardRulings, type DB } from '@revelio/db'
@@ -10,7 +12,7 @@ import { getCardRulings, type DB } from '@revelio/db'
 export type CardRuling = { date: string | null; source: string | null; text: string }
 
 export type CardPage = {
-  hits: SearchDocument[]
+  hits: CardSummaryHit[]
   total: number
   page: number
   pageSize: number
@@ -38,10 +40,12 @@ export function clampLabel(value: string): string {
   return value.length <= MAX_LABEL ? value : `${value.slice(0, MAX_LABEL - 1)}…`
 }
 
+// The result embed renders one "name (set #number)" line per hit, so this asks
+// for that slice rather than whole documents - see searchCardSummaries.
 export async function findCards(meili: MeiliSearch, input: CardSearchInput): Promise<CardPage> {
   const pageSize = input.pageSize ?? DEFAULT_PAGE_SIZE
   const page = Math.max(1, Math.floor(input.page ?? 1))
-  const res = await searchCards(meili, input.locale, input.query, {
+  const res = await searchCardSummaries(meili, input.locale, input.query, {
     filters: input.filters,
     page,
     hitsPerPage: pageSize,
@@ -58,7 +62,7 @@ export async function findOneCard(
   meili: MeiliSearch,
   input: { query: string; locale: string },
 ): Promise<SearchDocument | null> {
-  const res = await searchCards(meili, input.locale, input.query, { hitsPerPage: 1 })
+  const res = await searchCardSummaries(meili, input.locale, input.query, { hitsPerPage: 1 })
   return res.hits[0] ?? null
 }
 

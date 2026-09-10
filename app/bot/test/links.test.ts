@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cardUrl, searchUrl } from '../src/links'
+import { cardUrl, deckUrl, searchUrl } from '../src/links'
 
 describe('cardUrl', () => {
   it('omits the locale prefix for English', () => {
@@ -43,5 +43,17 @@ describe('searchUrl', () => {
   it('omits filters that were not applied', () => {
     expect(searchUrl('https://revelio.cards', 'nimbus', 'en', {}))
       .toBe('https://revelio.cards/search?q=nimbus')
+  })
+})
+
+describe('deckUrl', () => {
+  it('omits the locale prefix for English', () => {
+    expect(deckUrl('https://revelio.cards', 'abc123', 'en'))
+      .toBe('https://revelio.cards/decks/abc123')
+  })
+
+  it('prefixes non-default locales', () => {
+    expect(deckUrl('https://revelio.cards', 'abc123', 'de'))
+      .toBe('https://revelio.cards/de/decks/abc123')
   })
 })

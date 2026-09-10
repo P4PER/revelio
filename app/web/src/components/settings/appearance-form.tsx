@@ -46,12 +46,12 @@ export function AppearanceForm({ current }: { current: ThemeChoice }) {
   return (
     <section aria-labelledby="s-appearance" className="rounded-xl border border-border bg-card p-5">
       <h2 id="s-appearance" className="text-lg font-semibold">{t('title')}</h2>
-      <p className="mt-1 text-sm text-muted-foreground">{t('lead')}</p>
+      <p className="mt-1 mb-5 text-sm text-muted-foreground">{t('lead')}</p>
       <RadioGroup
         value={choice}
         onValueChange={apply}
         aria-label={t('legend')}
-        className="mt-6 sm:grid-cols-3"
+        className="sm:grid-cols-3"
       >
         {/* The whole tile is the label, so the pointer and the click target
             cover the swatch rather than just the dot and its caption. */}
@@ -76,7 +76,7 @@ export function AppearanceForm({ current }: { current: ThemeChoice }) {
             <RadioGroupItem value={value} id={`theme-${value}`} className="sr-only" />
             <ThemePreview choice={value} />
             <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="font-medium">{t(value)}</span>
+              <span className="font-semibold">{t(value)}</span>
               <span className="text-sm font-normal text-muted-foreground">
                 {t(`${value}Hint`)}
               </span>

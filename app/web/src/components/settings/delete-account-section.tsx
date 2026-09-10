@@ -67,7 +67,7 @@ export function DeleteAccountSection({ user }: { user: SettingsUser }) {
     <section aria-labelledby="s-delete" className="rounded-xl border border-destructive/40 bg-destructive/5 p-5">
       <h2 id="s-delete" className="text-lg font-semibold text-destructive">{t('title')}</h2>
       <p className="mt-1 text-sm text-muted-foreground">{t('hint')}</p>
-      <ul className="my-4 list-disc pl-5 text-sm text-muted-foreground">
+      <ul className="mt-2 mb-5 list-disc pl-5 text-sm text-muted-foreground">
         <li>{t('item1')}</li>
         <li>{t('item2')}</li>
         <li>{t('item3')}</li>

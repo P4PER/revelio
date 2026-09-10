@@ -5,7 +5,7 @@ import { Body, Container, Heading, Html, Section, Text } from '@react-email/comp
 import en from '@/../messages/en.json'
 import type { RenderedEmail } from './types'
 
-interface ContactEmailInput {
+type ContactEmailInput = {
   name: string
   email: string
   subject: string

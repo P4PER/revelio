@@ -1,6 +1,6 @@
 export type AdminSectionId = 'sub-types' | 'sets' | 'users' | 'settings'
 
-export interface AdminSection {
+export type AdminSection = {
   id: AdminSectionId
   href: string
   /** key under the `admin.nav` i18n namespace */

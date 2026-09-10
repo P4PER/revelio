@@ -45,7 +45,16 @@ CI (`.github/workflows/ci.yml`) has three jobs: **check** (db check + verify, we
 
 ### Local infra
 
-`docker compose up` (from `app/`) starts postgres, meilisearch, and minio. Migrations run via the compose `tools` profile: `docker compose run --rm migrate`. The bot is behind a `bot` profile so a bare `up` never needs a Discord token: `docker compose --profile bot up bot`.
+`docker compose up` (from `app/`) starts postgres, meilisearch, and minio. Migrations run via the compose `tools` profile: `docker compose run --rm --build migrate`. The bot is behind a `bot` profile so a bare `up` never needs a Discord token: `docker compose --profile bot up bot`.
+
+**Do not drop the `--build`.** The `migrate` service runs `image: revelio-ingest:local`, and compose only builds that image when it is *missing* — so a plain `docker compose run --rm migrate` runs whatever SQL was baked in whenever the image was last built. A migration generated since then is simply not in the container: the run prints `migrations applied` and applies **nothing**, with no error and no warning. Running from the host is the other way round it:
+
+```bash
+cd app
+DATABASE_URL=postgres://revelio:revelio@localhost:5432/revelio npx tsx db/src/migrate-cli.ts
+```
+
+Either way, confirm the change actually landed rather than trusting the success line — e.g. `docker compose exec -T postgres psql -U revelio -d revelio -c "\d <table>"`.
 
 **Env files are per workspace, and `app/.env` is not the one the app reads.** Copy `app/.env.example` → `app/.env` for compose only — compose hostnames are the service names (`postgres`, `meilisearch`, `minio`). Next reads `app/web/.env.local`, and the bot reads `app/bot/.env.local` (both have a committed `.env.example` beside them). Use `localhost` + published ports in those two, since they run on the host; the compose `bot` service loads `bot/.env.local` via `env_file` and overrides the two hostnames.
 
@@ -98,7 +107,7 @@ Six npm workspaces under `app/`, with a strict dependency direction `core ← {s
 
 ## Migrations (read before touching the schema)
 
-Drizzle migrations are **incremental and append-only**; full details in `docs/MIGRATIONS.md`. `db/drizzle/0000_*.sql` is the frozen baseline — **never** `rm` the `drizzle/` folder or regenerate `0000`. To change the schema: edit `db/src/schema.ts`, run `npm run generate` from `app/db`, review the generated `drizzle/NNNN_*.sql`, and commit the schema edit + migration together. `npm run verify` (CI-enforced) fails if you edited the schema but forgot to generate.
+Drizzle migrations are **incremental and append-only**; full details in `docs/MIGRATIONS.md`. `db/drizzle/0000_*.sql` is the frozen baseline — **never** `rm` the `drizzle/` folder or regenerate `0000`. To change the schema: edit `db/src/schema.ts`, run `npm run generate` from `app/db`, review the generated `drizzle/NNNN_*.sql`, and commit the schema edit + migration together. `npm run verify` (CI-enforced) fails if you edited the schema but forgot to generate. Commit the migration *before* running `verify` — its git-clean step deletes an uncommitted one. To apply a fresh migration locally, mind the stale-image trap in **Local infra** above: `docker compose run --rm migrate` without `--build` reports success while applying nothing.
 
 ## Planning docs
 

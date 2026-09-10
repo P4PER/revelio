@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { eq } from 'drizzle-orm'
 import { schema } from '@revelio/db'
 import {
   listUsersForAdmin, getUserForAdmin, countAdmins, countUserDecks,
@@ -13,6 +14,19 @@ async function seedUser(id: string, over: Partial<typeof schema.user.$inferInser
     id, name: `User ${id}`, email: `${id}@x.test`, emailVerified: true,
     role: 'user', banned: false, ...over,
   })
+}
+
+async function seedSession(id: string, userId: string) {
+  await ctx.db.insert(schema.session).values({
+    id, userId, token: `${id}-token`,
+    expiresAt: new Date('2030-01-01T00:00:00Z'), updatedAt: new Date(),
+  })
+}
+
+async function sessionIds(userId: string): Promise<string[]> {
+  const rows = await ctx.db.select({ id: schema.session.id })
+    .from(schema.session).where(eq(schema.session.userId, userId))
+  return rows.map((r) => r.id)
 }
 
 beforeAll(async () => {
@@ -73,6 +87,21 @@ describe('user-admin queries', () => {
     expect(d.banned).toBe(false)
     expect(d.banReason).toBeNull()
     expect(d.banExpires).toBeNull()
+  })
+
+  it('revokes the banned user\'s sessions, and only theirs', async () => {
+    await seedSession('s-u2', 'u2')
+    await seedSession('s-u1', 'u1')
+    await setUserBan(ctx.db, 'u2', 'rules', null)
+    // Better Auth's admin plugin only reads `banned` when a session is created,
+    // so leaving the rows behind would let a banned user browse on until they
+    // expire. See the comment on setUserBan.
+    expect(await sessionIds('u2')).toEqual([])
+    expect(await sessionIds('u1')).toEqual(['s-u1'])
+    // Unbanning does not resurrect them - the user signs in again.
+    await clearUserBan(ctx.db, 'u2')
+    expect(await sessionIds('u2')).toEqual([])
+    await ctx.db.delete(schema.session).where(eq(schema.session.userId, 'u1'))
   })
 
   it('deletes a user and cascades their decks', async () => {

@@ -27,12 +27,14 @@ export function DatePicker({
   id,
   ariaLabel,
   placeholder,
+  disabled,
 }: {
   value: string
   onChange: (next: string) => void
   id?: string
   ariaLabel?: string
   placeholder?: string
+  disabled?: boolean
 }) {
   const locale = useLocale()
   const [open, setOpen] = useState(false)
@@ -48,6 +50,7 @@ export function DatePicker({
           id={id}
           type="button"
           variant="outline"
+          disabled={disabled}
           aria-label={ariaLabel}
           className={cn('h-9 w-full justify-start gap-2 font-normal', !date && 'text-muted-foreground')}
         >

@@ -1,7 +1,18 @@
 name: CI
 
+# Docs-only PRs skip CI entirely: nothing under these paths reaches a build, a
+# test, or the lint step. paths-ignore skips the run only when *every* changed
+# file matches, so a PR touching both a doc and app code still runs in full.
+# Note: if main's ruleset ever gains required status checks, these jobs must
+# become required-but-skippable (a gate job that always runs) instead, because
+# a skipped check never reports and would block such a PR forever.
 on:
   pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'logos/**'
+      - 'LICENSE'
 
 concurrency:
   group: ci-${{ github.ref }}

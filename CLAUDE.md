@@ -173,7 +173,8 @@ Design specs and phased implementation plans live in `docs/superpowers/specs/` a
 ### Pull requests
 
 - **Title is a Conventional Commit line too**, same form and scope rules as above, and
-  `.github/workflows/pr-title.yml` fails the PR if it is not. The title is not cosmetic: the merge
+  `.github/workflows/pr-title.yml` fails on a title that is not (it blocks the merge only once
+  `PR title / lint` is a required check in main's ruleset). The title is not cosmetic: the merge
   commit carries it as its body. That check runs on every PR, docs-only ones included, unlike
   `ci.yml`.
 - **Body opens with prose** — one to three sentences on what this is and why, before any heading.

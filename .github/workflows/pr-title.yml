@@ -6,6 +6,10 @@ name: PR title
 #
 # This runs on every pull request, docs-only ones included - unlike ci.yml, which skips
 # those by path. Nothing is checked out, so the default read-only token is all it needs.
+# `synchronize` is in the list although a push cannot change a title: a required check
+# has to report on the head SHA, and without it a push would leave the newest commit with
+# no run of this job and the PR waiting on a check that never arrives. The action's own
+# README carries the same note.
 on:
   pull_request:
     types: [opened, edited, reopened, synchronize]

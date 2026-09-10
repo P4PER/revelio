@@ -165,15 +165,14 @@ export async function searchCardIds(
 // Autocomplete renders "name (set #number)" and nothing else, so asking for
 // whole documents would ship a card's rules text and every attribute on every
 // keystroke. Same trade as searchCardIds, one step wider: identity plus label.
+// A picker only ever reads the first page, so the summary read's page 1 is the
+// whole of it and the caller's limit is that page's size.
 export async function searchCardSuggestions(
   client: MeiliSearch,
   lang: string,
   query: string,
   limit: number,
 ): Promise<CardSummaryHit[]> {
-  const res = await client.index(cardsIndex(lang)).search(query, {
-    limit,
-    attributesToRetrieve: [...SUMMARY_FIELDS],
-  })
-  return res.hits as CardSummaryHit[]
+  const res = await searchCardSummaries(client, lang, query, { hitsPerPage: limit })
+  return res.hits
 }

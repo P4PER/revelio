@@ -33,12 +33,19 @@ export type IdWindowOptions = {
   limit: number
 }
 
+// A suggestion row: identity plus the few fields a picker label needs.
+// Deliberately not a SearchDocument - restricting attributesToRetrieve means the
+// hits are not whole documents, and typing them as such would be a lie.
+export type CardSuggestionHit = Pick<SearchDocument, 'id' | 'name' | 'setCode' | 'number'>
+
 export type SearchResult = {
   hits: SearchDocument[]
   total: number
   page: number
   hitsPerPage: number
 }
+
+const SUGGESTION_ATTRIBUTES = ['id', 'name', 'setCode', 'number']
 
 const ARRAY_FACETS: (keyof CardFilters)[] = [
   'setCode', 'types', 'subTypes', 'lesson', 'rarity', 'finishes', 'legality',
@@ -107,4 +114,20 @@ export async function searchCardIds(
     ids: (res.hits as { id: string }[]).map((h) => h.id),
     total: res.estimatedTotalHits ?? 0,
   }
+}
+
+// Autocomplete renders "name (set #number)" and nothing else, so asking for
+// whole documents would ship a card's rules text and every attribute on every
+// keystroke. Same trade as searchCardIds, one step wider: identity plus label.
+export async function searchCardSuggestions(
+  client: MeiliSearch,
+  lang: string,
+  query: string,
+  limit: number,
+): Promise<CardSuggestionHit[]> {
+  const res = await client.index(cardsIndex(lang)).search(query, {
+    limit,
+    attributesToRetrieve: SUGGESTION_ATTRIBUTES,
+  })
+  return res.hits as CardSuggestionHit[]
 }

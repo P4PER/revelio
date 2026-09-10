@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { searchCardIds, searchCards } from '../search'
+import { searchCardIds, searchCardSuggestions, searchCards } from '../search'
 
 // Minimal fake Meili client that records the search options it was called with.
 function fakeClient(captured: Record<string, unknown>, hits: { id: string }[] = []) {
@@ -43,5 +43,20 @@ describe('searchCardIds', () => {
     )
     expect(res.ids).toEqual(['a', 'b'])
     expect(res.total).toBe(2)
+  })
+})
+
+describe('searchCardSuggestions', () => {
+  it('asks only for the fields a picker label needs', async () => {
+    const captured: Record<string, unknown> = {}
+    await searchCardSuggestions(fakeClient(captured), 'en', 'nim', 25)
+    expect(captured.limit).toBe(25)
+    expect(captured.attributesToRetrieve).toEqual(['id', 'name', 'setCode', 'number'])
+  })
+
+  it('returns the hits in relevance order', async () => {
+    const hits = [{ id: 'a' }, { id: 'b' }]
+    const res = await searchCardSuggestions(fakeClient({}, hits), 'en', 'x', 2)
+    expect(res.map((h) => h.id)).toEqual(['a', 'b'])
   })
 })

@@ -1,5 +1,10 @@
 import type { MeiliSearch } from 'meilisearch'
-import { searchCards, type CardFilters, type SearchDocument } from '@revelio/search'
+import {
+  searchCardSuggestions,
+  searchCards,
+  type CardFilters,
+  type SearchDocument,
+} from '@revelio/search'
 import { getCardRulings, type DB } from '@revelio/db'
 
 export type CardRuling = { date: string | null; source: string | null; text: string }
@@ -84,8 +89,8 @@ export async function suggestCards(
 ): Promise<CardSuggestion[]> {
   const query = input.query.trim()
   if (!query) return []
-  const res = await searchCards(meili, input.locale, query, { hitsPerPage: MAX_CHOICES })
-  return res.hits.slice(0, MAX_CHOICES).map((hit) => ({
+  const hits = await searchCardSuggestions(meili, input.locale, query, MAX_CHOICES)
+  return hits.slice(0, MAX_CHOICES).map((hit) => ({
     id: hit.id,
     label: clampLabel(`${hit.name} (${hit.setCode} #${hit.number})`),
   }))

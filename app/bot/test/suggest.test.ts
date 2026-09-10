@@ -27,6 +27,15 @@ describe('suggestCards', () => {
     expect(search).toHaveBeenCalledWith('x', expect.objectContaining({ limit: MAX_CHOICES }))
   })
 
+  it('fetches only the label fields, not whole card documents', async () => {
+    // 25 full documents per keystroke would ship every card's rules text.
+    const { client, search } = stubMeili([])
+    await suggestCards(client, { query: 'nim', locale: 'en' })
+    expect(search).toHaveBeenCalledWith('nim', expect.objectContaining({
+      attributesToRetrieve: ['id', 'name', 'setCode', 'number'],
+    }))
+  })
+
   it('never returns more than 25 suggestions', async () => {
     const { client } = stubMeili(Array.from({ length: 40 }, (_, i) => hit(i)))
     expect((await suggestCards(client, { query: 'c', locale: 'en' })).length).toBe(MAX_CHOICES)

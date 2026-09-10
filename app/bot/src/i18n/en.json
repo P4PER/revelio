@@ -23,7 +23,7 @@
   "search.pageOutOfRange": "That page does not exist. This search has {pages} page(s).",
   "command.deck.description": "Look up a public deck",
   "command.deck.option.deck": "Deck link or id",
-  "deck.notFound": "No public deck matched that link. Private decks cannot be shown here.",
+  "deck.notFound": "No public deck matched that link or id. Private decks cannot be shown here.",
   "deck.field.character": "Starting character",
   "deck.field.main": "Main deck ({count})",
   "deck.field.sideboard": "Sideboard ({count})",

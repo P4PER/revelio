@@ -23,7 +23,7 @@
   "search.pageOutOfRange": "Diese Seite gibt es nicht. Diese Suche hat {pages} Seite(n).",
   "command.deck.description": "Ein öffentliches Deck nachschlagen",
   "command.deck.option.deck": "Deck-Link oder ID",
-  "deck.notFound": "Zu diesem Link gibt es kein öffentliches Deck. Private Decks können hier nicht gezeigt werden.",
+  "deck.notFound": "Zu diesem Link oder dieser ID gibt es kein öffentliches Deck. Private Decks können hier nicht gezeigt werden.",
   "deck.field.character": "Startcharakter",
   "deck.field.main": "Hauptdeck ({count})",
   "deck.field.sideboard": "Seitendeck ({count})",

@@ -38,11 +38,11 @@ review, (2) is a bug report from manual admin testing.
 
 ## Test strategy
 
-`db/` has no test harness at all (no `test` script, and Testcontainers is wired up only in
-`ingest/test/helpers.ts`), so standing one up for a two-line query change is out of scope for
-this branch. Change (1) is verified by hand against the local compose Postgres: ban a user
-with a live session row and confirm the row is gone. Change (2) is covered by unit tests -
-one on `DatePicker` for the new prop, one on `UserBanForm` for the self case.
+The `db/` workspace has no test script of its own, but its queries are covered from
+`ingest/test/`, which runs them against a migrated Postgres (`withMigratedDb`, an external
+`TEST_DATABASE_URL` or a Testcontainers fallback). `setUserBan` already has a case there in
+`test/user-admin.test.ts`, so change (1) is covered in that harness. Change (2) is covered by
+unit tests - one on `DatePicker` for the new prop, one on `UserBanForm` for the self case.
 
 ---
 
@@ -75,14 +75,16 @@ one on `DatePicker` for the new prop, one on `UserBanForm` for the self case.
    (the admin plugin only checks `banned` on session create).
 2. Import `session` from `./auth-schema` if it is not already in scope there.
 3. `npm run typecheck -w @revelio/db` clean.
-4. Manual verification against the local compose stack:
-   - `docker compose up -d postgres`
-   - insert a session row for a test user, call `banUser` (or `setUserBan` via `tsx`), then
-     `select count(*) from session where user_id = ...` and confirm 0 and `banned = true`.
+4. Extend `ingest/test/user-admin.test.ts` with a case that seeds a session row for the
+   banned user and one for a bystander, then asserts only the banned user's row is gone and
+   that `clearUserBan` does not resurrect it.
+5. Run that file alone - never the whole `@revelio/ingest` suite locally, `test/main.test.ts`
+   deletes the dev Meilisearch indexes:
+   `TEST_DATABASE_URL=postgres://revelio:revelio@localhost:5432/revelio npx vitest run test/user-admin.test.ts`
 
 ## Verification
 
 - `npm test -w web`, `npm test -w core`, `npm test -w @revelio/search`, `npm test -w @revelio/bot`
 - `npm run typecheck` (all workspaces)
 - `npm run lint -w web`
-- The manual Postgres check from Task 3.
+- `npx vitest run test/user-admin.test.ts` in `ingest/`, against a live Postgres.

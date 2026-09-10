@@ -721,6 +721,7 @@
       "unavailable": "Discord linking is not configured on this instance.",
       "error": "Linking failed. Please try again.",
       "alreadyLinked": "That Discord account is already linked to another Revelio account.",
+      "unverifiedDiscord": "Discord has not verified the email address on that account. Verify it with Discord, then try linking again.",
       "unlinkError": "Couldn’t unlink your Discord account. Please try again."
     },
     "safety": {

@@ -14,6 +14,10 @@ const CONNECTIONS_PATH = '/settings/connections'
 // own line; everything else reads as "try again".
 const ERROR_KEYS: Record<string, string> = {
   account_already_linked_to_different_user: 'alreadyLinked',
+  // Raised when the Discord account's own email is unverified. Retrying can
+  // never fix it, so the generic "please try again" would send the user round
+  // a loop that has no exit.
+  unable_to_link_account: 'unverifiedDiscord',
 }
 
 export function ConnectionsPane({

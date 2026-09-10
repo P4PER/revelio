@@ -9,6 +9,7 @@ import { generateCode, storeCode, consumeCode, emailChangeId, deleteId } from '@
 import { renderOtpEmail } from '@/lib/email/otp-template'
 import { sendMail } from '@/lib/email/mailer'
 import { getCachedSiteSettings } from '@/lib/server/site-settings'
+import { unlinkAndRevokeDiscord } from '@/lib/server/discord-oauth'
 
 export type SettingsResult = { ok: true } | { ok: false; error: string }
 
@@ -87,6 +88,15 @@ export async function confirmAccountDeletion(code: string): Promise<SettingsResu
   if (!session?.user) return { ok: false, error: 'unauthorized' }
   const extra = await consumeCode(deleteId(session.user.id), code.trim())
   if (!extra) return { ok: false, error: 'code' }
+  // Before the cascade takes the account row with it: dropping it that way
+  // would discard the Discord tokens without revoking them, leaving Revelio
+  // authorised at Discord for an account that no longer exists. Best-effort, so
+  // Discord being unreachable never blocks a deletion.
+  try {
+    await unlinkAndRevokeDiscord(session.user.id)
+  } catch {
+    console.error('could not revoke the Discord link while deleting an account')
+  }
   // DB cascades remove decks/collection/likes/views/sessions off user.id.
   await deleteUserById(getDb(), session.user.id)
   return { ok: true }

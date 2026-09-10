@@ -71,8 +71,16 @@ it('reports a link that never got off the ground', async () => {
 })
 
 it('surfaces a callback failure carried back as a query param', () => {
-  renderWithIntl(<ConnectionsPane linked={false} configured linkError="unable_to_link_account" />)
+  // An error code with no message of its own falls back to the generic line.
+  renderWithIntl(<ConnectionsPane linked={false} configured linkError="internal_server_error" />)
   expect(screen.getByRole('alert')).toHaveTextContent(c.error)
+})
+
+// Retrying can never fix an unverified Discord email, so the generic "try
+// again" would be a loop with no exit.
+it('explains an unverified Discord email rather than saying try again', () => {
+  renderWithIntl(<ConnectionsPane linked={false} configured linkError="unable_to_link_account" />)
+  expect(screen.getByRole('alert')).toHaveTextContent(c.unverifiedDiscord)
 })
 
 it('names the conflict when the account belongs to someone else', () => {

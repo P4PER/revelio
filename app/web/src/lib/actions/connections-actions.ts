@@ -1,9 +1,7 @@
 'use server'
 import { revalidatePath } from 'next/cache'
-import { unlinkProvider } from '@revelio/db'
 import { getSession } from '@/lib/server/session'
-import { getDb } from '@/lib/server/db'
-import { revokeDiscordAuthorization } from '@/lib/server/discord-oauth'
+import { unlinkAndRevokeDiscord } from '@/lib/server/discord-oauth'
 
 export type ConnectionResult = { ok: true } | { ok: false; error: string }
 
@@ -14,20 +12,16 @@ export type ConnectionResult = { ok: true } | { ok: false; error: string }
 export async function unlinkDiscord(): Promise<ConnectionResult> {
   const session = await getSession()
   if (!session?.user) return { ok: false, error: 'unauthorized' }
-  let removed
+  let removed: number
   try {
-    removed = await unlinkProvider(getDb(), session.user.id, 'discord')
+    // Revocation inside here is best-effort and runs after the delete: the user
+    // asked to detach from Revelio, so Discord being unreachable must not undo
+    // that or report a failure for something that already succeeded.
+    removed = await unlinkAndRevokeDiscord(session.user.id)
   } catch {
     return { ok: false, error: 'failed' }
   }
-  if (removed.length === 0) return { ok: false, error: 'notLinked' }
-
-  // Deleting our row ends the link on our side; without this the authorization
-  // lives on in the user's Discord "Authorized Apps" and its tokens stay valid
-  // until they expire. Best-effort on purpose and after the delete: the user
-  // asked to detach from Revelio, and Discord being unreachable must not undo
-  // that or report a failure for something that already succeeded.
-  await revokeDiscordAuthorization(removed.flatMap((r) => [r.accessToken, r.refreshToken]))
+  if (removed === 0) return { ok: false, error: 'notLinked' }
 
   revalidatePath('/settings/connections')
   return { ok: true }

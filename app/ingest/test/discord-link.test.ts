@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { eq } from 'drizzle-orm'
 import { schema } from '@revelio/db'
 import { getUserIdByDiscordAccount, getLinkedProviderIds, unlinkProvider, getUserExport } from '@revelio/db'
 import { withMigratedDb } from './helpers'
@@ -41,6 +42,32 @@ describe('getUserIdByDiscordAccount', () => {
   it('ignores an account row from another provider with the same accountId', async () => {
     // u3 holds github/111222333; only the discord row may match.
     expect(await getUserIdByDiscordAccount(ctx.db, '111222333')).not.toBe('u3')
+  })
+
+  // Banning deletes web sessions but leaves the account row, so without this
+  // the bot would keep serving a banned user forever.
+  it('refuses a banned user', async () => {
+    await seedUser('b1')
+    await seedAccount('ab1', 'b1', 'discord', '888111')
+    expect(await getUserIdByDiscordAccount(ctx.db, '888111')).toBe('b1')
+
+    await ctx.db.update(schema.user).set({ banned: true }).where(eq(schema.user.id, 'b1'))
+    expect(await getUserIdByDiscordAccount(ctx.db, '888111')).toBeNull()
+  })
+
+  it('serves a user again once a temporary ban has lapsed', async () => {
+    await seedUser('b2')
+    await seedAccount('ab2', 'b2', 'discord', '888222')
+
+    await ctx.db.update(schema.user)
+      .set({ banned: true, banExpires: new Date(Date.now() + 60_000) })
+      .where(eq(schema.user.id, 'b2'))
+    expect(await getUserIdByDiscordAccount(ctx.db, '888222')).toBeNull()
+
+    await ctx.db.update(schema.user)
+      .set({ banExpires: new Date(Date.now() - 60_000) })
+      .where(eq(schema.user.id, 'b2'))
+    expect(await getUserIdByDiscordAccount(ctx.db, '888222')).toBe('b2')
   })
 })
 

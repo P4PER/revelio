@@ -1102,10 +1102,24 @@ export async function getUserIdByDiscordAccount(
   // providerId is part of the predicate on purpose: accountId is only unique
   // within a provider, so a matching id under another provider is a different
   // person.
+  //
+  // The join is what enforces a ban in Discord: banning deletes the user's web
+  // sessions but leaves the account row alone, so without this the bot would
+  // keep answering a banned user indefinitely. A ban with banExpires in the
+  // past has lapsed and does not count.
   const [row] = await db
     .select({ userId: account.userId })
     .from(account)
-    .where(and(eq(account.providerId, 'discord'), eq(account.accountId, discordUserId)))
+    .innerJoin(user, eq(user.id, account.userId))
+    .where(and(
+      eq(account.providerId, 'discord'),
+      eq(account.accountId, discordUserId),
+      or(
+        eq(user.banned, false),
+        isNull(user.banned),
+        and(isNotNull(user.banExpires), sql`${user.banExpires} <= now()`),
+      ),
+    ))
     .limit(1)
   return row?.userId ?? null
 }

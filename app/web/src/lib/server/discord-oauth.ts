@@ -1,5 +1,8 @@
 import 'server-only'
 
+import { unlinkProvider } from '@revelio/db'
+import { getDb } from '@/lib/server/db'
+
 const REVOKE_ENDPOINT = 'https://discord.com/api/oauth2/token/revoke'
 
 // Discord revokes the whole authorization from any one of its tokens: "any
@@ -35,4 +38,16 @@ export async function revokeDiscordAuthorization(
     }
   }
   return false
+}
+
+// Every path that ends a user's Discord link goes through here: the Connections
+// pane, self-deletion, and admin deletion. Deleting the user alone would drop
+// the account row through the foreign key and lose the tokens without revoking
+// them, leaving Revelio in the user's Discord authorised apps with a live
+// authorization - the exact thing unlinking exists to prevent.
+export async function unlinkAndRevokeDiscord(userId: string): Promise<number> {
+  const removed = await unlinkProvider(getDb(), userId, 'discord')
+  if (removed.length === 0) return 0
+  await revokeDiscordAuthorization(removed.flatMap((r) => [r.accessToken, r.refreshToken]))
+  return removed.length
 }

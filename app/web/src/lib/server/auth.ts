@@ -41,18 +41,29 @@ export const auth = betterAuth({
           clientId: DISCORD_CLIENT_ID!,
           clientSecret: DISCORD_CLIENT_SECRET!,
           // Registering the provider also mounts the unauthenticated
-          // POST /sign-in/social, which would create an account straight from a
-          // Discord profile - bypassing the OTP flow that assigns a username,
-          // and leaving a user the sign-in form itself treats as
-          // half-provisioned with no way to repair it. Discord here is for
-          // linking an existing account only; the link callback redirects out
-          // before this flag is ever consulted.
+          // POST /sign-in/social. This blocks the half of it that would create
+          // an account straight from a Discord profile, bypassing the OTP flow
+          // that assigns a username and leaving a user the sign-in form itself
+          // treats as half-provisioned with no way to repair it. It does not on
+          // its own stop that endpoint signing in an existing user - see
+          // disableImplicitLinking below. The explicit link callback redirects
+          // out before either flag is consulted.
           disableSignUp: true,
         },
       }
     : {},
   account: {
     accountLinking: {
+      // Completes disableSignUp: without it, POST /sign-in/social still signs
+      // an existing user in whenever the Discord profile's verified email
+      // matches theirs, quietly making Discord a second way in that skips the
+      // OTP flow. Read only on that implicit path - the explicit link branch
+      // never consults it - so Connections still works.
+      disableImplicitLinking: true,
+      // Deliberately NOT adding discord to trustedProviders: that would let the
+      // implicit path accept an *unverified* provider email, and a Discord
+      // email can be set to anything without proving ownership.
+      //
       // Players rarely use the same address on Discord as on Revelio, and the
       // callback otherwise rejects the link with "email doesn't match". This
       // flag is read only on the explicit link paths - the sign-in path matches

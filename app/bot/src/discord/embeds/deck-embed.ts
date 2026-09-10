@@ -16,18 +16,22 @@ function lessonColor(lesson: string | null): number {
 
 // Fill the field with whole lines, then say how many were left out. A truncated
 // card name would read as a data bug; an explicit remainder reads as a summary.
+// The remainder counts copies, not entries, because the field header counts
+// copies: two units inside one field leave the reader unable to reconcile them.
 function cardList(entries: DeckEntryView[], locale: string): string {
   const lines: string[] = []
   let used = 0
-  for (let i = 0; i < entries.length; i++) {
-    const line = `${entries[i].quantity}x ${entries[i].name}`
-    const remainder = t(locale, 'deck.more', { count: entries.length - i })
+  let left = entries.reduce((n, e) => n + e.quantity, 0)
+  for (const entry of entries) {
+    const line = `${entry.quantity}x ${entry.name}`
+    const remainder = t(locale, 'deck.more', { count: left })
     if (used + line.length + 1 + remainder.length + 1 > FIELD_LIMIT) {
       lines.push(remainder)
       break
     }
     lines.push(line)
     used += line.length + 1
+    left -= entry.quantity
   }
   return lines.join('\n')
 }

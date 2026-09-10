@@ -61,7 +61,11 @@ export async function getPublicDeck(db: DB, ref: string): Promise<PublicDeck | n
     if (!v.lesson) continue
     lessonCopies.set(v.lesson, (lessonCopies.get(v.lesson) ?? 0) + v.quantity)
   }
-  const topLesson = [...lessonCopies.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
+  // Tie broken by lesson code, not by row order: deck_cards is read without an
+  // ORDER BY, so leaving a tie to arrival order would let the accent colour flip
+  // between two identical lookups of the same deck.
+  const topLesson = [...lessonCopies.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] ?? null
 
   // DeckCardView already carries every field DeckCardMeta needs, so legality
   // reuses the same evaluator the deck builder runs - the two can never disagree.

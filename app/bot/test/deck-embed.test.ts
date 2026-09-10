@@ -60,6 +60,19 @@ describe('deckEmbed', () => {
       .toBe('shared on revelio.cards')
   })
 
+  it('counts the remainder in copies, the same unit as the field header', () => {
+    // The header says "Main deck (400)", so "... and N more" has to be copies
+    // too. Counting distinct entries there leaves two numbers in one field that
+    // the reader cannot reconcile.
+    const many = Array.from({ length: 200 }, (_, i) => ({
+      name: `Card number ${i}`, quantity: 2, cost: i, lesson: 'charms',
+    }))
+    const json = deckEmbed({ ...deck, main: many, mainCount: 400 }, opts).toJSON()
+    const value = json.fields?.find((f) => f.name.startsWith('Main deck'))!.value
+    const shown = value.split('\n').filter((l) => l.startsWith('2x')).length
+    expect(value).toContain(`and ${400 - shown * 2} more`)
+  })
+
   it('truncates a long card list with a remainder line, inside the 1024 limit', () => {
     const many = Array.from({ length: 200 }, (_, i) => ({
       name: `Card number ${i}`, quantity: 1, cost: i, lesson: 'charms',

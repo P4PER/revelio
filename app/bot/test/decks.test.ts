@@ -94,3 +94,28 @@ describe('getPublicDeck', () => {
     expect((await getPublicDeck({} as never, 'abc123'))!.ownerUsername).toBe('seeker')
   })
 })
+
+describe('getPublicDeck lesson tiebreak', () => {
+  // deck_cards is read without an ORDER BY (db/src/queries.ts), so two lessons on
+  // equal copies must not resolve by row order - the accent colour would flip
+  // between two identical lookups of the same deck.
+  const tied = [
+    { cardId: 'a', zone: 'main', quantity: 4, name: 'A', cost: 1, lesson: 'potions', isLesson: false, isStartingCharacter: false, isOfficial: true, legality: 'legal' },
+    { cardId: 'b', zone: 'main', quantity: 4, name: 'B', cost: 1, lesson: 'charms', isLesson: false, isStartingCharacter: false, isOfficial: true, legality: 'legal' },
+  ]
+
+  function stubWith(views: unknown[]) {
+    return {
+      deck: { id: 'd', name: 'Tied', format: 'classic', visibility: 'public', cards: [], createdAt: '', updatedAt: '' },
+      userId: 'u1', views, viewCount: 0, ownerUsername: null,
+    }
+  }
+
+  it('resolves a copy-count tie the same way whatever order the rows arrive in', async () => {
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubWith(tied) as never)
+    const forward = (await getPublicDeck({} as never, 'd'))!.topLesson
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubWith([...tied].reverse()) as never)
+    const reversed = (await getPublicDeck({} as never, 'd'))!.topLesson
+    expect(forward).toBe(reversed)
+  })
+})

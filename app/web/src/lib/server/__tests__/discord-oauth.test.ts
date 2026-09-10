@@ -1,22 +1,28 @@
 import { it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { symmetricEncrypt } from 'better-auth/crypto'
-import { revokeDiscordAuthorization, unlinkAndRevokeDiscord } from '../discord-oauth'
+import { revokeDiscordAuthorization, unlinkAndRevokeDiscord, getDiscordAccountName } from '../discord-oauth'
 
 const TEST_SECRET = 'test-secret'
 
 const fetchMock = vi.fn()
 const unlinkProviderMock = vi.fn()
+const getAccessTokenMock = vi.fn()
 
 vi.mock('@revelio/db', () => ({ unlinkProvider: (...args: unknown[]) => unlinkProviderMock(...args) }))
 vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
-// The real module builds a Postgres client and a mailer at import time, and the
-// only thing needed from it here is the key the tokens were encrypted with.
+// The real module builds a Postgres client and a mailer at import time. What is
+// needed here is the key the tokens were encrypted with, plus the endpoint the
+// display-name lookup borrows to decrypt and refresh a stored token.
 vi.mock('@/lib/server/auth', () => ({
-  auth: { $context: Promise.resolve({ secretConfig: 'test-secret' }) },
+  auth: {
+    $context: Promise.resolve({ secretConfig: 'test-secret' }),
+    api: { getAccessToken: (...args: unknown[]) => getAccessTokenMock(...args) },
+  },
 }))
 
 beforeEach(() => {
   unlinkProviderMock.mockReset()
+  getAccessTokenMock.mockReset().mockResolvedValue({ accessToken: 'access-token' })
   vi.stubEnv('DISCORD_CLIENT_ID', 'client-id')
   vi.stubEnv('DISCORD_CLIENT_SECRET', 'client-secret')
   vi.stubGlobal('fetch', fetchMock)
@@ -128,4 +134,59 @@ it('does not call Discord when there was no link to remove', async () => {
 
   expect(await unlinkAndRevokeDiscord('user-1')).toBe(0)
   expect(fetchMock).not.toHaveBeenCalled()
+})
+
+// The account row holds only the snowflake, so the name has to come from
+// Discord. global_name is the display name Discord shows everywhere now;
+// username is the legacy handle and the fallback for accounts without one.
+it('reads the display name from the Discord profile', async () => {
+  fetchMock.mockResolvedValue({
+    ok: true,
+    status: 200,
+    json: async () => ({ global_name: 'Timon', username: 'timonw' }),
+  })
+  expect(await getDiscordAccountName('user-1')).toBe('Timon')
+  const [url, init] = fetchMock.mock.calls[0]
+  expect(url).toBe('https://discord.com/api/users/@me')
+  expect(init.headers.Authorization).toBe('Bearer access-token')
+})
+
+it('asks Better Auth for the token so an expired one gets refreshed first', async () => {
+  fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => ({ username: 'timonw' }) })
+  await getDiscordAccountName('user-1')
+  expect(getAccessTokenMock).toHaveBeenCalledWith({
+    body: { providerId: 'discord', userId: 'user-1' },
+  })
+})
+
+it('falls back to the username when the account has no display name', async () => {
+  fetchMock.mockResolvedValue({
+    ok: true,
+    status: 200,
+    json: async () => ({ global_name: null, username: 'timonw' }),
+  })
+  expect(await getDiscordAccountName('user-1')).toBe('timonw')
+})
+
+// The name is decoration: the pane falls back to the plain linked badge, so
+// none of these may propagate and break the settings page.
+it('returns null when no usable token can be produced', async () => {
+  getAccessTokenMock.mockRejectedValue(new Error('FAILED_TO_GET_ACCESS_TOKEN'))
+  expect(await getDiscordAccountName('user-1')).toBeNull()
+  expect(fetchMock).not.toHaveBeenCalled()
+})
+
+it('returns null when Discord rejects the token', async () => {
+  fetchMock.mockResolvedValue({ ok: false, status: 401 })
+  expect(await getDiscordAccountName('user-1')).toBeNull()
+})
+
+it('returns null when Discord cannot be reached', async () => {
+  fetchMock.mockRejectedValue(new Error('ETIMEDOUT'))
+  expect(await getDiscordAccountName('user-1')).toBeNull()
+})
+
+it('returns null when the profile carries neither name', async () => {
+  fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => ({ id: '123' }) })
+  expect(await getDiscordAccountName('user-1')).toBeNull()
 })

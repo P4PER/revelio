@@ -7,7 +7,7 @@ import { getCachedSiteSettings } from '@/lib/server/site-settings'
 
 export const dynamic = 'force-dynamic'
 
-const LAST_UPDATED = new Date('2026-07-22T00:00:00Z')
+const LAST_UPDATED = new Date('2026-09-10T00:00:00Z')
 
 export async function generateMetadata({
   params,
@@ -63,6 +63,8 @@ export function PrivacyContent({
       <p>{t('emailBody')}</p>
       <h3>{t('contactTitle')}</h3>
       <p>{t('contactBody')}</p>
+      <h3>{t('discordTitle')}</h3>
+      <p>{t('discordBody')}</p>
 
       <h2>{t('cookiesTitle')}</h2>
       <p>{t('cookiesBody')}</p>

@@ -6,7 +6,7 @@ import {
 import { LESSONS, TYPES, attrLabel } from '@revelio/core'
 import type { CardFilters } from '@revelio/search'
 import type { Deps } from '../../clients'
-import { findCards, MAX_CHOICES } from '../../data/cards'
+import { clampLabel, findCards, MAX_CHOICES } from '../../data/cards'
 import { toRevelioLocale } from '../../i18n/locale'
 import { t } from '../../i18n/t'
 import { searchEmbed } from '../embeds/search-embed'
@@ -112,7 +112,7 @@ export async function autocomplete(
         || s.code.toLowerCase().includes(focused)
         || s.name.toLowerCase().includes(focused))
       .slice(0, MAX_CHOICES)
-    await interaction.respond(matches.map((s) => ({ name: s.name, value: s.code })))
+    await interaction.respond(matches.map((s) => ({ name: clampLabel(s.name), value: s.code })))
   } catch (err) {
     console.error('search autocomplete failed:', err)
     await interaction.respond([]).catch(() => {})

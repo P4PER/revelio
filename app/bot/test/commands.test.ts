@@ -141,34 +141,36 @@ describe('/card autocomplete', () => {
   })
 })
 
+function fastPathDeps(search: unknown) {
+  return {
+    meili: { index: () => ({ search }) },
+    db: {},
+    sets: { name: vi.fn().mockResolvedValue('Base Set') },
+    env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
+  }
+}
+
 describe('/card id fast path', () => {
-  it('fetches by id when the submitted value is a document id', async () => {
+  it('resolves a submitted card id with one filtered lookup', async () => {
+    const search = vi.fn().mockResolvedValue({ hits: [doc], estimatedTotalHits: 1 })
     const interaction = fakeInteraction({ name: 'base-12' })
-    const getDocument = vi.fn().mockResolvedValue(doc)
-    const search = vi.fn()
-    const deps = {
-      meili: { index: () => ({ getDocument, search }) },
-      db: {},
-      sets: { name: vi.fn().mockResolvedValue('Base Set') },
-      env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
-    }
-    await COMMANDS.get('card')!.execute(interaction as never, deps as never)
-    expect(getDocument).toHaveBeenCalledWith('base-12')
-    expect(search).not.toHaveBeenCalled()
+    await COMMANDS.get('card')!.execute(interaction as never, fastPathDeps(search) as never)
+    expect(search).toHaveBeenCalledTimes(1)
+    expect(search).toHaveBeenCalledWith('', expect.objectContaining({
+      filter: ['id IN ["base-12"]'],
+    }))
   })
 
   it('falls back to a text search when the value is not an id', async () => {
+    const search = vi.fn()
+      .mockResolvedValueOnce({ hits: [], estimatedTotalHits: 0 })
+      .mockResolvedValueOnce({ hits: [doc], estimatedTotalHits: 1 })
     const interaction = fakeInteraction({ name: 'nimbus' })
-    const getDocument = vi.fn().mockRejectedValue(new Error('not found'))
-    const search = vi.fn().mockResolvedValue({ hits: [doc], estimatedTotalHits: 1 })
-    const deps = {
-      meili: { index: () => ({ getDocument, search }) },
-      db: {},
-      sets: { name: vi.fn().mockResolvedValue('Base Set') },
-      env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
-    }
-    await COMMANDS.get('card')!.execute(interaction as never, deps as never)
-    expect(search).toHaveBeenCalled()
+    await COMMANDS.get('card')!.execute(interaction as never, fastPathDeps(search) as never)
+    expect(search).toHaveBeenCalledTimes(2)
+    expect(search).toHaveBeenLastCalledWith('nimbus', expect.anything())
+    const payload = interaction.editReply.mock.calls[0][0]
+    expect(payload.embeds[0].toJSON().title).toBe('Nimbus 2000')
   })
 })
 
@@ -208,5 +210,14 @@ describe('/search set filter', () => {
     const interaction = fakeAutocomplete('set')
     await COMMANDS.get('search')!.autocomplete!(interaction as never, { sets: { all } } as never)
     expect(interaction.respond.mock.calls[0][0]).toHaveLength(25)
+  })
+
+  it('clamps a set name to Discord\'s 100 character limit', async () => {
+    // Discord rejects the whole response with a 400 if any choice name is too
+    // long, which costs the user every suggestion, not just the oversized one.
+    const all = vi.fn().mockResolvedValue([{ code: 'long', name: 'S'.repeat(200) }])
+    const interaction = fakeAutocomplete('s')
+    await COMMANDS.get('search')!.autocomplete!(interaction as never, { sets: { all } } as never)
+    expect(interaction.respond.mock.calls[0][0][0].name.length).toBeLessThanOrEqual(100)
   })
 })

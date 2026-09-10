@@ -1,5 +1,5 @@
 import type { MeiliSearch } from 'meilisearch'
-import { cardsIndex, searchCards, type CardFilters, type SearchDocument } from '@revelio/search'
+import { searchCards, type CardFilters, type SearchDocument } from '@revelio/search'
 import { getCardRulings, type DB } from '@revelio/db'
 
 export type CardRuling = { date: string | null; source: string | null; text: string }
@@ -29,7 +29,7 @@ export const DEFAULT_PAGE_SIZE = 10
 export const MAX_CHOICES = 25
 const MAX_LABEL = 100
 
-function clampLabel(value: string): string {
+export function clampLabel(value: string): string {
   return value.length <= MAX_LABEL ? value : `${value.slice(0, MAX_LABEL - 1)}…`
 }
 
@@ -91,17 +91,22 @@ export async function suggestCards(
   }))
 }
 
-// A chosen suggestion submits the card id, which makes the lookup a primary-key
-// read rather than a second text search. A miss means the user typed free text
-// instead, so it is a null, not an error.
+// A chosen suggestion submits the card id, so this resolves it exactly instead
+// of running a second text search that a longer name could win. It filters
+// rather than calling getDocument because the bot holds the read-only search
+// key, and Meilisearch scopes that to the `search` action alone: documents.get
+// answers 403, which would silently kill the fast path everywhere but a
+// master-key dev stack. `id` is already a filterable attribute.
 export async function findCardById(
   meili: MeiliSearch,
   id: string,
   locale: string,
 ): Promise<SearchDocument | null> {
-  try {
-    return (await meili.index(cardsIndex(locale)).getDocument(id)) as SearchDocument
-  } catch {
-    return null
-  }
+  const trimmed = id.trim()
+  if (!trimmed) return null
+  const res = await searchCards(meili, locale, '', {
+    filters: { ids: [trimmed] },
+    hitsPerPage: 1,
+  })
+  return res.hits[0] ?? null
 }

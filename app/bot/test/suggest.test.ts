@@ -46,16 +46,26 @@ describe('suggestCards', () => {
 })
 
 describe('findCardById', () => {
-  it('returns the document for a known id', async () => {
-    const { client, getDocument } = stubMeili([])
-    getDocument.mockResolvedValue(hit(12, 'Nimbus 2000'))
+  it('resolves the id with a filter rather than getDocument', async () => {
+    const { client, search } = stubMeili([hit(12, 'Nimbus 2000')])
     const doc = await findCardById(client, 'base-12', 'en')
     expect(doc).toMatchObject({ id: 'base-12' })
+    // Not getDocument: the bot holds the read-only search key, which Meilisearch
+    // scopes to the `search` action alone. documents.get returns 403 there, and
+    // the whole fast path would silently die in any correctly-scoped deployment.
+    expect(search).toHaveBeenCalledWith('', expect.objectContaining({
+      filter: ['id IN ["base-12"]'],
+    }))
   })
 
-  it('returns null when the id is not a document', async () => {
-    const { client, getDocument } = stubMeili([])
-    getDocument.mockRejectedValue(new Error('Document `nope` not found.'))
+  it('returns null when no card carries that id', async () => {
+    const { client } = stubMeili([])
     expect(await findCardById(client, 'nope', 'en')).toBeNull()
+  })
+
+  it('returns null for an empty value without querying', async () => {
+    const { client, search } = stubMeili([])
+    expect(await findCardById(client, '   ', 'en')).toBeNull()
+    expect(search).not.toHaveBeenCalled()
   })
 })

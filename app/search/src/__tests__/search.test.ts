@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
+  searchCardFields,
   searchCardIds,
   searchCardSuggestions,
   searchCardSummaries,
@@ -87,5 +88,25 @@ describe('searchCardSuggestions', () => {
     const hits = [{ id: 'a' }, { id: 'b' }]
     const res = await searchCardSuggestions(fakeClient({}, hits), 'en', 'x', 2)
     expect(res.map((h) => h.id)).toEqual(['a', 'b'])
+  })
+})
+
+describe('searchCardFields', () => {
+  it('asks for exactly the fields it was given, on the requested page', async () => {
+    const captured: Record<string, unknown> = {}
+    await searchCardFields(
+      fakeClient(captured), 'en', '', ['id', 'name', 'orientation'], { page: 2, hitsPerPage: 12 },
+    )
+    expect(captured.attributesToRetrieve).toEqual(['id', 'name', 'orientation'])
+    expect(captured.offset).toBe(12)
+    expect(captured.limit).toBe(12)
+  })
+
+  it('copies the tuple instead of handing the caller\'s array to the client', async () => {
+    const captured: Record<string, unknown> = {}
+    const fields = ['id', 'name'] as const
+    await searchCardFields(fakeClient(captured), 'en', '', fields)
+    expect(captured.attributesToRetrieve).not.toBe(fields)
+    expect(captured.attributesToRetrieve).toEqual(['id', 'name'])
   })
 })

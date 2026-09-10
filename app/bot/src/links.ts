@@ -33,3 +33,7 @@ export function searchUrl(
   if (filters.set) params.set('set', filters.set)
   return `${localeRoot(siteBase, locale)}/search?${params.toString()}`
 }
+
+export function deckUrl(siteBase: string, id: string, locale: string): string {
+  return `${localeRoot(siteBase, locale)}/decks/${id}`
+}

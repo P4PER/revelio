@@ -2,35 +2,37 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
-import type { SearchDocument, SearchResult } from '@revelio/search'
+import type { DeckBrowseHit, DeckBrowseResult } from '@/lib/search-projections'
 import en from '@/../messages/en.json'
 import { DeckCardBrowser } from '@/components/deck/deck-card-browser'
 
-const searchDeckCards = vi.fn(async (): Promise<SearchResult> => FIXED_RESULT)
+const searchDeckCards = vi.fn(async (): Promise<DeckBrowseResult> => FIXED_RESULT)
 const getCardDetailAction = vi.fn(() => new Promise(() => {})) // never resolves by default
 vi.mock('@/lib/actions/deck-actions', () => ({
   searchDeckCards: (...a: unknown[]) => searchDeckCards(...a),
   getCardDetailAction: (...a: unknown[]) => getCardDetailAction(...a),
 }))
 
-function hit(overrides: Partial<SearchDocument>): SearchDocument {
+// Exactly the projection the server action now returns, so a component that
+// starts reading a field DECK_BROWSE_FIELDS does not carry fails here rather
+// than passing against a document production never sends.
+function hit(overrides: Partial<DeckBrowseHit>): DeckBrowseHit {
   return {
     id: 'placeholder',
     setCode: 'BS',
     number: '001',
     name: 'Placeholder',
-    text: null,
-    flavorText: null,
     types: ['spell'],
     subTypes: [],
     lesson: 'charms',
-    rarity: null,
-    finishes: [],
     legality: 'legal',
     cost: 2,
+    damage: null,
     isOfficial: true,
     orientation: null,
     imageLang: null,
+    imageVersion: null,
+    artCropVersion: null,
     defaultLanguage: 'en',
     ...overrides,
   }
@@ -39,7 +41,7 @@ function hit(overrides: Partial<SearchDocument>): SearchDocument {
 // One banned card (Revival-illegal), one card already at the 4-copy limit, one
 // plain legal/under-limit card, and one witch/wizard character card that
 // qualifies as a starting character.
-const FIXED_RESULT: SearchResult = {
+const FIXED_RESULT: DeckBrowseResult = {
   hits: [
     hit({ id: 'banned-card', name: 'Banned Card', legality: 'banned' }),
     hit({ id: 'maxed-card', name: 'Maxed Card', legality: 'legal' }),

@@ -15,7 +15,7 @@ export const CARD_TILE_FIELDS = [
 export const COLLECTION_TILE_FIELDS = [...CARD_TILE_FIELDS, 'finishes'] as const
 
 // The deck browser renders a tile and builds a DeckCardView from the hit, so it needs
-// almost everything: only text, flavorText, rarity and numberSort are unused.
+// almost everything: only text, flavorText, rarity, finishes and numberSort are unused.
 export const DECK_BROWSE_FIELDS = [
   'id', 'name', 'setCode', 'number', 'cost', 'damage', 'types', 'subTypes', 'lesson',
   'legality', 'isOfficial', 'orientation', 'imageLang', 'imageVersion',

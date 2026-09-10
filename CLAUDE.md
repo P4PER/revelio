@@ -28,8 +28,9 @@ npm test -w web -- -t "test name substring"
 # Playwright e2e (web only; specs in web/e2e/, config in web/playwright.config.ts)
 npm run e2e -w web           # builds + starts prod server, runs against localhost:3000
 
-# lint (only the web workspace is linted — eslint-config-next)
-npm run lint -w web
+# lint (all six workspaces; runs the root config then web's own)
+npm run lint
+npm run lint -w web           # web alone (eslint-config-next rules)
 
 # Discord bot (needs bot/.env.local, see below)
 npm run dev -w @revelio/bot       # run against the local stack
@@ -41,7 +42,7 @@ npm run check -w @revelio/db     # drizzle-kit journal/snapshot consistency
 npm run verify -w @revelio/db    # fails if schema.ts drifted from migrations (offline)
 ```
 
-CI (`.github/workflows/ci.yml`) has three jobs: **check** (db check + verify, web lint, typecheck), **test** (spins up Meilisearch + MinIO in Docker, then `npm test`), and **build** (`next build`). Tests requiring live services read `TEST_MEILI_HOST`/`TEST_MEILI_KEY`/`TEST_S3_*`; Postgres-backed tests use Testcontainers (Docker required, no compose Postgres service in CI).
+CI (`.github/workflows/ci.yml`) has three jobs: **check** (db check + verify, lint, typecheck), **test** (spins up Meilisearch + MinIO in Docker, then `npm test`), and **build** (`next build`). Tests requiring live services read `TEST_MEILI_HOST`/`TEST_MEILI_KEY`/`TEST_S3_*`; Postgres-backed tests use Testcontainers (Docker required, no compose Postgres service in CI).
 
 ### Local infra
 
@@ -66,7 +67,7 @@ Six npm workspaces under `app/`, with a strict dependency direction `core ← {s
 - **`@revelio/search`** (`search/`) — Meilisearch client + document shape + query builder. `createMeiliClient(host, key)` is the single client factory; `documents.ts` defines the indexed card document; `search.ts` builds queries/filters.
 - **`@revelio/db`** (`db/`) — Drizzle ORM over Postgres. `schema.ts` (card data) + `auth-schema.ts` (Better Auth tables), `queries.ts`, `client.ts`, and migration runners (`migrate.ts` / `migrate-cli.ts`). Migrations are checked-in SQL under `db/drizzle/`.
 - **`@revelio/ingest`** (`ingest/`) — one-shot job (`src/main.ts`, run with `tsx`) that runs migrations, seeds Postgres from `card-data`, indexes Meilisearch, and uploads card images to S3/MinIO. The `load-*.ts` files each own one data source; `build-documents.ts` + `index-cards.ts` produce the search index; `upload-images.ts` handles S3.
-- **`@revelio/web`** (`web/`) — Next.js 16 (App Router, React 19) app. This is the only workspace with a lint step, and the only one users reach in a browser.
+- **`@revelio/web`** (`web/`) — Next.js 16 (App Router, React 19) app. The only workspace users reach in a browser, and the only one with an ESLint config of its own (`web/eslint.config.mjs`, Next- and React-specific); the other five are covered by `app/eslint.config.mjs`.
 - **`@revelio/bot`** (`bot/`) — discord.js gateway bot serving `/card`, `/search`, `/deck`, `/collection` and `/mydecks` in Discord. It reads Meilisearch and Postgres directly on the private network; there is no HTTP API between it and `web`, and it must never import from `web`. Read-only: it uses `MEILI_SEARCH_KEY` and never `MEILI_WRITE_KEY`.
 
 ### Web app specifics
@@ -120,15 +121,21 @@ Design specs and phased implementation plans live in `docs/superpowers/specs/` a
 
 ### Types
 
-- **`type` aliases are the default.** Object shapes are `type X = { ... }`; the handful of
-  `interface` declarations left are the exception, not the pattern. Reach for `interface` only when
-  you actually need declaration merging or to `extends` a third-party interface.
+- **`type` aliases are the default.** Object shapes are `type X = { ... }`, with no `interface`
+  left in the tree. `@typescript-eslint/consistent-type-definitions` enforces it; an `interface`
+  that genuinely needs declaration merging, or to `extends` a third-party interface, takes an
+  inline disable naming the reason.
 - **Derive from Zod, don't restate.** Where `@revelio/core` owns a schema, the type comes from it:
   `export type DeckFormat = z.infer<typeof DeckFormat>` (`core/src/deck.ts`). A hand-written twin of
   a schema is a drift bug waiting to happen.
 - **Type-only imports say `type`.** `import type { MeiliSearch } from 'meilisearch'` for a pure type
   import, and the inline form when one module gives you both:
-  `import { cardsIndex, type SearchDocument } from './documents'`.
+  `import { cardsIndex, type SearchDocument } from './documents'`. Enforced by
+  `@typescript-eslint/consistent-type-imports`, which also bans inline `import('...')` type
+  annotations - the one standing exception is Vitest's `importOriginal<typeof import('...')>()`.
+- **Both rules are on in every workspace.** `app/eslint.config.mjs` covers `core`, `search`, `db`,
+  `ingest` and `bot` (typescript-eslint's recommended set plus these two); `web/eslint.config.mjs`
+  carries them on top of `eslint-config-next`. `npm run lint` from `app/` runs both.
 - **Naming.** `XxxDTO` for a shape `@revelio/db` hands across its boundary (`CardDetailDTO`,
   `DeckDTO`), `XxxProps` for React component props, `XxxOptions` / `XxxFilters` for argument bags
   (`SearchOptions`, `CardFilters`).
@@ -165,14 +172,16 @@ Design specs and phased implementation plans live in `docs/superpowers/specs/` a
 
 ### Pull requests
 
-- **Title is a Conventional Commit line too**, same form and scope rules as above. A bare sentence
-  gets flagged.
+- **Title is a Conventional Commit line too**, same form and scope rules as above, and
+  `.github/workflows/pr-title.yml` fails the PR if it is not. The title is not cosmetic: the merge
+  commit carries it as its body. That check runs on every PR, docs-only ones included, unlike
+  `ci.yml`.
 - **Body opens with prose** — one to three sentences on what this is and why, before any heading.
-  Then `##` sections. The ones that recur: `## What` / `## What changed`, `## Verification`,
+  Then `##` sections; `.github/pull_request_template.md` prefills the skeleton. The ones that recur: `## What` / `## What changed`, `## Verification`,
   `## Deployment`, `## Notes for review`. Use plain descriptive headings for a multi-part PR
   (`## 1. A ban only blocked new sign-ins`) rather than forcing a template.
 - **`## Verification` is not optional.** One bullet per command actually run, with its real result —
-  `npm test -w web` and the test count, `npm run typecheck`, `npm run lint -w web`, and anything
+  `npm test -w web` and the test count, `npm run typecheck`, `npm run lint`, and anything
   checked by hand. Never write a line you did not run; if a mutation test was used to prove a new
   test bites, say so.
 - **`## Deployment`** whenever the merge needs something outside the diff: a new env var and which

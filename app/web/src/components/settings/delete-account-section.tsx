@@ -79,9 +79,10 @@ export function DeleteAccountSection({ user }: { user: SettingsUser }) {
           // Radix preventDefaults its own open-autofocus and focuses the
           // AlertDialogCancel instead. That is the right default for a bare
           // confirmation, but this dialog's whole job is typing the six digits
-          // just emailed, so focus starts in the code field. Bailing out when the
-          // ref is empty leaves Radix's cancel focus in place rather than
-          // stranding focus on the trigger behind the overlay.
+          // just emailed, so focus starts in the code field. The bail-out hands
+          // the decision back to Radix if the field ever stops taking a ref -
+          // partial cover only, since Cancel is disabled while the code request
+          // is in flight and a disabled button cannot take focus either.
           onOpenAutoFocus={(event) => {
             if (!codeRef.current) return
             event.preventDefault()

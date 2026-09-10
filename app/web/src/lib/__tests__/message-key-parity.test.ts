@@ -29,6 +29,14 @@ function placeholders(message: string): string[] {
   return [...message.matchAll(/\{\s*([A-Za-z0-9_]+)/g)].map((m) => m[1]).sort()
 }
 
+// Rich-text tags: the <cmd> in "Use <cmd>/collection</cmd>" and friends, each of
+// which the reading component has to supply a handler for. A tag one catalogue
+// carries and the other does not is worse than a missing key: next-intl logs a
+// FORMATTING_ERROR and renders the raw key path in place of the whole sentence.
+function tags(message: string): string[] {
+  return [...message.matchAll(/<([A-Za-z0-9_]+)>/g)].map((m) => m[1]).sort()
+}
+
 function messageAt(catalogue: Catalogue, path: string): string {
   return path.split('.').reduce<unknown>((node, key) => (node as Catalogue)[key], catalogue) as string
 }
@@ -50,6 +58,15 @@ describe('message catalogue parity', () => {
       expect({ path, args: placeholders(messageAt(de, path)) }).toEqual({
         path,
         args: placeholders(messageAt(en, path)),
+      })
+    }
+  })
+
+  it('carries the same rich-text tags through both translations', () => {
+    for (const path of translatedPaths(en)) {
+      expect({ path, tags: tags(messageAt(de, path)) }).toEqual({
+        path,
+        tags: tags(messageAt(en, path)),
       })
     }
   })

@@ -1,5 +1,6 @@
 'use client'
 import { useState, useTransition } from 'react'
+import type { ReactNode } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from '@/../i18n/navigation'
 import { authClient } from '@/lib/auth-client'
@@ -9,8 +10,8 @@ import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { DiscordMark } from '@/components/discord-mark'
 import {
-  AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogTitle,
+  AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import type { DiscordConnectionProps } from './types'
 
@@ -26,6 +27,21 @@ const ERROR_KEYS: Record<string, string> = {
   // never fix it, so the generic "please try again" would send the user round
   // a loop that has no exit.
   unable_to_link_account: 'unverifiedDiscord',
+}
+
+// The bot's commands are literal input the reader has to type in Discord, so
+// they render as code rather than as prose. Deliberately not Discord's blue
+// mention pill: on a web page it cannot be clicked, and a chip that looks
+// pressable but is not would promise something this page cannot do. The
+// background is bg-background because the caption sits on a bg-muted/50 row,
+// where a muted chip would vanish; nowrap keeps "/collection" whole when the
+// row wraps on a narrow screen.
+function cmd(chunks: ReactNode) {
+  return (
+    <code className="rounded bg-background px-1 py-px font-mono text-[0.95em] whitespace-nowrap text-foreground">
+      {chunks}
+    </code>
+  )
 }
 
 // One provider, one component: the pending flag, the failure line and the
@@ -124,7 +140,7 @@ export function DiscordConnection({
 
         {configured && (
           <p className="basis-full border-t border-border pt-3 text-xs text-muted-foreground">
-            {t('discordBody')}
+            {t.rich('discordBody', { cmd })}
           </p>
         )}
       </div>
@@ -136,13 +152,23 @@ export function DiscordConnection({
           <AlertDialogHeader>
             <AlertDialogTitle>{t('unlinkTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {accountName ? t('unlinkBodyNamed', { name: `@${accountName}` }) : t('unlinkBody')}
+              {accountName
+                ? t.rich('unlinkBodyNamed', { name: `@${accountName}`, cmd })
+                : t.rich('unlinkBody', { cmd })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => setConfirming(false)}>
-              {t('cancel')}
-            </Button>
+            {/* AlertDialogCancel, not a plain Button: Radix preventDefaults its own
+                open-autofocus and then focuses this element's ref, so without it
+                focus never enters the dialog and stays on the covered trigger.
+                The confirm below stays a plain Button on purpose - AlertDialogAction
+                closes on click, and this dialog has to stay up while the unlink is
+                in flight and close only once it has answered. */}
+            <AlertDialogCancel asChild>
+              <Button type="button" size="sm" variant="outline" disabled={pending}>
+                {t('cancel')}
+              </Button>
+            </AlertDialogCancel>
             <Button type="button" size="sm" variant="destructive" disabled={pending} onClick={onUnlink}>
               {t('confirmUnlink')}
             </Button>

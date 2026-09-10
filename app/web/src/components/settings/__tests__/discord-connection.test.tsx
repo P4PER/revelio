@@ -17,6 +17,10 @@ import { DiscordConnection } from '../discord-connection'
 
 const c = en.settings.connections
 
+// The catalog wraps the bot's commands in <cmd> tags so they render as code, so
+// the text on screen is the message with that markup taken back out.
+const plain = (msg: string) => msg.replace(/<\/?cmd>/g, '')
+
 beforeEach(() => {
   m.linkSocial.mockReset().mockResolvedValue({ data: { url: 'https://discord.test/oauth' }, error: null })
   m.unlinkDiscord.mockReset().mockResolvedValue({ ok: true })
@@ -62,17 +66,26 @@ it('asks before touching the account', async () => {
   expect(m.unlinkDiscord).not.toHaveBeenCalled()
 })
 
+// Radix preventDefaults its own open-autofocus and focuses the AlertDialogCancel
+// instead; with a plain Button there, focus stays on the trigger behind the
+// overlay and a keyboard user is left with a dialog they cannot reach.
+it('moves focus into the dialog', async () => {
+  renderWithIntl(<DiscordConnection linked configured accountName="timonw" />)
+  await userEvent.click(screen.getByRole('button', { name: c.unlink }))
+  expect(await screen.findByRole('button', { name: c.cancel })).toHaveFocus()
+})
+
 it('names the account in the confirmation so it is clear which one goes', async () => {
   renderWithIntl(<DiscordConnection linked configured accountName="timonw" />)
   await userEvent.click(screen.getByRole('button', { name: c.unlink }))
   expect(await screen.findByRole('alertdialog'))
-    .toHaveTextContent(c.unlinkBodyNamed.replace('{name}', '@timonw'))
+    .toHaveTextContent(plain(c.unlinkBodyNamed).replace('{name}', '@timonw'))
 })
 
 it('falls back to the nameless wording when the handle is unknown', async () => {
   renderWithIntl(<DiscordConnection linked configured accountName={null} />)
   await userEvent.click(screen.getByRole('button', { name: c.unlink }))
-  expect(await screen.findByRole('alertdialog')).toHaveTextContent(c.unlinkBody)
+  expect(await screen.findByRole('alertdialog')).toHaveTextContent(plain(c.unlinkBody))
 })
 
 it('leaves the account alone when the dialog is cancelled', async () => {
@@ -107,8 +120,20 @@ it('says so in the row when nothing is linked yet', () => {
 // The row is the only place the bot's two commands are explained, in every
 // state where linking is possible at all.
 it.each([true, false])('explains what the link is for when linked=%s', (linked) => {
-  renderWithIntl(<DiscordConnection linked={linked} configured accountName="timonw" />)
-  expect(screen.getByText(c.discordBody)).toBeInTheDocument()
+  // Asserted on the container: the sentence is split across <code> elements, so
+  // getByText would not see it as one string.
+  const { container } = renderWithIntl(
+    <DiscordConnection linked={linked} configured accountName="timonw" />,
+  )
+  expect(container.textContent).toContain(plain(c.discordBody))
+})
+
+// The commands are literal input, so they carry code markup in the row and in
+// the dialog alike rather than sitting in the prose unmarked.
+it('renders the bot commands as code', () => {
+  const { container } = renderWithIntl(<DiscordConnection linked={false} configured />)
+  expect([...container.querySelectorAll('code')].map((el) => el.textContent))
+    .toEqual(['/collection', '/mydecks'])
 })
 
 // The error line lives in the pane, behind the dialog, so the dialog has to

@@ -136,19 +136,27 @@ it('does not call Discord when there was no link to remove', async () => {
   expect(fetchMock).not.toHaveBeenCalled()
 })
 
-// The account row holds only the snowflake, so the name has to come from
-// Discord. global_name is the display name Discord shows everywhere now;
-// username is the legacy handle and the fallback for accounts without one.
-it('reads the display name from the Discord profile', async () => {
+// The account row holds only the snowflake, so the handle has to come from
+// Discord. The pane prints it behind an "@", so it wants the unique username
+// and not the free-form global_name beside it.
+it('reads the handle from the Discord profile', async () => {
   fetchMock.mockResolvedValue({
     ok: true,
     status: 200,
-    json: async () => ({ global_name: 'Timon', username: 'timonw' }),
+    json: async () => ({ global_name: 'Timon Wegener', username: 'timonw' }),
   })
-  expect(await getDiscordAccountName('user-1')).toBe('Timon')
+  expect(await getDiscordAccountName('user-1')).toBe('timonw')
   const [url, init] = fetchMock.mock.calls[0]
   expect(url).toBe('https://discord.com/api/users/@me')
   expect(init.headers.Authorization).toBe('Bearer access-token')
+})
+
+// The settings page awaits this inline, so a Discord that accepts the
+// connection and then stalls would hold the page for undici's 300s default.
+it('gives up on a stalled Discord rather than holding the page open', async () => {
+  fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => ({ username: 'timonw' }) })
+  await getDiscordAccountName('user-1')
+  expect(fetchMock.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal)
 })
 
 it('asks Better Auth for the token so an expired one gets refreshed first', async () => {
@@ -159,13 +167,13 @@ it('asks Better Auth for the token so an expired one gets refreshed first', asyn
   })
 })
 
-it('falls back to the username when the account has no display name', async () => {
+it('falls back to the display name when the profile carries no username', async () => {
   fetchMock.mockResolvedValue({
     ok: true,
     status: 200,
-    json: async () => ({ global_name: null, username: 'timonw' }),
+    json: async () => ({ global_name: 'Timon', username: null }),
   })
-  expect(await getDiscordAccountName('user-1')).toBe('timonw')
+  expect(await getDiscordAccountName('user-1')).toBe('Timon')
 })
 
 // The name is decoration: the pane falls back to the plain linked badge, so

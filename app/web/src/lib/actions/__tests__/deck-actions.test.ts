@@ -1,4 +1,5 @@
 import { it, expect, vi, beforeEach } from 'vitest'
+import { DECK_BROWSE_FIELDS } from '@/lib/search-projections'
 
 const m = vi.hoisted(() => ({
   getSession: vi.fn(async () => ({ user: { id: 'u1' } })),
@@ -12,7 +13,7 @@ const m = vi.hoisted(() => ({
   recordView: vi.fn(async () => ({ viewCount: 3 })),
   revalidatePath: vi.fn(),
   getSearchClient: vi.fn(() => 'client'),
-  runSearch: vi.fn(async () => ({ hits: [], total: 0, page: 1, hitsPerPage: 24 })),
+  runSearchFields: vi.fn(async () => ({ hits: [], total: 0, page: 1, hitsPerPage: 24 })),
 }))
 vi.mock('@/lib/server/session', () => ({ getSession: m.getSession }))
 vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
@@ -27,7 +28,7 @@ vi.mock('@revelio/db', () => ({
   recordView: m.recordView,
 }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
-vi.mock('@/lib/server/search-client', () => ({ getSearchClient: m.getSearchClient, runSearch: m.runSearch }))
+vi.mock('@/lib/server/search-client', () => ({ getSearchClient: m.getSearchClient, runSearchFields: m.runSearchFields }))
 
 import { createDeckAction, updateDeckAction, updateDeckMetaAction, deleteDeckAction, duplicateDeckAction, searchDeckCards, toggleLikeAction, recordViewAction } from '../deck-actions'
 
@@ -130,17 +131,18 @@ it('duplicates a deck with the session user id and suffixed name', async () => {
 
 it('searchDeckCards restricts classic to official sets only', async () => {
   await searchDeckCards('en', { query: 'accio', format: 'classic', lessons: ['charms'] })
-  expect(m.runSearch).toHaveBeenCalledWith(
+  expect(m.runSearchFields).toHaveBeenCalledWith(
     'client',
     'en',
     expect.objectContaining({ q: 'accio', official: true, lessons: ['charms'] }),
+    DECK_BROWSE_FIELDS,
     expect.objectContaining({ hitsPerPage: 30 }),
   )
 })
 
 it('searchDeckCards searches all sets (official: null) for revival', async () => {
   await searchDeckCards('en', { format: 'revival' })
-  expect(m.runSearch).toHaveBeenCalledWith('client', 'en', expect.objectContaining({ official: null }), expect.objectContaining({ hitsPerPage: 30 }))
+  expect(m.runSearchFields).toHaveBeenCalledWith('client', 'en', expect.objectContaining({ official: null }), DECK_BROWSE_FIELDS, expect.objectContaining({ hitsPerPage: 30 }))
 })
 
 it('searchDeckCards forwards the advanced filters (types/rarities/finishes/legalities/cost/set) into the search state', async () => {
@@ -154,13 +156,14 @@ it('searchDeckCards forwards the advanced filters (types/rarities/finishes/legal
     costMin: 1,
     costMax: 4,
   })
-  expect(m.runSearch).toHaveBeenCalledWith(
+  expect(m.runSearchFields).toHaveBeenCalledWith(
     'client',
     'en',
     expect.objectContaining({
       types: ['character'], rarities: ['rare'], finishes: ['foil'], legalities: ['banned'],
       set: 'BS', costMin: 1, costMax: 4,
     }),
+    DECK_BROWSE_FIELDS,
     expect.objectContaining({ hitsPerPage: 30 }),
   )
 })

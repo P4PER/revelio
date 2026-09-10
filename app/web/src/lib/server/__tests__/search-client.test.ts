@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { createMeiliClient, cardsIndex, CARD_INDEX_SETTINGS, type SearchDocument } from '@revelio/search'
 import { runSearch, runSearchFields } from '../search-client'
 import { parseSearchParams } from '@/lib/search-params'
-import { CARD_TILE_FIELDS } from '@/lib/search-projections'
+import { CARD_TILE_FIELDS, DECK_BROWSE_FIELDS } from '@/lib/search-projections'
 
 const lang = `test${randomUUID().replace(/-/g, '')}`
 const client = createMeiliClient(
@@ -63,5 +63,16 @@ describe('runSearchFields', () => {
       client, lang, parseSearchParams(new URLSearchParams('type=creature')), CARD_TILE_FIELDS,
     )
     expect(r.hits.map((h) => h.id)).toEqual(['b'])
+  })
+
+  it('keeps every field the deck browser builds a card view from', async () => {
+    const r = await runSearchFields(
+      client, lang, parseSearchParams(new URLSearchParams('q=harry')), DECK_BROWSE_FIELDS,
+    )
+    // toAddView reads all of these; a missing one is a blank tile or a throw.
+    for (const key of ['id', 'name', 'setCode', 'number', 'types', 'subTypes', 'legality', 'isOfficial']) {
+      expect(r.hits[0]).toHaveProperty(key)
+    }
+    expect(r.hits[0]).not.toHaveProperty('text')
   })
 })

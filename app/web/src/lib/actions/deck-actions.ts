@@ -3,11 +3,11 @@ import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { DeckFormat, DeckVisibility, DeckZone } from '@revelio/core'
 import type { CardDetailDTO, DeckCardView } from '@revelio/core'
-import type { SearchResult } from '@revelio/search'
 import { getSession } from '@/lib/server/session'
 import { getDb } from '@/lib/server/db'
 import { createDeck, updateDeck, updateDeckMeta, deleteDeck, getDeck, getDeckForViewer, getCardById, getCardViews, resolveCardsByName, toggleLike, recordView } from '@revelio/db'
-import { getSearchClient, runSearch } from '@/lib/server/search-client'
+import { getSearchClient, runSearchFields } from '@/lib/server/search-client'
+import { DECK_BROWSE_FIELDS, type DeckBrowseResult } from '@/lib/search-projections'
 import type { SearchState } from '@/lib/search-params'
 import { DECK_BROWSE_PAGE_SIZE } from '@/lib/deck-view'
 
@@ -107,7 +107,7 @@ const deckSearchSchema = z.object({
 // Card pool for the deck builder's browse pane: Classic restricts to official
 // sets, Revival searches everything (banned cards are still returned — the
 // browser flags/disables them client-side rather than filtering them out).
-export async function searchDeckCards(locale: string, input: unknown): Promise<SearchResult> {
+export async function searchDeckCards(locale: string, input: unknown): Promise<DeckBrowseResult> {
   const d = deckSearchSchema.parse(input)
   const state: SearchState = {
     q: d.query ?? '',
@@ -125,7 +125,7 @@ export async function searchDeckCards(locale: string, input: unknown): Promise<S
   }
   // The builder browses in a wide grid, so fetch a larger page than the
   // default search results view (24).
-  return runSearch(getSearchClient(), locale, state, { hitsPerPage: DECK_BROWSE_PAGE_SIZE })
+  return runSearchFields(getSearchClient(), locale, state, DECK_BROWSE_FIELDS, { hitsPerPage: DECK_BROWSE_PAGE_SIZE })
 }
 
 // Full card detail for the browser's Info Sheet. Public read data (same as the

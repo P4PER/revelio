@@ -221,3 +221,51 @@ describe('/search set filter', () => {
     expect(interaction.respond.mock.calls[0][0][0].name.length).toBeLessThanOrEqual(100)
   })
 })
+
+// Duplicated from decks.test.ts on purpose: a fixture copied into the file that
+// reads it keeps each test file self-contained.
+const deckViews = [
+  { cardId: 'c1', zone: 'character', quantity: 1, name: 'Harry Potter', cost: null, lesson: null, types: ['character'], subTypes: ['wizard'], isLesson: false, isStartingCharacter: true, isOfficial: true, legality: 'legal' },
+  { cardId: 'c2', zone: 'main', quantity: 4, name: 'Alohomora', cost: 2, lesson: 'charms', types: ['spell'], subTypes: [], isLesson: false, isStartingCharacter: false, isOfficial: true, legality: 'legal' },
+]
+
+function stubDeck() {
+  return {
+    deck: {
+      id: 'abc123', name: 'Charms Aggro', format: 'classic', visibility: 'public',
+      cards: deckViews.map((v) => ({ cardId: v.cardId, zone: v.zone, quantity: v.quantity })),
+      createdAt: '2026-01-01', updatedAt: '2026-01-02',
+    },
+    userId: 'u1',
+    views: deckViews,
+    viewCount: 7,
+    ownerUsername: 'seeker',
+  }
+}
+
+describe('/deck', () => {
+  it('replies with an embed for a public deck', async () => {
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    const interaction = fakeInteraction({ deck: 'https://revelio.cards/decks/abc123' })
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    const payload = interaction.editReply.mock.calls[0][0]
+    expect(payload.embeds[0].toJSON().title).toBe('Charms Aggro')
+  })
+
+  it('replies with a localized miss for a private or unknown deck', async () => {
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(null)
+    const interaction = fakeInteraction({ deck: 'nope' })
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(interaction.editReply).toHaveBeenCalledWith(
+      expect.objectContaining({ content: expect.stringContaining('Private decks') }),
+    )
+  })
+
+  it('never records a view', async () => {
+    const record = vi.spyOn(dbModule, 'recordView')
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    const interaction = fakeInteraction({ deck: 'abc123' })
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(record).not.toHaveBeenCalled()
+  })
+})

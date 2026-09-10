@@ -115,11 +115,72 @@ Design specs and phased implementation plans live in `docs/superpowers/specs/` a
 
 ## Conventions
 
-- **Conventional Commits** for commit messages.
 - Documentation filenames are UPPERCASE (`README.md`, `MIGRATIONS.md`, `BRAND-GUIDE.md`).
 - All docs/specs/prose in English.
-- **Declaration order within a file: types → constants → helpers → exported functions.** Imports first, then every `type`/`interface`, then module constants, then unexported helpers, then the exported functions (`search/src/search.ts` and `core/src/deck-legality.ts` are the reference). A type buried between two functions is the thing to avoid: readers look for the shape before the behaviour.
-- **Shared types → `types.ts`.** When a type is used by two or more sibling modules in a folder, define it once in a folder-scoped `types.ts` (e.g. `src/lib/email/types.ts` exports `RenderedEmail`, shared by `otp-template.tsx` and `contact-template.tsx`) and import it with `import type`. Keep single-use types local to their module — don't pre-emptively create a `types.ts` for a type with one consumer.
+
+### Types
+
+- **`type` aliases are the default.** Object shapes are `type X = { ... }`; the handful of
+  `interface` declarations left are the exception, not the pattern. Reach for `interface` only when
+  you actually need declaration merging or to `extends` a third-party interface.
+- **Derive from Zod, don't restate.** Where `@revelio/core` owns a schema, the type comes from it:
+  `export type DeckFormat = z.infer<typeof DeckFormat>` (`core/src/deck.ts`). A hand-written twin of
+  a schema is a drift bug waiting to happen.
+- **Type-only imports say `type`.** `import type { MeiliSearch } from 'meilisearch'` for a pure type
+  import, and the inline form when one module gives you both:
+  `import { cardsIndex, type SearchDocument } from './documents'`.
+- **Naming.** `XxxDTO` for a shape `@revelio/db` hands across its boundary (`CardDetailDTO`,
+  `DeckDTO`), `XxxProps` for React component props, `XxxOptions` / `XxxFilters` for argument bags
+  (`SearchOptions`, `CardFilters`).
+- **Declaration order within a file: types → constants → helpers → exported functions.** Imports
+  first, then every `type`/`interface`, then module constants, then unexported helpers, then the
+  exported functions (`search/src/search.ts` and `core/src/deck-legality.ts` are the reference). A
+  type buried between two functions is the thing to avoid: readers look for the shape before the
+  behaviour.
+- **Shared types → `types.ts`.** When a type is used by two or more sibling modules in a folder,
+  define it once in a folder-scoped `types.ts` (e.g. `src/lib/email/types.ts` exports
+  `RenderedEmail`, shared by `otp-template.tsx` and `contact-template.tsx`) and import it with
+  `import type`. Keep single-use types local to their module — don't pre-emptively create a
+  `types.ts` for a type with one consumer.
+- **Comment the non-obvious ones where they are declared.** `IdWindowOptions` in
+  `search/src/search.ts` carries the reason it is not folded into `SearchOptions`; that note belongs
+  on the type, not in the function that consumes it.
+
+### Commit messages
+
+**Conventional Commits**, `type(scope): subject`.
+
+- Types in use: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `style`, `chore`, `ci`, `build`.
+- Scope is the workspace (`web`, `bot`, `db`, `core`, `search`, `ingest`) or, inside `web`, the
+  domain the change lives in (`settings`, `admin`, `deck`, `auth`). `docs(plans)` for a planning
+  doc. Omit the scope only for genuinely repo-wide changes (`ci:`, `docs:`).
+- Subject: imperative, lower case, no trailing period, roughly 72 characters or less — say what the
+  change does, not which files moved: `fix(db): revoke a banned user's sessions with the ban`.
+- Body (optional, wrapped at ~72 columns): why the change was needed and what was broken, not a
+  restatement of the diff. Name the library behaviour or source file that forced the decision when
+  one did.
+- One logical change per commit. A schema edit and its generated migration are one commit
+  (see **Migrations**); a test that covers a fix may be its own.
+- **No tool attribution** — no `Co-authored-by` trailers, no "generated with" lines.
+
+### Pull requests
+
+- **Title is a Conventional Commit line too**, same form and scope rules as above. A bare sentence
+  gets flagged.
+- **Body opens with prose** — one to three sentences on what this is and why, before any heading.
+  Then `##` sections. The ones that recur: `## What` / `## What changed`, `## Verification`,
+  `## Deployment`, `## Notes for review`. Use plain descriptive headings for a multi-part PR
+  (`## 1. A ban only blocked new sign-ins`) rather than forcing a template.
+- **`## Verification` is not optional.** One bullet per command actually run, with its real result —
+  `npm test -w web` and the test count, `npm run typecheck`, `npm run lint -w web`, and anything
+  checked by hand. Never write a line you did not run; if a mutation test was used to prove a new
+  test bites, say so.
+- **`## Deployment`** whenever the merge needs something outside the diff: a new env var and which
+  service it goes on, a migration to apply, or an ingest run (changing `CARD_INDEX_SETTINGS` does
+  nothing to the live index until ingest runs).
+- **Link the plan or spec** under `docs/superpowers/` when the work has one, and the PR it follows
+  up on.
+- English, no tool attribution.
 
 ## Subagents
 

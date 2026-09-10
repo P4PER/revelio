@@ -9,15 +9,10 @@ const unlinkProviderMock = vi.fn()
 
 vi.mock('@revelio/db', () => ({ unlinkProvider: (...args: unknown[]) => unlinkProviderMock(...args) }))
 vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
-// The real module builds a Postgres client and a mailer at import time. Only the
-// two fields decryptOAuthToken reads matter here.
+// The real module builds a Postgres client and a mailer at import time, and the
+// only thing needed from it here is the key the tokens were encrypted with.
 vi.mock('@/lib/server/auth', () => ({
-  auth: {
-    $context: Promise.resolve({
-      options: { account: { encryptOAuthTokens: true } },
-      secretConfig: 'test-secret',
-    }),
-  },
+  auth: { $context: Promise.resolve({ secretConfig: 'test-secret' }) },
 }))
 
 beforeEach(() => {
@@ -114,6 +109,18 @@ it('falls back to the stored value when decryption fails', async () => {
 
   await unlinkAndRevokeDiscord('user-1')
   expect(fetchMock.mock.calls[0][1].body.get('token')).toBe('deadbeef')
+})
+
+// Discord answers 200 to a token it does not recognise, so nothing downstream
+// can tell that the value posted was never a real token. The log is the only
+// signal that a key no longer matches its ciphertext.
+it('logs the fallback without putting the token in the log line', async () => {
+  unlinkProviderMock.mockResolvedValue([{ accessToken: 'deadbeef', refreshToken: null }])
+
+  await unlinkAndRevokeDiscord('user-1')
+  const logged = (console.error as unknown as { mock: { calls: unknown[][] } }).mock.calls.flat().join(' ')
+  expect(logged).toContain('did not decrypt')
+  expect(logged).not.toContain('deadbeef')
 })
 
 it('does not call Discord when there was no link to remove', async () => {

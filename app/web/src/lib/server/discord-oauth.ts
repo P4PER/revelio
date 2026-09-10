@@ -13,11 +13,18 @@ const REVOKE_ENDPOINT = 'https://discord.com/api/oauth2/token/revoke'
 // working. Anything that fails to decrypt is used as-is: a row written before
 // encryption was enabled is plaintext already, and abandoning its revocation
 // would leave exactly the live authorization unlinking exists to end.
+//
+// That fallback has to be logged, because it cannot be seen from the response:
+// RFC 7009 has Discord answer 200 to a token it does not recognise, so posting
+// an undecryptable value reports a successful unlink while the authorization
+// stays live. Expected once per pre-encryption row; anything more means the key
+// no longer matches what the tokens were encrypted with.
 async function decryptToken(token: string | null): Promise<string | null> {
   if (!token) return null
   try {
     return await symmetricDecrypt({ key: (await auth.$context).secretConfig, data: token })
   } catch {
+    console.error('Discord token did not decrypt; revoking with the stored value instead')
     return token
   }
 }

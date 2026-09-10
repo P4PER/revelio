@@ -69,14 +69,18 @@ export function ProfilePane({ user }: { user: SettingsUser }) {
                 <Label htmlFor="username">{t('usernameLabel')}</Label>
                 <FormControl><Input id="username" autoComplete="off" {...field} /></FormControl>
                 {typed && (
-                  <FormDescription className="break-words">
+                  // text-sm, over the primitive's text-xs: every explanatory
+                  // line in settings/ reads at one size, so this preview and
+                  // the check below match the leads and the connections row
+                  // rather than shrinking under the field they describe.
+                  <FormDescription className="text-sm break-words">
                     {t('usernamePreview', {
                       name: typed,
                       url: `${PUBLIC_HOST}/collection/${encodeURIComponent(typed)}`,
                     })}
                   </FormDescription>
                 )}
-                {checking && <p className="text-xs text-muted-foreground">{t('checking')}</p>}
+                {checking && <p className="text-sm text-muted-foreground">{t('checking')}</p>}
                 <FormMessage />
               </FormItem>
             )

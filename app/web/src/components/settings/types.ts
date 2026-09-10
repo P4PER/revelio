@@ -1,4 +1,4 @@
-export type SettingsSection = 'appearance' | 'profile' | 'email' | 'safety'
+export type SettingsSection = 'appearance' | 'profile' | 'email' | 'connections' | 'safety'
 
 export type SettingsUser = {
   id: string

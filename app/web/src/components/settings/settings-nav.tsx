@@ -1,18 +1,19 @@
 'use client'
 import { useTranslations } from 'next-intl'
 import { usePathname } from '@/../i18n/navigation'
-import { User, Palette, Mail, ShieldCheck, type LucideIcon } from 'lucide-react'
+import { User, Palette, Mail, Link2, ShieldCheck, type LucideIcon } from 'lucide-react'
 import { ResponsiveSidebar } from '@/components/responsive-sidebar'
 import { SidebarNavLink } from '@/components/sidebar-nav-link'
 import type { SettingsSection } from './types'
 
 // Every settings route requires a signed-in user
-const SECTIONS: SettingsSection[] = ['profile', 'appearance', 'email', 'safety']
+const SECTIONS: SettingsSection[] = ['profile', 'appearance', 'email', 'connections', 'safety']
 
 const ICONS: Record<SettingsSection, LucideIcon> = {
   profile: User,
   appearance: Palette,
   email: Mail,
+  connections: Link2,
   safety: ShieldCheck,
 }
 

@@ -664,6 +664,7 @@
       "profile": "Profile",
       "appearance": "Appearance",
       "email": "Email",
+      "connections": "Connections",
       "safety": "Safety Zone"
     },
     "appearance": {
@@ -708,6 +709,19 @@
       "emailTaken": "An account already uses that email.",
       "requestError": "Couldn’t send the code. Please try again.",
       "invalidCode": "That code isn’t right, or it expired. Try again."
+    },
+    "connections": {
+      "title": "Connections",
+      "lead": "Link an account to use Revelio outside the website.",
+      "discordTitle": "Discord",
+      "discordBody": "Link your Discord account to use /collection and /mydecks with the Revelio bot. Only you can see those replies.",
+      "linked": "Linked",
+      "link": "Link Discord",
+      "unlink": "Unlink",
+      "unavailable": "Discord linking is not configured on this instance.",
+      "error": "Linking failed. Please try again.",
+      "alreadyLinked": "That Discord account is already linked to another Revelio account.",
+      "unlinkError": "Couldn’t unlink your Discord account. Please try again."
     },
     "safety": {
       "export": {

@@ -627,6 +627,7 @@
       "profile": "Profil",
       "appearance": "Darstellung",
       "email": "E-Mail",
+      "connections": "Verknüpfungen",
       "safety": "Sicherheitsbereich"
     },
     "appearance": {
@@ -671,6 +672,19 @@
       "emailTaken": "Ein Konto verwendet diese E-Mail-Adresse bereits.",
       "requestError": "Code konnte nicht gesendet werden. Bitte versuche es erneut.",
       "invalidCode": "Dieser Code ist falsch oder abgelaufen. Bitte versuche es erneut."
+    },
+    "connections": {
+      "title": "Verknüpfungen",
+      "lead": "Verknüpfe ein Konto, um Revelio außerhalb der Website zu nutzen.",
+      "discordTitle": "Discord",
+      "discordBody": "Verknüpfe dein Discord-Konto, um /collection und /mydecks mit dem Revelio-Bot zu nutzen. Diese Antworten sieht nur du.",
+      "linked": "Verknüpft",
+      "link": "Discord verknüpfen",
+      "unlink": "Trennen",
+      "unavailable": "Discord-Verknüpfung ist auf dieser Instanz nicht eingerichtet.",
+      "error": "Verknüpfen fehlgeschlagen. Bitte versuche es erneut.",
+      "alreadyLinked": "Dieses Discord-Konto ist bereits mit einem anderen Revelio-Konto verknüpft.",
+      "unlinkError": "Die Verknüpfung konnte nicht getrennt werden. Bitte versuche es erneut."
     },
     "safety": {
       "export": {

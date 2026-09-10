@@ -11,6 +11,15 @@ import { getCachedSiteSettings } from '@/lib/server/site-settings'
 
 const db = createClient(process.env.DATABASE_URL ?? '').db
 
+const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID
+const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET
+
+// Registered only when both halves are present. A local checkout without a
+// Discord app must still boot, and a half-configured provider fails at the
+// callback rather than at startup, which is worse. The Connections pane reads
+// this to explain itself instead of rendering a button that cannot work.
+export const discordLinkingConfigured = Boolean(DISCORD_CLIENT_ID && DISCORD_CLIENT_SECRET)
+
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? '')
   .split(',')
   .map((s) => s.trim().toLowerCase())
@@ -26,6 +35,24 @@ export const auth = betterAuth({
   // `revelio.session_token` (Better Auth prepends `__Secure-` over HTTPS).
   // Changing this renames the cookies and logs existing sessions out once.
   advanced: { cookiePrefix: 'revelio' },
+  socialProviders: discordLinkingConfigured
+    ? { discord: { clientId: DISCORD_CLIENT_ID!, clientSecret: DISCORD_CLIENT_SECRET! } }
+    : {},
+  account: {
+    accountLinking: {
+      // Sign-in is email-OTP, which writes no `account` row, so a linked
+      // Discord account is the only row a user has. Without this, unlinking it
+      // is refused as "cannot unlink the last account" and the Unlink button
+      // could never work. The session does not depend on the account row, so
+      // removing it locks nobody out.
+      allowUnlinkingAll: true,
+      // Players rarely use the same address on Discord as on Revelio, and the
+      // callback otherwise rejects the link with "email doesn't match". This
+      // flag is read only on the explicit link paths - the sign-in path matches
+      // by email regardless - so signing in with Discord is not loosened by it.
+      allowDifferentEmails: true,
+    },
+  },
   plugins: [
     username(),
     admin(), // adds `role` (default 'user') + ban fields

@@ -13,7 +13,7 @@ const m = vi.hoisted(() => ({
   recordView: vi.fn(async () => ({ viewCount: 3 })),
   revalidatePath: vi.fn(),
   getSearchClient: vi.fn(() => 'client'),
-  runSearchFields: vi.fn(async () => ({ hits: [], total: 0, page: 1, hitsPerPage: 24 })),
+  runSearch: vi.fn(async () => ({ hits: [], total: 0, page: 1, hitsPerPage: 24 })),
 }))
 vi.mock('@/lib/server/session', () => ({ getSession: m.getSession }))
 vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
@@ -28,7 +28,7 @@ vi.mock('@revelio/db', () => ({
   recordView: m.recordView,
 }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
-vi.mock('@/lib/server/search-client', () => ({ getSearchClient: m.getSearchClient, runSearchFields: m.runSearchFields }))
+vi.mock('@/lib/server/search-client', () => ({ getSearchClient: m.getSearchClient, runSearch: m.runSearch }))
 
 import { createDeckAction, updateDeckAction, updateDeckMetaAction, deleteDeckAction, duplicateDeckAction, searchDeckCards, toggleLikeAction, recordViewAction } from '../deck-actions'
 
@@ -131,7 +131,7 @@ it('duplicates a deck with the session user id and suffixed name', async () => {
 
 it('searchDeckCards restricts classic to official sets only', async () => {
   await searchDeckCards('en', { query: 'accio', format: 'classic', lessons: ['charms'] })
-  expect(m.runSearchFields).toHaveBeenCalledWith(
+  expect(m.runSearch).toHaveBeenCalledWith(
     'client',
     'en',
     expect.objectContaining({ q: 'accio', official: true, lessons: ['charms'] }),
@@ -142,7 +142,7 @@ it('searchDeckCards restricts classic to official sets only', async () => {
 
 it('searchDeckCards searches all sets (official: null) for revival', async () => {
   await searchDeckCards('en', { format: 'revival' })
-  expect(m.runSearchFields).toHaveBeenCalledWith('client', 'en', expect.objectContaining({ official: null }), DECK_BROWSE_FIELDS, expect.objectContaining({ hitsPerPage: 30 }))
+  expect(m.runSearch).toHaveBeenCalledWith('client', 'en', expect.objectContaining({ official: null }), DECK_BROWSE_FIELDS, expect.objectContaining({ hitsPerPage: 30 }))
 })
 
 it('searchDeckCards forwards the advanced filters (types/rarities/finishes/legalities/cost/set) into the search state', async () => {
@@ -156,7 +156,7 @@ it('searchDeckCards forwards the advanced filters (types/rarities/finishes/legal
     costMin: 1,
     costMax: 4,
   })
-  expect(m.runSearchFields).toHaveBeenCalledWith(
+  expect(m.runSearch).toHaveBeenCalledWith(
     'client',
     'en',
     expect.objectContaining({

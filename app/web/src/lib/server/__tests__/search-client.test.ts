@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { randomUUID } from 'node:crypto'
 import { createMeiliClient, cardsIndex, CARD_INDEX_SETTINGS, type SearchDocument } from '@revelio/search'
-import { runSearch, runSearchFields } from '../search-client'
+import { runSearch } from '../search-client'
 import { parseSearchParams } from '@/lib/search-params'
 import { CARD_TILE_FIELDS, DECK_BROWSE_FIELDS } from '@/lib/search-projections'
 
@@ -25,25 +25,8 @@ beforeAll(async () => {
 afterAll(async () => { await client.deleteIndex(cardsIndex(lang)) })
 
 describe('runSearch', () => {
-  it('full-text search returns matching cards', async () => {
-    const r = await runSearch(client, lang, parseSearchParams(new URLSearchParams('q=harry')))
-    expect(r.hits.map((h) => h.id)).toContain('a')
-  })
-
-  it('applies a type filter from the url', async () => {
-    const r = await runSearch(client, lang, parseSearchParams(new URLSearchParams('type=creature')))
-    expect(r.hits.map((h) => h.id)).toEqual(['b'])
-  })
-
-  it('applies the official/fan filter', async () => {
-    const r = await runSearch(client, lang, parseSearchParams(new URLSearchParams('official=fan')))
-    expect(r.hits.map((h) => h.id)).toEqual(['b'])
-  })
-})
-
-describe('runSearchFields', () => {
   it('returns exactly the projected fields and nothing else', async () => {
-    const r = await runSearchFields(
+    const r = await runSearch(
       client, lang, parseSearchParams(new URLSearchParams('q=harry')), CARD_TILE_FIELDS,
     )
     expect(r.hits).toHaveLength(1)
@@ -51,7 +34,7 @@ describe('runSearchFields', () => {
   })
 
   it('drops the heavy fields the tile never reads', async () => {
-    const r = await runSearchFields(
+    const r = await runSearch(
       client, lang, parseSearchParams(new URLSearchParams('q=harry')), CARD_TILE_FIELDS,
     )
     expect(r.hits[0]).not.toHaveProperty('text')
@@ -59,14 +42,21 @@ describe('runSearchFields', () => {
   })
 
   it('still applies the url filters', async () => {
-    const r = await runSearchFields(
+    const r = await runSearch(
       client, lang, parseSearchParams(new URLSearchParams('type=creature')), CARD_TILE_FIELDS,
     )
     expect(r.hits.map((h) => h.id)).toEqual(['b'])
   })
 
+  it('applies the official/fan filter', async () => {
+    const r = await runSearch(
+      client, lang, parseSearchParams(new URLSearchParams('official=fan')), CARD_TILE_FIELDS,
+    )
+    expect(r.hits.map((h) => h.id)).toEqual(['b'])
+  })
+
   it('keeps every field the deck browser builds a card view from', async () => {
-    const r = await runSearchFields(
+    const r = await runSearch(
       client, lang, parseSearchParams(new URLSearchParams('q=harry')), DECK_BROWSE_FIELDS,
     )
     // toAddView reads all of these; a missing one is a blank tile or a throw.

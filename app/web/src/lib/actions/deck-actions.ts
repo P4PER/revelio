@@ -6,7 +6,7 @@ import type { CardDetailDTO, DeckCardView } from '@revelio/core'
 import { getSession } from '@/lib/server/session'
 import { getDb } from '@/lib/server/db'
 import { createDeck, updateDeck, updateDeckMeta, deleteDeck, getDeck, getDeckForViewer, getCardById, getCardViews, resolveCardsByName, toggleLike, recordView } from '@revelio/db'
-import { getSearchClient, runSearchFields } from '@/lib/server/search-client'
+import { getSearchClient, runSearch } from '@/lib/server/search-client'
 import { DECK_BROWSE_FIELDS, type DeckBrowseResult } from '@/lib/search-projections'
 import type { SearchState } from '@/lib/search-params'
 import { DECK_BROWSE_PAGE_SIZE } from '@/lib/deck-view'
@@ -125,7 +125,7 @@ export async function searchDeckCards(locale: string, input: unknown): Promise<D
   }
   // The builder browses in a wide grid, so fetch a larger page than the
   // default search results view (24).
-  return runSearchFields(getSearchClient(), locale, state, DECK_BROWSE_FIELDS, { hitsPerPage: DECK_BROWSE_PAGE_SIZE })
+  return runSearch(getSearchClient(), locale, state, DECK_BROWSE_FIELDS, { hitsPerPage: DECK_BROWSE_PAGE_SIZE })
 }
 
 // Full card detail for the browser's Info Sheet. Public read data (same as the

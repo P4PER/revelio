@@ -7,7 +7,7 @@ import {
   listSets, getCollectionSetProgress, getCollectionSummary, getOwnedQuantities,
   getOwnedCardIds, getDuplicateCardIds,
 } from '@revelio/db'
-import { runSearchFields } from '@/lib/server/search-client'
+import { runSearch } from '@/lib/server/search-client'
 import { FULL_SET_LIMIT, parseSearchParams, toSearchOptions } from '@/lib/search-params'
 import { parseOwnership, applyOwnership } from '@/lib/collection-search'
 import { toCollectionCards } from '@/lib/collection-cards'
@@ -60,7 +60,7 @@ export async function loadCollectionPage(
   // the grid isn't truncated at the default 24. The largest set is ~140 cards.
   // `set` is user-controlled, so build the params object-form (no interpolation).
   const setRes = tab === 'sets' && selectedSet
-    ? await runSearchFields(client, locale, parseSearchParams(new URLSearchParams({ set: selectedSet, sort: 'number' })), COLLECTION_TILE_FIELDS, { hitsPerPage: FULL_SET_LIMIT })
+    ? await runSearch(client, locale, parseSearchParams(new URLSearchParams({ set: selectedSet, sort: 'number' })), COLLECTION_TILE_FIELDS, { hitsPerPage: FULL_SET_LIMIT })
     : { hits: [], total: 0, page: 1, hitsPerPage: FULL_SET_LIMIT }
 
   const { query, options } = toSearchOptions(parseSearchParams(sp))

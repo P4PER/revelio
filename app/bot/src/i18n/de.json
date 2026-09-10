@@ -37,5 +37,17 @@
   "deck.format.classic": "Classic",
   "deck.format.revival": "Revival",
   "deck.more": "... und {count} weitere",
+  "command.collection.description": "Deinen Sammlungsfortschritt anzeigen",
+  "command.collection.option.set": "Auf ein Set beschränken",
+  "command.mydecks.description": "Deine Decks auflisten",
+  "link.required": "Verknüpfe zuerst dein Discord-Konto: {url}",
+  "collection.summary": "Du besitzt **{owned}** von **{total}** Karten ({percent}%), insgesamt **{copies}** Exemplare.",
+  "collection.set": "**{setName}**: {owned} von {total} ({percent}%)",
+  "collection.setUnknown": "Zu diesem Code gibt es kein Set.",
+  "decks.title": "Deine Decks ({count})",
+  "decks.line": "**{name}** · {format} · {count} Karten · {visibility}",
+  "decks.empty": "Du hast noch keine Decks. Baue eins auf {url}",
+  "decks.visibility.public": "öffentlich",
+  "decks.visibility.private": "privat",
   "error.generic": "Da ist etwas schiefgelaufen. Bitte versuche es gleich noch einmal."
 }

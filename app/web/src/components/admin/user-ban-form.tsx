@@ -63,7 +63,7 @@ export function UserBanForm({ userId, banned, currentReason, currentExpires, dis
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="ban-expires">{t('banExpires')}</Label>
-        <DatePicker id="ban-expires" value={expires} onChange={setExpires} />
+        <DatePicker id="ban-expires" value={expires} onChange={setExpires} disabled={disabled} />
       </div>
       <div className="flex items-center gap-3">
         <AlertDialog>

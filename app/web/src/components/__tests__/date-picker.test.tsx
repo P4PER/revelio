@@ -5,10 +5,16 @@ import en from '@/../messages/en.json'
 import { DatePicker, parseYMD, toYMD } from '@/components/date-picker'
 import { Calendar } from '../ui/calendar'
 
-function renderDP(value: string, onChange = () => {}) {
+function renderDP(value: string, onChange = () => {}, disabled?: boolean) {
   return render(
     <NextIntlClientProvider locale="en" messages={en}>
-      <DatePicker value={value} onChange={onChange} ariaLabel="Release date" placeholder="Pick a date" />
+      <DatePicker
+        value={value}
+        onChange={onChange}
+        ariaLabel="Release date"
+        placeholder="Pick a date"
+        disabled={disabled}
+      />
     </NextIntlClientProvider>,
   )
 }
@@ -40,6 +46,14 @@ describe('DatePicker', () => {
     renderDP('2001-08-01')
     // en medium format → "Aug 1, 2001"; the day must be 1, not Jul 31
     expect(screen.getByRole('button', { name: 'Release date' })).toHaveTextContent('Aug 1, 2001')
+  })
+  it('is enabled by default', () => {
+    renderDP('')
+    expect(screen.getByRole('button', { name: 'Release date' })).toBeEnabled()
+  })
+  it('disables the trigger when disabled', () => {
+    renderDP('2001-08-01', () => {}, true)
+    expect(screen.getByRole('button', { name: 'Release date' })).toBeDisabled()
   })
 })
 

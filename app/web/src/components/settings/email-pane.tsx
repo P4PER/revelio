@@ -75,7 +75,7 @@ export function EmailPane({ user }: { user: SettingsUser }) {
       <h2 id="s-email" className="text-lg font-semibold">{t('title')}</h2>
 
       <p className="mt-1 text-sm text-muted-foreground">{t('currentLabel')}</p>
-      <p className="mb-4 text-sm font-medium">{user.email}</p>
+      <p className="mb-5 text-sm font-medium">{user.email}</p>
 
       {step === 'collapsed' && (
         <Button type="button" size="sm" onClick={() => setStep('idle')}>{t('updateEmail')}</Button>

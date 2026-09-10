@@ -37,6 +37,9 @@ vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 // save-on-login prompt's own logic (show/hide/accept/dismiss).
 const draftBox = vi.hoisted(() => ({ current: null as BuilderState | null }))
 vi.mock('@/lib/deck-model', async (importOriginal) => {
+  // Vitest's documented importOriginal form: the module's shape is only reachable as an
+  // inline type here, which consistent-type-imports otherwise forbids.
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   const actual = await importOriginal<typeof import('@/lib/deck-model')>()
   return {
     ...actual,

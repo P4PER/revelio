@@ -21,7 +21,7 @@ import type { RenderedEmail } from './types'
 
 export type OtpEmailType = 'sign-in' | 'email-verification' | 'change-email' | 'delete-account'
 
-interface OtpEmailInput {
+type OtpEmailInput = {
   otp: string
   type: OtpEmailType
   contactEmail: string

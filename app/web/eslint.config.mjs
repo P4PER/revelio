@@ -19,6 +19,14 @@ const eslintConfig = defineConfig([
       // is the idiomatic omit, not a dead variable. typescript-eslint defaults this
       // to false, which flags every such destructure.
       "@typescript-eslint/no-unused-vars": ["warn", { ignoreRestSiblings: true }],
+      // Object shapes are type aliases (see CLAUDE.md, Conventions / Types). Both of
+      // these are auto-fixable, so they are errors rather than warnings: an `interface`
+      // that genuinely needs declaration merging, or to extend a third-party interface,
+      // takes an inline disable naming the reason.
+      "@typescript-eslint/consistent-type-definitions": ["error", "type"],
+      // A type-only import carries the `type` keyword, so nothing the checker alone
+      // needed can survive into the emitted module graph.
+      "@typescript-eslint/consistent-type-imports": "error",
     },
   },
   {

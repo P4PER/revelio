@@ -1,6 +1,6 @@
 import { it, expect } from 'vitest'
 import type { DeckCardView } from '@revelio/core'
-import { layoutDeckSheet, computeSheetGeometry } from '../deck-png'
+import { layoutDeckSheet, computeSheetGeometry, type DeckPngCard } from '../deck-png'
 
 const harry: DeckCardView = {
   cardId: 'bs-harry', zone: 'character', quantity: 1, types: ['character'],
@@ -81,10 +81,10 @@ it('omits Main deck / Sideboard sections entirely when those zones are empty', (
   expect(sections.map((s) => s.title)).toEqual(['Character'])
 })
 
-const cell = (cardId: string): import('../deck-png').DeckPngCard => ({
+const cell = (cardId: string): DeckPngCard => ({
   cardId, quantity: 1, name: cardId, setCode: 'BS', imageVersion: 1, orientation: null,
 })
-const hcell = (cardId: string): import('../deck-png').DeckPngCard => ({
+const hcell = (cardId: string): DeckPngCard => ({
   cardId, quantity: 1, name: cardId, setCode: 'BS', imageVersion: 1, orientation: 'horizontal',
 })
 

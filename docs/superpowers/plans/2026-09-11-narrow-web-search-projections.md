@@ -58,7 +58,7 @@ follows up on: `perf(bot): fetch only the fields /search renders` and `fix(bot):
   - `SUMMARY_FIELDS` stays private; `CardSummaryHit`, `CardSummaryResult`,
     `searchCardSummaries` and `searchCardSuggestions` keep their current public signatures.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `app/search/src/__tests__/search.test.ts`:
 
@@ -96,13 +96,13 @@ import {
 } from '../search'
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npm test -w @revelio/search`
 Expected: FAIL, `TypeError: searchCardFields is not a function` (2 failures; the other 30
 tests still pass).
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `app/search/src/search.ts`, replace the `CardSummaryHit` / `CardSummaryResult` /
 `SUMMARY_ATTRIBUTES` block with:
@@ -193,7 +193,7 @@ export async function searchCardSummaries(
 In `searchCardSuggestions`, replace `attributesToRetrieve: SUMMARY_ATTRIBUTES` with
 `attributesToRetrieve: [...SUMMARY_FIELDS]`.
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npm test -w @revelio/search`
 Expected: PASS, 32 tests. The pre-existing `searchCardSummaries` and
@@ -206,7 +206,7 @@ Expected: PASS, 127 tests. The bot consumes `searchCardSummaries`; nothing there
 Run: `npm run typecheck` and `npm run lint`
 Expected: both exit 0.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/search/src/search.ts app/search/src/__tests__/search.test.ts
@@ -238,7 +238,7 @@ the untouched `runSearch` until then.
   - `COLLECTION_TILE_FIELDS` / `type CollectionTileHit`
   - `runSearchFields<K>(client, lang, state, fields, overrides?): Promise<CardProjection<K>>`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 The existing fixtures in `app/web/src/lib/server/__tests__/search-client.test.ts` omit
 `imageVersion` and `orientation`, and Meilisearch only returns keys a document actually
@@ -288,7 +288,7 @@ import { runSearch, runSearchFields } from '../search-client'
 import { CARD_TILE_FIELDS } from '@/lib/search-projections'
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npm test -w web -- src/lib/server/__tests__/search-client.test.ts`
 Expected: FAIL - the module `@/lib/search-projections` does not resolve.
@@ -296,7 +296,7 @@ Expected: FAIL - the module `@/lib/search-projections` does not resolve.
 If instead every test in the file fails with a connection error, Meilisearch is not
 running: `docker compose up -d meilisearch` from `app/`, then re-run.
 
-- [ ] **Step 3: Create the projections module**
+- [x] **Step 3: Create the projections module**
 
 Create `app/web/src/lib/search-projections.ts`:
 
@@ -325,7 +325,7 @@ export type CollectionTileHit = Pick<SearchDocument, (typeof COLLECTION_TILE_FIE
 Task 3 adds the deck browser's tuple to this module. It is deliberately not written here:
 a tuple with no consumer cannot be checked against one.
 
-- [ ] **Step 4: Add `runSearchFields`**
+- [x] **Step 4: Add `runSearchFields`**
 
 In `app/web/src/lib/server/search-client.ts`, extend the import and append the function
 below the existing `runSearch` (leave `runSearch` exactly as it is - Task 3 removes it):
@@ -357,12 +357,12 @@ export async function runSearchFields<K extends keyof SearchDocument>(
 }
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `npm test -w web -- src/lib/server/__tests__/search-client.test.ts`
 Expected: PASS, 6 tests (3 existing `runSearch` + 3 new).
 
-- [ ] **Step 6: Narrow the tile components**
+- [x] **Step 6: Narrow the tile components**
 
 In `app/web/src/components/card/card-tile.tsx`, swap the type import and the prop:
 
@@ -394,7 +394,7 @@ import type { CollectionTileHit } from '@/lib/search-projections'
 export function toCollectionCards(hits: CollectionTileHit[], base: string): CollectionCard[] {
 ```
 
-- [ ] **Step 7: Point the three surfaces at the projections**
+- [x] **Step 7: Point the three surfaces at the projections**
 
 `app/web/src/app/[locale]/search/page.tsx` - replace the `runSearch` call:
 
@@ -435,7 +435,7 @@ Update that file's imports: `searchCards` becomes `searchCardFields` from
 `@revelio/search`, `runSearch` becomes `runSearchFields`, and add
 `import { COLLECTION_TILE_FIELDS } from '@/lib/search-projections'`.
 
-- [ ] **Step 8: Fix the component test fixtures**
+- [x] **Step 8: Fix the component test fixtures**
 
 `app/web/src/components/card/__tests__/card-tile.test.tsx` and `card-grid.test.tsx` build
 whole `SearchDocument` fixtures. They are not typechecked, so they will not fail the
@@ -466,7 +466,7 @@ const hit = (id: string, name: string): CardTileHit => ({
 })
 ```
 
-- [ ] **Step 9: Verify the whole workspace**
+- [x] **Step 9: Verify the whole workspace**
 
 Run: `npm test -w web`
 Expected: PASS, 923 tests or more (the 3 new ones bring it to 926).
@@ -480,7 +480,7 @@ surface was missed in Step 7.
 Run: `npm run lint`
 Expected: exit 0.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add app/web/src/lib/search-projections.ts app/web/src/lib/server/search-client.ts \
@@ -513,7 +513,7 @@ users bandwidth rather than server-to-server traffic.
   `app/web/src/lib/search-projections.ts`; `searchDeckCards` now resolves to
   `CardProjection<(typeof DECK_BROWSE_FIELDS)[number]>`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `app/web/src/lib/server/__tests__/search-client.test.ts` - the deck projection has
 to be asserted against a real Meilisearch for the same reason the tile one is:
@@ -533,12 +533,12 @@ it('keeps every field the deck browser builds a card view from', async () => {
 
 Import `DECK_BROWSE_FIELDS` alongside `CARD_TILE_FIELDS`.
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npm test -w web -- src/lib/server/__tests__/search-client.test.ts`
 Expected: FAIL - `DECK_BROWSE_FIELDS` is not exported from `@/lib/search-projections`.
 
-- [ ] **Step 3: Add the deck browser's tuple**
+- [x] **Step 3: Add the deck browser's tuple**
 
 Append to `app/web/src/lib/search-projections.ts`, keeping the file's order of constants
 before types:
@@ -562,7 +562,7 @@ export type DeckBrowseHit = Pick<SearchDocument, (typeof DECK_BROWSE_FIELDS)[num
 Re-run `npm test -w web -- src/lib/server/__tests__/search-client.test.ts`.
 Expected: PASS.
 
-- [ ] **Step 4: Narrow the action and the browser**
+- [x] **Step 4: Narrow the action and the browser**
 
 In `app/web/src/lib/actions/deck-actions.ts`, replace the `runSearch` call:
 
@@ -594,7 +594,7 @@ Then drop the now-unused `SearchDocument` / `SearchResult` imports and change th
 component's `result` state type to `DeckBrowseResult`. Grep the file for `SearchResult`
 to catch every occurrence.
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npm test -w web`
 Expected: PASS. This is the real gate for the task - `toAddView` reads sixteen fields, so
@@ -609,7 +609,7 @@ by adding the field to the tuple, never by widening the type.
 Run: `npm run lint`
 Expected: exit 0.
 
-- [ ] **Step 6: Check the client payload actually shrank**
+- [x] **Step 6: Check the client payload actually shrank**
 
 Run: `npm run build -w web && npm run start -w web` (or `npm run dev -w web`), open a deck
 in the browser, type in the card browser's search box, and read the `searchDeckCards`
@@ -618,7 +618,7 @@ action response in the network panel. It must no longer contain any card's rules
 If a build is inconvenient, the cheaper proof is the assertion in Step 1: no `text` key
 comes back from Meilisearch, so no `text` can reach the browser.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app/web/src/lib/actions/deck-actions.ts \
@@ -642,20 +642,20 @@ surface that fetches whole documents by accident.
 **Interfaces:**
 - Produces: `runSearch` with the Task 2 `runSearchFields` signature; `runSearchFields` is gone.
 
-- [ ] **Step 1: Confirm there are no callers left**
+- [x] **Step 1: Confirm there are no callers left**
 
 Run: `grep -rn "runSearch(" app/web/src --include="*.ts" --include="*.tsx"`
 Expected: only the three assertions in `search-client.test.ts` that still exercise the old
 function. If any application code appears, that surface was missed - go back and give it a
 projection rather than keeping `runSearch` alive for it.
 
-- [ ] **Step 2: Delete `runSearch` and rename its replacement**
+- [x] **Step 2: Delete `runSearch` and rename its replacement**
 
 In `app/web/src/lib/server/search-client.ts`, delete the `runSearch` function and rename
 `runSearchFields` to `runSearch`. Drop the now-unused `searchCards` and `SearchResult`
 imports.
 
-- [ ] **Step 3: Update the test file**
+- [x] **Step 3: Update the test file**
 
 In `search-client.test.ts`, delete the three original `describe('runSearch')` tests that
 called it without a projection (their filter coverage is already carried by the
@@ -663,7 +663,7 @@ called it without a projection (their filter coverage is already carried by the
 `runSearchFields` to `runSearch` throughout, and rename the `describe` block to
 `runSearch`.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `npm test -w web`
 Expected: PASS.
@@ -676,7 +676,7 @@ Expected: a successful `next build`. This is the one command that compiles the A
 pages the way CI's **build** job does; the projections touch four pages, so it is worth
 running once at the end even though `typecheck` has already passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/web/src/lib/server/search-client.ts \
@@ -688,12 +688,12 @@ git commit -m "refactor(web): make a field projection mandatory on every search 
 
 ## Wrap-up
 
-- [ ] Update this plan's checkboxes as tasks complete.
+- [x] Update this plan's checkboxes as tasks complete.
 - [ ] Open the PR. Title: `perf: fetch only the fields each search surface renders`.
       Body opens with prose, then `## What changed` (the bot commits and the four web
       surfaces), `## Verification` (one bullet per command actually run, with its real
       result), and `## Notes for review` pointing at
       `docs/superpowers/specs/2026-09-11-search-projections-design.md` and the
       `findOneCard` incident that motivated deriving types from tuples.
-- [ ] No `## Deployment` section is needed: no env var, no migration, and
+- [x] No `## Deployment` section is needed: no env var, no migration, and
       `CARD_INDEX_SETTINGS` is untouched, so no ingest run.

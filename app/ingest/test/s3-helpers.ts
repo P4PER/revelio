@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import {
-  S3Client, ListObjectsV2Command, DeleteObjectCommand, DeleteBucketCommand,
+  type S3Client, ListObjectsV2Command, DeleteObjectCommand, DeleteBucketCommand,
 } from '@aws-sdk/client-s3'
 
 export function testS3Config(bucket: string) {

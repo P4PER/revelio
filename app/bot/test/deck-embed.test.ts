@@ -78,7 +78,8 @@ describe('deckEmbed', () => {
       name: `Card number ${i}`, quantity: 1, cost: i, lesson: 'charms',
     }))
     const json = deckEmbed({ ...deck, main: many, mainCount: 200 }, opts).toJSON()
-    const field = json.fields?.find((f) => f.name.startsWith('Main deck'))!
+    const field = json.fields?.find((f) => f.name.startsWith('Main deck'))
+    if (!field) throw new Error('deckEmbed produced no Main deck field')
     expect(field.value.length).toBeLessThanOrEqual(1024)
     expect(field.value).toContain('and')
     expect(field.value).toContain('more')

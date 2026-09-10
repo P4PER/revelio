@@ -30,7 +30,7 @@ jobs:
       - uses: ./.github/actions/setup-app
       - run: npm run check -w @revelio/db
       - run: npm run verify -w @revelio/db
-      - run: npm run lint -w web
+      - run: npm run lint
       - run: npm run typecheck
 
   test:

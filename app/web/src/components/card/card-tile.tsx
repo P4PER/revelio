@@ -1,5 +1,5 @@
 import { Link } from '@/../i18n/navigation'
-import type { SearchDocument } from '@revelio/search'
+import type { CardTileHit } from '@/lib/search-projections'
 import { imageUrl, thumbKey } from '@revelio/core'
 import { CardRotate } from '@/components/card/card-rotate'
 import { contextHref } from '@/lib/search-params'
@@ -7,7 +7,7 @@ import { contextHref } from '@/lib/search-params'
 export function CardTile({
   hit, imageBase, context,
 }: {
-  hit: SearchDocument
+  hit: CardTileHit
   imageBase: string
   context?: { params: URLSearchParams; index: number }
 }) {

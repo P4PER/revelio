@@ -1,10 +1,10 @@
-import type { SearchDocument } from '@revelio/search'
+import type { CollectionTileHit } from '@/lib/search-projections'
 import { imageUrl, thumbKey } from '@revelio/core'
 import type { CollectionCard } from '@/components/collection/collection-card-tile'
 
 // Adapt a Meili search hit to the collection tile's minimal shape. The single
 // place ownership grids turn a hit into a renderable card.
-export function toCollectionCards(hits: SearchDocument[], base: string): CollectionCard[] {
+export function toCollectionCards(hits: CollectionTileHit[], base: string): CollectionCard[] {
   return hits.map((h) => ({
     id: h.id,
     name: h.name,

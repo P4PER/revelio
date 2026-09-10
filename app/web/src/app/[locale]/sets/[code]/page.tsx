@@ -4,7 +4,8 @@ import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { getDb } from '@/lib/server/db'
 import { getSetByCode } from '@revelio/db'
 import { formatReleaseMonth } from '@/lib/set-sort'
-import { getSearchClient, runSearch } from '@/lib/server/search-client'
+import { getSearchClient, runSearchFields } from '@/lib/server/search-client'
+import { CARD_TILE_FIELDS } from '@/lib/search-projections'
 import { FULL_SET_LIMIT } from '@/lib/search-params'
 import { CardGrid } from '@/components/card/card-grid'
 import { EmptyResults } from '@/components/empty-results'
@@ -53,7 +54,9 @@ export default async function SetPage({
     costMin: null,
     costMax: null,
   }
-  const results = await runSearch(getSearchClient(), locale, state, { hitsPerPage: FULL_SET_LIMIT })
+  const results = await runSearchFields(
+    getSearchClient(), locale, state, CARD_TILE_FIELDS, { hitsPerPage: FULL_SET_LIMIT },
+  )
 
   return (
     <main className="mx-auto max-w-[76rem] px-6 py-8">

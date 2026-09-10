@@ -3,16 +3,13 @@ import { describe, it, expect, vi } from 'vitest'
 import en from '@/../messages/en.json'
 import { renderWithIntl } from '@/test/intl'
 import { CardGrid } from '@/components/card/card-grid'
-import type { SearchDocument } from '@revelio/search'
+import type { CardTileHit } from '@/lib/search-projections'
 
 vi.mock('next/image', () => ({ default: (props: Record<string, unknown>) => <img alt={props.alt as string} /> }))
 vi.mock('@/../i18n/navigation', () => ({ Link: (p: { href: string; children: React.ReactNode; className?: string }) => <a href={p.href}>{p.children}</a> }))
 
-const hit = (id: string, name: string): SearchDocument => ({
-  id, setCode: 'BS', number: '1', name, text: null, flavorText: null,
-  types: [], subTypes: [], lesson: null, rarity: null, finishes: [],
-  legality: null, cost: null, isOfficial: true, imageLang: 'en', defaultLanguage: 'en',
-  orientation: null,
+const hit = (id: string, name: string): CardTileHit => ({
+  id, name, imageLang: 'en', imageVersion: 1, defaultLanguage: 'en', orientation: null,
 })
 
 describe('CardGrid', () => {

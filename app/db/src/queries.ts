@@ -3,7 +3,7 @@ import { alias } from 'drizzle-orm/pg-core'
 import { randomUUID } from 'node:crypto'
 import type { DB } from './client'
 import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations, setLocalizations, decks, deckCards, deckLikes, deckViews, collections, userCards, siteSettings } from './schema'
-import { user } from './auth-schema'
+import { user, account } from './auth-schema'
 import type { SetDTO, CardLocalizationDTO, CardDetailDTO, RulingDTO, CardRulingsDTO, AdventureData, MatchData, DeckDTO, DeckCardView, DeckFormat, DeckVisibility, CollectionVisibility, OwnedQuantities, SetProgress, CollectionSummary } from '@revelio/core'
 import { deckCardMeta } from '@revelio/core'
 import type { CardIndexData } from '@revelio/search'
@@ -1079,6 +1079,31 @@ export async function resolveCollectionOwner(
   const [byId] = await db.select({ userId: user.id, username: user.username })
     .from(user).where(eq(user.id, key)).limit(1)
   return byId ? { userId: byId.userId, username: byId.username } : null
+}
+
+// Better Auth writes one `account` row per linked provider, so the Discord
+// snowflake to Revelio user mapping needs no table of our own. The bot reads
+// this to turn an interaction's user id into an account it can answer for.
+export async function getUserIdByDiscordAccount(
+  db: DB, discordUserId: string,
+): Promise<string | null> {
+  // providerId is part of the predicate on purpose: accountId is only unique
+  // within a provider, so a matching id under another provider is a different
+  // person.
+  const [row] = await db
+    .select({ userId: account.userId })
+    .from(account)
+    .where(and(eq(account.providerId, 'discord'), eq(account.accountId, discordUserId)))
+    .limit(1)
+  return row?.userId ?? null
+}
+
+export async function getLinkedProviderIds(db: DB, userId: string): Promise<string[]> {
+  const rows = await db
+    .select({ providerId: account.providerId })
+    .from(account)
+    .where(eq(account.userId, userId))
+  return rows.map((r) => r.providerId)
 }
 
 const SITE_SETTINGS_ID = 'singleton'

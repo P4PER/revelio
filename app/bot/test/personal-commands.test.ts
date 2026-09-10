@@ -90,6 +90,20 @@ describe('/collection', () => {
     expect(content).toContain('116')
   })
 
+  // Set codes are stored uppercase, and the option value can be typed by hand
+  // rather than picked from the suggestions.
+  it('resolves a set typed in the wrong case, and still names it', async () => {
+    linked()
+    vi.spyOn(dbModule, 'getCollectionSetProgress').mockResolvedValue([
+      { setCode: 'BS', owned: 5, total: 118 },
+    ])
+    const deps = fakeDeps()
+    const interaction = fakeInteraction({ set: 'bs' })
+    await run('collection', interaction, deps)
+    expect(deps.sets.name).toHaveBeenCalledWith('BS', 'en')
+    expect(interaction.editReply.mock.calls[0][0].content).toContain('Base Set')
+  })
+
   it('says so when the set code matches nothing', async () => {
     linked()
     vi.spyOn(dbModule, 'getCollectionSetProgress').mockResolvedValue([

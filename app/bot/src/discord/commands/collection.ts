@@ -48,7 +48,10 @@ export async function execute(
     }
     await interaction.editReply({
       content: t(locale, 'collection.set', {
-        setName: await deps.sets.name(setCode, locale),
+        // The canonical code from the row, not the one the user typed: the
+        // name cache is keyed by the real code, so a lowercase "bs" would
+        // otherwise fall back to echoing "bs" instead of "Base".
+        setName: await deps.sets.name(progress.setCode, locale),
         owned: progress.owned,
         total: progress.total,
         percent: progress.percent,

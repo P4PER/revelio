@@ -8,6 +8,8 @@ export type CollectionReport = {
 }
 
 export type SetReport = {
+  // The set's canonical code, which is not necessarily the one the user typed.
+  setCode: string
   owned: number
   total: number
   percent: number
@@ -33,5 +35,11 @@ export async function getSetProgress(
   // by hand rather than picked from the suggestions.
   const wanted = setCode.trim().toLowerCase()
   const row = rows.find((r) => r.setCode.toLowerCase() === wanted)
-  return row ? { owned: row.owned, total: row.total, percent: percentOf(row.owned, row.total) } : null
+  if (!row) return null
+  return {
+    setCode: row.setCode,
+    owned: row.owned,
+    total: row.total,
+    percent: percentOf(row.owned, row.total),
+  }
 }

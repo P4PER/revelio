@@ -82,21 +82,34 @@ describe('unlinkProvider', () => {
     await seedAccount('a9d', 'u9', 'discord', '444555666')
     await seedAccount('a9g', 'u9', 'github', '777888999')
 
-    expect(await unlinkProvider(ctx.db, 'u9', 'discord')).toBe(1)
+    expect(await unlinkProvider(ctx.db, 'u9', 'discord')).toHaveLength(1)
     expect(await getUserIdByDiscordAccount(ctx.db, '444555666')).toBeNull()
     // The user's other provider survives, and so does u1's discord link.
     expect(await getLinkedProviderIds(ctx.db, 'u9')).toEqual(['github'])
     expect(await getUserIdByDiscordAccount(ctx.db, '111222333')).toBe('u1')
   })
 
+  // The caller revokes these at Discord; without them the authorization would
+  // outlive the unlink.
+  it('hands back the tokens it deleted, so they can be revoked', async () => {
+    await seedUser('u10')
+    await ctx.db.insert(schema.account).values({
+      id: 'a10', userId: 'u10', providerId: 'discord', accountId: '555666777',
+      accessToken: 'access-abc', refreshToken: 'refresh-xyz',
+    })
+    expect(await unlinkProvider(ctx.db, 'u10', 'discord')).toEqual([
+      { accessToken: 'access-abc', refreshToken: 'refresh-xyz' },
+    ])
+  })
+
   it('reports nothing removed when the provider was never linked', async () => {
-    expect(await unlinkProvider(ctx.db, 'u2', 'discord')).toBe(0)
+    expect(await unlinkProvider(ctx.db, 'u2', 'discord')).toEqual([])
   })
 
   // The action resolves userId from the session, but the query is the last line
   // of defence: it must never reach across users.
   it('cannot remove another user\'s link', async () => {
-    expect(await unlinkProvider(ctx.db, 'u2', 'discord')).toBe(0)
+    expect(await unlinkProvider(ctx.db, 'u2', 'discord')).toEqual([])
     expect(await getUserIdByDiscordAccount(ctx.db, '111222333')).toBe('u1')
   })
 })

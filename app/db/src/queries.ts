@@ -10,6 +10,8 @@ import type { CardIndexData } from '@revelio/search'
 
 type SetRow = typeof sets.$inferSelect
 
+export type UnlinkedAccount = { accessToken: string | null; refreshToken: string | null }
+
 // The transaction handle drizzle passes into `db.transaction(async (tx) => ...)`.
 type Tx = Parameters<Parameters<DB['transaction']>[0]>[0]
 
@@ -1124,14 +1126,16 @@ export async function getLinkedProviderIds(db: DB, userId: string): Promise<stri
 // OAuth round-trip - we own this one deletion and leave every Better Auth
 // default alone. The caller must resolve userId from the session, never trust it
 // from a client.
+// Returns the tokens it deleted so the caller can revoke them at the provider:
+// dropping the row only ends our half of the link, and an unrevoked token stays
+// valid until it expires.
 export async function unlinkProvider(
   db: DB, userId: string, providerId: string,
-): Promise<number> {
-  const rows = await db
+): Promise<UnlinkedAccount[]> {
+  return db
     .delete(account)
     .where(and(eq(account.userId, userId), eq(account.providerId, providerId)))
-    .returning({ id: account.id })
-  return rows.length
+    .returning({ accessToken: account.accessToken, refreshToken: account.refreshToken })
 }
 
 const SITE_SETTINGS_ID = 'singleton'

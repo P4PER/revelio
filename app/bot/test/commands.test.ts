@@ -29,6 +29,14 @@ function fakeDeps(hits: unknown[], total: number) {
   }
 }
 
+function fakeAutocomplete(focused: string, locale = 'en') {
+  return {
+    locale,
+    respond: vi.fn().mockResolvedValue(undefined),
+    options: { getFocused: () => focused, getSubcommand: () => null },
+  }
+}
+
 const doc = {
   id: 'base-12', setCode: 'base', number: '12', numberSort: '0:12', name: 'Nimbus 2000',
   text: null, flavorText: null, types: [], subTypes: [], lesson: null, rarity: null,
@@ -107,5 +115,109 @@ describe('the command registry', () => {
     for (const [key, command] of COMMANDS) {
       expect(command.data.name).toBe(key)
     }
+  })
+})
+
+describe('/card autocomplete', () => {
+  it('responds with name/value pairs where the value is the card id', async () => {
+    const interaction = fakeAutocomplete('nim')
+    await COMMANDS.get('card')!.autocomplete!(interaction as never, fakeDeps([doc], 1) as never)
+    expect(interaction.respond).toHaveBeenCalledWith([
+      { name: 'Nimbus 2000 (base #12)', value: 'base-12' },
+    ])
+  })
+
+  it('responds with an empty list for an empty query', async () => {
+    const interaction = fakeAutocomplete('  ')
+    await COMMANDS.get('card')!.autocomplete!(interaction as never, fakeDeps([], 0) as never)
+    expect(interaction.respond).toHaveBeenCalledWith([])
+  })
+
+  it('answers with an empty list rather than throwing when Meilisearch fails', async () => {
+    const interaction = fakeAutocomplete('nim')
+    const deps = { meili: { index: () => ({ search: vi.fn().mockRejectedValue(new Error('down')) }) } }
+    await COMMANDS.get('card')!.autocomplete!(interaction as never, deps as never)
+    expect(interaction.respond).toHaveBeenCalledWith([])
+  })
+})
+
+function fastPathDeps(search: unknown) {
+  return {
+    meili: { index: () => ({ search }) },
+    db: {},
+    sets: { name: vi.fn().mockResolvedValue('Base Set') },
+    env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
+  }
+}
+
+describe('/card id fast path', () => {
+  it('resolves a submitted card id with one filtered lookup', async () => {
+    const search = vi.fn().mockResolvedValue({ hits: [doc], estimatedTotalHits: 1 })
+    const interaction = fakeInteraction({ name: 'base-12' })
+    await COMMANDS.get('card')!.execute(interaction as never, fastPathDeps(search) as never)
+    expect(search).toHaveBeenCalledTimes(1)
+    expect(search).toHaveBeenCalledWith('', expect.objectContaining({
+      filter: ['id IN ["base-12"]'],
+    }))
+  })
+
+  it('falls back to a text search when the value is not an id', async () => {
+    const search = vi.fn()
+      .mockResolvedValueOnce({ hits: [], estimatedTotalHits: 0 })
+      .mockResolvedValueOnce({ hits: [doc], estimatedTotalHits: 1 })
+    const interaction = fakeInteraction({ name: 'nimbus' })
+    await COMMANDS.get('card')!.execute(interaction as never, fastPathDeps(search) as never)
+    expect(search).toHaveBeenCalledTimes(2)
+    expect(search).toHaveBeenLastCalledWith('nimbus', expect.anything())
+    const payload = interaction.editReply.mock.calls[0][0]
+    expect(payload.embeds[0].toJSON().title).toBe('Nimbus 2000')
+  })
+})
+
+describe('/search set filter', () => {
+  it('passes the chosen set code into the Meilisearch filter', async () => {
+    const search = vi.fn().mockResolvedValue({ hits: [doc], estimatedTotalHits: 1 })
+    const deps = {
+      meili: { index: () => ({ search }) },
+      db: {},
+      sets: { name: vi.fn(), all: vi.fn() },
+      env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
+    }
+    const interaction = fakeInteraction({ query: 'broom', set: 'base' })
+    await COMMANDS.get('search')!.execute(interaction as never, deps as never)
+    const [, options] = search.mock.calls[0]
+    // buildFilter emits one parenthesised clause per facet, and `filter` is the
+    // array of those clauses, so this is an element match rather than a substring.
+    expect(options.filter).toContain('(setCode = "base")')
+  })
+
+  it('suggests sets matching the typed fragment, by code or by name', async () => {
+    const all = vi.fn().mockResolvedValue([
+      { code: 'base', name: 'Base Set' },
+      { code: 'qui', name: 'Quidditch Cup' },
+    ])
+    const interaction = fakeAutocomplete('quid')
+    await COMMANDS.get('search')!.autocomplete!(interaction as never, { sets: { all } } as never)
+    expect(interaction.respond).toHaveBeenCalledWith([
+      { name: 'Quidditch Cup', value: 'qui' },
+    ])
+  })
+
+  it('never suggests more than 25 sets', async () => {
+    const all = vi.fn().mockResolvedValue(
+      Array.from({ length: 40 }, (_, i) => ({ code: `s${i}`, name: `Set ${i}` })),
+    )
+    const interaction = fakeAutocomplete('set')
+    await COMMANDS.get('search')!.autocomplete!(interaction as never, { sets: { all } } as never)
+    expect(interaction.respond.mock.calls[0][0]).toHaveLength(25)
+  })
+
+  it('clamps a set name to Discord\'s 100 character limit', async () => {
+    // Discord rejects the whole response with a 400 if any choice name is too
+    // long, which costs the user every suggestion, not just the oversized one.
+    const all = vi.fn().mockResolvedValue([{ code: 'long', name: 'S'.repeat(200) }])
+    const interaction = fakeAutocomplete('s')
+    await COMMANDS.get('search')!.autocomplete!(interaction as never, { sets: { all } } as never)
+    expect(interaction.respond.mock.calls[0][0][0].name.length).toBeLessThanOrEqual(100)
   })
 })

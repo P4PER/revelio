@@ -7,6 +7,20 @@ import { toRevelioLocale } from './i18n/locale'
 import { t } from './i18n/t'
 
 async function handle(interaction: Interaction, deps: Deps): Promise<void> {
+  if (interaction.isAutocomplete()) {
+    const command = COMMANDS.get(interaction.commandName)
+    // Autocomplete has a 3 second budget and no defer, so failures are swallowed
+    // inside the handler rather than routed through the reply-based error path
+    // below, which does not apply to an autocomplete interaction. An unanswered
+    // one leaves the client spinning until it times out, so a stale registration
+    // or an option with no handler still gets an empty list.
+    if (!command?.autocomplete) {
+      await interaction.respond([]).catch(() => {})
+      return
+    }
+    await command.autocomplete(interaction, deps)
+    return
+  }
   if (!interaction.isChatInputCommand()) return
   const command = COMMANDS.get(interaction.commandName)
   if (!command) {

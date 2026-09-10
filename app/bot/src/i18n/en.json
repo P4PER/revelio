@@ -5,6 +5,7 @@
   "command.search.option.query": "Search terms",
   "command.search.option.lesson": "Lesson",
   "command.search.option.type": "Card type",
+  "command.search.option.set": "Set",
   "command.search.option.page": "Page number",
   "card.notFound": "No card matched \"{name}\".",
   "card.field.type": "Type",

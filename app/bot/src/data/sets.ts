@@ -1,10 +1,15 @@
 import { listSets, type DB } from '@revelio/db'
 
+export type SetEntry = { code: string; name: string }
+
+export type SetNames = {
+  name(setCode: string, locale: string): Promise<string>
+  all(locale: string): Promise<SetEntry[]>
+}
+
 // A bot process runs for days, so a boot-time snapshot would miss a set added by
 // a later ingest run. Short TTL instead: cheap query, bounded staleness.
 const DEFAULT_TTL_MS = 15 * 60 * 1000
-
-export type SetNames = { name(setCode: string, locale: string): Promise<string> }
 
 export function createSetNames(db: DB, ttlMs: number = DEFAULT_TTL_MS): SetNames {
   const cache = new Map<string, { at: number; names: Map<string, string> }>()
@@ -22,6 +27,12 @@ export function createSetNames(db: DB, ttlMs: number = DEFAULT_TTL_MS): SetNames
     async name(setCode, locale) {
       const names = await namesFor(locale)
       return names.get(setCode) ?? setCode
+    },
+    // `namesFor` builds its Map from listSets, which orders by release date, so
+    // the suggestion list comes out in that order rather than alphabetically.
+    async all(locale) {
+      const names = await namesFor(locale)
+      return [...names].map(([code, name]) => ({ code, name }))
     },
   }
 }

@@ -51,4 +51,26 @@ describe('createSetNames', () => {
     expect(listSets).toHaveBeenCalledTimes(2)
     vi.useRealTimers()
   })
+
+  it('lists every set for a locale', async () => {
+    vi.spyOn(dbModule, 'listSets').mockResolvedValue([
+      { code: 'base', name: 'Base Set' },
+      { code: 'qui', name: 'Quidditch Cup' },
+    ] as never)
+    const sets = createSetNames({} as never)
+    expect(await sets.all('en')).toEqual([
+      { code: 'base', name: 'Base Set' },
+      { code: 'qui', name: 'Quidditch Cup' },
+    ])
+  })
+
+  it('shares one cache read between all() and name()', async () => {
+    const listSets = vi.spyOn(dbModule, 'listSets').mockResolvedValue([
+      { code: 'base', name: 'Base Set' },
+    ] as never)
+    const sets = createSetNames({} as never)
+    await sets.all('en')
+    await sets.name('base', 'en')
+    expect(listSets).toHaveBeenCalledTimes(1)
+  })
 })

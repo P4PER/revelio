@@ -1,0 +1,45 @@
+name: PR title
+
+# The PR title is held to the same Conventional Commit form as the commits (CLAUDE.md,
+# Conventions / Pull requests). It is not cosmetic: the merge commit carries it as its
+# body, so a bare sentence lands in main's history.
+#
+# This runs on every pull request, docs-only ones included - unlike ci.yml, which skips
+# those by path. Nothing is checked out, so the default read-only token is all it needs.
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  pull-requests: read
+
+concurrency:
+  group: pr-title-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      # Third-party action, so pinned to a commit rather than a moving tag (v6.1.1).
+      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # The types the log actually uses. Extend here rather than working around it.
+          types: |
+            feat
+            fix
+            refactor
+            perf
+            test
+            docs
+            style
+            chore
+            ci
+            build
+          # A scope is expected for workspace-level work and omitted for repo-wide
+          # changes (ci:, docs:), so it cannot be required. The subject is left
+          # unpatterned on purpose: it is often lower case but legitimately starts with
+          # a proper noun ("Discord ..."), and a regex there would fail those wrongly.
+          requireScope: false

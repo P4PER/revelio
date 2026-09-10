@@ -32,13 +32,15 @@ const ERROR_KEYS: Record<string, string> = {
 // The bot's commands are literal input the reader has to type in Discord, so
 // they render as code rather than as prose. Deliberately not Discord's blue
 // mention pill: on a web page it cannot be clicked, and a chip that looks
-// pressable but is not would promise something this page cannot do. The
-// background is bg-background because the caption sits on a bg-muted/50 row,
-// where a muted chip would vanish; nowrap keeps "/collection" whole when the
-// row wraps on a narrow screen.
+// pressable but is not would promise something this page cannot do.
+//
+// The tint is a percentage of the foreground rather than a surface token, so it
+// steps the same amount away from the row in both themes: bg-background is
+// lighter than this row in the light theme but darker in the dark one, where it
+// reads as a black bar. nowrap keeps "/collection" whole when the row wraps.
 function cmd(chunks: ReactNode) {
   return (
-    <code className="rounded bg-background px-1 py-px font-mono text-[0.95em] whitespace-nowrap text-foreground">
+    <code className="rounded bg-foreground/10 px-1 py-px font-mono text-[0.95em] whitespace-nowrap text-foreground">
       {chunks}
     </code>
   )
@@ -116,15 +118,19 @@ export function DiscordConnection({
 
         <span className="flex min-w-0 flex-1 basis-40 flex-col">
           <strong className="text-sm font-semibold">{t('discordTitle')}</strong>
-          {subline && <span className="truncate text-xs text-muted-foreground">{subline}</span>}
+          {subline && <span className="truncate text-sm text-muted-foreground">{subline}</span>}
         </span>
 
         {!configured ? (
-          <span className="flex-1 basis-48 text-xs text-muted-foreground">{t('unavailable')}</span>
+          <span className="flex-1 basis-48 text-sm text-muted-foreground">{t('unavailable')}</span>
         ) : linked ? (
           <span className="flex flex-wrap items-center gap-3">
-            <Badge variant="outline" className="gap-1.5">
-              <span aria-hidden="true" className="size-1.5 rounded-full bg-chart-4" />
+            {/* Green enough to read as a state at a glance, tinted rather than
+                solid so it does not compete with the Unlink button beside it.
+                text-success-ink, not text-success: the fill green is 3.1:1 on
+                this row in the light theme, which is fine for a dot and not for
+                a word. The word carries the meaning on its own, so no dot. */}
+            <Badge variant="outline" className="border-success/30 bg-success/10 text-success-ink">
               {t('linked')}
             </Badge>
             <Button variant="outline" size="sm" disabled={pending} onClick={() => setConfirming(true)}>
@@ -139,7 +145,7 @@ export function DiscordConnection({
         )}
 
         {configured && (
-          <p className="basis-full border-t border-border pt-3 text-xs text-muted-foreground">
+          <p className="basis-full border-t border-border pt-3 text-sm text-muted-foreground">
             {t.rich('discordBody', { cmd })}
           </p>
         )}

@@ -55,6 +55,7 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary-ink: var(--secondary-ink);
   --color-brand-indigo: var(--brand-indigo);
+  --color-brand-discord: var(--brand-discord);
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-ink: var(--primary-ink);
@@ -236,6 +237,11 @@
   --light-star-3: #4A63B8;
   --light-star-4: #B06BB0;
   --light-star-5: #3F9455;
+
+  /* Discord blurple, for the provider tile in Connections. Theme-independent:
+     it identifies Discord, so it is the one hex here that must not shift
+     between parchment and midnight. */
+  --brand-discord: #5865F2;
 
   --radius: 0.6rem;
 

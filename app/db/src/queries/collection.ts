@@ -1,27 +1,9 @@
-import { eq, ne, asc, desc, sql, inArray, and, or, isNull, isNotNull, ilike, count, arrayOverlaps } from 'drizzle-orm'
-import { alias } from 'drizzle-orm/pg-core'
-import { randomUUID } from 'node:crypto'
-import type { DB } from './client'
-import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations, setLocalizations, decks, deckCards, deckLikes, deckViews, collections, userCards, siteSettings } from './schema'
-import { user, account, session } from './auth-schema'
-import type { SetDTO, CardLocalizationDTO, CardDetailDTO, RulingDTO, CardRulingsDTO, AdventureData, MatchData, DeckDTO, DeckCardView, DeckFormat, DeckVisibility, CollectionVisibility, OwnedQuantities, SetProgress, CollectionSummary } from '@revelio/core'
-import { deckCardMeta } from '@revelio/core'
-import type { CardIndexData } from '@revelio/search'
-import type { Tx, SitemapEntry } from './queries/types'
-
-export * from './queries/types'
-export * from './queries/sets'
-export * from './queries/cards'
-export * from './queries/localizations'
-export * from './queries/rulings'
-export * from './queries/sub-types'
-export * from './queries/decks'
-export * from './queries/deck-browse'
-export * from './queries/users'
-export * from './queries/accounts'
-export * from './queries/user-export'
-
-// --- collection: write path ---
+import { eq, asc, sql, inArray, and, count } from 'drizzle-orm'
+import type { DB } from '../client'
+import { cards, sets, collections, userCards } from '../schema'
+import { user } from '../auth-schema'
+import type { CollectionVisibility, OwnedQuantities, SetProgress, CollectionSummary } from '@revelio/core'
+import type { Tx } from './types'
 
 // Ensure the per-user collection row exists (holds the visibility flag).
 async function ensureCollection(tx: Tx | DB, userId: string): Promise<void> {
@@ -75,8 +57,6 @@ export async function getCollectionVisibility(db: DB, userId: string): Promise<C
     .from(collections).where(eq(collections.userId, userId)).limit(1)
   return (row?.visibility as CollectionVisibility) ?? 'private'
 }
-
-// --- collection: read path ---
 
 export async function getOwnedCardIds(db: DB, userId: string): Promise<string[]> {
   const rows = await db.selectDistinct({ cardId: userCards.cardId })
@@ -135,35 +115,4 @@ export async function resolveCollectionOwner(
   const [byId] = await db.select({ userId: user.id, username: user.username })
     .from(user).where(eq(user.id, key)).limit(1)
   return byId ? { userId: byId.userId, username: byId.username } : null
-}
-
-const SITE_SETTINGS_ID = 'singleton'
-
-export type SiteSettings = typeof siteSettings.$inferSelect
-export type SiteSettingsInput = {
-  operatorName: string | null
-  operatorAddress: string | null
-  contactEmail: string | null
-  hostingProvider: string | null
-  responsiblePerson: string | null
-  githubUrl: string | null
-}
-
-export async function getSiteSettings(db: DB): Promise<SiteSettings | null> {
-  const rows = await db
-    .select()
-    .from(siteSettings)
-    .where(eq(siteSettings.id, SITE_SETTINGS_ID))
-    .limit(1)
-  return rows[0] ?? null
-}
-
-export async function upsertSiteSettings(db: DB, values: SiteSettingsInput): Promise<void> {
-  await db
-    .insert(siteSettings)
-    .values({ id: SITE_SETTINGS_ID, ...values, updatedAt: new Date() })
-    .onConflictDoUpdate({
-      target: siteSettings.id,
-      set: { ...values, updatedAt: new Date() },
-    })
 }

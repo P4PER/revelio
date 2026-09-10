@@ -9,6 +9,7 @@ const m = vi.hoisted(() => ({
   getUserForAdmin: vi.fn(async () => ({ id: 'u2', role: 'user' })),
   countAdmins: vi.fn(async () => 2),
   revalidatePath: vi.fn(),
+  unlinkAndRevokeDiscord: vi.fn(async () => 0),
 }))
 vi.mock('@/lib/server/session', () => ({ requireRole: m.requireRole }))
 vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
@@ -17,6 +18,9 @@ vi.mock('@revelio/db', () => ({
   deleteUserById: m.deleteUserById, getUserForAdmin: m.getUserForAdmin, countAdmins: m.countAdmins,
 }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
+// Deletion revokes the Discord link first. Stubbed here so the suite does not
+// pull in lib/server/auth (a live Postgres client at import time) through it.
+vi.mock('@/lib/server/discord-oauth', () => ({ unlinkAndRevokeDiscord: m.unlinkAndRevokeDiscord }))
 
 import {
   setUserRole, banUser, unbanUser, deleteUser,

@@ -14,6 +14,7 @@ const m = vi.hoisted(() => ({
   getUserExport: vi.fn(async () => ({ profile: {}, decks: [], collection: { visibility: 'private', ownedCards: [] }, likes: [] })),
   update: vi.fn(() => ({ set: () => ({ where: async () => {} }) })),
   revalidatePath: vi.fn(),
+  unlinkAndRevokeDiscord: vi.fn(async () => 0),
 }))
 vi.mock('@/lib/server/session', () => ({ getSession: m.getSession }))
 vi.mock('@/lib/server/db', () => ({ getDb: () => ({ update: m.update }) }))
@@ -27,6 +28,9 @@ vi.mock('@/lib/email/otp-template', () => ({ renderOtpEmail: m.renderOtpEmail })
 vi.mock('@/lib/email/mailer', () => ({ sendMail: m.sendMail }))
 vi.mock('@/lib/server/site-settings', () => ({ getCachedSiteSettings: m.getCachedSiteSettings }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
+// Deletion revokes the Discord link first. Stubbed here so the suite does not
+// pull in lib/server/auth (a live Postgres client at import time) through it.
+vi.mock('@/lib/server/discord-oauth', () => ({ unlinkAndRevokeDiscord: m.unlinkAndRevokeDiscord }))
 
 import {
   updateUsername, requestEmailChange, confirmEmailChange,

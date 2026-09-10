@@ -53,6 +53,16 @@ export const auth = betterAuth({
       }
     : {},
   account: {
+    // OAuth access/refresh tokens are encrypted with BETTER_AUTH_SECRET before
+    // they reach the account row, so a database dump alone does not hand out
+    // live Discord authorizations. Two consequences worth knowing:
+    // rotating BETTER_AUTH_SECRET makes every stored token undecryptable (they
+    // are only used for revocation, so the cost is a stale authorization left
+    // at Discord, not a broken login), and rows written before this flag went
+    // on stay plaintext until the account is re-linked - the one reader we
+    // have, discord-oauth.ts, falls back to the stored value when a token
+    // does not decrypt.
+    encryptOAuthTokens: true,
     accountLinking: {
       // Completes disableSignUp: without it, POST /sign-in/social still signs
       // an existing user in whenever the Discord profile's verified email
@@ -77,6 +87,13 @@ export const auth = betterAuth({
     emailOTP({
       otpLength: 6,
       expiresIn: 600, // 10 minutes
+      // The verification row keeps only a hash of the code, so a database dump
+      // cannot be turned into a sign-in - matching how our own one-time codes
+      // are stored (lib/server/account-codes.ts). Hashed rather than encrypted
+      // because nothing needs to read the code back: verification compares
+      // hashes, and resendStrategy stays at its 'rotate' default, which issues a
+      // fresh code instead of re-sending the stored one.
+      storeOTP: 'hashed',
       async sendVerificationOTP({ email, otp, type }) {
         // Password auth is disabled, so 'forget-password' never fires; map it
         // defensively so the remaining kinds match our template's union.

@@ -53,6 +53,34 @@ it('shows the linked state and unlinks on request', async () => {
   expect(m.refresh).toHaveBeenCalled()
 })
 
+// The whole point of the rework: you can see which Discord account the bot
+// answers for, not just that some account is attached.
+it('names the linked Discord account', () => {
+  renderWithIntl(<ConnectionsPane linked configured accountName="timonw" />)
+  expect(screen.getByText('@timonw')).toBeInTheDocument()
+  expect(screen.getByText(c.linked)).toBeInTheDocument()
+})
+
+// Discord being unreachable must cost the handle, not the pane.
+it('keeps the linked badge when Discord did not give up a name', () => {
+  renderWithIntl(<ConnectionsPane linked configured accountName={null} />)
+  expect(screen.getByText(c.linked)).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: c.unlink })).toBeInTheDocument()
+  expect(screen.queryByText(/^@/)).not.toBeInTheDocument()
+})
+
+it('says so in the row when nothing is linked yet', () => {
+  renderWithIntl(<ConnectionsPane linked={false} configured />)
+  expect(screen.getByText(c.notLinked)).toBeInTheDocument()
+})
+
+// The row is the only place the bot's two commands are explained, in every
+// state where linking is possible at all.
+it.each([true, false])('explains what the link is for when linked=%s', (linked) => {
+  renderWithIntl(<ConnectionsPane linked={linked} configured accountName="timonw" />)
+  expect(screen.getByText(c.discordBody)).toBeInTheDocument()
+})
+
 it('reports a failed unlink instead of silently doing nothing', async () => {
   m.unlinkDiscord.mockResolvedValue({ ok: false, error: 'failed' })
   renderWithIntl(<ConnectionsPane linked configured />)

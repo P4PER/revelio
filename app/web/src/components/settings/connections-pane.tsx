@@ -5,6 +5,9 @@ import { useRouter } from '@/../i18n/navigation'
 import { authClient } from '@/lib/auth-client'
 import { unlinkDiscord } from '@/lib/actions/connections-actions'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { DiscordMark } from '@/components/discord-mark'
 
 const CONNECTIONS_PATH = '/settings/connections'
 
@@ -23,10 +26,12 @@ const ERROR_KEYS: Record<string, string> = {
 export function ConnectionsPane({
   linked,
   configured,
+  accountName,
   linkError,
 }: {
   linked: boolean
   configured: boolean
+  accountName?: string | null
   linkError?: string
 }) {
   const t = useTranslations('settings.connections')
@@ -69,26 +74,55 @@ export function ConnectionsPane({
       ? t(ERROR_KEYS[linkError] ?? 'error')
       : null
 
+  // The badge already says "Linked", so a nameless linked account gets no
+  // subline rather than the same word twice.
+  const subline = !configured ? null : linked ? (accountName ? `@${accountName}` : null) : t('notLinked')
+
   return (
     <section aria-labelledby="s-connections" className="rounded-xl border border-border bg-card p-5">
       <h2 id="s-connections" className="text-lg font-semibold">{t('title')}</h2>
       <p className="mt-1 mb-5 text-sm text-muted-foreground">{t('lead')}</p>
 
-      <h3 className="text-sm font-medium">{t('discordTitle')}</h3>
-      <p className="mt-1 mb-4 max-w-prose text-sm text-muted-foreground">{t('discordBody')}</p>
+      <div className="flex flex-wrap items-center gap-3.5 rounded-lg border border-border bg-muted/50 p-4">
+        <span
+          className={cn(
+            'flex size-10 shrink-0 items-center justify-center rounded-md bg-brand-discord text-white',
+            !configured && 'opacity-50',
+          )}
+        >
+          <DiscordMark className="size-6" />
+        </span>
 
-      {!configured ? (
-        <p className="text-sm text-muted-foreground">{t('unavailable')}</p>
-      ) : linked ? (
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-foreground">{t('linked')}</span>
-          <Button variant="outline" size="sm" disabled={pending} onClick={onUnlink}>
-            {t('unlink')}
+        <span className="flex min-w-0 flex-1 basis-40 flex-col">
+          <strong className="text-sm font-semibold">{t('discordTitle')}</strong>
+          {subline && <span className="truncate text-xs text-muted-foreground">{subline}</span>}
+        </span>
+
+        {!configured ? (
+          <span className="flex-1 basis-48 text-xs text-muted-foreground">{t('unavailable')}</span>
+        ) : linked ? (
+          <span className="flex flex-wrap items-center gap-3">
+            <Badge variant="outline" className="gap-1.5">
+              <span aria-hidden="true" className="size-1.5 rounded-full bg-chart-4" />
+              {t('linked')}
+            </Badge>
+            <Button variant="outline" size="sm" disabled={pending} onClick={onUnlink}>
+              {t('unlink')}
+            </Button>
+          </span>
+        ) : (
+          <Button size="sm" disabled={pending} onClick={onLink}>
+            <DiscordMark />
+            {t('link')}
           </Button>
-        </div>
-      ) : (
-        <Button size="sm" disabled={pending} onClick={onLink}>{t('link')}</Button>
-      )}
+        )}
+
+        {configured && (
+          <p className="basis-full border-t border-border pt-3 text-xs text-muted-foreground">
+            {t('discordBody')}
+          </p>
+        )}
+      </div>
 
       {error && <p role="alert" className="mt-3 text-sm text-destructive">{error}</p>}
     </section>

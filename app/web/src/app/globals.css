@@ -55,6 +55,9 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary-ink: var(--secondary-ink);
   --color-brand-indigo: var(--brand-indigo);
+  --color-brand-discord: var(--brand-discord);
+  --color-success: var(--success);
+  --color-success-ink: var(--success-ink);
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-ink: var(--primary-ink);
@@ -149,6 +152,8 @@
   --dark-chart-2: #6E66C9;
   --dark-chart-3: #3B3194;
   --dark-chart-4: #5CB878;
+  --dark-success: #5CB878;
+  --dark-success-ink: #5CB878;
   --dark-chart-5: #5B8DEF;
   --dark-sidebar: #1C1838;
   --dark-sidebar-foreground: #FBF3DC;
@@ -211,6 +216,8 @@
   --light-chart-2: #5B4FC0;
   --light-chart-3: #3B3194;
   --light-chart-4: #2E9455;
+  --light-success: #2E9455;
+  --light-success-ink: #1E6B3D;
   --light-chart-5: #3F6FD8;
   --light-sidebar: #FFFDF7;
   --light-sidebar-foreground: #1C1838;
@@ -236,6 +243,11 @@
   --light-star-3: #4A63B8;
   --light-star-4: #B06BB0;
   --light-star-5: #3F9455;
+
+  /* Discord blurple, for the provider tile in Connections. Theme-independent:
+     it identifies Discord, so it is the one hex here that must not shift
+     between parchment and midnight. */
+  --brand-discord: #5865F2;
 
   --radius: 0.6rem;
 
@@ -278,6 +290,8 @@
   --chart-2: var(--light-chart-2);
   --chart-3: var(--light-chart-3);
   --chart-4: var(--light-chart-4);
+  --success: var(--light-success);
+  --success-ink: var(--light-success-ink);
   --chart-5: var(--light-chart-5);
   --sidebar: var(--light-sidebar);
   --sidebar-foreground: var(--light-sidebar-foreground);
@@ -337,6 +351,8 @@
     --chart-2: var(--dark-chart-2);
     --chart-3: var(--dark-chart-3);
     --chart-4: var(--dark-chart-4);
+    --success: var(--dark-success);
+    --success-ink: var(--dark-success-ink);
     --chart-5: var(--dark-chart-5);
     --sidebar: var(--dark-sidebar);
     --sidebar-foreground: var(--dark-sidebar-foreground);
@@ -398,6 +414,8 @@
   --chart-2: var(--dark-chart-2);
   --chart-3: var(--dark-chart-3);
   --chart-4: var(--dark-chart-4);
+  --success: var(--dark-success);
+  --success-ink: var(--dark-success-ink);
   --chart-5: var(--dark-chart-5);
   --sidebar: var(--dark-sidebar);
   --sidebar-foreground: var(--dark-sidebar-foreground);

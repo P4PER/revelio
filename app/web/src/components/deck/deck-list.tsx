@@ -257,8 +257,12 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
               {(() => {
                 const over = deck.mainCount > MAIN_TARGET
                 const complete = deck.mainCount === MAIN_TARGET && deck.hasCharacter
-                const tone = over ? 'text-destructive' : complete ? 'text-chart-4' : 'text-muted-foreground'
-                const dot = over ? 'bg-destructive' : complete ? 'bg-chart-4' : 'bg-muted-foreground'
+                // success-ink for the count, success for the dot: the fill green
+                // measures 3.8:1 on this card in the light theme, which carries a
+                // 6px dot fine and is under AA for 12px text. The two tokens are
+                // the same value in the dark theme.
+                const tone = over ? 'text-destructive' : complete ? 'text-success-ink' : 'text-muted-foreground'
+                const dot = over ? 'bg-destructive' : complete ? 'bg-success' : 'bg-muted-foreground'
                 return (
                   <span
                     className={cn('inline-flex items-center gap-1.5 font-medium tabular-nums', tone)}

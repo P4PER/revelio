@@ -35,11 +35,13 @@ function assigned(source: string): string[] {
 }
 
 /**
- * Layout constants that live in :root beside the theme aliases but are the same
- * in every theme, so they have no light or dark counterpart and must not be
- * required of the dark blocks. Add to this set, don't loosen the filter.
+ * Tokens that live in :root beside the theme aliases but are the same in every
+ * theme, so they have no light or dark counterpart and must not be required of
+ * the dark blocks: layout constants, and brand colours that identify someone
+ * else's product and so must not shift with the theme. Add to this set, don't
+ * loosen the filter.
  */
-const NON_THEME = new Set(['--radius', '--header-h'])
+const NON_THEME = new Set(['--radius', '--header-h', '--brand-discord'])
 
 /** The alias names: everything except the value sets and the layout constants. */
 function aliases(source: string): string[] {

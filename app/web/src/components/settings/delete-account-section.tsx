@@ -1,5 +1,5 @@
 'use client'
-import { useState, useTransition } from 'react'
+import { useRef, useState, useTransition } from 'react'
 import { REGEXP_ONLY_DIGITS } from 'input-otp'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
@@ -10,8 +10,8 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import {
-  AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogTitle,
+  AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import type { SettingsUser } from './types'
 
@@ -22,6 +22,7 @@ export function DeleteAccountSection({ user }: { user: SettingsUser }) {
   const [code, setCode] = useState('')
   const [codeError, setCodeError] = useState<string | null>(null)
   const [pending, start] = useTransition()
+  const codeRef = useRef<HTMLInputElement>(null)
 
   function openDialog() {
     setCode('')
@@ -74,7 +75,20 @@ export function DeleteAccountSection({ user }: { user: SettingsUser }) {
       <Button type="button" size="sm" variant="destructive" onClick={openDialog}>{t('deleteAction')}</Button>
 
       <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent
+          // Radix preventDefaults its own open-autofocus and focuses the
+          // AlertDialogCancel instead. That is the right default for a bare
+          // confirmation, but this dialog's whole job is typing the six digits
+          // just emailed, so focus starts in the code field. The bail-out hands
+          // the decision back to Radix if the field ever stops taking a ref -
+          // partial cover only, since Cancel is disabled while the code request
+          // is in flight and a disabled button cannot take focus either.
+          onOpenAutoFocus={(event) => {
+            if (!codeRef.current) return
+            event.preventDefault()
+            codeRef.current.focus()
+          }}
+        >
           <AlertDialogHeader>
             <AlertDialogTitle>{t('dialogTitle')}</AlertDialogTitle>
             <AlertDialogDescription>{t('dialogBody', { email: user.email })}</AlertDialogDescription>
@@ -82,6 +96,7 @@ export function DeleteAccountSection({ user }: { user: SettingsUser }) {
           <div className="space-y-2">
             <Label htmlFor="delete-code">{t('codeLabel')}</Label>
             <InputOTP
+              ref={codeRef}
               id="delete-code"
               maxLength={6}
               value={code}
@@ -97,7 +112,9 @@ export function DeleteAccountSection({ user }: { user: SettingsUser }) {
             {codeError && <p className="text-sm text-destructive">{codeError}</p>}
           </div>
           <AlertDialogFooter>
-            <Button type="button" size="sm" variant="outline" onClick={() => setOpen(false)} disabled={pending}>{t('cancel')}</Button>
+            <AlertDialogCancel asChild>
+              <Button type="button" size="sm" variant="outline" disabled={pending}>{t('cancel')}</Button>
+            </AlertDialogCancel>
             <Button type="button" size="sm" variant="destructive" onClick={onConfirm} disabled={pending || code.length !== 6}>{t('confirmDelete')}</Button>
           </AlertDialogFooter>
         </AlertDialogContent>

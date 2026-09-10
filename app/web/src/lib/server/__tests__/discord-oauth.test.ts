@@ -1,22 +1,28 @@
 import { it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { symmetricEncrypt } from 'better-auth/crypto'
-import { revokeDiscordAuthorization, unlinkAndRevokeDiscord } from '../discord-oauth'
+import { revokeDiscordAuthorization, unlinkAndRevokeDiscord, getDiscordAccountName } from '../discord-oauth'
 
 const TEST_SECRET = 'test-secret'
 
 const fetchMock = vi.fn()
 const unlinkProviderMock = vi.fn()
+const getAccessTokenMock = vi.fn()
 
 vi.mock('@revelio/db', () => ({ unlinkProvider: (...args: unknown[]) => unlinkProviderMock(...args) }))
 vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
-// The real module builds a Postgres client and a mailer at import time, and the
-// only thing needed from it here is the key the tokens were encrypted with.
+// The real module builds a Postgres client and a mailer at import time. What is
+// needed here is the key the tokens were encrypted with, plus the endpoint the
+// display-name lookup borrows to decrypt and refresh a stored token.
 vi.mock('@/lib/server/auth', () => ({
-  auth: { $context: Promise.resolve({ secretConfig: 'test-secret' }) },
+  auth: {
+    $context: Promise.resolve({ secretConfig: 'test-secret' }),
+    api: { getAccessToken: (...args: unknown[]) => getAccessTokenMock(...args) },
+  },
 }))
 
 beforeEach(() => {
   unlinkProviderMock.mockReset()
+  getAccessTokenMock.mockReset().mockResolvedValue({ accessToken: 'access-token' })
   vi.stubEnv('DISCORD_CLIENT_ID', 'client-id')
   vi.stubEnv('DISCORD_CLIENT_SECRET', 'client-secret')
   vi.stubGlobal('fetch', fetchMock)
@@ -128,4 +134,67 @@ it('does not call Discord when there was no link to remove', async () => {
 
   expect(await unlinkAndRevokeDiscord('user-1')).toBe(0)
   expect(fetchMock).not.toHaveBeenCalled()
+})
+
+// The account row holds only the snowflake, so the handle has to come from
+// Discord. The pane prints it behind an "@", so it wants the unique username
+// and not the free-form global_name beside it.
+it('reads the handle from the Discord profile', async () => {
+  fetchMock.mockResolvedValue({
+    ok: true,
+    status: 200,
+    json: async () => ({ global_name: 'Timon Wegener', username: 'timonw' }),
+  })
+  expect(await getDiscordAccountName('user-1')).toBe('timonw')
+  const [url, init] = fetchMock.mock.calls[0]
+  expect(url).toBe('https://discord.com/api/users/@me')
+  expect(init.headers.Authorization).toBe('Bearer access-token')
+})
+
+// The settings page awaits this inline, so a Discord that accepts the
+// connection and then stalls would hold the page for undici's 300s default.
+it('gives up on a stalled Discord rather than holding the page open', async () => {
+  fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => ({ username: 'timonw' }) })
+  await getDiscordAccountName('user-1')
+  expect(fetchMock.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal)
+})
+
+it('asks Better Auth for the token so an expired one gets refreshed first', async () => {
+  fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => ({ username: 'timonw' }) })
+  await getDiscordAccountName('user-1')
+  expect(getAccessTokenMock).toHaveBeenCalledWith({
+    body: { providerId: 'discord', userId: 'user-1' },
+  })
+})
+
+it('falls back to the display name when the profile carries no username', async () => {
+  fetchMock.mockResolvedValue({
+    ok: true,
+    status: 200,
+    json: async () => ({ global_name: 'Timon', username: null }),
+  })
+  expect(await getDiscordAccountName('user-1')).toBe('Timon')
+})
+
+// The name is decoration: the pane falls back to the plain linked badge, so
+// none of these may propagate and break the settings page.
+it('returns null when no usable token can be produced', async () => {
+  getAccessTokenMock.mockRejectedValue(new Error('FAILED_TO_GET_ACCESS_TOKEN'))
+  expect(await getDiscordAccountName('user-1')).toBeNull()
+  expect(fetchMock).not.toHaveBeenCalled()
+})
+
+it('returns null when Discord rejects the token', async () => {
+  fetchMock.mockResolvedValue({ ok: false, status: 401 })
+  expect(await getDiscordAccountName('user-1')).toBeNull()
+})
+
+it('returns null when Discord cannot be reached', async () => {
+  fetchMock.mockRejectedValue(new Error('ETIMEDOUT'))
+  expect(await getDiscordAccountName('user-1')).toBeNull()
+})
+
+it('returns null when the profile carries neither name', async () => {
+  fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => ({ id: '123' }) })
+  expect(await getDiscordAccountName('user-1')).toBeNull()
 })

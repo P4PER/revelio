@@ -36,3 +36,21 @@ it('requests a deletion code when the dialog opens', async () => {
   await waitFor(() => expect(m.requestAccountDeletion).toHaveBeenCalled())
   expect(await screen.findByText(en.settings.safety.delete.dialogTitle)).toBeInTheDocument()
 })
+
+// Radix preventDefaults its own open-autofocus and focuses the AlertDialogCancel,
+// so a footer of plain Buttons left focus on the trigger behind the overlay -
+// a dialog a keyboard user could not reach. Here it should land on the code
+// field, which is the only thing there is to do in this dialog.
+it('puts focus in the code field when the dialog opens', async () => {
+  renderSection()
+  await userEvent.click(screen.getByRole('button', { name: en.settings.safety.delete.deleteAction }))
+  expect(await screen.findByLabelText(en.settings.safety.delete.codeLabel)).toHaveFocus()
+})
+
+it('closes on cancel without deleting anything', async () => {
+  renderSection()
+  await userEvent.click(screen.getByRole('button', { name: en.settings.safety.delete.deleteAction }))
+  await userEvent.click(await screen.findByRole('button', { name: en.settings.safety.delete.cancel }))
+  await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument())
+  expect(m.confirmAccountDeletion).not.toHaveBeenCalled()
+})

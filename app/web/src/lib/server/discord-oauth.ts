@@ -6,6 +6,10 @@ import { auth } from '@/lib/server/auth'
 import { getDb } from '@/lib/server/db'
 
 const REVOKE_ENDPOINT = 'https://discord.com/api/oauth2/token/revoke'
+const USER_ENDPOINT = 'https://discord.com/api/users/@me'
+// The name is decoration on a page that must still render, so a hung Discord
+// gets a couple of seconds rather than undici's 300s default.
+const NAME_FETCH_TIMEOUT_MS = 3000
 
 // account.encryptOAuthTokens is on, so what the account row holds is ciphertext
 // and posting it to Discord revokes nothing. The key comes from the auth context
@@ -77,4 +81,45 @@ export async function unlinkAndRevokeDiscord(userId: string): Promise<number> {
   )
   await revokeDiscordAuthorization(tokens)
   return removed.length
+}
+
+// The Connections pane names the linked account, and the account row holds only
+// the snowflake - so the display name comes from Discord on demand. Storing it
+// would need a migration and would go stale the moment someone renames.
+//
+// The token comes from Better Auth rather than account.accessToken because the
+// stored value is ciphertext and Discord access tokens last a week:
+// getAccessToken decrypts it, refreshes it through the provider when it has
+// expired, and persists the new pair. Passing userId with no headers is the
+// server-trusted path; it throws an APIError on anything it cannot resolve.
+//
+// Every failure returns null: the name is decoration, and the pane renders the
+// plain linked state without it. A settings page must not break because
+// Discord is having a bad day - which includes being slow, since the page
+// awaits this inline, hence the abort signal as well as the try/catch.
+export async function getDiscordAccountName(userId: string): Promise<string | null> {
+  let accessToken: string | undefined
+  try {
+    const tokens = await auth.api.getAccessToken({ body: { providerId: 'discord', userId } })
+    accessToken = tokens.accessToken
+  } catch {
+    return null
+  }
+  if (!accessToken) return null
+
+  try {
+    const res = await fetch(USER_ENDPOINT, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      signal: AbortSignal.timeout(NAME_FETCH_TIMEOUT_MS),
+    })
+    if (!res.ok) return null
+    // username, not global_name: the pane prints this behind an "@", and a
+    // global_name is a free-form display name that may carry spaces and capitals
+    // ("@Timon Wegener" reads as a handle that does not exist). The username is
+    // the unique handle, and Discord always returns one.
+    const profile = (await res.json()) as { global_name?: string | null; username?: string | null }
+    return profile.username || profile.global_name || null
+  } catch {
+    return null
+  }
 }

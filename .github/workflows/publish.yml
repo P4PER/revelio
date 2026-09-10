@@ -88,20 +88,22 @@ jobs:
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web
 
-      # Redeploy the host now that a fresh web image is pushed. Runs as a step on
-      # build-web (not a separate job) so it reuses this runner and only fires
-      # after the push step succeeds. The token-bearing URL lives entirely in the
-      # DEPLOY_WEBHOOK_URL secret and is passed via env so it never appears in the
-      # logs; if the secret is unset the step no-ops instead of failing the run.
-      - name: Trigger redeploy webhook
+      # Redeploy the web container now that a fresh web image is pushed. Runs as a
+      # step on build-web (not a separate job) so it reuses this runner and only
+      # fires after the push step succeeds. Each image has its own hook URL,
+      # because one webhook can only redeploy one service. The token-bearing URL
+      # lives entirely in the WEB_REDEPLOY_WEBHOOK_URL secret and is passed via
+      # env so it never appears in the logs; if the secret is unset the step
+      # no-ops instead of failing the run.
+      - name: Trigger web redeploy webhook
         env:
-          DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
+          WEB_REDEPLOY_WEBHOOK_URL: ${{ secrets.WEB_REDEPLOY_WEBHOOK_URL }}
         run: |
-          if [ -z "$DEPLOY_WEBHOOK_URL" ]; then
-            echo "::notice::DEPLOY_WEBHOOK_URL not set; skipping redeploy webhook."
+          if [ -z "$WEB_REDEPLOY_WEBHOOK_URL" ]; then
+            echo "::notice::WEB_REDEPLOY_WEBHOOK_URL not set; skipping web redeploy webhook."
             exit 0
           fi
-          curl -fsS -X POST --max-time 30 --retry 3 --retry-all-errors "$DEPLOY_WEBHOOK_URL"
+          curl -fsS -X POST --max-time 30 --retry 3 --retry-all-errors "$WEB_REDEPLOY_WEBHOOK_URL"
 
   build-ingest:
     needs: changes
@@ -175,14 +177,15 @@ jobs:
           cache-from: type=gha,scope=bot
           cache-to: type=gha,mode=max,scope=bot
 
-      # Same redeploy hook build-web uses. A push that changes both web and bot
-      # fires it twice; the redeploy is idempotent, so that is harmless.
-      - name: Trigger redeploy webhook
+      # The bot container has its own hook, separate from the web one: a single
+      # webhook URL redeploys a single service, so a shared secret would leave
+      # whichever container it does not point at running the old image.
+      - name: Trigger bot redeploy webhook
         env:
-          DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
+          BOT_REDEPLOY_WEBHOOK_URL: ${{ secrets.BOT_REDEPLOY_WEBHOOK_URL }}
         run: |
-          if [ -z "$DEPLOY_WEBHOOK_URL" ]; then
-            echo "::notice::DEPLOY_WEBHOOK_URL not set; skipping redeploy webhook."
+          if [ -z "$BOT_REDEPLOY_WEBHOOK_URL" ]; then
+            echo "::notice::BOT_REDEPLOY_WEBHOOK_URL not set; skipping bot redeploy webhook."
             exit 0
           fi
-          curl -fsS -X POST --max-time 30 --retry 3 --retry-all-errors "$DEPLOY_WEBHOOK_URL"
+          curl -fsS -X POST --max-time 30 --retry 3 --retry-all-errors "$BOT_REDEPLOY_WEBHOOK_URL"

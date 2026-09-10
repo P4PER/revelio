@@ -1,9 +1,26 @@
 import 'server-only'
 
+import { symmetricDecrypt } from 'better-auth/crypto'
 import { unlinkProvider } from '@revelio/db'
+import { auth } from '@/lib/server/auth'
 import { getDb } from '@/lib/server/db'
 
 const REVOKE_ENDPOINT = 'https://discord.com/api/oauth2/token/revoke'
+
+// account.encryptOAuthTokens is on, so what the account row holds is ciphertext
+// and posting it to Discord revokes nothing. The key comes from the auth context
+// rather than BETTER_AUTH_SECRET directly so that a versioned secret keeps
+// working. Anything that fails to decrypt is used as-is: a row written before
+// encryption was enabled is plaintext already, and abandoning its revocation
+// would leave exactly the live authorization unlinking exists to end.
+async function decryptToken(token: string | null): Promise<string | null> {
+  if (!token) return null
+  try {
+    return await symmetricDecrypt({ key: (await auth.$context).secretConfig, data: token })
+  } catch {
+    return token
+  }
+}
 
 // Discord revokes the whole authorization from any one of its tokens: "any
 // active access or refresh tokens associated with that authorization will be
@@ -48,6 +65,9 @@ export async function revokeDiscordAuthorization(
 export async function unlinkAndRevokeDiscord(userId: string): Promise<number> {
   const removed = await unlinkProvider(getDb(), userId, 'discord')
   if (removed.length === 0) return 0
-  await revokeDiscordAuthorization(removed.flatMap((r) => [r.accessToken, r.refreshToken]))
+  const tokens = await Promise.all(
+    removed.flatMap((r) => [r.accessToken, r.refreshToken]).map(decryptToken),
+  )
+  await revokeDiscordAuthorization(tokens)
   return removed.length
 }

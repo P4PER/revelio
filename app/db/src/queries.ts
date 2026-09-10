@@ -7,13 +7,13 @@ import { user, account, session } from './auth-schema'
 import type { SetDTO, CardLocalizationDTO, CardDetailDTO, RulingDTO, CardRulingsDTO, AdventureData, MatchData, DeckDTO, DeckCardView, DeckFormat, DeckVisibility, CollectionVisibility, OwnedQuantities, SetProgress, CollectionSummary } from '@revelio/core'
 import { deckCardMeta } from '@revelio/core'
 import type { CardIndexData } from '@revelio/search'
+import type { Tx, SitemapEntry } from './queries/types'
+
+export * from './queries/types'
 
 type SetRow = typeof sets.$inferSelect
 
 export type UnlinkedAccount = { accessToken: string | null; refreshToken: string | null }
-
-// The transaction handle drizzle passes into `db.transaction(async (tx) => ...)`.
-type Tx = Parameters<Parameters<DB['transaction']>[0]>[0]
 
 function toSetDTO(row: SetRow, name: string = row.name): SetDTO {
   return {
@@ -276,8 +276,6 @@ export async function getDailyShowcaseCandidates(
     .orderBy(asc(cards.id))
   return rows.map((r) => ({ id: r.id, name: r.localName ?? r.baseName, imageVersion: r.imageVersion! }))
 }
-
-export type SitemapEntry = { id: string; updatedAt: Date }
 
 // Minimal rows for the XML sitemap: id/code + last-modified for <lastmod>.
 export async function listCardsForSitemap(db: DB): Promise<SitemapEntry[]> {

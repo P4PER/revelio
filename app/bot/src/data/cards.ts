@@ -62,7 +62,7 @@ export async function findOneCard(
   meili: MeiliSearch,
   input: { query: string; locale: string },
 ): Promise<SearchDocument | null> {
-  const res = await searchCardSummaries(meili, input.locale, input.query, { hitsPerPage: 1 })
+  const res = await searchCards(meili, input.locale, input.query, { hitsPerPage: 1 })
   return res.hits[0] ?? null
 }
 

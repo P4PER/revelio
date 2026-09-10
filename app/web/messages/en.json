@@ -664,6 +664,7 @@
       "profile": "Profile",
       "appearance": "Appearance",
       "email": "Email",
+      "connections": "Connections",
       "safety": "Safety Zone"
     },
     "appearance": {
@@ -708,6 +709,20 @@
       "emailTaken": "An account already uses that email.",
       "requestError": "Couldn’t send the code. Please try again.",
       "invalidCode": "That code isn’t right, or it expired. Try again."
+    },
+    "connections": {
+      "title": "Connections",
+      "lead": "Link an account to use Revelio outside the website.",
+      "discordTitle": "Discord",
+      "discordBody": "Link your Discord account to use /collection and /mydecks with the Revelio bot. Only you can see those replies.",
+      "linked": "Linked",
+      "link": "Link Discord",
+      "unlink": "Unlink",
+      "unavailable": "Discord linking is not configured on this instance.",
+      "error": "Linking failed. Please try again.",
+      "alreadyLinked": "That Discord account is already linked to another Revelio account.",
+      "unverifiedDiscord": "Discord has not verified the email address on that account. Verify it with Discord, then try linking again.",
+      "unlinkError": "Couldn’t unlink your Discord account. Please try again."
     },
     "safety": {
       "export": {
@@ -778,13 +793,15 @@
     "emailBody": "To sign you in we send one-time passcodes to your email address via our email processor. Legal basis: performance of a contract (Art. 6(1)(b) GDPR).",
     "contactTitle": "Contact requests",
     "contactBody": "If you contact us through the contact form or by email, we process the name, email address, and the content of your message in order to handle your enquiry. These messages are delivered to the operator by email and are not stored in our database. Legal basis: our legitimate interest in answering enquiries and, where your request relates to a contract, the performance of that contract (Art. 6(1)(f) and (b) GDPR).",
+    "discordTitle": "Discord connection",
+    "discordBody": "If you link your Discord account, Discord tells us your Discord user ID, username, avatar and the email address on that Discord account. We store the user ID together with your Revelio account so the Revelio bot can recognise you, alongside the access tokens Discord issues for the connection and the permissions you granted. We do not store your Discord email address, and we never receive your Discord password or your messages. When you use the bot, the card, deck and collection data in the reply is transmitted to Discord, which delivers it to you; replies containing your own collection or decks are sent privately and are visible only to you. You can unlink at any time under Settings, Connections. That deletes the stored connection and asks Discord to revoke Revelio's authorization, so the app also disappears from your Discord authorised apps. Legal basis: Art. 6(1)(b) GDPR, since the connection is needed to provide the service you asked for.",
     "cookiesTitle": "4. Cookies",
     "cookiesBody": "We use only cookies and local storage that are necessary to operate the site or to remember choices you make; we set no analytics or tracking cookies and load no third-party tracking technologies, so no consent banner is required. In detail: strictly necessary authentication cookies set when you sign in (for example revelio.session_token, prefixed __Secure- when served over HTTPS) keep you signed in; functional cookies remember your language (revelio.locale), your theme (revelio.theme), your deck overview layout (revelio.deck-view) and, in the admin area, the section you last opened (revelio.admin.section); and your browser's local storage temporarily holds an unsaved deck draft (revelio.deck.draft) and notes which one-off animations you have already seen (revelio.constellation.day, revelio.cardNav.hintSeen). These are stored solely to provide functions you have expressly requested, on the basis of § 25(2) TDDDG; any associated processing rests on Art. 6(1)(f) GDPR.",
     "recipientsTitle": "5. Recipients and processors",
-    "recipientsBody": "We use carefully selected processors who act only on our instructions and with whom we have concluded data processing agreements pursuant to Art. 28 GDPR. Your data is processed on the servers of our hosting provider. Login and contact emails are sent via STRATO (STRATO GmbH, Germany). Card images are stored in object storage and contain no personal data.",
+    "recipientsBody": "We use carefully selected processors who act only on our instructions and with whom we have concluded data processing agreements pursuant to Art. 28 GDPR. Your data is processed on the servers of our hosting provider. Login and contact emails are sent via STRATO (STRATO GmbH, Germany). Card images are stored in object storage and contain no personal data. If you have linked your Discord account, Discord (Discord Netherlands B.V., Netherlands, and Discord Inc., USA) additionally receives the content of the bot replies you request.",
     "recipientsHostLabel": "Hosting provider:",
     "transfersTitle": "6. Transfers to third countries",
-    "transfersBody": "Our servers and our email processor are located within the European Union. We do not transfer your personal data to a country outside the EU/EEA or to an international organisation.",
+    "transfersBody": "Our servers and our email processor are located within the European Union. We do not transfer your personal data to a country outside the EU/EEA or to an international organisation. The one exception is the optional Discord connection: if you choose to link your Discord account, the replies you request from the Revelio bot are transmitted to Discord, which may process them in the USA under the safeguards set out in Discord’s own privacy policy. This transfer happens only for users who link an account, and only for the replies they themselves request; unlinking ends it.",
     "retentionTitle": "7. Storage period",
     "retentionBody": "We store personal data only for as long as necessary for the purposes described above or as required by statutory retention periods. Account data is stored until you delete your account; sessions until they expire; server log data only for as long as necessary and is then deleted or anonymised; contact emails until your enquiry has been dealt with and any statutory retention periods have expired.",
     "rightsTitle": "8. Your rights",

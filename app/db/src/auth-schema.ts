@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, index, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -61,7 +61,16 @@ export const account = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("account_userId_idx").on(table.userId)],
+  (table) => [
+    index("account_userId_idx").on(table.userId),
+    // One provider account maps to at most one Revelio user. Better Auth only
+    // enforces this by reading before it writes, so two concurrent link
+    // callbacks for the same Discord snowflake could both insert - after which
+    // getUserIdByDiscordAccount picks whichever row comes back first and could
+    // answer one person's /collection with another's. The constraint makes the
+    // invariant real, and turns the bot's per-command lookup into an index scan.
+    uniqueIndex("account_provider_account_idx").on(table.providerId, table.accountId),
+  ],
 );
 
 export const verification = pgTable(

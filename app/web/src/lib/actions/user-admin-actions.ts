@@ -2,6 +2,7 @@
 import { revalidatePath } from 'next/cache'
 import { requireRole } from '@/lib/server/session'
 import { getDb } from '@/lib/server/db'
+import { unlinkAndRevokeDiscord } from '@/lib/server/discord-oauth'
 import {
   getUserForAdmin, countAdmins, updateUserRole, setUserBan, clearUserBan, deleteUserById,
 } from '@revelio/db'
@@ -60,6 +61,12 @@ export async function deleteUser(userId: string): Promise<UserActionResult> {
   if (userId === session.user.id) return { ok: false, error: 'self' }
   const db = getDb()
   if (await wouldOrphanAdmins(db, userId)) return { ok: false, error: 'last-admin' }
+  // See confirmAccountDeletion: revoke before the cascade discards the tokens.
+  try {
+    await unlinkAndRevokeDiscord(userId)
+  } catch {
+    console.error('could not revoke the Discord link while deleting a user')
+  }
   await deleteUserById(db, userId)
   revalidatePath('/admin/users')
   return { ok: true }

@@ -37,3 +37,11 @@ export function searchUrl(
 export function deckUrl(siteBase: string, id: string, locale: string): string {
   return `${localeRoot(siteBase, locale)}/decks/${id}`
 }
+
+export function settingsUrl(siteBase: string, locale: string): string {
+  return `${localeRoot(siteBase, locale)}/settings/connections`
+}
+
+export function newDeckUrl(siteBase: string, locale: string): string {
+  return `${localeRoot(siteBase, locale)}/decks/new`
+}

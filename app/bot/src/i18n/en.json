@@ -37,5 +37,17 @@
   "deck.format.classic": "Classic",
   "deck.format.revival": "Revival",
   "deck.more": "... and {count} more",
+  "command.collection.description": "Show your collection progress",
+  "command.collection.option.set": "Limit to one set",
+  "command.mydecks.description": "List your decks",
+  "link.required": "Link your Discord account first: {url}",
+  "collection.summary": "You own **{owned}** of **{total}** cards ({percent}%), **{copies}** copies in total.",
+  "collection.set": "**{setName}**: {owned} of {total} ({percent}%)",
+  "collection.setUnknown": "No set matched that code.",
+  "decks.title": "Your decks ({count})",
+  "decks.line": "**{name}** · {format} · {count} cards · {visibility}",
+  "decks.empty": "You have no decks yet. Build one at {url}",
+  "decks.visibility.public": "public",
+  "decks.visibility.private": "private",
   "error.generic": "Something went wrong. Please try again in a moment."
 }

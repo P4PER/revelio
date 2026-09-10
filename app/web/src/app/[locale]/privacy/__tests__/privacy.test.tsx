@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, cleanup } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect } from 'vitest'
 import en from '@/../messages/en.json'
@@ -45,6 +45,22 @@ describe('PrivacyContent', () => {
   it('presents the Art. 21 right to object as its own section', () => {
     renderPrivacy('en', en, FULL)
     expect(screen.getByRole('heading', { name: /Right to object/i })).toBeInTheDocument()
+  })
+
+  it('documents the Discord connection in both locales', () => {
+    renderPrivacy('en', en, FULL)
+    expect(screen.getByRole('heading', { name: 'Discord connection' })).toBeInTheDocument()
+    cleanup()
+    renderPrivacy('de', de, FULL)
+    expect(screen.getByRole('heading', { name: 'Discord-Verknüpfung' })).toBeInTheDocument()
+  })
+
+  // The EU-only transfer claim and the Discord recipient must not contradict
+  // each other: naming Discord as a recipient without carving it out of the
+  // transfer section would make the policy untrue.
+  it('carves Discord out of the EU-only transfer claim', () => {
+    renderPrivacy('en', en, FULL)
+    expect(screen.getByText(/may process them in the USA/)).toBeInTheDocument()
   })
 
   it('renders the German title', () => {

@@ -627,6 +627,7 @@
       "profile": "Profil",
       "appearance": "Darstellung",
       "email": "E-Mail",
+      "connections": "Verknüpfungen",
       "safety": "Sicherheitsbereich"
     },
     "appearance": {
@@ -671,6 +672,20 @@
       "emailTaken": "Ein Konto verwendet diese E-Mail-Adresse bereits.",
       "requestError": "Code konnte nicht gesendet werden. Bitte versuche es erneut.",
       "invalidCode": "Dieser Code ist falsch oder abgelaufen. Bitte versuche es erneut."
+    },
+    "connections": {
+      "title": "Verknüpfungen",
+      "lead": "Verknüpfe ein Konto, um Revelio außerhalb der Website zu nutzen.",
+      "discordTitle": "Discord",
+      "discordBody": "Verknüpfe dein Discord-Konto, um /collection und /mydecks mit dem Revelio-Bot zu nutzen. Diese Antworten sieht nur du.",
+      "linked": "Verknüpft",
+      "link": "Discord verknüpfen",
+      "unlink": "Trennen",
+      "unavailable": "Discord-Verknüpfung ist auf dieser Instanz nicht eingerichtet.",
+      "error": "Verknüpfen fehlgeschlagen. Bitte versuche es erneut.",
+      "alreadyLinked": "Dieses Discord-Konto ist bereits mit einem anderen Revelio-Konto verknüpft.",
+      "unverifiedDiscord": "Discord hat die E-Mail-Adresse dieses Kontos nicht bestätigt. Bestätige sie bei Discord und versuche es dann erneut.",
+      "unlinkError": "Die Verknüpfung konnte nicht getrennt werden. Bitte versuche es erneut."
     },
     "safety": {
       "export": {
@@ -741,13 +756,15 @@
     "emailBody": "Zur Anmeldung senden wir Einmalcodes an Ihre E-Mail-Adresse über unseren E-Mail-Auftragsverarbeiter. Rechtsgrundlage: Erfüllung eines Vertrags (Art. 6 Abs. 1 lit. b DSGVO).",
     "contactTitle": "Kontaktanfragen",
     "contactBody": "Wenn Sie uns über das Kontaktformular oder per E-Mail kontaktieren, verarbeiten wir den Namen, die E-Mail-Adresse und den Inhalt Ihrer Nachricht, um Ihre Anfrage zu bearbeiten. Diese Nachrichten werden dem Betreiber per E-Mail zugestellt und nicht in unserer Datenbank gespeichert. Rechtsgrundlage: unser berechtigtes Interesse an der Beantwortung von Anfragen sowie, soweit Ihre Anfrage auf einen Vertrag gerichtet ist, dessen Erfüllung (Art. 6 Abs. 1 lit. f und b DSGVO).",
+    "discordTitle": "Discord-Verknüpfung",
+    "discordBody": "Wenn Sie Ihr Discord-Konto verknüpfen, übermittelt uns Discord Ihre Discord-Benutzer-ID, Ihren Benutzernamen, Ihr Profilbild und die E-Mail-Adresse dieses Discord-Kontos. Wir speichern die Benutzer-ID zusammen mit Ihrem Revelio-Konto, damit der Revelio-Bot Sie erkennen kann, sowie die von Discord ausgestellten Zugriffstokens für die Verbindung und die von Ihnen erteilten Berechtigungen. Ihre Discord-E-Mail-Adresse speichern wir nicht; Ihr Discord-Passwort und Ihre Nachrichten erhalten wir zu keiner Zeit. Bei der Nutzung des Bots werden die Karten-, Deck- und Sammlungsdaten der Antwort an Discord übermittelt, das sie Ihnen zustellt; Antworten mit Ihrer eigenen Sammlung oder Ihren Decks werden privat gesendet und sind nur für Sie sichtbar. Sie können die Verknüpfung jederzeit unter Einstellungen, Verknüpfungen aufheben. Dabei wird die gespeicherte Verbindung gelöscht und Discord aufgefordert, die Berechtigung für Revelio zu widerrufen, sodass die Anwendung auch aus Ihren autorisierten Discord-Apps verschwindet. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO, da die Verknüpfung zur Erbringung der von Ihnen gewünschten Leistung erforderlich ist.",
     "cookiesTitle": "4. Cookies",
     "cookiesBody": "Wir verwenden ausschließlich Cookies und lokalen Speicher, die für den Betrieb der Website erforderlich sind oder Ihre Einstellungen speichern; wir setzen keine Analyse- oder Tracking-Cookies ein und laden keine Tracking-Technologien Dritter, ein Cookie-Banner ist daher nicht erforderlich. Im Einzelnen: Technisch notwendige Authentifizierungs-Cookies, die bei der Anmeldung gesetzt werden (zum Beispiel revelio.session_token, über HTTPS mit dem Präfix __Secure-), halten Sie angemeldet; funktionale Cookies speichern Ihre Sprachwahl (revelio.locale), Ihre Darstellung (revelio.theme), die Ansicht Ihrer Deck-Übersicht (revelio.deck-view) und im Admin-Bereich den zuletzt geöffneten Abschnitt (revelio.admin.section); zudem hält der lokale Speicher Ihres Browsers vorübergehend einen ungespeicherten Deck-Entwurf vor (revelio.deck.draft) und merkt sich, welche einmaligen Animationen Sie bereits gesehen haben (revelio.constellation.day, revelio.cardNav.hintSeen). Die Speicherung erfolgt ausschließlich zur Bereitstellung von Ihnen ausdrücklich gewünschter Funktionen auf Grundlage des § 25 Abs. 2 TDDDG; eine damit verbundene Verarbeitung stützt sich auf Art. 6 Abs. 1 lit. f DSGVO.",
     "recipientsTitle": "5. Empfänger und Auftragsverarbeiter",
-    "recipientsBody": "Wir setzen sorgfältig ausgewählte Auftragsverarbeiter ein, die ausschließlich nach unseren Weisungen handeln und mit denen wir Auftragsverarbeitungsverträge nach Art. 28 DSGVO geschlossen haben. Ihre Daten werden auf den Servern unseres Hosting-Anbieters verarbeitet. Login- und Kontakt-E-Mails werden über STRATO (STRATO GmbH, Deutschland) versendet. Kartenbilder werden in einem Objektspeicher abgelegt und enthalten keine personenbezogenen Daten.",
+    "recipientsBody": "Wir setzen sorgfältig ausgewählte Auftragsverarbeiter ein, die ausschließlich nach unseren Weisungen handeln und mit denen wir Auftragsverarbeitungsverträge nach Art. 28 DSGVO geschlossen haben. Ihre Daten werden auf den Servern unseres Hosting-Anbieters verarbeitet. Login- und Kontakt-E-Mails werden über STRATO (STRATO GmbH, Deutschland) versendet. Kartenbilder werden in einem Objektspeicher abgelegt und enthalten keine personenbezogenen Daten. Wenn du dein Discord-Konto verknüpft hast, erhält zusätzlich Discord (Discord Netherlands B.V., Niederlande, und Discord Inc., USA) die Inhalte der von dir abgerufenen Bot-Antworten.",
     "recipientsHostLabel": "Hosting-Anbieter:",
     "transfersTitle": "6. Übermittlung in Drittländer",
-    "transfersBody": "Unsere Server und unser E-Mail-Auftragsverarbeiter befinden sich innerhalb der Europäischen Union. Wir übermitteln Ihre personenbezogenen Daten nicht in ein Land außerhalb der EU/des EWR oder an eine internationale Organisation.",
+    "transfersBody": "Unsere Server und unser E-Mail-Auftragsverarbeiter befinden sich innerhalb der Europäischen Union. Wir übermitteln Ihre personenbezogenen Daten nicht in ein Land außerhalb der EU/des EWR oder an eine internationale Organisation. Die einzige Ausnahme ist die freiwillige Discord-Verknüpfung: Wenn Sie Ihr Discord-Konto verknüpfen, werden die von Ihnen abgerufenen Antworten des Revelio-Bots an Discord übermittelt, das sie unter den in der eigenen Datenschutzerklärung von Discord beschriebenen Garantien auch in den USA verarbeiten kann. Diese Übermittlung erfolgt nur für Nutzerinnen und Nutzer mit verknüpftem Konto und nur für die von ihnen selbst abgerufenen Antworten; mit dem Trennen der Verknüpfung endet sie.",
     "retentionTitle": "7. Speicherdauer",
     "retentionBody": "Wir speichern personenbezogene Daten nur so lange, wie es für die genannten Zwecke erforderlich ist oder gesetzliche Aufbewahrungsfristen es verlangen. Kontodaten werden gespeichert, bis Sie Ihr Konto löschen; Sitzungen bis zu ihrem Ablauf; Server-Logdaten nur so lange wie nötig und werden anschließend gelöscht oder anonymisiert; Kontakt-E-Mails, bis Ihre Anfrage abschließend bearbeitet ist und etwaige gesetzliche Aufbewahrungsfristen abgelaufen sind.",
     "rightsTitle": "8. Ihre Rechte",

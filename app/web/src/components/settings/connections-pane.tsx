@@ -3,6 +3,7 @@ import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from '@/../i18n/navigation'
 import { authClient } from '@/lib/auth-client'
+import { unlinkDiscord } from '@/lib/actions/connections-actions'
 import { Button } from '@/components/ui/button'
 
 const CONNECTIONS_PATH = '/settings/connections'
@@ -27,14 +28,14 @@ export function ConnectionsPane({
   const t = useTranslations('settings.connections')
   const router = useRouter()
   const [pending, start] = useTransition()
-  const [unlinkFailed, setUnlinkFailed] = useState(false)
+  const [failed, setFailed] = useState<'error' | 'unlinkError' | null>(null)
 
   function onUnlink() {
     start(async () => {
-      setUnlinkFailed(false)
-      const res = await authClient.unlinkAccount({ providerId: 'discord' })
-      if (res.error) {
-        setUnlinkFailed(true)
+      setFailed(null)
+      const res = await unlinkDiscord()
+      if (!res.ok) {
+        setFailed('unlinkError')
         return
       }
       // `linked` is server state, so the pane only flips once the page reloads.
@@ -44,16 +45,22 @@ export function ConnectionsPane({
 
   function onLink() {
     start(async () => {
-      await authClient.linkSocial({
+      setFailed(null)
+      // linkSocial resolves with {data, error} rather than throwing, and the
+      // redirect only happens on the success shape - so an unchecked call turns
+      // a rejected start (stale session, rate limit, bad client id) into a
+      // button that visibly does nothing.
+      const res = await authClient.linkSocial({
         provider: 'discord',
         callbackURL: CONNECTIONS_PATH,
         errorCallbackURL: CONNECTIONS_PATH,
       })
+      if (res.error) setFailed('error')
     })
   }
 
-  const error = unlinkFailed
-    ? t('unlinkError')
+  const error = failed
+    ? t(failed)
     : linkError
       ? t(ERROR_KEYS[linkError] ?? 'error')
       : null

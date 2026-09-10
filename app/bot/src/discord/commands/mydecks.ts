@@ -40,8 +40,9 @@ export async function execute(
 
   // Private decks are included on purpose: this reply is ephemeral, so only the
   // person who ran the command can read it.
-  const lines = [t(locale, 'decks.title', { count: decks.length })]
-  let length = lines[0].length
+  const header = t(locale, 'decks.title', { count: decks.length })
+  const lines: string[] = []
+  let length = header.length
   for (const deck of decks) {
     const line = `${t(locale, 'decks.line', {
       name: deck.name,
@@ -49,9 +50,24 @@ export async function execute(
       count: deck.mainCount,
       visibility: t(locale, `decks.visibility.${deck.visibility}`),
     })} - ${deckUrl(deps.env.SITE_BASE_URL, deck.id, locale)}`
+    // Decks come back newest first, so stopping is better than skipping the
+    // long one and resuming: the reader gets a contiguous most-recent run.
     if (length + line.length + 1 > MESSAGE_LIMIT) break
     lines.push(line)
     length += line.length + 1
   }
-  await interaction.editReply({ content: lines.join('\n') })
+
+  // The header counts every deck, so a silent stop would read as "you have 80
+  // decks" above a list of 25. Say what was left out, dropping shown rows until
+  // that admission itself fits.
+  if (lines.length < decks.length) {
+    let more = t(locale, 'deck.more', { count: decks.length - lines.length })
+    while (lines.length > 0 && length + more.length + 1 > MESSAGE_LIMIT) {
+      length -= lines.pop()!.length + 1
+      more = t(locale, 'deck.more', { count: decks.length - lines.length })
+    }
+    lines.push(more)
+  }
+
+  await interaction.editReply({ content: [header, ...lines].join('\n') })
 }

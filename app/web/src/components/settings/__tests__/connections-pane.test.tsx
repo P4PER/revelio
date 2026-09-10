@@ -6,12 +6,11 @@ import { renderWithIntl } from '@/test/intl'
 
 const m = vi.hoisted(() => ({
   linkSocial: vi.fn(async () => ({ data: { url: 'https://discord.test/oauth' }, error: null })),
-  unlinkAccount: vi.fn(async () => ({ data: { status: true }, error: null })),
+  unlinkDiscord: vi.fn(async () => ({ ok: true })),
   refresh: vi.fn(),
 }))
-vi.mock('@/lib/auth-client', () => ({
-  authClient: { linkSocial: m.linkSocial, unlinkAccount: m.unlinkAccount },
-}))
+vi.mock('@/lib/auth-client', () => ({ authClient: { linkSocial: m.linkSocial } }))
+vi.mock('@/lib/actions/connections-actions', () => ({ unlinkDiscord: m.unlinkDiscord }))
 vi.mock('@/../i18n/navigation', () => ({ useRouter: () => ({ refresh: m.refresh }) }))
 
 import { ConnectionsPane } from '../connections-pane'
@@ -20,7 +19,7 @@ const c = en.settings.connections
 
 beforeEach(() => {
   m.linkSocial.mockReset().mockResolvedValue({ data: { url: 'https://discord.test/oauth' }, error: null })
-  m.unlinkAccount.mockReset().mockResolvedValue({ data: { status: true }, error: null })
+  m.unlinkDiscord.mockReset().mockResolvedValue({ ok: true })
   m.refresh.mockReset()
 })
 
@@ -43,20 +42,32 @@ it('starts the OAuth round-trip on click, returning to this pane on either outco
   )
 })
 
+// Unlinking goes through our own server action, not Better Auth's
+// /unlink-account: that endpoint's fresh-session middleware answers 403 for any
+// session older than a day, which is most of them.
 it('shows the linked state and unlinks on request', async () => {
   renderWithIntl(<ConnectionsPane linked configured />)
   expect(screen.getByText(c.linked)).toBeInTheDocument()
   await userEvent.click(screen.getByRole('button', { name: c.unlink }))
-  expect(m.unlinkAccount).toHaveBeenCalledWith(expect.objectContaining({ providerId: 'discord' }))
+  expect(m.unlinkDiscord).toHaveBeenCalled()
   expect(m.refresh).toHaveBeenCalled()
 })
 
 it('reports a failed unlink instead of silently doing nothing', async () => {
-  m.unlinkAccount.mockResolvedValue({ data: null, error: { message: 'nope' } })
+  m.unlinkDiscord.mockResolvedValue({ ok: false, error: 'failed' })
   renderWithIntl(<ConnectionsPane linked configured />)
   await userEvent.click(screen.getByRole('button', { name: c.unlink }))
   expect(await screen.findByRole('alert')).toHaveTextContent(c.unlinkError)
   expect(m.refresh).not.toHaveBeenCalled()
+})
+
+// linkSocial resolves with {error} rather than throwing, so an unchecked call
+// leaves the button looking dead.
+it('reports a link that never got off the ground', async () => {
+  m.linkSocial.mockResolvedValue({ data: null, error: { message: 'nope' } })
+  renderWithIntl(<ConnectionsPane linked={false} configured />)
+  await userEvent.click(screen.getByRole('button', { name: c.link }))
+  expect(await screen.findByRole('alert')).toHaveTextContent(c.error)
 })
 
 it('surfaces a callback failure carried back as a query param', () => {

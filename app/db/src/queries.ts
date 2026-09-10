@@ -1024,6 +1024,10 @@ export type UserExport = {
   decks: Array<{ id: string; name: string; format: string; visibility: string; lessons: string[]; cards: Array<{ cardId: string; zone: string; quantity: number }> }>
   collection: { visibility: string; ownedCards: Array<{ cardId: string; finish: string; quantity: number }> }
   likes: Array<{ deckId: string; createdAt: string }>
+  // The privacy policy documents the stored Discord user id as personal data,
+  // so the export has to carry it. Tokens are deliberately left out: they are
+  // credentials for reaching Discord, not information about the user.
+  connections: Array<{ provider: string; accountId: string; linkedAt: string }>
 }
 
 /** Aggregate everything a user owns into one serialisable object (for data export). */
@@ -1057,6 +1061,9 @@ export async function getUserExport(db: DB, userId: string): Promise<UserExport>
     .from(userCards).where(eq(userCards.userId, userId)).orderBy(asc(userCards.cardId))
   const likeRows = await db.select({ deckId: deckLikes.deckId, createdAt: deckLikes.createdAt })
     .from(deckLikes).where(eq(deckLikes.userId, userId))
+  const linkRows = await db
+    .select({ provider: account.providerId, accountId: account.accountId, linkedAt: account.createdAt })
+    .from(account).where(eq(account.userId, userId)).orderBy(asc(account.providerId))
 
   return {
     profile: {
@@ -1066,6 +1073,9 @@ export async function getUserExport(db: DB, userId: string): Promise<UserExport>
     decks: deckRows.map((d) => ({ ...d, cards: cardsByDeck.get(d.id) ?? [] })),
     collection: { visibility: coll?.visibility ?? 'private', ownedCards: owned },
     likes: likeRows.map((l) => ({ deckId: l.deckId, createdAt: l.createdAt.toISOString() })),
+    connections: linkRows.map((l) => ({
+      provider: l.provider, accountId: l.accountId, linkedAt: l.linkedAt.toISOString(),
+    })),
   }
 }
 
@@ -1104,6 +1114,24 @@ export async function getLinkedProviderIds(db: DB, userId: string): Promise<stri
     .from(account)
     .where(eq(account.userId, userId))
   return rows.map((r) => r.providerId)
+}
+
+// Deliberately not Better Auth's POST /unlink-account. That endpoint sits behind
+// its fresh-session middleware, which measures age from session.createdAt, so a
+// session in daily use is permanently past freshAge after a day and unlinking
+// answers 403 forever. Rather than switch that control off globally for one
+// low-risk operation - unlinking grants nothing and re-linking costs a full
+// OAuth round-trip - we own this one deletion and leave every Better Auth
+// default alone. The caller must resolve userId from the session, never trust it
+// from a client.
+export async function unlinkProvider(
+  db: DB, userId: string, providerId: string,
+): Promise<number> {
+  const rows = await db
+    .delete(account)
+    .where(and(eq(account.userId, userId), eq(account.providerId, providerId)))
+    .returning({ id: account.id })
+  return rows.length
 }
 
 const SITE_SETTINGS_ID = 'singleton'

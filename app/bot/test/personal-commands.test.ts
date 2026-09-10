@@ -168,4 +168,30 @@ describe('/mydecks', () => {
     await run('mydecks', interaction, fakeDeps())
     expect(interaction.editReply.mock.calls[0][0].content.length).toBeLessThanOrEqual(2000)
   })
+
+  // The header counts every deck, so a truncated list must say so or it reads
+  // as "you have 80 decks" above 25 lines.
+  it('admits how many decks it left out', async () => {
+    linked()
+    const many = Array.from({ length: 80 }, (_, i) =>
+      deck({ id: `deck-${i}`, name: `A fairly long deck name number ${i}` }))
+    vi.spyOn(dbModule, 'listDecksByUser').mockResolvedValue(many as never)
+    const interaction = fakeInteraction()
+    await run('mydecks', interaction, fakeDeps())
+    const { content } = interaction.editReply.mock.calls[0][0]
+    const lines = content.split('\n')
+    const shown = lines.length - 2 // header and the "and N more" line
+    expect(content).toContain('Your decks (80)')
+    expect(lines.at(-1)).toBe(`... and ${80 - shown} more`)
+  })
+
+  it('adds no remainder line when every deck fits', async () => {
+    linked()
+    vi.spyOn(dbModule, 'listDecksByUser').mockResolvedValue([deck(), deck({ id: 'd2', name: 'Second' })] as never)
+    const interaction = fakeInteraction()
+    await run('mydecks', interaction, fakeDeps())
+    const { content } = interaction.editReply.mock.calls[0][0]
+    expect(content).not.toContain('more')
+    expect(content.split('\n')).toHaveLength(3)
+  })
 })

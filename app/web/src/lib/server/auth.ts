@@ -36,16 +36,23 @@ export const auth = betterAuth({
   // Changing this renames the cookies and logs existing sessions out once.
   advanced: { cookiePrefix: 'revelio' },
   socialProviders: discordLinkingConfigured
-    ? { discord: { clientId: DISCORD_CLIENT_ID!, clientSecret: DISCORD_CLIENT_SECRET! } }
+    ? {
+        discord: {
+          clientId: DISCORD_CLIENT_ID!,
+          clientSecret: DISCORD_CLIENT_SECRET!,
+          // Registering the provider also mounts the unauthenticated
+          // POST /sign-in/social, which would create an account straight from a
+          // Discord profile - bypassing the OTP flow that assigns a username,
+          // and leaving a user the sign-in form itself treats as
+          // half-provisioned with no way to repair it. Discord here is for
+          // linking an existing account only; the link callback redirects out
+          // before this flag is ever consulted.
+          disableSignUp: true,
+        },
+      }
     : {},
   account: {
     accountLinking: {
-      // Sign-in is email-OTP, which writes no `account` row, so a linked
-      // Discord account is the only row a user has. Without this, unlinking it
-      // is refused as "cannot unlink the last account" and the Unlink button
-      // could never work. The session does not depend on the account row, so
-      // removing it locks nobody out.
-      allowUnlinkingAll: true,
       // Players rarely use the same address on Discord as on Revelio, and the
       // callback otherwise rejects the link with "email doesn't match". This
       // flag is read only on the explicit link paths - the sign-in path matches

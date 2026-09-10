@@ -67,7 +67,7 @@ export * from './queries/sets'
 - Consumes: nothing.
 - Produces: `app/db/src/queries/types.ts` exporting `type Tx` (the Drizzle transaction handle, consumed by `decks.ts` in Task 5 and `collection.ts` in Task 8) and `type SitemapEntry = { id: string; updatedAt: Date }` (consumed by `sets.ts` and `cards.ts` in Tasks 2 and 3, and re-exported from the package).
 
-- [ ] **Step 1: Record the export-surface baseline**
+- [x] **Step 1: Record the export-surface baseline**
 
 This is the oracle for the whole refactor. Run from `app/db`:
 
@@ -79,7 +79,7 @@ wc -l /tmp/db-exports-before.txt
 
 Expected: `85 /tmp/db-exports-before.txt`. If it is not 85, stop — the working tree is not at the expected starting point.
 
-- [ ] **Step 2: Confirm the existing test suite is green before touching anything**
+- [x] **Step 2: Confirm the existing test suite is green before touching anything**
 
 Docker must be running (the suite uses Testcontainers for Postgres).
 
@@ -89,7 +89,7 @@ cd app && npm test -w @revelio/ingest
 
 Expected: all files pass. Record the file and test counts; Task 8 compares against them. If anything already fails, stop and report — do not refactor on top of a red suite.
 
-- [ ] **Step 3: Create `app/db/src/queries/types.ts`**
+- [x] **Step 3: Create `app/db/src/queries/types.ts`**
 
 ```ts
 import type { DB } from '../client'
@@ -103,7 +103,7 @@ export type SitemapEntry = { id: string; updatedAt: Date }
 
 Note the `../client` path: modules under `queries/` are one directory deeper than the old file.
 
-- [ ] **Step 4: Remove the moved declarations from `queries.ts` and add the bridge**
+- [x] **Step 4: Remove the moved declarations from `queries.ts` and add the bridge**
 
 In `app/db/src/queries.ts`:
 - Delete lines 15-16 (the `// The transaction handle...` comment and the `type Tx = ...` line).
@@ -118,7 +118,7 @@ export * from './queries/types'
 
 `Tx` is still referenced by `replaceDeckCards` and `ensureCollection`, which have not moved yet, hence the import alongside the re-export. `SitemapEntry` needs no import: it is only used as a return type annotation on the two sitemap functions, and the `export *` brings it back into scope for them.
 
-- [ ] **Step 5: Verify the package still compiles and the surface is unchanged**
+- [x] **Step 5: Verify the package still compiles and the surface is unchanged**
 
 ```bash
 cd app && npm run typecheck
@@ -128,7 +128,7 @@ diff /tmp/db-exports-before.txt /tmp/db-exports-after.txt && echo "SURFACE UNCHA
 
 Expected: typecheck passes across all workspaces, and the diff prints `SURFACE UNCHANGED`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/db/src/queries/types.ts app/db/src/queries.ts
@@ -149,7 +149,7 @@ The branch `refactor/split-db-queries` already exists and holds this plan docume
 - Consumes: `type Tx`, `type SitemapEntry` from `./types` (Task 1).
 - Produces: `app/db/src/queries/sets.ts` exporting `toSetDTO(row: SetRow, name?: string): SetDTO` (consumed by `cards.ts` in Task 3), plus `type SetForEdit`, `type SetWriteInput`, `listSets`, `getSetByCode`, `getSetForEdit`, `createSet`, `updateSet`, `deleteSet`, `setSetSymbolVersion`, `listSetsForSitemap`.
 
-- [ ] **Step 1: Move the set code into the new module**
+- [x] **Step 1: Move the set code into the new module**
 
 Create `app/db/src/queries/sets.ts`. Move these declarations out of `queries.ts` verbatim, in this order (original line numbers at `main` are locators only; find them by name):
 
@@ -170,14 +170,14 @@ import type { SitemapEntry } from './types'
 
 This import list is computed, not guaranteed. Step 3 is what proves it right: add anything the compiler asks for, and drop anything ESLint flags as unused.
 
-- [ ] **Step 2: Update `queries.ts`**
+- [x] **Step 2: Update `queries.ts`**
 
 - Delete every declaration listed in Step 1 from `queries.ts`.
 - Add `export * from './queries/sets'` directly under the `export * from './queries/types'` line.
 - Add `import { toSetDTO } from './queries/sets'` to the import block — `getCardById` still calls it and has not moved yet.
 - Do **not** prune `queries.ts`'s own import header yet; Task 8 does that when the file is deleted. Unused imports there are warnings, not errors, and pruning them each task invites churn.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 ```bash
 cd app && npm run typecheck
@@ -186,7 +186,7 @@ npx eslint db/src/queries --max-warnings 0
 
 Expected: typecheck passes; ESLint reports nothing for the new folder. `--max-warnings 0` is the part that catches an import you copied but do not use — `no-unused-vars` is only a warning in the root config, so a plain `npm run lint` would let it through.
 
-- [ ] **Step 4: Verify the surface and the tests**
+- [x] **Step 4: Verify the surface and the tests**
 
 ```bash
 cd app/db && npx tsx -e "import * as db from './src/index.ts'; console.log(Object.keys(db).sort().join('\n'))" > /tmp/db-exports-after.txt
@@ -198,7 +198,7 @@ Expected: `SURFACE UNCHANGED`, and the three test files pass.
 
 Note: `toSetDTO` is newly exported from `sets.ts`, but `db/src/index.ts` does not name it, so the package surface is unaffected and the diff still comes back clean. If the diff shows `toSetDTO` appearing, someone added it to `index.ts` — revert that.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/db/src/queries/sets.ts app/db/src/queries.ts
@@ -217,7 +217,7 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "refactor(db): extract the se
 - Consumes: `toSetDTO` from `./sets` (Task 2), `type SitemapEntry` from `./types` (Task 1).
 - Produces: `app/db/src/queries/cards.ts` exporting `type ShowcaseCandidate`, `getCardById`, `getCardRulings`, `getRandomCardId`, `getDailyShowcaseCandidates`, `listCardsForSitemap`, `getCardIndexData`, `getCardFinishes`.
 
-- [ ] **Step 1: Move the card code into the new module**
+- [x] **Step 1: Move the card code into the new module**
 
 Create `app/db/src/queries/cards.ts` with, in order:
 
@@ -241,11 +241,11 @@ import type { SitemapEntry } from './types'
 
 Same caveat as Task 2: the compiler and `--max-warnings 0` settle the final list.
 
-- [ ] **Step 2: Update `queries.ts`**
+- [x] **Step 2: Update `queries.ts`**
 
 Delete the moved declarations, add `export * from './queries/cards'` under the previous bridge lines, and delete the now-unused `import { toSetDTO } from './queries/sets'` added in Task 2 (nothing left in `queries.ts` calls it).
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 ```bash
 cd app && npm run typecheck
@@ -257,7 +257,7 @@ cd .. && npm test -w @revelio/ingest -- queries.test.ts rulings.test.ts image-ve
 
 Expected: typecheck clean, ESLint silent, `SURFACE UNCHANGED`, all four test files pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/db/src/queries/cards.ts app/db/src/queries.ts
@@ -278,7 +278,7 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "refactor(db): extract the ca
 
 These three are grouped into one task because each is under 60 lines with no shared code, and a reviewer would accept or reject them together.
 
-- [ ] **Step 1: Create `app/db/src/queries/localizations.ts`**
+- [x] **Step 1: Create `app/db/src/queries/localizations.ts`**
 
 Move `upsertLocalization` (291-324) and `setLocalizationImage` (326-340).
 
@@ -290,7 +290,7 @@ import type { AdventureData, MatchData } from '@revelio/core'
 
 No `drizzle-orm` import: both functions are `.insert(...).onConflictDoUpdate(...)` and reference no operator.
 
-- [ ] **Step 2: Create `app/db/src/queries/rulings.ts`**
+- [x] **Step 2: Create `app/db/src/queries/rulings.ts`**
 
 Move `saveRulings` (376-422) and `listRulingSources` (424-431).
 
@@ -301,7 +301,7 @@ import type { DB } from '../client'
 import { cardRulings, cardRulingLocalizations } from '../schema'
 ```
 
-- [ ] **Step 3: Create `app/db/src/queries/sub-types.ts`**
+- [x] **Step 3: Create `app/db/src/queries/sub-types.ts`**
 
 Move `getSubTypeLabels` (433-436), `listSubTypesWithTranslations` (438-450), `saveSubTypeTranslations` (452-472).
 
@@ -311,7 +311,7 @@ import type { DB } from '../client'
 import { subTypes, subTypeLocalizations } from '../schema'
 ```
 
-- [ ] **Step 4: Update `queries.ts`**
+- [x] **Step 4: Update `queries.ts`**
 
 Delete the moved declarations; add the three bridge lines:
 
@@ -321,7 +321,7 @@ export * from './queries/rulings'
 export * from './queries/sub-types'
 ```
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 ```bash
 cd app && npm run typecheck
@@ -333,7 +333,7 @@ cd .. && npm test -w @revelio/ingest -- localization-write.test.ts rulings.test.
 
 Expected: all clean, `SURFACE UNCHANGED`, three test files pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/db/src/queries/localizations.ts app/db/src/queries/rulings.ts app/db/src/queries/sub-types.ts app/db/src/queries.ts
@@ -352,7 +352,7 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "refactor(db): extract the lo
 - Consumes: `type Tx` from `./types` (Task 1).
 - Produces: `app/db/src/queries/decks.ts` exporting `type DeckWriteInput`, `type DeckSummary`, `listDecksByUser`, `updateDeckMeta`, `getCardViews`, `getDeck`, `getDeckForViewer`, `createDeck`, `updateDeck`, `deleteDeck`, `resolveCardsByName`. `groupCodes`, `cardViewMetaByIds` and `replaceDeckCards` stay unexported inside it.
 
-- [ ] **Step 1: Move the deck code into the new module**
+- [x] **Step 1: Move the deck code into the new module**
 
 Create `app/db/src/queries/decks.ts` with, in declaration order:
 
@@ -373,11 +373,11 @@ import { deckCardMeta } from '@revelio/core'
 import type { Tx } from './types'
 ```
 
-- [ ] **Step 2: Update `queries.ts`**
+- [x] **Step 2: Update `queries.ts`**
 
 Delete the moved declarations; add `export * from './queries/decks'`. `Tx` is still imported there for `ensureCollection`, so leave that import alone.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 ```bash
 cd app && npm run typecheck
@@ -389,7 +389,7 @@ cd .. && npm test -w @revelio/ingest -- deck-write.test.ts deck-viewer.test.ts
 
 Expected: all clean, `SURFACE UNCHANGED`, both test files pass. `deck-viewer.test.ts` is the one that covers the private-deck 404 path in `getDeckForViewer` — if it fails, the comment and the function got separated.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/db/src/queries/decks.ts app/db/src/queries.ts
@@ -408,7 +408,7 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "refactor(db): extract the de
 - Consumes: nothing from earlier tasks.
 - Produces: `app/db/src/queries/deck-browse.ts` exporting `type PublicDeckSort`, `type PublicDeckEntry`, `type ListPublicDecksInput`, `toggleLike`, `getDeckLikeState`, `recordView`, `listPublicDecks`. `PUBLIC_PAGE_SIZE` stays a module constant.
 
-- [ ] **Step 1: Move the browse code into the new module**
+- [x] **Step 1: Move the browse code into the new module**
 
 Create `app/db/src/queries/deck-browse.ts` with, in declaration order:
 
@@ -426,11 +426,11 @@ import { user } from '../auth-schema'
 import type { DeckFormat } from '@revelio/core'
 ```
 
-- [ ] **Step 2: Update `queries.ts`**
+- [x] **Step 2: Update `queries.ts`**
 
 Delete the moved declarations and the section divider; add `export * from './queries/deck-browse'`.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 ```bash
 cd app && npm run typecheck
@@ -442,7 +442,7 @@ cd .. && npm test -w @revelio/ingest -- deck-browse.test.ts
 
 Expected: all clean, `SURFACE UNCHANGED`, `deck-browse.test.ts` passes.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/db/src/queries/deck-browse.ts app/db/src/queries.ts
@@ -461,7 +461,7 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "refactor(db): extract the pu
 - Consumes: nothing from earlier tasks.
 - Produces: `users.ts` exporting `type UserAdminRow`, `type UserAdminDetail`, `listUsersForAdmin`, `getUserForAdmin`, `countAdmins`, `countUserDecks`, `updateUserRole`, `setUserBan`, `clearUserBan`, `deleteUserById`; `accounts.ts` exporting `type UnlinkedAccount`, `getUserIdByDiscordAccount`, `getLinkedProviderIds`, `unlinkProvider`; `user-export.ts` exporting `type UserExport`, `getUserExport`.
 
-- [ ] **Step 1: Create `app/db/src/queries/users.ts`**
+- [x] **Step 1: Create `app/db/src/queries/users.ts`**
 
 Types first — `UserAdminRow` (833-843), `UserAdminDetail` (845-848) — then `listUsersForAdmin` (850-863), `getUserForAdmin` (865-881), `countAdmins` (883-886), `countUserDecks` (888-891), `updateUserRole` (893-895), `setUserBan` (897-912, **with its six-line comment about Better Auth's session.create.before hook — that comment is the reason the function opens a transaction, and losing it invites someone to "simplify" the pairing away**), `clearUserBan` (914-918), `deleteUserById` (920-922).
 
@@ -472,7 +472,7 @@ import { decks } from '../schema'
 import { user, session } from '../auth-schema'
 ```
 
-- [ ] **Step 2: Create `app/db/src/queries/accounts.ts`**
+- [x] **Step 2: Create `app/db/src/queries/accounts.ts`**
 
 `type UnlinkedAccount` (13) moves here from the top of the old file. Then `getUserIdByDiscordAccount` (1105-1134, with its three-line comment), `getLinkedProviderIds` (1136-1142), `unlinkProvider` (1144-1162, **with its full eleven-line comment explaining why this is not Better Auth's `/unlink-account`** — that comment is load-bearing documentation of a deliberate deviation, mirrored in CLAUDE.md).
 
@@ -482,7 +482,7 @@ import type { DB } from '../client'
 import { user, account } from '../auth-schema'
 ```
 
-- [ ] **Step 3: Create `app/db/src/queries/user-export.ts`**
+- [x] **Step 3: Create `app/db/src/queries/user-export.ts`**
 
 `type UserExport` (1033-1042) then `getUserExport` (1044-1091, keeping its `/** Aggregate everything a user owns... */` docblock).
 
@@ -493,7 +493,7 @@ import { cards, decks, deckCards, deckLikes, collections, userCards } from '../s
 import { user, account } from '../auth-schema'
 ```
 
-- [ ] **Step 4: Update `queries.ts`**
+- [x] **Step 4: Update `queries.ts`**
 
 Delete the moved declarations; add the three bridge lines:
 
@@ -503,7 +503,7 @@ export * from './queries/accounts'
 export * from './queries/user-export'
 ```
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 ```bash
 cd app && npm run typecheck
@@ -515,7 +515,7 @@ cd .. && npm test -w @revelio/ingest -- user-admin.test.ts discord-link.test.ts 
 
 Expected: all clean, `SURFACE UNCHANGED`, three test files pass. `discord-link.test.ts` covers the ban check inside `getUserIdByDiscordAccount`; `user-admin.test.ts` covers the session revocation in `setUserBan`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/db/src/queries/users.ts app/db/src/queries/accounts.ts app/db/src/queries/user-export.ts app/db/src/queries.ts
@@ -535,7 +535,7 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "refactor(db): extract the ad
 - Consumes: `type Tx` from `./types` (Task 1).
 - Produces: `collection.ts` exporting `setCardQuantity`, `setCollectionVisibility`, `getOwnedQuantities`, `getCollectionVisibility`, `getOwnedCardIds`, `getDuplicateCardIds`, `getCollectionSetProgress`, `getCollectionSummary`, `resolveCollectionOwner` (`ensureCollection` stays unexported); `site-settings.ts` exporting `type SiteSettings`, `type SiteSettingsInput`, `getSiteSettings`, `upsertSiteSettings` (`SITE_SETTINGS_ID` stays a module constant). After this task `db/src/index.ts` imports from the thirteen leaf modules and `queries.ts` no longer exists.
 
-- [ ] **Step 1: Create `app/db/src/queries/collection.ts`**
+- [x] **Step 1: Create `app/db/src/queries/collection.ts`**
 
 Helper first — `ensureCollection` (926-929, including the `// Ensure the per-user collection row exists...` comment on 926) — then `setCardQuantity` (931-949), `setCollectionVisibility` (951-957), `getOwnedQuantities` (964-976), `getCollectionVisibility` (978-982), `getOwnedCardIds` (986-990), `getDuplicateCardIds` (992-997), `getCollectionSetProgress` (999-1018), `getCollectionSummary` (1020-1031), `resolveCollectionOwner` (1093-1103).
 
@@ -550,7 +550,7 @@ import type { CollectionVisibility, OwnedQuantities, SetProgress, CollectionSumm
 import type { Tx } from './types'
 ```
 
-- [ ] **Step 2: Create `app/db/src/queries/site-settings.ts`**
+- [x] **Step 2: Create `app/db/src/queries/site-settings.ts`**
 
 Types `SiteSettings` (1166) and `SiteSettingsInput` (1167-1174), then `const SITE_SETTINGS_ID = 'singleton'` (1164), then `getSiteSettings` (1176-1183) and `upsertSiteSettings` (1185-1193).
 
@@ -560,7 +560,7 @@ import type { DB } from '../client'
 import { siteSettings } from '../schema'
 ```
 
-- [ ] **Step 3: Delete `queries.ts`**
+- [x] **Step 3: Delete `queries.ts`**
 
 At this point it should contain nothing but its original import header and thirteen `export *` bridge lines. Confirm that before deleting:
 
@@ -574,7 +574,7 @@ Expected: `13` bridge lines, and `0` other non-blank lines. **If the second numb
 git rm app/db/src/queries.ts
 ```
 
-- [ ] **Step 4: Repoint `app/db/src/index.ts` at the leaf modules**
+- [x] **Step 4: Repoint `app/db/src/index.ts` at the leaf modules**
 
 Replace the two `from './queries'` lines (12-13) with one grouped block per module. Leave lines 1-11 untouched.
 
@@ -605,7 +605,7 @@ export type { SiteSettings, SiteSettingsInput } from './queries/site-settings'
 
 **`toSetDTO` is deliberately absent from the `./queries/sets` line above.** It is exported from `sets.ts` only so `cards.ts` can call it; it was never part of the package surface and adding it here would change it. Step 5 catches the mistake if it creeps in.
 
-- [ ] **Step 5: Verify the full surface, types included**
+- [x] **Step 5: Verify the full surface, types included**
 
 ```bash
 cd app && npm run typecheck
@@ -615,7 +615,7 @@ diff /tmp/db-exports-before.txt /tmp/db-exports-after.txt && echo "SURFACE UNCHA
 
 Expected: `SURFACE UNCHANGED` and a clean typecheck. The runtime diff covers the 85 values; `npm run typecheck` is what covers the 15 exported types, because `web`, `bot` and `ingest` all consume them and a dropped `export type` breaks their compile.
 
-- [ ] **Step 6: Full verification**
+- [x] **Step 6: Full verification**
 
 ```bash
 cd app
@@ -629,7 +629,7 @@ npm test -w web
 
 Expected: lint clean across all six workspaces, no warnings in the new folder, typecheck clean, and all three suites green with the same counts recorded in Task 1 Step 2. **Do not run bare `npm test`** — see Global Constraints.
 
-- [ ] **Step 7: Confirm the shape of the result**
+- [x] **Step 7: Confirm the shape of the result**
 
 ```bash
 cd app/db && wc -l src/queries/*.ts && ls src/queries.ts 2>&1
@@ -637,7 +637,7 @@ cd app/db && wc -l src/queries/*.ts && ls src/queries.ts 2>&1
 
 Expected: thirteen files, none much over 230 lines, and `ls: src/queries.ts: No such file or directory`.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app/db/src/queries/collection.ts app/db/src/queries/site-settings.ts app/db/src/index.ts
@@ -656,7 +656,7 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "refactor(db): extract the co
 - Consumes: the finished split from Task 8.
 - Produces: nothing code-facing.
 
-- [ ] **Step 1: Update the `@revelio/db` bullet in CLAUDE.md**
+- [x] **Step 1: Update the `@revelio/db` bullet in CLAUDE.md**
 
 Under **Architecture**, the bullet currently reads:
 
@@ -666,14 +666,14 @@ Replace `` `queries.ts` `` with a description of the new folder:
 
 > - **`@revelio/db`** (`db/`) — Drizzle ORM over Postgres. `schema.ts` (card data) + `auth-schema.ts` (Better Auth tables), `client.ts`, and migration runners (`migrate.ts` / `migrate-cli.ts`). Queries live one module per domain under `src/queries/` (`sets`, `cards`, `decks`, `collection`, `users`, ...); `src/index.ts` is the only barrel and re-exports from the leaf modules, so nothing outside the package imports a query module directly. Migrations are checked-in SQL under `db/drizzle/`.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add CLAUDE.md
 git -c gpg.program=/opt/homebrew/bin/gpg commit -m "docs: describe the split db query modules"
 ```
 
-- [ ] **Step 3: Push and open the pull request**
+- [x] **Step 3: Push and open the pull request**
 
 ```bash
 git push -u origin refactor/split-db-queries

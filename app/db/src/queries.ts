@@ -3,7 +3,7 @@ import { alias } from 'drizzle-orm/pg-core'
 import { randomUUID } from 'node:crypto'
 import type { DB } from './client'
 import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, cardRulings, cardRulingLocalizations, subTypes, subTypeLocalizations, setLocalizations, decks, deckCards, deckLikes, deckViews, collections, userCards, siteSettings } from './schema'
-import { user, account } from './auth-schema'
+import { user, account, session } from './auth-schema'
 import type { SetDTO, CardLocalizationDTO, CardDetailDTO, RulingDTO, CardRulingsDTO, AdventureData, MatchData, DeckDTO, DeckCardView, DeckFormat, DeckVisibility, CollectionVisibility, OwnedQuantities, SetProgress, CollectionSummary } from '@revelio/core'
 import { deckCardMeta } from '@revelio/core'
 import type { CardIndexData } from '@revelio/search'
@@ -894,12 +894,21 @@ export async function updateUserRole(db: DB, id: string, role: string): Promise<
   await db.update(user).set({ role }).where(eq(user.id, id))
 }
 
+// Deletes the banned user's sessions alongside the flag write. Better Auth's
+// admin plugin only reads `banned` in its session.create.before hook, i.e. on
+// the sign-in path, so without this a user banned mid-session keeps browsing
+// until their session row expires. Its own /admin/ban-user route pairs the two
+// the same way; this writes the flags directly, so it owns the pairing. One
+// transaction, so a ban can never land with live sessions left behind.
 export async function setUserBan(
   db: DB, id: string, reason: string | null, expires: Date | null,
 ): Promise<void> {
-  await db.update(user)
-    .set({ banned: true, banReason: reason, banExpires: expires })
-    .where(eq(user.id, id))
+  await db.transaction(async (tx) => {
+    await tx.update(user)
+      .set({ banned: true, banReason: reason, banExpires: expires })
+      .where(eq(user.id, id))
+    await tx.delete(session).where(eq(session.userId, id))
+  })
 }
 
 export async function clearUserBan(db: DB, id: string): Promise<void> {

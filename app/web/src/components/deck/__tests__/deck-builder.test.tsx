@@ -2,16 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
-import type { SearchResult } from '@revelio/search'
+import type { DeckBrowseResult } from '@/lib/search-projections'
 import en from '@/../messages/en.json'
 import type { BuilderState } from '@/lib/deck-model'
 import { DeckBuilder } from '@/components/deck/deck-builder'
 
-const EMPTY_RESULT: SearchResult = { hits: [], total: 0, page: 1, hitsPerPage: 24 }
+const EMPTY_RESULT: DeckBrowseResult = { hits: [], total: 0, page: 1, hitsPerPage: 24 }
 
 const createDeckAction = vi.fn(async () => ({ ok: true, id: 'new-id' }))
 const updateDeckAction = vi.fn(async () => ({ ok: true, id: 'existing-id' }))
-const searchDeckCards = vi.fn(async (): Promise<SearchResult> => EMPTY_RESULT)
+const searchDeckCards = vi.fn(async (): Promise<DeckBrowseResult> => EMPTY_RESULT)
 const getCardDetailAction = vi.fn(() => new Promise(() => {}))
 const getCardViewsAction = vi.fn(async () => ({}))
 const resolveImportNames = vi.fn(async () => ({}))

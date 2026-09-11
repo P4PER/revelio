@@ -1,4 +1,5 @@
 import { it, expect, vi, beforeEach } from 'vitest'
+import { DECK_BROWSE_FIELDS } from '@/lib/search-projections'
 
 const m = vi.hoisted(() => ({
   getSession: vi.fn(async () => ({ user: { id: 'u1' } })),
@@ -134,13 +135,14 @@ it('searchDeckCards restricts classic to official sets only', async () => {
     'client',
     'en',
     expect.objectContaining({ q: 'accio', official: true, lessons: ['charms'] }),
+    DECK_BROWSE_FIELDS,
     expect.objectContaining({ hitsPerPage: 30 }),
   )
 })
 
 it('searchDeckCards searches all sets (official: null) for revival', async () => {
   await searchDeckCards('en', { format: 'revival' })
-  expect(m.runSearch).toHaveBeenCalledWith('client', 'en', expect.objectContaining({ official: null }), expect.objectContaining({ hitsPerPage: 30 }))
+  expect(m.runSearch).toHaveBeenCalledWith('client', 'en', expect.objectContaining({ official: null }), DECK_BROWSE_FIELDS, expect.objectContaining({ hitsPerPage: 30 }))
 })
 
 it('searchDeckCards forwards the advanced filters (types/rarities/finishes/legalities/cost/set) into the search state', async () => {
@@ -161,6 +163,7 @@ it('searchDeckCards forwards the advanced filters (types/rarities/finishes/legal
       types: ['character'], rarities: ['rare'], finishes: ['foil'], legalities: ['banned'],
       set: 'BS', costMin: 1, costMax: 4,
     }),
+    DECK_BROWSE_FIELDS,
     expect.objectContaining({ hitsPerPage: 30 }),
   )
 })

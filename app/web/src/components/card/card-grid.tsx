@@ -1,13 +1,13 @@
 import type { ReactNode } from 'react'
 import { useTranslations } from 'next-intl'
-import type { SearchDocument } from '@revelio/search'
+import type { CardTileHit } from '@/lib/search-projections'
 import { CardTile } from '@/components/card/card-tile'
 import { EmptyResults } from '@/components/empty-results'
 
 export function CardGrid({
   hits, imageBase, searchParams, startIndex = 0, empty,
 }: {
-  hits: SearchDocument[]
+  hits: CardTileHit[]
   imageBase: string
   searchParams?: URLSearchParams
   startIndex?: number

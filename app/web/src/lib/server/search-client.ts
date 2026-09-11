@@ -1,6 +1,11 @@
 import 'server-only'
 import type { MeiliSearch } from 'meilisearch'
-import { createMeiliClient, searchCards, type SearchResult } from '@revelio/search'
+import {
+  createMeiliClient,
+  searchCardFields,
+  type CardProjection,
+  type SearchDocument,
+} from '@revelio/search'
 import { toSearchOptions, type SearchState } from '@/lib/search-params'
 
 export function getSearchClient(): MeiliSearch {
@@ -9,12 +14,16 @@ export function getSearchClient(): MeiliSearch {
   return createMeiliClient(host, process.env.MEILI_SEARCH_KEY ?? '')
 }
 
-export async function runSearch(
+// The one search read the web app has, and it renders only the fields the calling
+// surface asked for. `fields` is required rather than optional: an omitted projection
+// is exactly the mistake this signature is here to prevent.
+export async function runSearch<K extends keyof SearchDocument>(
   client: MeiliSearch,
   lang: string,
   state: SearchState,
+  fields: readonly K[],
   overrides?: { hitsPerPage?: number },
-): Promise<SearchResult> {
+): Promise<CardProjection<K>> {
   const { query, options } = toSearchOptions(state)
-  return searchCards(client, lang, query, { ...options, ...overrides })
+  return searchCardFields(client, lang, query, fields, { ...options, ...overrides })
 }

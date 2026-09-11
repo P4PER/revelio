@@ -2,7 +2,7 @@ import 'server-only'
 import type { MeiliSearch } from 'meilisearch'
 import type { DB } from '@revelio/db'
 import type { SetDTO, SetProgress, CollectionSummary, OwnedQuantities } from '@revelio/core'
-import { searchCards } from '@revelio/search'
+import { searchCardFields } from '@revelio/search'
 import {
   listSets, getCollectionSetProgress, getCollectionSummary, getOwnedQuantities,
   getOwnedCardIds, getDuplicateCardIds,
@@ -11,6 +11,7 @@ import { runSearch } from '@/lib/server/search-client'
 import { FULL_SET_LIMIT, parseSearchParams, toSearchOptions } from '@/lib/search-params'
 import { parseOwnership, applyOwnership } from '@/lib/collection-search'
 import { toCollectionCards } from '@/lib/collection-cards'
+import { COLLECTION_TILE_FIELDS } from '@/lib/search-projections'
 import type { CollectionCard } from '@/components/collection/collection-card-tile'
 
 // Browse-grid page size. The grid (collection-view.tsx) renders 2/3/4/5 columns
@@ -59,12 +60,12 @@ export async function loadCollectionPage(
   // the grid isn't truncated at the default 24. The largest set is ~140 cards.
   // `set` is user-controlled, so build the params object-form (no interpolation).
   const setRes = tab === 'sets' && selectedSet
-    ? await runSearch(client, locale, parseSearchParams(new URLSearchParams({ set: selectedSet, sort: 'number' })), { hitsPerPage: FULL_SET_LIMIT })
+    ? await runSearch(client, locale, parseSearchParams(new URLSearchParams({ set: selectedSet, sort: 'number' })), COLLECTION_TILE_FIELDS, { hitsPerPage: FULL_SET_LIMIT })
     : { hits: [], total: 0, page: 1, hitsPerPage: FULL_SET_LIMIT }
 
   const { query, options } = toSearchOptions(parseSearchParams(sp))
   const browseRes = tab === 'browse'
-    ? await searchCards(client, locale, query, applyOwnership({ ...options, hitsPerPage: BROWSE_PAGE_SIZE }, parseOwnership(sp), ownedIds, dupeIds))
+    ? await searchCardFields(client, locale, query, COLLECTION_TILE_FIELDS, applyOwnership({ ...options, hitsPerPage: BROWSE_PAGE_SIZE }, parseOwnership(sp), ownedIds, dupeIds))
     : { hits: [], total: 0, page: 1, hitsPerPage: BROWSE_PAGE_SIZE }
 
   const quantities = await getOwnedQuantities(

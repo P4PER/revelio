@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getSearchClient, runSearch } from '@/lib/server/search-client'
+import { CARD_TILE_FIELDS } from '@/lib/search-projections'
 import { pageQuery, parseSearchParams, toURLSearchParams } from '@/lib/search-params'
 import { overflowPage } from '@/lib/page-range'
 import { redirect } from '@/../i18n/navigation'
@@ -42,7 +43,7 @@ export default async function SearchPage({
   setRequestLocale(locale)
   const current = toURLSearchParams(await searchParams)
   const state = parseSearchParams(current)
-  const results = await runSearch(getSearchClient(), locale, state)
+  const results = await runSearch(getSearchClient(), locale, state, CARD_TILE_FIELDS)
   // A page past the end would otherwise render an empty grid under a range of
   // records nobody can see; land the reader on the last page that has cards.
   const overflow = overflowPage(state.page, results.hitsPerPage, results.total)

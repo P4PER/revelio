@@ -33,10 +33,11 @@ export type IdWindowOptions = {
   limit: number
 }
 
-// A suggestion row: identity plus the few fields a picker label needs.
-// Deliberately not a SearchDocument - restricting attributesToRetrieve means the
-// hits are not whole documents, and typing them as such would be a lie.
-export type CardSuggestionHit = Pick<SearchDocument, 'id' | 'name' | 'setCode' | 'number'>
+// A summary row: identity plus the few fields a one-line label needs, shared by
+// autocomplete and by list views that render nothing else. Deliberately not a
+// SearchDocument - restricting attributesToRetrieve means the hits are not whole
+// documents, and typing them as such would be a lie.
+export type CardSummaryHit = Pick<SearchDocument, (typeof SUMMARY_FIELDS)[number]>
 
 export type SearchResult = {
   hits: SearchDocument[]
@@ -45,11 +46,43 @@ export type SearchResult = {
   hitsPerPage: number
 }
 
-const SUGGESTION_ATTRIBUTES = ['id', 'name', 'setCode', 'number']
+// A paged read of a chosen subset of each document. The type follows the tuple the
+// caller passed, so a renderer cannot read a field the query did not ask for without
+// failing to compile.
+export type CardProjection<K extends keyof SearchDocument> =
+  Omit<SearchResult, 'hits'> & { hits: Pick<SearchDocument, K>[] }
+
+export type CardSummaryResult = CardProjection<(typeof SUMMARY_FIELDS)[number]>
+
+const SUMMARY_FIELDS = ['id', 'name', 'setCode', 'number'] as const
 
 const ARRAY_FACETS: (keyof CardFilters)[] = [
   'setCode', 'types', 'subTypes', 'lesson', 'rarity', 'finishes', 'legality',
 ]
+
+// The paged read both searchCards and searchCardSummaries run, differing only in
+// how much of each document comes back. Hits stay untyped here: the caller knows
+// which shape its attributesToRetrieve asked for.
+async function pagedSearch(
+  client: MeiliSearch,
+  lang: string,
+  query: string,
+  opts: SearchOptions,
+  attributesToRetrieve?: readonly string[],
+): Promise<{ hits: unknown[]; total: number; page: number; hitsPerPage: number }> {
+  const page = opts.page ?? 1
+  const hitsPerPage = opts.hitsPerPage ?? 20
+  const res = await client.index(cardsIndex(lang)).search(query, {
+    filter: buildFilter(opts.filters ?? {}),
+    sort: opts.sort,
+    limit: hitsPerPage,
+    offset: (page - 1) * hitsPerPage,
+    // Copied: the Meilisearch client types want a mutable array, and a caller's
+    // `as const` tuple must not be handed to a library that could sort it in place.
+    ...(attributesToRetrieve ? { attributesToRetrieve: [...attributesToRetrieve] } : {}),
+  })
+  return { hits: res.hits, total: res.estimatedTotalHits ?? 0, page, hitsPerPage }
+}
 
 // Each returned string is AND-ed by Meilisearch; values within a facet are OR-ed.
 export function buildFilter(f: CardFilters): string[] {
@@ -78,20 +111,33 @@ export async function searchCards(
   query: string,
   opts: SearchOptions = {},
 ): Promise<SearchResult> {
-  const page = opts.page ?? 1
-  const hitsPerPage = opts.hitsPerPage ?? 20
-  const res = await client.index(cardsIndex(lang)).search(query, {
-    filter: buildFilter(opts.filters ?? {}),
-    sort: opts.sort,
-    limit: hitsPerPage,
-    offset: (page - 1) * hitsPerPage,
-  })
-  return {
-    hits: res.hits as SearchDocument[],
-    total: res.estimatedTotalHits ?? 0,
-    page,
-    hitsPerPage,
-  }
+  const res = await pagedSearch(client, lang, query, opts)
+  return { ...res, hits: res.hits as SearchDocument[] }
+}
+
+// The one place a projected read is built. Callers pass a tuple declared `as const`,
+// which both goes to Meilisearch as attributesToRetrieve and fixes the hit type.
+export async function searchCardFields<K extends keyof SearchDocument>(
+  client: MeiliSearch,
+  lang: string,
+  query: string,
+  fields: readonly K[],
+  opts: SearchOptions = {},
+): Promise<CardProjection<K>> {
+  const res = await pagedSearch(client, lang, query, opts, fields as readonly string[])
+  return { ...res, hits: res.hits as Pick<SearchDocument, K>[] }
+}
+
+// A paged result list that renders "name (set #number)" per row wants the same
+// slice as autocomplete, not whole documents: a page of 10 otherwise ships ten
+// cards' rules text, flavor text and all 24 indexed fields to render three.
+export async function searchCardSummaries(
+  client: MeiliSearch,
+  lang: string,
+  query: string,
+  opts: SearchOptions = {},
+): Promise<CardSummaryResult> {
+  return searchCardFields(client, lang, query, SUMMARY_FIELDS, opts)
 }
 
 // Ids-only search over a raw window. Neighbor walks need order and identity,
@@ -119,15 +165,14 @@ export async function searchCardIds(
 // Autocomplete renders "name (set #number)" and nothing else, so asking for
 // whole documents would ship a card's rules text and every attribute on every
 // keystroke. Same trade as searchCardIds, one step wider: identity plus label.
+// A picker only ever reads the first page, so the summary read's page 1 is the
+// whole of it and the caller's limit is that page's size.
 export async function searchCardSuggestions(
   client: MeiliSearch,
   lang: string,
   query: string,
   limit: number,
-): Promise<CardSuggestionHit[]> {
-  const res = await client.index(cardsIndex(lang)).search(query, {
-    limit,
-    attributesToRetrieve: SUGGESTION_ATTRIBUTES,
-  })
-  return res.hits as CardSuggestionHit[]
+): Promise<CardSummaryHit[]> {
+  const res = await searchCardSummaries(client, lang, query, { hitsPerPage: limit })
+  return res.hits
 }

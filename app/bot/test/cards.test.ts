@@ -3,13 +3,28 @@ import type { MeiliSearch } from 'meilisearch'
 import * as dbModule from '@revelio/db'
 import { findCards, findOneCard, resolveCardRulings } from '../src/data/cards'
 
+// The stub honours attributesToRetrieve the way Meilisearch does. Handing back
+// whole fixtures regardless would let a caller narrow its projection and still
+// look correct here, while the real server sent the renderer nothing.
 function stubMeili(hits: unknown[], estimatedTotalHits: number) {
-  const search = vi.fn().mockResolvedValue({ hits, estimatedTotalHits })
+  const search = vi.fn().mockImplementation(
+    async (_query: string, opts: { attributesToRetrieve?: string[] } = {}) => {
+      const keep = opts.attributesToRetrieve
+      if (!keep) return { hits, estimatedTotalHits }
+      const projected = hits.map((hit) => Object.fromEntries(
+        Object.entries(hit as Record<string, unknown>).filter(([key]) => keep.includes(key)),
+      ))
+      return { hits: projected, estimatedTotalHits }
+    },
+  )
   const index = vi.fn().mockReturnValue({ search })
   return { client: { index } as unknown as MeiliSearch, index, search }
 }
 
-const doc = { id: 'base-12', name: 'Nimbus 2000', setCode: 'base', number: '12' }
+const doc = {
+  id: 'base-12', name: 'Nimbus 2000', setCode: 'base', number: '12',
+  text: 'Adventure: ...', types: ['item'],
+}
 
 describe('findCards', () => {
   it('queries the locale index and reports page arithmetic', async () => {
@@ -29,6 +44,14 @@ describe('findCards', () => {
     expect(page.hits).toEqual([])
   })
 
+  it('asks Meilisearch only for the fields the result list renders', async () => {
+    const { client, search } = stubMeili([doc], 1)
+    await findCards(client, { query: 'nimbus', locale: 'en' })
+    expect(search).toHaveBeenCalledWith('nimbus', expect.objectContaining({
+      attributesToRetrieve: ['id', 'name', 'setCode', 'number'],
+    }))
+  })
+
   it('clamps a page below one', async () => {
     const { client, search } = stubMeili([], 5)
     await findCards(client, { query: 'x', locale: 'en', page: 0 })
@@ -37,11 +60,13 @@ describe('findCards', () => {
 })
 
 describe('findOneCard', () => {
-  it('returns the single best hit', async () => {
+  it('returns the single best hit as a whole document', async () => {
     const { client, search } = stubMeili([doc], 4)
     const hit = await findOneCard(client, { query: 'nimbus', locale: 'en' })
     expect(search).toHaveBeenCalledWith('nimbus', expect.objectContaining({ limit: 1 }))
-    expect(hit).toMatchObject({ id: 'base-12' })
+    // The card embed renders the full document, so this path must not narrow the
+    // projection the way the /search list does.
+    expect(hit).toMatchObject({ id: 'base-12', text: 'Adventure: ...', types: ['item'] })
   })
 
   it('returns null when nothing matches', async () => {

@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { deckCardMeta, imageUrl, thumbKey } from '@revelio/core'
 import type { DeckCardView, DeckFormat, DeckZone, SetDTO } from '@revelio/core'
-import type { SearchDocument, SearchResult } from '@revelio/search'
 import { searchDeckCards } from '@/lib/actions/deck-actions'
+import type { DeckBrowseHit, DeckBrowseResult } from '@/lib/search-projections'
 import { DECK_BROWSE_PAGE_SIZE } from '@/lib/deck-view'
 import { LessonFilterChips } from '@/components/search/lesson-filter-chips'
 import { FilterRail } from '@/components/search/filter-rail'
@@ -27,10 +27,10 @@ import { DeckFilterDrawer, EMPTY_DECK_FILTERS, type DeckFilters } from '@/compon
 import { PaginationNav } from '@/components/search/pagination-nav'
 import { useResultCountText } from '@/components/search/result-count'
 
-const EMPTY_RESULT: SearchResult = { hits: [], total: 0, page: 1, hitsPerPage: DECK_BROWSE_PAGE_SIZE }
+const EMPTY_RESULT: DeckBrowseResult = { hits: [], total: 0, page: 1, hitsPerPage: DECK_BROWSE_PAGE_SIZE }
 const DEBOUNCE_MS = 300
 
-function toAddView(hit: SearchDocument): Omit<DeckCardView, 'zone' | 'quantity'> {
+function toAddView(hit: DeckBrowseHit): Omit<DeckCardView, 'zone' | 'quantity'> {
   const meta = deckCardMeta({
     id: hit.id,
     isOfficial: hit.isOfficial,
@@ -88,7 +88,7 @@ export function DeckCardBrowser({
   const [lessons, setLessons] = useState<string[]>([])
   const [filters, setFilters] = useState<DeckFilters>(EMPTY_DECK_FILTERS)
   const [page, setPage] = useState(1)
-  const [result, setResult] = useState<SearchResult>(EMPTY_RESULT)
+  const [result, setResult] = useState<DeckBrowseResult>(EMPTY_RESULT)
   // Starts true: the first search only fires after the debounce, and until it
   // lands the grid has nothing to show - without this the browser would open on
   // "No cards found." instead of a loading state.

@@ -61,6 +61,13 @@ unrestricted sub-query (the last one) and folding the federated window back in. 
 keeps call counts and every existing `toHaveBeenCalledWith` assertion true whichever
 transport the read used, so this task changes no assertions at all.
 
+**Deviation, found in Task 2 Step 13:** delegating to the `search` mock alone is not
+enough. `bot/test/cards.test.ts` and `bot/test/suggest.test.ts` each assert
+`expect(index).toHaveBeenCalledWith('cards-de')`, and a federated read never calls
+`client.index()` - the index uid rides inside the sub-query. `federatedToSearch` therefore
+takes the stub's `index` mock rather than its `search` mock and calls
+`index(indexUid).search(...)`, which restores the invariant this task set out to keep.
+
 **Files:**
 - Modify: `app/search/src/__tests__/search.test.ts:11-20` (the `fakeClient` factory)
 - Modify: `app/bot/test/cards.test.ts:9-22` (`stubMeili`)
@@ -76,7 +83,7 @@ transport the read used, so this task changes no assertions at all.
   `{ hits, estimatedTotalHits }`, having recorded the read in the same place a plain
   `search` would.
 
-- [ ] **Step 1: Confirm the suites are green before touching them**
+- [x] **Step 1: Confirm the suites are green before touching them**
 
 Run, from `app/`:
 
@@ -86,7 +93,7 @@ Run, from `app/`:
 
 Expected: all three PASS. Note the test counts - Task 2 must not lose any.
 
-- [ ] **Step 2: Add `multiSearch` to the search package's `fakeClient`**
+- [x] **Step 2: Add `multiSearch` to the search package's `fakeClient`**
 
 In `app/search/src/__tests__/search.test.ts`, replace the `fakeClient` factory with:
 
@@ -124,12 +131,12 @@ function fakeClient(captured: Record<string, unknown>, hits: { id: string }[] = 
 }
 ```
 
-- [ ] **Step 3: Run the search package tests**
+- [x] **Step 3: Run the search package tests**
 
 Run: `/usr/local/bin/npm test -w @revelio/search`
 Expected: PASS, same count as Step 1. Nothing calls `multiSearch` yet.
 
-- [ ] **Step 4: Add `multiSearch` to `app/bot/test/cards.test.ts`**
+- [x] **Step 4: Add `multiSearch` to `app/bot/test/cards.test.ts`**
 
 Replace the body of `stubMeili` with:
 
@@ -171,7 +178,7 @@ function federatedToSearch(search: ReturnType<typeof vi.fn>) {
 }
 ```
 
-- [ ] **Step 5: Add `multiSearch` to `app/bot/test/suggest.test.ts`**
+- [x] **Step 5: Add `multiSearch` to `app/bot/test/suggest.test.ts`**
 
 Add the same `federatedToSearch` helper (copy it verbatim from Step 4 - the two files
 do not share a module) and extend `stubMeili`:
@@ -186,7 +193,7 @@ function stubMeili(hits: unknown[]) {
 }
 ```
 
-- [ ] **Step 6: Add `multiSearch` to the three stub sites in `app/bot/test/commands.test.ts`**
+- [x] **Step 6: Add `multiSearch` to the three stub sites in `app/bot/test/commands.test.ts`**
 
 Add the same `federatedToSearch` helper verbatim, then a single factory the three sites
 share, directly below it:
@@ -241,14 +248,14 @@ In the `'/search set filter'` test, the inline `deps` object becomes:
     }
 ```
 
-- [ ] **Step 7: Run the bot tests**
+- [x] **Step 7: Run the bot tests**
 
 Run: `/usr/local/bin/npm test -w @revelio/bot`
 Expected: PASS, same count as Step 1. In particular
 `expect(search).toHaveBeenCalledTimes(2)` in `/card id fast path` still holds - the
 delegate runs exactly one `search` per read.
 
-- [ ] **Step 8: Add `multiSearch` to `app/web/src/lib/__tests__/card-neighbors.test.ts`**
+- [x] **Step 8: Add `multiSearch` to `app/web/src/lib/__tests__/card-neighbors.test.ts`**
 
 Replace the `fakeClient` factory with:
 
@@ -288,12 +295,12 @@ inline; give it a throwing `multiSearch` as well:
     } as unknown as MeiliSearch
 ```
 
-- [ ] **Step 9: Run the web tests**
+- [x] **Step 9: Run the web tests**
 
 Run: `/usr/local/bin/npm test -w web`
 Expected: PASS, same count as Step 1.
 
-- [ ] **Step 10: Lint and typecheck**
+- [x] **Step 10: Lint and typecheck**
 
 Run, from `app/`:
 
@@ -303,7 +310,7 @@ Run, from `app/`:
 
 Expected: both exit 0.
 
-- [ ] **Step 11: Commit**
+- [x] **Step 11: Commit**
 
 ```bash
 cd /Users/timon.wegener/WebstormProjects/revelio
@@ -336,7 +343,7 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "test: teach the meilisearch 
   - `searchCards`, `searchCardFields`, `searchCardSummaries`, `searchCardSuggestions` and
     `searchCardIds` keep their current signatures and return types exactly.
 
-- [ ] **Step 1: Write the failing ranking test**
+- [x] **Step 1: Write the failing ranking test**
 
 Append to `app/search/test/search.test.ts`. It builds its own index, the way the
 `'sorting by card number'` describe above it already does:
@@ -414,7 +421,7 @@ describe('name matches rank above text and flavor matches', () => {
 import { searchCards, searchCardIds, buildFilter } from '../src/search.js'
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run, from `app/`: `/usr/local/bin/npm test -w @revelio/search -- search.test.ts -t "name matches rank above"`
 Expected: FAIL. `'puts a partial name match above a whole-query flavor match'` returns
@@ -424,7 +431,7 @@ already PASS - they pin behaviour that must survive.
 If the whole file errors instead, Meilisearch is not running: `docker compose up -d` from
 `app/`.
 
-- [ ] **Step 3: Write the failing request-shape tests**
+- [x] **Step 3: Write the failing request-shape tests**
 
 Append to `app/search/src/__tests__/search.test.ts`:
 
@@ -505,20 +512,20 @@ describe('relevance reads', () => {
 
 `searchCardIds` and `searchCardFields` are already imported at the top of that file.
 
-- [ ] **Step 4: Run them and watch them fail**
+- [x] **Step 4: Run them and watch them fail**
 
 Run: `/usr/local/bin/npm test -w @revelio/search -- __tests__/search.test.ts -t "relevance reads"`
 Expected: FAIL - `captured.federated` is `false` for every case, because nothing
 federates yet. The last two (`explicit sort`, `browse read`) PASS already.
 
-- [ ] **Step 5: Extend the imports in `app/search/src/search.ts`**
+- [x] **Step 5: Extend the imports in `app/search/src/search.ts`**
 
 ```ts
 import type { FederatedMultiSearchParams, MeiliSearch, SearchResponse } from 'meilisearch'
 import { cardsIndex, type SearchDocument } from './documents'
 ```
 
-- [ ] **Step 6: Add the types**
+- [x] **Step 6: Add the types**
 
 Append to the type block at the top of the file, after `CardSummaryResult`:
 
@@ -536,7 +543,7 @@ type ReadParams = {
 type HitWindow = { hits: unknown[]; total: number }
 ```
 
-- [ ] **Step 7: Add the constant**
+- [x] **Step 7: Add the constant**
 
 Next to `SUMMARY_FIELDS` and `ARRAY_FACETS`:
 
@@ -555,7 +562,7 @@ Next to `SUMMARY_FIELDS` and `ARRAY_FACETS`:
 const NAME_MATCH_WEIGHT = 10
 ```
 
-- [ ] **Step 8: Add the three helpers above `pagedSearch`**
+- [x] **Step 8: Add the three helpers above `pagedSearch`**
 
 ```ts
 // Relevance decides the order only when there is something to rank and the caller has
@@ -611,7 +618,7 @@ async function readWindow(
 }
 ```
 
-- [ ] **Step 9: Route `pagedSearch` through it**
+- [x] **Step 9: Route `pagedSearch` through it**
 
 Replace the body of `pagedSearch` (the signature and its comment stay as they are):
 
@@ -640,7 +647,7 @@ async function pagedSearch(
 }
 ```
 
-- [ ] **Step 10: Route `searchCardIds` through it**
+- [x] **Step 10: Route `searchCardIds` through it**
 
 ```ts
 export async function searchCardIds(
@@ -658,12 +665,12 @@ export async function searchCardIds(
 }
 ```
 
-- [ ] **Step 11: Run both search suites**
+- [x] **Step 11: Run both search suites**
 
 Run: `/usr/local/bin/npm test -w @revelio/search`
 Expected: PASS, including every test from Steps 1 and 3.
 
-- [ ] **Step 12: Prove the ranking test bites**
+- [x] **Step 12: Prove the ranking test bites**
 
 Temporarily set `NAME_MATCH_WEIGHT` to `1` and re-run
 `/usr/local/bin/npm test -w @revelio/search -- search.test.ts -t "name matches rank above"`.
@@ -671,7 +678,7 @@ Expected: FAIL on `'puts a partial name match above a whole-query flavor match'`
 `10` and confirm it passes again. A live test that passes either way is worthless, and
 this one is the whole point of the change.
 
-- [ ] **Step 13: Run the downstream suites**
+- [x] **Step 13: Run the downstream suites**
 
 Run, from `app/`:
 
@@ -684,7 +691,7 @@ Expected: PASS, both at the counts noted in Task 1 Step 1. `web`'s live
 `'returns exactly the projected fields and nothing else'` case fails if
 `stripFederation` was missed.
 
-- [ ] **Step 14: Document it in CLAUDE.md**
+- [x] **Step 14: Document it in CLAUDE.md**
 
 In the `### Architecture` list, replace the `@revelio/search` bullet with:
 
@@ -692,7 +699,7 @@ In the `### Architecture` list, replace the `@revelio/search` bullet with:
 - **`@revelio/search`** (`search/`) — Meilisearch client + document shape + query builder. `createMeiliClient(host, key)` is the single client factory; `documents.ts` defines the indexed card document; `search.ts` builds queries/filters. A read that ranks by **relevance** (non-empty query, no explicit sort) goes out as a **federated multi-search** — a `name`-only query weighted 10 against the unrestricted one — so every name match ranks above every text/flavor match. `rankingRules` cannot express that: Meilisearch's `words` rule is applied above them, so a flavor-text hit on the whole query would otherwise outrank a name hit on part of it. This needs Meilisearch **>= 1.10** and is a query-time change only — `CARD_INDEX_SETTINGS` is untouched, so it needs no reindex.
 ```
 
-- [ ] **Step 15: Lint and typecheck**
+- [x] **Step 15: Lint and typecheck**
 
 Run, from `app/`:
 
@@ -702,7 +709,7 @@ Run, from `app/`:
 
 Expected: both exit 0.
 
-- [ ] **Step 16: Commit**
+- [x] **Step 16: Commit**
 
 ```bash
 cd /Users/timon.wegener/WebstormProjects/revelio
@@ -722,7 +729,7 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "fix(search): rank name match
 - Consumes: a built `web` and the dev Meilisearch holding `cards-en`.
 - Produces: a PR against `main`.
 
-- [ ] **Step 1: Check the real result list, not just the fixtures**
+- [x] **Step 1: Check the real result list, not just the fixtures**
 
 The fixtures prove three documents order correctly. This proves it on the 1098-card
 `cards-en` index the bug was reported against, by issuing the same federated request
@@ -747,7 +754,7 @@ Expected: an unbroken run of rows whose match includes `name`, `Harry Potter` fi
 and only then the rows that matched in `text`/`flavor` alone. No `name` row below a
 flavor-only row. If `cards-en` is missing, run the ingest job first.
 
-- [ ] **Step 2: Check it in the browser**
+- [x] **Step 2: Check it in the browser**
 
 Run `/usr/local/bin/npm run dev -w web` and open
 `http://localhost:3000/en/search?q=Harry+Potter`. Confirm the cards with Harry in the
@@ -755,7 +762,7 @@ name come first. Then switch the sort to **Name** and confirm the alphabetical o
 not disturbed by the grouping, and clear the query to confirm browse is still in card
 number order.
 
-- [ ] **Step 3: Tick this plan's boxes**
+- [x] **Step 3: Tick this plan's boxes**
 
 Mark every completed step `- [x]` in this file, and commit:
 
@@ -764,7 +771,7 @@ git add docs/superpowers/plans/2026-09-11-name-first-search-ranking.md
 git -c gpg.program=/opt/homebrew/bin/gpg commit -m "docs(plans): mark the name-first ranking plan done"
 ```
 
-- [ ] **Step 4: Push and open the PR**
+- [x] **Step 4: Push and open the PR**
 
 ```bash
 git push -u origin fix/name-first-search-ranking

@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { symmetricDecrypt } from 'better-auth/crypto'
-import { unlinkProvider } from '@revelio/db'
+import { unlinkProvider, getAccountRowId } from '@revelio/db'
 import { auth } from '@/lib/server/auth'
 import { getDb } from '@/lib/server/db'
 
@@ -93,14 +93,20 @@ export async function unlinkAndRevokeDiscord(userId: string): Promise<number> {
 // expired, and persists the new pair. Passing userId with no headers is the
 // server-trusted path; it throws an APIError on anything it cannot resolve.
 //
+// Since Better Auth 1.7 that endpoint identifies the account by its own row id
+// rather than by providerId, so the row is looked up first - see getAccountRowId.
+//
 // Every failure returns null: the name is decoration, and the pane renders the
 // plain linked state without it. A settings page must not break because
 // Discord is having a bad day - which includes being slow, since the page
 // awaits this inline, hence the abort signal as well as the try/catch.
 export async function getDiscordAccountName(userId: string): Promise<string | null> {
+  const accountId = await getAccountRowId(getDb(), userId, 'discord')
+  if (!accountId) return null
+
   let accessToken: string | undefined
   try {
-    const tokens = await auth.api.getAccessToken({ body: { providerId: 'discord', userId } })
+    const tokens = await auth.api.getAccessToken({ body: { accountId, userId } })
     accessToken = tokens.accessToken
   } catch {
     return null

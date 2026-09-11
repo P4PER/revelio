@@ -62,3 +62,19 @@ export async function unlinkProvider(
     .where(and(eq(account.userId, userId), eq(account.providerId, providerId)))
     .returning({ accessToken: account.accessToken, refreshToken: account.refreshToken })
 }
+
+// Better Auth 1.7 selects an account by its own row id: POST /get-access-token
+// takes { accountId }, meaning `account.id`, where 1.6 took { providerId }. The
+// public alternative, listUserAccounts, sits behind sessionMiddleware and so
+// needs request headers - which the server-trusted callers of this path do not
+// have, only a userId. Reading the row we already own is one query instead.
+export async function getAccountRowId(
+  db: DB, userId: string, providerId: string,
+): Promise<string | null> {
+  const [row] = await db
+    .select({ id: account.id })
+    .from(account)
+    .where(and(eq(account.userId, userId), eq(account.providerId, providerId)))
+    .limit(1)
+  return row?.id ?? null
+}

@@ -14,7 +14,7 @@
     "@revelio/db": "*",
     "@revelio/search": "*",
     "discord.js": "^14.27.0",
-    "drizzle-orm": "^0.38.0",
+    "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.0",
     "zod": "^3.23.0"
   }

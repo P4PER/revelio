@@ -81,8 +81,14 @@ const ARRAY_FACETS: (keyof CardFilters)[] = [
 // Federating a name-restricted query against the unrestricted one fixes what the rules
 // cannot express. Meilisearch merges the two by rankingScore * weight and keeps each
 // document's best, so weighting the name query lifts every name match above every text
-// or flavor match, while ranking inside each group stays Meilisearch's own. Scores are
-// bounded by 1, which is what makes 10 a separation rather than a lucky margin.
+// or flavor match, while ranking inside each group stays Meilisearch's own.
+//
+// 10 is a separation rather than a lucky margin because both ends are bounded. A score
+// is at most 1, so a text match can never exceed 1. A name match's score falls off with
+// the share of query terms it matched - measured on cards-en, one matched word of a
+// 7-term query scores 0.142 - but Meilisearch truncates a query at 10 words, so the
+// worst a name match can score is about 0.0995, or 0.995 once weighted. That is the
+// floor, and it only meets an exact 1.0 text match on a 10-word query.
 const NAME_MATCH_WEIGHT = 10
 
 // Relevance decides the order only when there is something to rank and the caller has

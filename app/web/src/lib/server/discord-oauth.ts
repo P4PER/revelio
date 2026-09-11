@@ -101,11 +101,14 @@ export async function unlinkAndRevokeDiscord(userId: string): Promise<number> {
 // Discord is having a bad day - which includes being slow, since the page
 // awaits this inline, hence the abort signal as well as the try/catch.
 export async function getDiscordAccountName(userId: string): Promise<string | null> {
-  const accountId = await getAccountRowId(getDb(), userId, 'discord')
-  if (!accountId) return null
-
   let accessToken: string | undefined
   try {
+    // Inside the try with the token call, not before it: a transient Postgres
+    // failure here would otherwise throw straight out of the server component
+    // and render the error boundary, which is the one thing this function
+    // promises not to do.
+    const accountId = await getAccountRowId(getDb(), userId, 'discord')
+    if (!accountId) return null
     const tokens = await auth.api.getAccessToken({ body: { accountId, userId } })
     accessToken = tokens.accessToken
   } catch {

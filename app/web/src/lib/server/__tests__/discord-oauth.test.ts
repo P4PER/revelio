@@ -184,6 +184,16 @@ it('returns null without calling Better Auth when nothing is linked', async () =
   expect(fetchMock).not.toHaveBeenCalled()
 })
 
+// The connections page awaits this from a server component and renders the
+// plain linked badge on null, so a throw here takes the whole pane to the error
+// boundary. The row lookup is a database call and gets the same guard as the
+// rest: it must not be the one step that escapes.
+it('returns null when the account lookup fails rather than throwing', async () => {
+  getAccountRowIdMock.mockRejectedValue(new Error('ECONNRESET'))
+  expect(await getDiscordAccountName('user-1')).toBeNull()
+  expect(getAccessTokenMock).not.toHaveBeenCalled()
+})
+
 it('falls back to the display name when the profile carries no username', async () => {
   fetchMock.mockResolvedValue({
     ok: true,

@@ -19,10 +19,37 @@ function fakeInteraction(options: Record<string, string | number | null>, locale
   }
 }
 
+// A relevance read leaves as a federated multi-search: a name-only query weighted
+// against the unrestricted one. The stub cannot rank, so it runs only the unrestricted
+// query - the one a federated read draws its full hit list from - through the same
+// `index` and `search` mocks, with the federated window folded back in. Routing it
+// through `index` matters: the index uid rides inside the sub-query rather than in an
+// `index()` call, and a test that asserts which locale index was read must hold
+// whichever transport the read used.
+function federatedToSearch(index: (uid: string) => { search: ReturnType<typeof vi.fn> }) {
+  return async (req: {
+    federation: Record<string, unknown>
+    queries: Record<string, unknown>[]
+  }) => {
+    const { indexUid, q, federationOptions: _opts, ...rest } =
+      req.queries[req.queries.length - 1] as Record<string, unknown> & {
+        indexUid: string
+        q: string
+      }
+    return index(indexUid).search(q, { ...rest, ...req.federation })
+  }
+}
+
+// Both transports over one `search` mock - see federatedToSearch.
+function fakeMeili(search: ReturnType<typeof vi.fn>) {
+  const index = () => ({ search })
+  return { index, multiSearch: federatedToSearch(index) }
+}
+
 function fakeDeps(hits: unknown[], total: number) {
   const search = vi.fn().mockResolvedValue({ hits, estimatedTotalHits: total })
   return {
-    meili: { index: () => ({ search }) },
+    meili: fakeMeili(search),
     db: {},
     sets: { name: vi.fn().mockResolvedValue('Base Set') },
     env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
@@ -135,7 +162,7 @@ describe('/card autocomplete', () => {
 
   it('answers with an empty list rather than throwing when Meilisearch fails', async () => {
     const interaction = fakeAutocomplete('nim')
-    const deps = { meili: { index: () => ({ search: vi.fn().mockRejectedValue(new Error('down')) }) } }
+    const deps = { meili: fakeMeili(vi.fn().mockRejectedValue(new Error('down'))) }
     await COMMANDS.get('card')!.autocomplete!(interaction as never, deps as never)
     expect(interaction.respond).toHaveBeenCalledWith([])
   })
@@ -143,7 +170,7 @@ describe('/card autocomplete', () => {
 
 function fastPathDeps(search: unknown) {
   return {
-    meili: { index: () => ({ search }) },
+    meili: fakeMeili(search as ReturnType<typeof vi.fn>),
     db: {},
     sets: { name: vi.fn().mockResolvedValue('Base Set') },
     env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
@@ -178,7 +205,7 @@ describe('/search set filter', () => {
   it('passes the chosen set code into the Meilisearch filter', async () => {
     const search = vi.fn().mockResolvedValue({ hits: [doc], estimatedTotalHits: 1 })
     const deps = {
-      meili: { index: () => ({ search }) },
+      meili: fakeMeili(search),
       db: {},
       sets: { name: vi.fn(), all: vi.fn() },
       env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },

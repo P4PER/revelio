@@ -8,15 +8,27 @@ import {
 
 const card = (id: string): CardDetailDTO => ({ id, setCode: 'BS' } as CardDetailDTO)
 
-// Fake client that records every search it was asked to run.
+// Fake client that records every search it was asked to run. A neighbour walk with a
+// query federates, so the stub answers `multiSearch` too and records the same shape:
+// the federated window merged onto the unrestricted sub-query.
 function fakeClient(calls: Record<string, unknown>[], hits: { id: string }[] = []) {
+  const result = { hits, estimatedTotalHits: hits.length }
   return {
     index: () => ({
       search: async (_q: string, opts: Record<string, unknown>) => {
         calls.push(opts)
-        return { hits, estimatedTotalHits: hits.length }
+        return result
       },
     }),
+    multiSearch: async (req: {
+      federation: Record<string, unknown>
+      queries: Record<string, unknown>[]
+    }) => {
+      const { indexUid: _indexUid, q: _q, federationOptions: _opts, ...rest } =
+        req.queries[req.queries.length - 1]
+      calls.push({ ...rest, ...req.federation })
+      return result
+    },
   } as unknown as MeiliSearch
 }
 
@@ -97,6 +109,7 @@ describe('getCardNeighborsSafe', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const down = {
       index: () => ({ search: async () => { throw new Error('meilisearch is down') } }),
+      multiSearch: async () => { throw new Error('meilisearch is down') },
     } as unknown as MeiliSearch
     expect(await getCardNeighborsSafe(() => down, 'en', card('c'), null))
       .toEqual({ prev: null, next: null })

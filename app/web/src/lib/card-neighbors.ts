@@ -46,7 +46,11 @@ export async function getCardNeighbors(
   ctx: NeighborContext | null,
 ): Promise<{ prev: Neighbor | null; next: Neighbor | null }> {
   // Beyond maxTotalHits Meilisearch returns an empty window, which reads as a
-  // stale index; skip the pointless request and go straight to set order.
+  // stale index; skip the pointless request and go straight to set order. A
+  // relevance read federates, and a federated read ignores maxTotalHits (measured:
+  // it serves a window a plain search caps away), so past the cap this guard is
+  // merely conservative there rather than necessary - it gives up a window
+  // Meilisearch could have answered, and falls back to set order.
   if (ctx && ctx.index + 2 <= MAX_TOTAL_HITS) {
     const offset = Math.max(0, ctx.index - 1)
     const limit = ctx.index === 0 ? 2 : 3

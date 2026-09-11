@@ -6,11 +6,33 @@ function hit(n: number, name = `Card ${n}`) {
   return { id: `base-${n}`, name, setCode: 'base', number: String(n) }
 }
 
+// A relevance read leaves as a federated multi-search: a name-only query weighted
+// against the unrestricted one. The stub cannot rank, so it runs only the unrestricted
+// query - the one a federated read draws its full hit list from - through the same
+// `index` and `search` mocks, with the federated window folded back in. Routing it
+// through `index` matters: the index uid rides inside the sub-query rather than in an
+// `index()` call, and a test that asserts which locale index was read must hold
+// whichever transport the read used.
+function federatedToSearch(index: (uid: string) => { search: ReturnType<typeof vi.fn> }) {
+  return async (req: {
+    federation: Record<string, unknown>
+    queries: Record<string, unknown>[]
+  }) => {
+    const { indexUid, q, federationOptions: _opts, ...rest } =
+      req.queries[req.queries.length - 1] as Record<string, unknown> & {
+        indexUid: string
+        q: string
+      }
+    return index(indexUid).search(q, { ...rest, ...req.federation })
+  }
+}
+
 function stubMeili(hits: unknown[]) {
   const search = vi.fn().mockResolvedValue({ hits, estimatedTotalHits: hits.length })
   const getDocument = vi.fn()
   const index = vi.fn().mockReturnValue({ search, getDocument })
-  return { client: { index } as unknown as MeiliSearch, index, search, getDocument }
+  const multiSearch = vi.fn().mockImplementation(federatedToSearch(index))
+  return { client: { index, multiSearch } as unknown as MeiliSearch, index, search, getDocument }
 }
 
 describe('suggestCards', () => {

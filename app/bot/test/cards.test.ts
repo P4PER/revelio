@@ -6,6 +6,22 @@ import { findCards, findOneCard, resolveCardRulings } from '../src/data/cards'
 // The stub honours attributesToRetrieve the way Meilisearch does. Handing back
 // whole fixtures regardless would let a caller narrow its projection and still
 // look correct here, while the real server sent the renderer nothing.
+// A relevance read leaves as a federated multi-search: a name-only query weighted
+// against the unrestricted one. The stub cannot rank, so it runs only the unrestricted
+// query - the one a federated read draws its full hit list from - through the same
+// `search` mock, with the federated window folded back in. Assertions below therefore
+// read the same call whichever transport the read used.
+function federatedToSearch(search: ReturnType<typeof vi.fn>) {
+  return async (req: {
+    federation: Record<string, unknown>
+    queries: Record<string, unknown>[]
+  }) => {
+    const { indexUid: _indexUid, q, federationOptions: _opts, ...rest } =
+      req.queries[req.queries.length - 1] as Record<string, unknown> & { q: string }
+    return search(q, { ...rest, ...req.federation })
+  }
+}
+
 function stubMeili(hits: unknown[], estimatedTotalHits: number) {
   const search = vi.fn().mockImplementation(
     async (_query: string, opts: { attributesToRetrieve?: string[] } = {}) => {
@@ -18,7 +34,8 @@ function stubMeili(hits: unknown[], estimatedTotalHits: number) {
     },
   )
   const index = vi.fn().mockReturnValue({ search })
-  return { client: { index } as unknown as MeiliSearch, index, search }
+  const multiSearch = vi.fn().mockImplementation(federatedToSearch(search))
+  return { client: { index, multiSearch } as unknown as MeiliSearch, index, search, multiSearch }
 }
 
 const doc = {

@@ -8,14 +8,38 @@ import {
 } from '../search'
 
 // Minimal fake Meili client that records the search options it was called with.
+// A relevance read goes out as a federated multi-search rather than an index search,
+// so the stub answers both and records them the same way: the window from `federation`
+// merged onto the unrestricted sub-query. `queries` is kept as well, for the
+// assertions that are about the federation itself.
 function fakeClient(captured: Record<string, unknown>, hits: { id: string }[] = []) {
+  const result = { hits, estimatedTotalHits: hits.length }
   return {
     index: () => ({
       search: async (_q: string, opts: Record<string, unknown>) => {
-        Object.assign(captured, opts)
-        return { hits, estimatedTotalHits: hits.length }
+        Object.assign(captured, opts, { federated: false })
+        return result
       },
     }),
+    multiSearch: async (req: {
+      federation: Record<string, unknown>
+      queries: Record<string, unknown>[]
+    }) => {
+      const unrestricted = req.queries[req.queries.length - 1]
+      Object.assign(captured, unrestricted, req.federation, {
+        federated: true,
+        queries: req.queries,
+      })
+      return {
+        // Meilisearch stamps its merge bookkeeping onto every federated hit; the
+        // read under test has to strip it before the hits reach a caller.
+        hits: hits.map((h) => ({
+          ...h,
+          _federation: { indexUid: 'x', queriesPosition: 0, weightedRankingScore: 1 },
+        })),
+        estimatedTotalHits: hits.length,
+      }
+    },
   } as never
 }
 

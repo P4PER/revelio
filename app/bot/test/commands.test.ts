@@ -22,22 +22,28 @@ function fakeInteraction(options: Record<string, string | number | null>, locale
 // A relevance read leaves as a federated multi-search: a name-only query weighted
 // against the unrestricted one. The stub cannot rank, so it runs only the unrestricted
 // query - the one a federated read draws its full hit list from - through the same
-// `search` mock, with the federated window folded back in. Assertions below therefore
-// read the same call whichever transport the read used.
-function federatedToSearch(search: ReturnType<typeof vi.fn>) {
+// `index` and `search` mocks, with the federated window folded back in. Routing it
+// through `index` matters: the index uid rides inside the sub-query rather than in an
+// `index()` call, and a test that asserts which locale index was read must hold
+// whichever transport the read used.
+function federatedToSearch(index: (uid: string) => { search: ReturnType<typeof vi.fn> }) {
   return async (req: {
     federation: Record<string, unknown>
     queries: Record<string, unknown>[]
   }) => {
-    const { indexUid: _indexUid, q, federationOptions: _opts, ...rest } =
-      req.queries[req.queries.length - 1] as Record<string, unknown> & { q: string }
-    return search(q, { ...rest, ...req.federation })
+    const { indexUid, q, federationOptions: _opts, ...rest } =
+      req.queries[req.queries.length - 1] as Record<string, unknown> & {
+        indexUid: string
+        q: string
+      }
+    return index(indexUid).search(q, { ...rest, ...req.federation })
   }
 }
 
 // Both transports over one `search` mock - see federatedToSearch.
 function fakeMeili(search: ReturnType<typeof vi.fn>) {
-  return { index: () => ({ search }), multiSearch: federatedToSearch(search) }
+  const index = () => ({ search })
+  return { index, multiSearch: federatedToSearch(index) }
 }
 
 function fakeDeps(hits: unknown[], total: number) {

@@ -17,6 +17,6 @@
     "tsx": "^4.19.0",
     "vitest": "^2.1.0",
     "@testcontainers/postgresql": "^10.13.0",
-    "drizzle-kit": "^0.30.0"
+    "drizzle-kit": "^0.31.10"
   }
 }

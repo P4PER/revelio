@@ -12,7 +12,12 @@ vi.mock('next/headers', () => ({ cookies: async () => new Map() }))
 
 // The connections page reads the account table and the provider config; neither
 // is what this file is checking.
-vi.mock('@revelio/db', () => ({ getLinkedProviderIds: async () => ['discord'] }))
+vi.mock('@revelio/db', () => ({
+  getLinkedProviderIds: async () => ['discord'],
+  // No row id means no Discord handle to print, so the pane renders the plain
+  // linked badge - the state this test asserts, without reaching Discord.
+  getAccountRowId: async () => null,
+}))
 vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
 vi.mock('@/lib/server/auth', () => ({ discordLinkingConfigured: true }))
 

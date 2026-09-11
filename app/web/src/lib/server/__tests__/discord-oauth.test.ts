@@ -6,9 +6,13 @@ const TEST_SECRET = 'test-secret'
 
 const fetchMock = vi.fn()
 const unlinkProviderMock = vi.fn()
+const getAccountRowIdMock = vi.fn()
 const getAccessTokenMock = vi.fn()
 
-vi.mock('@revelio/db', () => ({ unlinkProvider: (...args: unknown[]) => unlinkProviderMock(...args) }))
+vi.mock('@revelio/db', () => ({
+  unlinkProvider: (...args: unknown[]) => unlinkProviderMock(...args),
+  getAccountRowId: (...args: unknown[]) => getAccountRowIdMock(...args),
+}))
 vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
 // The real module builds a Postgres client and a mailer at import time. What is
 // needed here is the key the tokens were encrypted with, plus the endpoint the
@@ -22,6 +26,7 @@ vi.mock('@/lib/server/auth', () => ({
 
 beforeEach(() => {
   unlinkProviderMock.mockReset()
+  getAccountRowIdMock.mockReset().mockResolvedValue('account-row-1')
   getAccessTokenMock.mockReset().mockResolvedValue({ accessToken: 'access-token' })
   vi.stubEnv('DISCORD_CLIENT_ID', 'client-id')
   vi.stubEnv('DISCORD_CLIENT_SECRET', 'client-secret')
@@ -162,9 +167,31 @@ it('gives up on a stalled Discord rather than holding the page open', async () =
 it('asks Better Auth for the token so an expired one gets refreshed first', async () => {
   fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => ({ username: 'timonw' }) })
   await getDiscordAccountName('user-1')
+  // Better Auth 1.7 selects the account by its own row id, not by providerId:
+  // passing the old shape gets the body rejected and no token back at all.
+  expect(getAccountRowIdMock).toHaveBeenCalledWith({}, 'user-1', 'discord')
   expect(getAccessTokenMock).toHaveBeenCalledWith({
-    body: { providerId: 'discord', userId: 'user-1' },
+    body: { accountId: 'account-row-1', userId: 'user-1' },
   })
+})
+
+// An unlinked user has no row to name, and asking Better Auth for a token
+// without one only costs a round-trip to reach the same null.
+it('returns null without calling Better Auth when nothing is linked', async () => {
+  getAccountRowIdMock.mockResolvedValue(null)
+  expect(await getDiscordAccountName('user-1')).toBeNull()
+  expect(getAccessTokenMock).not.toHaveBeenCalled()
+  expect(fetchMock).not.toHaveBeenCalled()
+})
+
+// The connections page awaits this from a server component and renders the
+// plain linked badge on null, so a throw here takes the whole pane to the error
+// boundary. The row lookup is a database call and gets the same guard as the
+// rest: it must not be the one step that escapes.
+it('returns null when the account lookup fails rather than throwing', async () => {
+  getAccountRowIdMock.mockRejectedValue(new Error('ECONNRESET'))
+  expect(await getDiscordAccountName('user-1')).toBeNull()
+  expect(getAccessTokenMock).not.toHaveBeenCalled()
 })
 
 it('falls back to the display name when the profile carries no username', async () => {

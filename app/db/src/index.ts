@@ -17,7 +17,7 @@ export { getSubTypeLabels, listSubTypesWithTranslations, saveSubTypeTranslations
 export { listDecksByUser, getDeck, getDeckForViewer, createDeck, updateDeck, updateDeckMeta, deleteDeck, resolveCardsByName, getCardViews } from './queries/decks'
 export { toggleLike, recordView, getDeckLikeState, listPublicDecks } from './queries/deck-browse'
 export { listUsersForAdmin, getUserForAdmin, countAdmins, countUserDecks, updateUserRole, setUserBan, clearUserBan, deleteUserById } from './queries/users'
-export { getUserIdByDiscordAccount, getLinkedProviderIds, unlinkProvider } from './queries/accounts'
+export { getUserIdByDiscordAccount, getLinkedProviderIds, unlinkProvider, getAccountRowId } from './queries/accounts'
 export { getUserExport } from './queries/user-export'
 export { setCardQuantity, setCollectionVisibility, getOwnedQuantities, getCollectionVisibility, getOwnedCardIds, getDuplicateCardIds, getCollectionSetProgress, getCollectionSummary, resolveCollectionOwner } from './queries/collection'
 export { getSiteSettings, upsertSiteSettings } from './queries/site-settings'

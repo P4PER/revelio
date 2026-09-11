@@ -14,7 +14,7 @@ vi.mock('@/../i18n/navigation', () => ({
 
 const messages = {
   card: {
-    number: 'No. {number}', cost: 'Cost', machineTranslation: 'Machine translation',
+    number: '#{number}', cost: 'Cost', machineTranslation: 'Machine translation',
     health: 'Health', damage: 'Damage/turn', legality: 'Legality',
     artist: 'Illustrated by', rulings: 'Rulings',
     prevCard: 'Previous card', nextCard: 'Next card', flipHint: 'to flip between cards',

@@ -73,7 +73,7 @@
     }
   },
   "card": {
-    "number": "No. {number}",
+    "number": "#{number}",
     "cost": "Cost",
     "machineTranslation": "Machine translation",
     "health": "Health",

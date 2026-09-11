@@ -73,7 +73,7 @@
     }
   },
   "card": {
-    "number": "Nr. {number}",
+    "number": "#{number}",
     "cost": "Kosten",
     "machineTranslation": "Maschinelle Übersetzung",
     "health": "Gesundheit",

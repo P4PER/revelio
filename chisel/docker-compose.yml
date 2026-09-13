@@ -11,13 +11,13 @@ services:
     ports:
       - "5432:5432"  # Postgres
       - "7700:7700"  # Meilisearch
-      - "9000:9000"  # MinIO S3 API
-      - "9001:9001"  # MinIO console
+      - "9000:9000"  # RustFS S3 API
+      - "9001:9001"  # RustFS console, at /rustfs/console/
     command:
       - client
       - --auth=${CHISEL_USER}:${CHISEL_PASSWORD}
       - ${CHISEL_SERVER}
       - 5432:${POSTGRES_HOST}:5432
       - 7700:${MEILISEARCH_HOST}:7700
-      - 9000:${MINIO_HOST}:9000
-      - 9001:${MINIO_HOST}:9001
+      - 9000:${RUSTFS_HOST}:9000
+      - 9001:${RUSTFS_HOST}:9001

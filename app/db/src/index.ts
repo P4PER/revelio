@@ -8,7 +8,7 @@ export {
 export { user, session, account, verification } from './auth-schema'
 export { createClient } from './client'
 export type { DB } from './client'
-export { migrationsDir, runMigrations } from './migrate'
+export { migrationsDir, resolveMigrationsDir, runMigrations } from './migrate'
 export { listSets, getSetByCode, getSetForEdit, createSet, updateSet, deleteSet, setSetSymbolVersion, listSetsForSitemap } from './queries/sets'
 export { getCardById, getCardRulings, getRandomCardId, getDailyShowcaseCandidates, listCardsForSitemap, getCardIndexData, getCardFinishes } from './queries/cards'
 export { upsertLocalization, setLocalizationImage } from './queries/localizations'

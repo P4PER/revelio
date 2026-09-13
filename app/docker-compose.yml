@@ -5,7 +5,7 @@
 #   MEILI_HOST=http://localhost:7700  MEILI_SEARCH_KEY=masterKey
 #   NEXT_PUBLIC_IMAGE_BASE_URL=http://localhost:9000/images
 # Note: these ports collide with the standalone test containers
-# (revelio-testmeili:7700, revelio-testminio:9000) — stop those first.
+# (revelio-testmeili:7700, revelio-tests3:9000) — stop those first.
 services:
   postgres:
     image: postgres:16-alpine
@@ -33,7 +33,7 @@ services:
         condition: service_healthy
       meilisearch:
         condition: service_healthy
-      minio:
+      rustfs:
         condition: service_healthy
     environment:
       DATABASE_URL: postgres://revelio:revelio@postgres:5432/revelio
@@ -42,7 +42,7 @@ services:
       MEILI_HOST: http://meilisearch:7700
       MEILI_MASTER_KEY: masterKey
       ASSETS_DIR: /assets
-      S3_ENDPOINT: http://minio:9000
+      S3_ENDPOINT: http://rustfs:9000
       S3_BUCKET: images
       S3_ACCESS_KEY: minioadmin
       S3_SECRET_KEY: minioadmin
@@ -114,24 +114,25 @@ services:
       timeout: 5s
       retries: 10
 
-  minio:
-    # Pulled from Quay, not Docker Hub: MinIO's docker.io/minio/minio repository
-    # is gone (the Hub API 404s and an anonymous pull token comes back with no
-    # scope), so `minio/minio` fails with "pull access denied" on any machine
-    # that has not cached it. Quay is MinIO's other official registry and still
-    # serves the same releases; pinned like postgres and meilisearch are.
-    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
-    command: server /data --console-address ":9001"
+  rustfs:
+    # Replaces MinIO, whose community edition is archived (GitHub repo archived
+    # 2026-04-24) and whose Docker Hub namespace was withdrawn. RustFS speaks the
+    # same S3 API on the same ports, including the public-read bucket policy the
+    # card images rely on. Pinned like postgres and meilisearch are.
+    image: rustfs/rustfs:1.0.0-rc.6
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      RUSTFS_ACCESS_KEY: minioadmin
+      RUSTFS_SECRET_KEY: minioadmin
     ports:
       - "127.0.0.1:9000:9000" # S3 API
-      - "127.0.0.1:9001:9001" # web console
+      - "127.0.0.1:9001:9001" # console, at /rustfs/console/ (bare / answers S3)
     volumes:
-      - minio:/data
+      - rustfs:/data
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:9000/minio/health/live"]
+      # Not /minio/health/live or /health: both answer 200 while the server still
+      # reports "waiting for storage_quorum" on /. A ready S3 handler answers an
+      # unsigned GET / with AccessDenied, so that is what we look for.
+      test: ["CMD-SHELL", "curl -s http://localhost:9000/ | grep -q AccessDenied"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -145,4 +146,4 @@ services:
 volumes:
   pgdata: {}
   meili: {}
-  minio: {}
+  rustfs: {}

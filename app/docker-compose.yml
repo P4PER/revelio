@@ -115,7 +115,12 @@ services:
       retries: 10
 
   minio:
-    image: minio/minio
+    # Pulled from Quay, not Docker Hub: MinIO's docker.io/minio/minio repository
+    # is gone (the Hub API 404s and an anonymous pull token comes back with no
+    # scope), so `minio/minio` fails with "pull access denied" on any machine
+    # that has not cached it. Quay is MinIO's other official registry and still
+    # serves the same releases; pinned like postgres and meilisearch are.
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minioadmin

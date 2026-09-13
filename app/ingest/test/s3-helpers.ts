@@ -7,8 +7,8 @@ export function testS3Config(bucket: string) {
   return {
     endpoint: process.env.TEST_S3_ENDPOINT ?? 'http://localhost:9000',
     bucket,
-    accessKeyId: process.env.TEST_S3_ACCESS_KEY ?? 'minioadmin',
-    secretAccessKey: process.env.TEST_S3_SECRET_KEY ?? 'minioadmin',
+    accessKeyId: process.env.TEST_S3_ACCESS_KEY ?? 'rustfsadmin',
+    secretAccessKey: process.env.TEST_S3_SECRET_KEY ?? 'rustfsadmin',
     region: 'eu-central-1',
     forcePathStyle: true,
   }

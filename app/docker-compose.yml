@@ -1,5 +1,5 @@
 # Local dev stack. Ports bind to 127.0.0.1 only (loopback) — these services
-# use weak dev credentials (masterKey / minioadmin) and must not be exposed to
+# use weak dev credentials (masterKey / rustfsadmin) and must not be exposed to
 # the LAN. The published ports let a web run on the host (`npm run dev`/`start`
 # in app/web) reach the seeded stack:
 #   MEILI_HOST=http://localhost:7700  MEILI_SEARCH_KEY=masterKey
@@ -44,8 +44,8 @@ services:
       ASSETS_DIR: /assets
       S3_ENDPOINT: http://rustfs:9000
       S3_BUCKET: images
-      S3_ACCESS_KEY: minioadmin
-      S3_SECRET_KEY: minioadmin
+      S3_ACCESS_KEY: rustfsadmin
+      S3_SECRET_KEY: rustfsadmin
       S3_REGION: eu-central-1
       S3_FORCE_PATH_STYLE: "true"
     volumes:
@@ -121,8 +121,8 @@ services:
     # card images rely on. Pinned like postgres and meilisearch are.
     image: rustfs/rustfs:1.0.0-rc.6
     environment:
-      RUSTFS_ACCESS_KEY: minioadmin
-      RUSTFS_SECRET_KEY: minioadmin
+      RUSTFS_ACCESS_KEY: rustfsadmin
+      RUSTFS_SECRET_KEY: rustfsadmin
     ports:
       - "127.0.0.1:9000:9000" # S3 API
       - "127.0.0.1:9001:9001" # console, at /rustfs/console/ (bare / answers S3)

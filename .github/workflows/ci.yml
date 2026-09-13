@@ -41,15 +41,15 @@ jobs:
       TEST_MEILI_KEY: masterKey
       MEILI_HOST: http://localhost:7700
       TEST_S3_ENDPOINT: http://localhost:9000
-      TEST_S3_ACCESS_KEY: minioadmin
-      TEST_S3_SECRET_KEY: minioadmin
+      TEST_S3_ACCESS_KEY: rustfsadmin
+      TEST_S3_SECRET_KEY: rustfsadmin
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-app
       - name: Start Meilisearch
         run: docker run -d --name meili -p 7700:7700 -e MEILI_MASTER_KEY=masterKey -e MEILI_NO_ANALYTICS=true getmeili/meilisearch:v1.10
       - name: Start RustFS
-        run: docker run -d --name rustfs -p 9000:9000 -e RUSTFS_ACCESS_KEY=minioadmin -e RUSTFS_SECRET_KEY=minioadmin rustfs/rustfs:1.0.0-rc.6
+        run: docker run -d --name rustfs -p 9000:9000 -e RUSTFS_ACCESS_KEY=rustfsadmin -e RUSTFS_SECRET_KEY=rustfsadmin rustfs/rustfs:1.0.0-rc.6
       - name: Wait for services
         run: |
           for i in $(seq 1 30); do curl -fsS http://localhost:7700/health && break || sleep 2; done

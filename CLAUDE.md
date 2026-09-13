@@ -57,7 +57,7 @@ DATABASE_URL=postgres://revelio:revelio@localhost:5432/revelio npx tsx db/src/mi
 
 Either way, confirm the change actually landed rather than trusting the success line — e.g. `docker compose exec -T postgres psql -U revelio -d revelio -c "\d <table>"`.
 
-**Env files are per workspace, and `app/.env` is not the one the app reads.** Copy `app/.env.example` → `app/.env` for compose only — compose hostnames are the service names (`postgres`, `meilisearch`, `minio`). Next reads `app/web/.env.local`, and the bot reads `app/bot/.env.local` (both have a committed `.env.example` beside them). Use `localhost` + published ports in those two, since they run on the host; the compose `bot` service loads `bot/.env.local` via `env_file` and overrides the two hostnames.
+**Env files are per workspace, and there is no root `app/.env`.** `docker-compose.yml` hardcodes every value its services need (hostnames are the service names `postgres`, `meilisearch`, `minio`) and does no `${VAR}` interpolation, so a root `.env` would be read by nothing. Next reads `app/web/.env.local`, and the bot reads `app/bot/.env.local` (both have a committed `.env.example` beside them). Use `localhost` + published ports in those two, since they run on the host; the compose `bot` service loads `bot/.env.local` via `env_file` and overrides the two hostnames. `app/ingest/.env.example` documents the ingest job's variables for a deployed run — nothing auto-loads it, pass it with `docker run --env-file`.
 
 ## Architecture
 

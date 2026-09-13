@@ -51,7 +51,6 @@ cd app
 docker compose up -d
 
 # 2. Configure environment (each workspace reads its own file)
-cp .env.example .env                # compose only - uses container hostnames
 cp web/.env.example web/.env.local  # what the web dev server actually reads
 
 # 3. Install dependencies

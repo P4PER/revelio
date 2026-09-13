@@ -42,11 +42,13 @@ npm run check -w @revelio/db     # drizzle-kit journal/snapshot consistency
 npm run verify -w @revelio/db    # fails if schema.ts drifted from migrations (offline)
 ```
 
-CI (`.github/workflows/ci.yml`) has three jobs: **check** (db check + verify, lint, typecheck), **test** (spins up Meilisearch + MinIO in Docker, then `npm test`), and **build** (`next build`). Tests requiring live services read `TEST_MEILI_HOST`/`TEST_MEILI_KEY`/`TEST_S3_*`; Postgres-backed tests use Testcontainers (Docker required, no compose Postgres service in CI).
+CI (`.github/workflows/ci.yml`) has three jobs: **check** (db check + verify, lint, typecheck), **test** (spins up Meilisearch + RustFS in Docker, then `npm test`), and **build** (`next build`). Tests requiring live services read `TEST_MEILI_HOST`/`TEST_MEILI_KEY`/`TEST_S3_*`; Postgres-backed tests use Testcontainers (Docker required, no compose Postgres service in CI).
 
 ### Local infra
 
-`docker compose up` (from `app/`) starts postgres, meilisearch, and minio. Migrations run via the compose `tools` profile: `docker compose run --rm --build migrate`. The bot is behind a `bot` profile so a bare `up` never needs a Discord token: `docker compose --profile bot up bot`.
+`docker compose up` (from `app/`) starts postgres, meilisearch, and rustfs. Migrations run via the compose `tools` profile: `docker compose run --rm --build migrate`. The bot is behind a `bot` profile so a bare `up` never needs a Discord token: `docker compose --profile bot up bot`.
+
+The object store is RustFS, not MinIO: MinIO's community edition was archived in 2026 and its Docker Hub image withdrawn. It serves the same S3 API on `localhost:9000`, and its console is at `http://localhost:9001/rustfs/console/` - bare `/` on 9001 answers an S3 `AccessDenied`, which is not a fault.
 
 **Do not drop the `--build`.** The `migrate` service runs `image: revelio-ingest:local`, and compose only builds that image when it is *missing* — so a plain `docker compose run --rm migrate` runs whatever SQL was baked in whenever the image was last built. A migration generated since then is simply not in the container: the run prints `migrations applied` and applies **nothing**, with no error and no warning. Running from the host is the other way round it:
 
@@ -57,7 +59,7 @@ DATABASE_URL=postgres://revelio:revelio@localhost:5432/revelio npx tsx db/src/mi
 
 Either way, confirm the change actually landed rather than trusting the success line — e.g. `docker compose exec -T postgres psql -U revelio -d revelio -c "\d <table>"`.
 
-**Env files are per workspace, and there is no root `app/.env`.** `docker-compose.yml` hardcodes every value its services need (hostnames are the service names `postgres`, `meilisearch`, `minio`) and does no `${VAR}` interpolation, so a root `.env` would be read by nothing. Next reads `app/web/.env.local`, and the bot reads `app/bot/.env.local` (both have a committed `.env.example` beside them). Use `localhost` + published ports in those two, since they run on the host; the compose `bot` service loads `bot/.env.local` via `env_file` and overrides the two hostnames. `app/ingest/.env.example` documents the ingest job's variables for a deployed run — nothing auto-loads it, pass it with `docker run --env-file`.
+**Env files are per workspace, and there is no root `app/.env`.** `docker-compose.yml` hardcodes every value its services need (hostnames are the service names `postgres`, `meilisearch`, `rustfs`) and does no `${VAR}` interpolation, so a root `.env` would be read by nothing. Next reads `app/web/.env.local`, and the bot reads `app/bot/.env.local` (both have a committed `.env.example` beside them). Use `localhost` + published ports in those two, since they run on the host; the compose `bot` service loads `bot/.env.local` via `env_file` and overrides the two hostnames. `app/ingest/.env.example` documents the ingest job's variables for a deployed run — nothing auto-loads it, pass it with `docker run --env-file`.
 
 ## Architecture
 
@@ -66,7 +68,7 @@ Six npm workspaces under `app/`, with a strict dependency direction `core ← {s
 - **`@revelio/core`** (`core/`) — framework-agnostic domain layer: Zod schemas (`schemas.ts`), the card domain model (`domain.ts`), attribute definitions (`attributes.ts`), image key helpers (`images.ts`). No I/O. Every other workspace imports from here.
 - **`@revelio/search`** (`search/`) — Meilisearch client + document shape + query builder. `createMeiliClient(host, key)` is the single client factory; `documents.ts` defines the indexed card document; `search.ts` builds queries/filters. A read that ranks by **relevance** (non-empty query, no explicit sort) goes out as a **federated multi-search** — a `name`-only query weighted 10 against the unrestricted one — so every name match ranks above every text/flavor match. `rankingRules` cannot express that: Meilisearch's `words` rule is applied above them, so a flavor-text hit on the whole query would otherwise outrank a name hit on part of it. This needs Meilisearch **>= 1.10** and is a query-time change only — `CARD_INDEX_SETTINGS` is untouched, so it needs no reindex.
 - **`@revelio/db`** (`db/`) — Drizzle ORM over Postgres. `schema.ts` (card data) + `auth-schema.ts` (Better Auth tables), `client.ts`, and migration runners (`migrate.ts` / `migrate-cli.ts`). Queries live one module per domain under `src/queries/` (`sets`, `cards`, `decks`, `collection`, `users`, ...); `src/index.ts` is the only barrel and re-exports from the leaf modules, so nothing outside the package imports a query module directly. Migrations are checked-in SQL under `db/drizzle/`.
-- **`@revelio/ingest`** (`ingest/`) — one-shot job (`src/main.ts`, run with `tsx`) that runs migrations, seeds Postgres from `card-data`, indexes Meilisearch, and uploads card images to S3/MinIO. The `load-*.ts` files each own one data source; `build-documents.ts` + `index-cards.ts` produce the search index; `upload-images.ts` handles S3.
+- **`@revelio/ingest`** (`ingest/`) — one-shot job (`src/main.ts`, run with `tsx`) that runs migrations, seeds Postgres from `card-data`, indexes Meilisearch, and uploads card images to S3/RustFS. The `load-*.ts` files each own one data source; `build-documents.ts` + `index-cards.ts` produce the search index; `upload-images.ts` handles S3.
 - **`@revelio/web`** (`web/`) — Next.js 16 (App Router, React 19) app. The only workspace users reach in a browser, and the only one with an ESLint config of its own (`web/eslint.config.mjs`, Next- and React-specific); the other five are covered by `app/eslint.config.mjs`.
 - **`@revelio/bot`** (`bot/`) — discord.js gateway bot serving `/card`, `/search`, `/deck`, `/collection` and `/mydecks` in Discord. It reads Meilisearch and Postgres directly on the private network; there is no HTTP API between it and `web`, and it must never import from `web`. Read-only: it uses `MEILI_SEARCH_KEY` and never `MEILI_WRITE_KEY`.
 
@@ -82,7 +84,7 @@ Six npm workspaces under `app/`, with a strict dependency direction `core ← {s
   in `lib/server/__tests__/server-only-guard.test.ts` enforces it. `lib/actions/` holds the
   `'use server'` modules. Pure, isomorphic helpers stay at `lib/` root; `utils.ts` must stay
   there because `components.json` pins `aliases.utils` to `@/lib/utils`.
-- **Images**: per-language card images stored in S3/MinIO with lang-aware keys and fallback; `sharp` generates thumbnails. Public base URL is `NEXT_PUBLIC_IMAGE_BASE_URL` (build-time inlined).
+- **Images**: per-language card images stored in S3/RustFS with lang-aware keys and fallback; `sharp` generates thumbnails. Public base URL is `NEXT_PUBLIC_IMAGE_BASE_URL` (build-time inlined).
 - **UI**: shadcn + Radix + Tailwind v4. Shared primitives in `src/components/ui/`.
 - **`src/components` is grouped by domain.** `card/`, `deck/`, `collection/`, `search/`,
   `admin/`, `set/`, `auth/`, `layout/`, plus `settings/` and `legal/`. Cross-domain components

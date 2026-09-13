@@ -32,13 +32,13 @@ The app is six npm workspaces under `app/`, with a strict dependency direction
 - **`@revelio/search`** — Meilisearch client, indexed document shape, and query builder.
 - **`@revelio/db`** — Drizzle ORM over Postgres; checked-in SQL migrations.
 - **`@revelio/ingest`** — one-shot job that runs migrations, seeds Postgres from
-  `card-data`, indexes Meilisearch, and uploads card images to S3/MinIO.
+  `card-data`, indexes Meilisearch, and uploads card images to S3/RustFS.
 - **`@revelio/web`** — the Next.js 16 (App Router, React 19) app that ships to users.
 - **`@revelio/bot`** — a Discord bot (`/card`, `/search`) built on discord.js. It
   reads Meilisearch and Postgres directly, with no HTTP API between it and the web
   app, and never writes.
 
-**Stack:** Next.js · React · Postgres + Drizzle · Meilisearch · S3/MinIO · Better Auth · shadcn/Radix/Tailwind v4 · `next-intl` · discord.js.
+**Stack:** Next.js · React · Postgres + Drizzle · Meilisearch · S3/RustFS · Better Auth · shadcn/Radix/Tailwind v4 · `next-intl` · discord.js.
 
 ## Getting started
 
@@ -47,7 +47,7 @@ Everything runs from `app/`.
 ```bash
 cd app
 
-# 1. Start local infrastructure (postgres, meilisearch, minio)
+# 1. Start local infrastructure (postgres, meilisearch, rustfs)
 docker compose up -d
 
 # 2. Configure environment (each workspace reads its own file)

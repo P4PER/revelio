@@ -4,9 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "tsx src/main.ts",
-    "build": "npm run build:job && npm run build:migrate",
-    "build:job": "esbuild src/main.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/ingest.mjs --banner:js=\"import{createRequire as __cr}from'node:module';const require=__cr(import.meta.url);\" --log-level=warning",
-    "build:migrate": "esbuild ../db/src/migrate-cli.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/migrate.mjs --banner:js=\"import{createRequire as __cr}from'node:module';const require=__cr(import.meta.url);\" --log-level=warning",
+    "build": "node build.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json"
   },

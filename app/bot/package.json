@@ -6,7 +6,7 @@
     "start": "tsx src/main.ts",
     "dev": "node --env-file-if-exists=.env.local --import tsx src/main.ts",
     "register": "node --env-file-if-exists=.env.local --import tsx src/discord/register-cli.ts",
-    "build": "esbuild src/main.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/bot.mjs --banner:js=\"import{createRequire as __cr}from'node:module';const require=__cr(import.meta.url);\" --log-level=warning",
+    "build": "node build.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json"
   },

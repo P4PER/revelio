@@ -24,6 +24,17 @@ afterEach(() => {
 })
 
 describe('SiteFooter', () => {
+  // The bot page has no header-nav link by design, so the footer is its only
+  // route in.
+  it('links the Discord bot page from the About column', () => {
+    renderFooter()
+    const about = screen.getByRole('navigation', { name: 'About' })
+    expect(within(about).getByRole('link', { name: 'Discord bot' })).toHaveAttribute(
+      'href',
+      '/discord',
+    )
+  })
+
   it('shows the unofficial fan project disclaimer', () => {
     renderFooter()
     expect(screen.getByText(/non-commercial fan project/i)).toBeInTheDocument()

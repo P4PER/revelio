@@ -89,6 +89,7 @@ export function SiteFooterView({
           <FooterColumn label={t('about')}>
             <FooterLink href="/about">{t('aboutLink')}</FooterLink>
             <FooterLink href="/contact">{t('contact')}</FooterLink>
+            <FooterLink href="/discord">{t('discordBot')}</FooterLink>
             {githubUrl && (
               <Button variant="link" size="sm" asChild className={linkClass}>
                 <a

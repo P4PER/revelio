@@ -66,11 +66,15 @@ export default getRequestConfig(async ({ locale }) => {
 
 Two deliberate differences from the previous config:
 
-- An unknown locale is a 404 instead of a silent fall back to `en`. The
-  `[locale]` segment is a catch-all for unmatched paths, so `/unknown.txt` used
-  to render the English homepage chrome; `notFound()` is what next-intl's own
-  migration guide prescribes, and `[locale]/layout.tsx` already calls
-  `notFound()` on the same condition.
+- An unknown locale is a 404 instead of a silent fall back to `en`, which is
+  what next-intl's migration guide prescribes and what `[locale]/layout.tsx`
+  already did on the same condition. Measured against a production build, this
+  changes nothing a visitor sees: a path the proxy rewrites (`/nope`,
+  `/de/nope`) arrives with a valid segment and still gets the branded 404, and a
+  path the proxy skips (`/unknown.txt`, `/foo.php`) gets Next's bare error shell
+  either way, because the layout's own `hasLocale` check throws *above*
+  `not-found.tsx` and so no translator can render it. Both variants were built
+  and probed before settling on the guide's shape.
 - `messages` is keyed off the validated locale, so the dynamic import can no
   longer be reached with an arbitrary segment value.
 
@@ -83,11 +87,15 @@ real (`buildSiteMetadata`, `getPathname`, `redirect({ locale })`, a DB query,
 ## Steps
 
 1. **Plan doc** (this file).
-2. **`i18n/request.ts`** — test first. A new
-   `src/lib/__tests__/i18n-request.test.ts` (vitest only collects `src/**`)
-   mocks `next/root-params` and asserts: the root param picks the locale and
-   its messages; an explicit `locale` override wins without reading root params;
-   an unknown value calls `notFound()`. Then the implementation above.
+2. **`i18n/request.ts`** — test first, in `i18n/__tests__/request.test.ts`,
+   which needs `i18n/**/*.test.ts` added to the vitest `include` (it collected
+   `src/**` only). It mocks `next/root-params` and asserts: the root param picks
+   the locale and its messages; an explicit `locale` override wins without
+   reading root params; an unrecognised or absent segment calls `notFound()`.
+   It also stubs `getRequestConfig`, which is an identity wrapper over the
+   callback - under jsdom the real `next-intl/server` resolves to its client
+   build and throws "not supported in Client Components" on import. Then the
+   implementation above.
 3. **Strip `setRequestLocale`** from the 30 non-test modules under
    `src/app/[locale]/` plus `src/components/collection/public-collection.tsx`,
    pruning parameters that fall unused.
@@ -100,14 +108,27 @@ real (`buildSiteMetadata`, `getPathname`, `redirect({ locale })`, a DB query,
    getter as `any`), and the only one that exercises static generation of the
    `[locale]` routes without `setRequestLocale`.
 
-## Verification
+## Verification (results)
 
-- `npm test -w web` — the suite, including the new request-config test.
-- `npm run typecheck`
-- `npm run lint`
-- `npm run build -w web` — static generation of both locales.
-- `E2E_PORT=3100 npm run e2e -w web` — end-to-end against a prod server.
-- By hand: `/` and `/de` render localized, and an unknown top-level path 404s.
+- `npm test -w web` — 175 files, 964 tests pass, including the 5 new
+  request-config cases. Mutating the resolved locale fails 2 of them, so they
+  bite.
+- `npm run typecheck` — clean across all six workspaces.
+- `npm run lint` — clean (it flagged each `params` prop the setter had been the
+  only reader of, which is how the prop pruning was driven).
+- `npm run build -w web` — succeeds, and the route table is byte-identical to
+  `main`'s: no page moved between static and dynamic, which was the thing
+  `setRequestLocale` existed to protect.
+- `E2E_PORT=3100 npm run e2e -w web` — 21/21 (an empty local Meilisearch failed
+  the search spec first; reseeded via an ingest run with `S3_ENDPOINT` unset).
+- By hand against the production server: `/`, `/de`, `/sets`, `/de/sets`,
+  `/about`, `/de/about`, `/card/<id>`, `/de/card/<id>`, `/search?q=`,
+  `/de/search?q=` all render in the right locale with the right `<html lang>`;
+  `/random` and `/de/random` redirect to a correctly prefixed card URL;
+  `/settings` and `/de/settings` redirect to `/login` and `/de/login`, which
+  exercises the `getLocale()` call in `lib/server/require-user.ts`; both
+  `/opengraph-image` routes return a 1200x630 PNG, and the German one differs in
+  size from the English, so the explicit-locale override still reaches them.
 
 ## Non-goals
 

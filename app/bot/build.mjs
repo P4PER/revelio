@@ -1,0 +1,24 @@
+import * as esbuild from 'esbuild'
+
+// esbuild's ESM output wraps dynamic requires in a shim that gates on
+// `typeof require !== "undefined"` and otherwise throws
+// 'Dynamic require of "node:events" is not supported'. discord.js is CJS, so
+// without a real `require` bound at module top level the bundle builds clean
+// and dies at import time. This banner defines that binding one line above the
+// shim. It is aliased to __cr because banner text is prepended raw and is
+// invisible to esbuild's renaming: a bare `createRequire` could collide with a
+// bundled identifier of the same name.
+const banner = {
+  js: "import{createRequire as __cr}from'node:module';const require=__cr(import.meta.url);",
+}
+
+await esbuild.build({
+  entryPoints: ['src/main.ts'],
+  outfile: 'dist/bot.mjs',
+  bundle: true,
+  platform: 'node',
+  target: 'node22',
+  format: 'esm',
+  banner,
+  logLevel: 'warning',
+})

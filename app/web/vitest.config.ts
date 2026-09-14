@@ -24,9 +24,9 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
-    // i18n/ sits beside src/ (next-intl's plugin path points at ./i18n), so its
-    // tests need collecting too.
-    include: ['src/**/*.test.{ts,tsx}', 'i18n/**/*.test.ts'],
+    // mdx/ and i18n/ both sit beside src/ because next.config.ts imports them
+    // at build time, so their tests need collecting too.
+    include: ['src/**/*.test.{ts,tsx}', 'i18n/**/*.test.ts', 'mdx/**/*.test.ts'],
     // Inline next-intl so Vite's alias resolution applies inside node_modules
     server: { deps: { inline: ['next-intl', 'use-intl'] } },
   },

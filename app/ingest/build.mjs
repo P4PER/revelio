@@ -36,6 +36,10 @@ try {
       logLevel: 'warning',
     })
   }
-} catch {
+} catch (err) {
+  // A BuildFailure carries an `errors` array and esbuild has already printed it.
+  // Anything else (a host/binary version mismatch from a partial install, say) is
+  // never logged, so it would exit 1 with no output at all.
+  if (!err?.errors) console.error(err)
   process.exit(1)
 }

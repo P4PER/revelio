@@ -98,7 +98,11 @@ try {
     banner,
     logLevel: 'warning',
   })
-} catch {
+} catch (err) {
+  // A BuildFailure carries an `errors` array and esbuild has already printed it.
+  // Anything else (a host/binary version mismatch from a partial install, say) is
+  // never logged, so it would exit 1 with no output at all.
+  if (!err?.errors) console.error(err)
   process.exit(1)
 }
 ```
@@ -214,7 +218,11 @@ try {
       logLevel: 'warning',
     })
   }
-} catch {
+} catch (err) {
+  // A BuildFailure carries an `errors` array and esbuild has already printed it.
+  // Anything else (a host/binary version mismatch from a partial install, say) is
+  // never logged, so it would exit 1 with no output at all.
+  if (!err?.errors) console.error(err)
   process.exit(1)
 }
 ```
@@ -356,3 +364,17 @@ match what shipped.
 The Dockerfiles' `env -i node <bundle>` smoke command does not reproduce verbatim on
 macOS: `env -i` clears `PATH` and BSD `env` then cannot resolve a bare `node`. Use
 `env -i /usr/local/bin/node <bundle>` locally. It works as written inside Alpine.
+
+### Second review pass
+
+A follow-up `/code-review medium` raised one Low finding against the bare
+`catch { process.exit(1) }`: a rejection esbuild had not itself printed would exit 1 with
+no output. Its two named examples did not reproduce - an invalid option value and an
+unknown option key both print through esbuild's logger *and* set `err.errors`, and a
+missing esbuild install throws at the top-level import, outside the try. The residual case
+is real though: `node_modules/esbuild/lib/main.js:647` throws a plain
+`Error("Cannot start service: Host version ... does not match binary version ...")` with no
+`errors` array and no logger output, which is exactly what a cross-platform or partial
+`npm install` produces inside a Docker build. Both scripts now re-print only what esbuild
+did not format. Verified: build-failure path still 2 lines / exit 1, simulated plain error
+now prints its message / exit 1, all three bundle hashes unchanged.

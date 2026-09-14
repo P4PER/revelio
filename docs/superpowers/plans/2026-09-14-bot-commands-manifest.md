@@ -40,7 +40,7 @@
 
   Task 2 and phase 4's `<CommandTable>` both read `BOT_COMMANDS`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/core/test/bot-commands.test.ts`:
 
@@ -112,7 +112,7 @@ describe('BOT_COMMANDS', () => {
 })
 ```
 
-- [ ] **Step 2: Run it to make sure it fails**
+- [x] **Step 2: Run it to make sure it fails**
 
 ```bash
 cd app
@@ -121,7 +121,7 @@ cd app
 
 Expected: FAIL - cannot resolve `../src/bot-commands`.
 
-- [ ] **Step 3: Write the manifest**
+- [x] **Step 3: Write the manifest**
 
 Create `app/core/src/bot-commands.ts`. Declaration order is types, then constants - there are no functions here.
 
@@ -206,7 +206,7 @@ export const BOT_COMMANDS: readonly BotCommandSpec[] = [
 ]
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 ```bash
 cd app
@@ -215,11 +215,11 @@ cd app
 
 Expected: PASS, 8 tests.
 
-- [ ] **Step 5: Prove the ephemerality test bites**
+- [x] **Step 5: Prove the ephemerality test bites**
 
 Temporarily change `collection`'s `ephemeral` to `false` and re-run. Expected: two tests FAIL - "marks personal commands as both ephemeral and link-required" and "keeps exactly the two personal commands out of the channel". Revert and re-run to confirm green. That pair is the whole reason the manifest records ephemerality, so it must be shown to fail.
 
-- [ ] **Step 6: Export it from the barrel**
+- [x] **Step 6: Export it from the barrel**
 
 Modify `app/core/src/index.ts`. Add the line after `export * from './attributes'`:
 
@@ -227,7 +227,7 @@ Modify `app/core/src/index.ts`. Add the line after `export * from './attributes'
 export * from './bot-commands'
 ```
 
-- [ ] **Step 7: Verify the whole core workspace**
+- [x] **Step 7: Verify the whole core workspace**
 
 ```bash
 cd app
@@ -236,7 +236,7 @@ cd app
 
 Expected: all pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 cd /Users/timon.wegener/WebstormProjects/revelio
@@ -255,7 +255,7 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "feat(core): describe the bot
 - Consumes: `BOT_COMMANDS` from `@revelio/core` (Task 1); `COMMANDS` from `bot/src/discord/commands/index.ts`, a `Map<string, BotCommand>` whose entries expose `data: SlashCommandOptionsOnlyBuilder`.
 - Produces: nothing importable. This task's deliverable is the guarantee.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/bot/test/command-manifest.test.ts`:
 
@@ -333,7 +333,7 @@ describe('BOT_COMMANDS matches what the bot registers with Discord', () => {
 })
 ```
 
-- [ ] **Step 2: Run it to verify it passes immediately**
+- [x] **Step 2: Run it to verify it passes immediately**
 
 ```bash
 cd app
@@ -342,7 +342,7 @@ cd app
 
 Expected: PASS, 8 tests (one per command, plus three shared). This test is written against code that already exists, so unlike the rest of the plan it is green on first run. Step 3 is what proves it is worth keeping.
 
-- [ ] **Step 3: Prove the conformance test bites, three ways**
+- [x] **Step 3: Prove the conformance test bites, three ways**
 
 Each mutation must fail the test. Revert after each one and confirm green again before trying the next.
 
@@ -355,7 +355,7 @@ Each mutation must fail the test. Revert after each one and confirm green again 
 
 If any mutation passes, the test is not checking what it claims and must be fixed before committing.
 
-- [ ] **Step 4: Verify the whole bot workspace**
+- [x] **Step 4: Verify the whole bot workspace**
 
 ```bash
 cd app
@@ -364,7 +364,7 @@ cd app
 
 Expected: all pass, and the bot suite total is 8 higher than before this task.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /Users/timon.wegener/WebstormProjects/revelio

@@ -39,14 +39,14 @@ This task is a **gate**. Next 16 uses Turbopack for `next dev` *and* `next build
 - Consumes: nothing.
 - Produces: `useMDXComponents(components: MDXComponents): MDXComponents` from `@/mdx-components`; a working `/docs` route; `withMDX` wired in `next.config.ts`.
 
-- [ ] **Step 1: Install the MDX dependencies**
+- [x] **Step 1: Install the MDX dependencies**
 
 ```bash
 cd app
 /usr/local/bin/npm install -w web @next/mdx@^16.3.5 @mdx-js/loader @mdx-js/react @types/mdx
 ```
 
-- [ ] **Step 2: Create the MDX component map**
+- [x] **Step 2: Create the MDX component map**
 
 Create `app/web/src/mdx-components.tsx`. Minimal for now - Task 3 gives it real styling.
 
@@ -60,7 +60,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
 }
 ```
 
-- [ ] **Step 3: Wire the loader into next.config.ts**
+- [x] **Step 3: Wire the loader into next.config.ts**
 
 Modify `app/web/next.config.ts`. Add the import beside the existing ones:
 
@@ -85,7 +85,7 @@ the App Router tree, and is reached by explicit import. Adding the extension wou
 module resolution for every route just to serve five content files, and a stray `.mdx`
 under `src/app/` would be treated as routing surface. The App Router tree stays TSX-only.
 
-- [ ] **Step 4: Create the spike content file**
+- [x] **Step 4: Create the spike content file**
 
 Create `app/web/content/docs/spike.en.mdx`:
 
@@ -105,7 +105,7 @@ More body text.
 Closing text.
 ```
 
-- [ ] **Step 5: Create a minimal route that renders it**
+- [x] **Step 5: Create a minimal route that renders it**
 
 Create `app/web/src/app/[locale]/docs/page.tsx`:
 
@@ -127,7 +127,7 @@ export default function DocsPage() {
 
 The `@/../content/...` form matches how the repo already reaches outside `src/` (`@/../i18n/navigation`), since `@` is aliased to `web/src`.
 
-- [ ] **Step 6: Verify it renders under the dev server (Turbopack)**
+- [x] **Step 6: Verify it renders under the dev server (Turbopack)**
 
 ```bash
 cd app
@@ -142,7 +142,7 @@ curl -s http://localhost:3100/docs | grep -c "First heading"
 
 Expected: `1` or more. If the page 500s, capture the error from the dev server output - that is the gate result. Stop the dev server afterwards.
 
-- [ ] **Step 7: Verify it survives a production build**
+- [x] **Step 7: Verify it survives a production build**
 
 ```bash
 cd app
@@ -151,7 +151,7 @@ cd app
 
 Expected: build completes, and the route list includes `/[locale]/docs`. A failure here with an MDX or loader message is the gate failing - report it and stop.
 
-- [ ] **Step 8: Verify nothing else broke**
+- [x] **Step 8: Verify nothing else broke**
 
 ```bash
 cd app
@@ -160,7 +160,7 @@ cd app
 
 Expected: all pass. The web suite count should be unchanged from before this task.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 cd /Users/timon.wegener/WebstormProjects/revelio
@@ -183,7 +183,7 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "build(web): compile MDX with
 - Consumes: nothing from Task 1.
 - Produces: default-exported remark plugin `remarkToc`, which injects `export const toc` into every compiled MDX module. The exported shape is `readonly { depth: 2 | 3; id: string; text: string }[]`, in document order. Task 4 and phase 3's right rail both read it.
 
-- [ ] **Step 1: Install the plugin's dependencies**
+- [x] **Step 1: Install the plugin's dependencies**
 
 ```bash
 cd app
@@ -193,7 +193,7 @@ cd app
 
 `unified`, `remark-parse` and `remark-mdx` are dev-only: the test drives the plugin through a real pipeline, while `@next/mdx` supplies them at build time.
 
-- [ ] **Step 2: Let vitest collect tests from `mdx/`**
+- [x] **Step 2: Let vitest collect tests from `mdx/`**
 
 Modify `app/web/vitest.config.ts`. The `include` array currently reads:
 
@@ -209,7 +209,7 @@ Change it to:
     include: ['src/**/*.test.{ts,tsx}', 'i18n/**/*.test.ts', 'mdx/**/*.test.ts'],
 ```
 
-- [ ] **Step 3: Write the failing test**
+- [x] **Step 3: Write the failing test**
 
 Create `app/web/mdx/__tests__/remark-toc.test.ts`:
 
@@ -269,7 +269,7 @@ describe('remarkToc', () => {
 })
 ```
 
-- [ ] **Step 4: Run it to make sure it fails**
+- [x] **Step 4: Run it to make sure it fails**
 
 ```bash
 cd app
@@ -278,7 +278,7 @@ cd app
 
 Expected: FAIL - cannot resolve `../remark-toc.mjs`.
 
-- [ ] **Step 5: Write the plugin**
+- [x] **Step 5: Write the plugin**
 
 Create `app/web/mdx/remark-toc.mjs`:
 
@@ -376,7 +376,7 @@ export default function remarkToc() {
 
 ```
 
-- [ ] **Step 6: Run the test to verify it passes**
+- [x] **Step 6: Run the test to verify it passes**
 
 ```bash
 cd app
@@ -385,11 +385,11 @@ cd app
 
 Expected: PASS, 5 tests.
 
-- [ ] **Step 7: Prove the duplicate-heading test actually bites**
+- [x] **Step 7: Prove the duplicate-heading test actually bites**
 
 Temporarily change `LISTED_DEPTHS` to `new Set([2, 3, 4])` and re-run. Expected: the "ignores h1 and h4" test FAILS. Revert the change and re-run to confirm green again. A test that cannot fail is not a test.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 cd /Users/timon.wegener/WebstormProjects/revelio
@@ -410,7 +410,7 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "feat(web): export a table of
 - Consumes: `useMDXComponents` from Task 1.
 - Produces: the same signature, now returning styled `h2`, `h3`, `p`, `a`, `code`, `ul`, `ol`, `li` and `table`. Phase 3 adds `CommandTable` and `Callout` to the same map.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/web/src/__tests__/mdx-components.test.tsx`:
 
@@ -468,7 +468,7 @@ describe('useMDXComponents', () => {
 })
 ```
 
-- [ ] **Step 2: Run it to make sure it fails**
+- [x] **Step 2: Run it to make sure it fails**
 
 ```bash
 cd app
@@ -477,7 +477,7 @@ cd app
 
 Expected: FAIL - `components` has no `h2`, so the first test fails and the rest throw on an undefined component.
 
-- [ ] **Step 3: Implement the styled map**
+- [x] **Step 3: Implement the styled map**
 
 Replace the contents of `app/web/src/mdx-components.tsx`:
 
@@ -534,7 +534,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 ```bash
 cd app
@@ -543,7 +543,7 @@ cd app
 
 Expected: PASS, 5 tests.
 
-- [ ] **Step 5: Confirm the spike page still renders with the styles applied**
+- [x] **Step 5: Confirm the spike page still renders with the styles applied**
 
 ```bash
 cd app
@@ -558,7 +558,7 @@ curl -s http://localhost:3100/docs | grep -c "text-muted-foreground"
 
 Expected: `1` or more - the paragraph component reached the rendered page. Stop the dev server.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /Users/timon.wegener/WebstormProjects/revelio
@@ -584,14 +584,14 @@ Replaces the spike file with the first real content file and proves the `toc` ex
 - Consumes: `remarkToc` (Task 2), `useMDXComponents` (Task 3).
 - Produces: `content/docs/discord.{en,de}.mdx`, each exporting a default component and `toc`. Phase 3's registry imports exactly these two files for the `discord` slug.
 
-- [ ] **Step 1: Install rehype-slug**
+- [x] **Step 1: Install rehype-slug**
 
 ```bash
 cd app
 /usr/local/bin/npm install -w web rehype-slug
 ```
 
-- [ ] **Step 2: Register the plugins in next.config.ts**
+- [x] **Step 2: Register the plugins in next.config.ts**
 
 Modify `app/web/next.config.ts`. Add the imports:
 
@@ -611,7 +611,7 @@ const withMDX = createMDX({
 })
 ```
 
-- [ ] **Step 3: Write the English content file**
+- [x] **Step 3: Write the English content file**
 
 Create `app/web/content/docs/discord.en.mdx`. Body only - the title and description live in the message catalog (phase 3), so this file starts at the lede.
 
@@ -643,7 +643,7 @@ disconnecting your account, and [privacy and limits](/docs/discord/privacy) sets
 out exactly what the bot can and cannot see.
 ```
 
-- [ ] **Step 4: Write the German content file**
+- [x] **Step 4: Write the German content file**
 
 Create `app/web/content/docs/discord.de.mdx`. Command and option names stay untranslated - Discord sends the same keys in every language, so this is what a German user actually types.
 
@@ -675,7 +675,7 @@ Trennen, und [Datenschutz und Grenzen](/docs/discord/privacy) beschreibt genau,
 was der Bot sehen kann und was nicht.
 ```
 
-- [ ] **Step 5: Write the failing test**
+- [x] **Step 5: Write the failing test**
 
 Create `app/web/src/app/[locale]/docs/__tests__/docs-page.test.tsx`:
 
@@ -711,7 +711,7 @@ describe('the Discord overview content file', () => {
 })
 ```
 
-- [ ] **Step 6: Run it to make sure it fails**
+- [x] **Step 6: Run it to make sure it fails**
 
 ```bash
 cd app
@@ -720,7 +720,7 @@ cd app
 
 Expected: FAIL - vitest cannot import an `.mdx` file; it has no MDX plugin.
 
-- [ ] **Step 7: Teach vitest to compile MDX**
+- [x] **Step 7: Teach vitest to compile MDX**
 
 ```bash
 cd app
@@ -748,7 +748,7 @@ Add `mdx` to the `plugins` array, **before** `react()`, with the same plugin pai
 
 Leave the `include` array alone: content files are imported by tests, not collected as tests, so nothing else in the config changes.
 
-- [ ] **Step 8: Run the test to verify it passes**
+- [x] **Step 8: Run the test to verify it passes**
 
 ```bash
 cd app
@@ -757,7 +757,7 @@ cd app
 
 Expected: PASS, 3 tests. If the `toc` assertion fails on the ids, the slugger in `remark-toc.mjs` has diverged from `rehype-slug` - fix the plugin, not the test.
 
-- [ ] **Step 9: Point the route at the real content and drop the spike**
+- [x] **Step 9: Point the route at the real content and drop the spike**
 
 Replace the body of `app/web/src/app/[locale]/docs/page.tsx`:
 
@@ -783,7 +783,7 @@ Delete the spike file:
 rm app/web/content/docs/spike.en.mdx
 ```
 
-- [ ] **Step 10: Verify the whole pipeline, dev and build**
+- [x] **Step 10: Verify the whole pipeline, dev and build**
 
 ```bash
 cd app
@@ -806,7 +806,7 @@ cd app
 
 Expected: all four pass.
 
-- [ ] **Step 11: Commit**
+- [x] **Step 11: Commit**
 
 ```bash
 cd /Users/timon.wegener/WebstormProjects/revelio
@@ -823,6 +823,31 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "feat(web): serve the Discord
 - Every `h2` carries an id, and the page module exports a matching `toc`.
 - `npm test -w web`, `npm run typecheck`, `npm run lint` and `npm run build -w web` all pass.
 - `content/docs/discord.de.mdx` exists and is tested, though nothing routes to it yet - phase 3 adds the registry that selects by locale.
+
+## Deviations from the plan as written
+
+Three things the plan did not anticipate, all resolved inside this phase:
+
+1. **Turbopack rejects plugin function references.** `createMDX({ options: { remarkPlugins:
+   [remarkToc] } })` fails at request time with "loader ... does not have serializable
+   options": Turbopack serializes loader options across threads, so a function cannot cross.
+   Plugins are named by module path instead. The local one needs an **absolute** path -
+   `@next/mdx` resolves these with `require.resolve(path, { paths: [projectRoot] })`, and
+   Node ignores `paths` for a relative specifier, resolving it inside `node_modules/@next/mdx`
+   instead. `next.config.ts` carries the reason. `vitest.config.mts` still imports the plugin
+   by reference, since Vite has no such constraint.
+2. **`vitest.config.ts` had to become `vitest.config.mts`.** `web/package.json` has no
+   `"type": "module"`, so Vite bundles a `.ts` config to CJS, and the whole unified/remark
+   chain is ESM-only ("ESM file cannot be loaded by `require`"). Nothing referenced the config
+   by path - both `npm test` and CI rely on auto-discovery - so the rename is inert elsewhere.
+3. **Step 6's port-3100 trick does not work on Next 16.** A second `next dev` for the same
+   directory is refused whatever the port ("Another next dev server is already running"), so
+   the running server has to be stopped rather than worked around.
+
+Two smaller corrections: `@types/mdx` was moved to `devDependencies`, where every other
+`@types/*` in this workspace sits; and the German content file uses real umlauts rather than
+the plan's `Fuer`/`verknuepft` transliterations, since the ASCII rule covers code comments,
+not user-facing copy (`messages/de.json` is full of umlauts).
 
 ## What this phase deliberately does not do
 

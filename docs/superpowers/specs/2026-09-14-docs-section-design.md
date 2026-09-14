@@ -126,7 +126,7 @@ where it does.
 New module `core/src/bot-commands.ts`, exported from the `@revelio/core` barrel.
 
 ```ts
-export type CommandOption = {
+export type CommandOptionSpec = {
   name: string
   type: 'string' | 'integer'
   required: boolean
@@ -135,15 +135,19 @@ export type CommandOption = {
   min?: number
 }
 
-export type BotCommand = {
+export type BotCommandSpec = {
   name: 'card' | 'search' | 'deck' | 'collection' | 'mydecks'
   ephemeral: boolean
   linkRequired: boolean
-  options: readonly CommandOption[]
+  options: readonly CommandOptionSpec[]
 }
 
-export const BOT_COMMANDS: readonly BotCommand[]
+export const BOT_COMMANDS: readonly BotCommandSpec[]
 ```
+
+The `Spec` suffix avoids a collision: `bot/src/discord/commands/index.ts` already exports
+a `BotCommand` type for the runtime shape (builder plus handlers), which is a different
+thing from this description of a command's surface.
 
 `choices` names an attribute scope rather than listing values, so the rendered table reuses
 `attrLabel` and stays correct when a lesson or type is added.

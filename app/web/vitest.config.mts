@@ -1,12 +1,23 @@
+// .mts, not .ts: web/package.json has no "type": "module", so Vite bundles a
+// .ts config to CJS, and the remark/rehype chain this config imports is ESM-only
+// ("ESM file cannot be loaded by `require`"). The .mts extension makes it ESM.
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
+import mdx from '@mdx-js/rollup'
+import rehypeSlug from 'rehype-slug'
+import remarkToc from './mdx/remark-toc.mjs'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    // Same remark/rehype pair as next.config.ts, so a test asserts what the
+    // build actually produces rather than a second, drifting pipeline.
+    mdx({ remarkPlugins: [remarkToc], rehypePlugins: [rehypeSlug] }),
+    react(),
+  ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -24,9 +35,9 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
-    // i18n/ sits beside src/ (next-intl's plugin path points at ./i18n), so its
-    // tests need collecting too.
-    include: ['src/**/*.test.{ts,tsx}', 'i18n/**/*.test.ts'],
+    // mdx/ and i18n/ both sit beside src/ because next.config.ts imports them
+    // at build time, so their tests need collecting too.
+    include: ['src/**/*.test.{ts,tsx}', 'i18n/**/*.test.ts', 'mdx/**/*.test.ts'],
     // Inline next-intl so Vite's alias resolution applies inside node_modules
     server: { deps: { inline: ['next-intl', 'use-intl'] } },
   },

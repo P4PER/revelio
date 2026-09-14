@@ -12,13 +12,19 @@ const banner = {
   js: "import{createRequire as __cr}from'node:module';const require=__cr(import.meta.url);",
 }
 
-await esbuild.build({
-  entryPoints: ['src/main.ts'],
-  outfile: 'dist/bot.mjs',
-  bundle: true,
-  platform: 'node',
-  target: 'node22',
-  format: 'esm',
-  banner,
-  logLevel: 'warning',
-})
+// esbuild has already printed the formatted error at this logLevel, so rethrowing
+// would only add an unhandled-rejection stack on top of it. Exit on the message.
+try {
+  await esbuild.build({
+    entryPoints: ['src/main.ts'],
+    outfile: 'dist/bot.mjs',
+    bundle: true,
+    platform: 'node',
+    target: 'node22',
+    format: 'esm',
+    banner,
+    logLevel: 'warning',
+  })
+} catch {
+  process.exit(1)
+}

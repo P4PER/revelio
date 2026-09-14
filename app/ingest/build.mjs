@@ -22,14 +22,20 @@ const entries = [
   { entryPoints: ['../db/src/migrate-cli.ts'], outfile: 'dist/migrate.mjs' },
 ]
 
-for (const entry of entries) {
-  await esbuild.build({
-    ...entry,
-    bundle: true,
-    platform: 'node',
-    target: 'node22',
-    format: 'esm',
-    banner,
-    logLevel: 'warning',
-  })
+// esbuild has already printed the formatted error at this logLevel, so rethrowing
+// would only add an unhandled-rejection stack on top of it. Exit on the message.
+try {
+  for (const entry of entries) {
+    await esbuild.build({
+      ...entry,
+      bundle: true,
+      platform: 'node',
+      target: 'node22',
+      format: 'esm',
+      banner,
+      logLevel: 'warning',
+    })
+  }
+} catch {
+  process.exit(1)
 }

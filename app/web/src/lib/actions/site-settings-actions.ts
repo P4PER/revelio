@@ -26,6 +26,7 @@ export async function updateSiteSettings(input: unknown): Promise<SiteSettingsAc
     hostingProvider: nullify(d.hostingProvider),
     responsiblePerson: nullify(d.responsiblePerson),
     githubUrl: nullify(d.githubUrl),
+    discordInviteUrl: nullify(d.discordInviteUrl),
   })
   // updateTag (Server-Action-only) purges the tag AND marks the path revalidated,
   // giving read-your-own-writes: the footer/legal pages reflect the save on the

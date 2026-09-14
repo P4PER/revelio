@@ -542,13 +542,14 @@
   },
   "adminSettings": {
     "title": "Website-Einstellungen",
-    "intro": "Betreiber- und Rechtsangaben für Impressum und Datenschutz sowie der GitHub-Link im Footer.",
+    "intro": "Betreiber- und Rechtsangaben für Impressum und Datenschutz, dazu der GitHub-Link im Footer und der Installationslink des Discord-Bots.",
     "operatorName": "Name des Betreibers",
     "operatorAddress": "Postanschrift",
     "contactEmail": "Kontakt-E-Mail",
     "hostingProvider": "Hosting-Anbieter",
     "responsiblePerson": "Verantwortliche Person (optional)",
     "githubUrl": "GitHub-URL",
+    "discordInviteUrl": "Discord-Installationslink",
     "save": "Speichern",
     "saved": "Einstellungen gespeichert.",
     "saveError": "Einstellungen konnten nicht gespeichert werden."

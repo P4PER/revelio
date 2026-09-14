@@ -24,6 +24,7 @@ export function makeSiteSettingsSchema(t: T) {
     hostingProvider: z.string().trim().max(200),
     responsiblePerson: z.string().trim().max(200),
     githubUrl: z.string().trim().max(500).refine(isUrl, t('url')),
+    discordInviteUrl: z.string().trim().max(500).refine(isUrl, t('url')),
   })
 }
 

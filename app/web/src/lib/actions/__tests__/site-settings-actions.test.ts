@@ -18,6 +18,7 @@ const VALID = {
   hostingProvider: 'Acme VPS',
   responsiblePerson: '',
   githubUrl: 'https://github.com/P4PER/revelio',
+  discordInviteUrl: 'https://discord.com/oauth2/authorize?client_id=1',
 }
 
 beforeEach(() => {
@@ -64,6 +65,7 @@ describe('updateSiteSettings', () => {
         hostingProvider: 'Acme VPS',
         responsiblePerson: null,
         githubUrl: 'https://github.com/P4PER/revelio',
+        discordInviteUrl: 'https://discord.com/oauth2/authorize?client_id=1',
       },
     )
     expect(updateTag).toHaveBeenCalledWith('site-settings')
@@ -72,5 +74,19 @@ describe('updateSiteSettings', () => {
   it('allows empty contactEmail and githubUrl', async () => {
     const result = await updateSiteSettings({ ...VALID, contactEmail: '', githubUrl: '' })
     expect(result).toEqual({ ok: true })
+  })
+
+  it('rejects a non-http(s) discord invite url scheme', async () => {
+    const result = await updateSiteSettings({ ...VALID, discordInviteUrl: 'javascript:alert(1)' })
+    expect(result).toEqual({ ok: false, error: 'invalid' })
+    expect(upsertSiteSettings).not.toHaveBeenCalled()
+  })
+
+  it('stores a blank discord invite url as null', async () => {
+    await updateSiteSettings({ ...VALID, discordInviteUrl: '' })
+    expect(upsertSiteSettings).toHaveBeenCalledWith(
+      { __db: true },
+      expect.objectContaining({ discordInviteUrl: null }),
+    )
   })
 })

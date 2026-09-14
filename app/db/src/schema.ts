@@ -218,6 +218,7 @@ export const siteSettings = pgTable('site_settings', {
   hostingProvider: text('hosting_provider'),
   responsiblePerson: text('responsible_person'),
   githubUrl: text('github_url'),
+  discordInviteUrl: text('discord_invite_url'),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 

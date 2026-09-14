@@ -542,13 +542,14 @@
   },
   "adminSettings": {
     "title": "Site settings",
-    "intro": "Operator and legal details shown on the Imprint and Privacy pages, plus the footer GitHub link.",
+    "intro": "Operator and legal details shown on the Imprint and Privacy pages, plus the footer GitHub link and the Discord bot install link.",
     "operatorName": "Operator name",
     "operatorAddress": "Postal address",
     "contactEmail": "Contact email",
     "hostingProvider": "Hosting provider",
     "responsiblePerson": "Responsible person (optional)",
     "githubUrl": "GitHub URL",
+    "discordInviteUrl": "Discord install URL",
     "save": "Save",
     "saved": "Settings saved.",
     "saveError": "Could not save settings."

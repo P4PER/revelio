@@ -123,7 +123,13 @@ export function DeckSheet({
     // Opening the sheet with the page already scrolled would put it partly off
     // the top of the screen, and the lock would then hold it there. Come back
     // to the workbench first, so open always means the same thing.
-    window.scrollTo(0, 0)
+    //
+    // `behavior: 'instant'` is load-bearing: globals.css sets
+    // `scroll-behavior: smooth` on <html>, which would otherwise animate this
+    // and let the lock below freeze the page mid-flight - the exact state this
+    // call exists to avoid. 'auto' would defer to the CSS, so it has to be
+    // 'instant'.
+    window.scrollTo({ top: 0, behavior: 'instant' })
     const root = document.documentElement
     const body = document.body
     // Measured before anything is locked, while the scrollbar is still there.

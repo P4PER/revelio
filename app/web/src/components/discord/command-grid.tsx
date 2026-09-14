@@ -69,8 +69,14 @@ function ReferenceTile({ href }: { href: string }) {
 export function CommandGrid({ docsHref }: { docsHref?: string | null }) {
   const t = useTranslations('discord')
   return (
-    <section id="commands" className="border-t border-border/60 py-14">
-      <h2 className="text-center text-xl font-semibold text-foreground">{t('commandsTitle')}</h2>
+    <section
+      id="commands"
+      aria-labelledby="commands-title"
+      className="border-t border-border/60 py-14"
+    >
+      <h2 id="commands-title" className="text-center text-xl font-semibold text-foreground">
+        {t('commandsTitle')}
+      </h2>
       <p className="mx-auto mt-2 max-w-md text-center text-sm text-muted-foreground">
         {t('commandsIntro')}
       </p>

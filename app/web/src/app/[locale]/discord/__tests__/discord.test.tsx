@@ -52,8 +52,8 @@ describe('DiscordContent', () => {
     // Scoped to the commands landmark: the channel mockup above it also prints
     // "/card", in its "you used /card" context line.
     const commands = screen.getByRole('region', { name: 'What you can type' })
-    expect(within(commands).getByText('/card')).toBeInTheDocument()
-    expect(within(commands).getByText('/mydecks')).toBeInTheDocument()
+    expect(within(commands).getByText('/card', { selector: 'span' })).toBeInTheDocument()
+    expect(within(commands).getByText('/mydecks', { selector: 'span' })).toBeInTheDocument()
   })
 
   it('shows the channel mockup', () => {
@@ -70,9 +70,11 @@ describe('DiscordContent', () => {
     )
   })
 
-  // The docs route does not exist yet, so the tile stays off.
-  it('does not link a reference tile yet', () => {
+  it('links the reference tile at the docs route', () => {
     renderPage('en', en, INVITE)
-    expect(screen.queryByRole('link', { name: /Full reference/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Full reference/i })).toHaveAttribute(
+      'href',
+      '/discord/docs',
+    )
   })
 })

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { DiscordMark } from '@/components/discord-mark'
+import { CommandCode } from '@/components/discord/command-code'
 import {
   AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -29,27 +30,15 @@ const ERROR_KEYS: Record<string, string> = {
   unable_to_link_account: 'unverifiedDiscord',
 }
 
-// The bot's commands are literal input the reader has to type in Discord, so
-// they render as code rather than as prose. Deliberately not Discord's blue
-// mention pill: on a web page it cannot be clicked, and a chip that looks
-// pressable but is not would promise something this page cannot do.
-//
-// The tint is a percentage of the foreground rather than a surface token, so it
-// steps the same amount away from the row in both themes: bg-background is
-// lighter than this row in the light theme but darker in the dark one, where it
-// reads as a black bar. nowrap keeps "/collection" whole when the row wraps.
-function cmd(chunks: ReactNode) {
-  return (
-    <code className="rounded bg-foreground/10 px-1 py-px font-mono text-[0.95em] whitespace-nowrap text-foreground">
-      {chunks}
-    </code>
-  )
-}
-
 // One provider, one component: the pending flag, the failure line and the
 // confirm dialog all belong to Discord alone. A second provider gets its own
 // component beside this one rather than a share of this state, so that linking
 // one cannot disable the other's button or show its error.
+// t.rich tag handler for the <cmd> spans in this pane's copy.
+function cmd(chunks: ReactNode) {
+  return <CommandCode>{chunks}</CommandCode>
+}
+
 export function DiscordConnection({
   linked,
   configured,

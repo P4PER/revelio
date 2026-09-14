@@ -43,16 +43,24 @@ const SEARCH_LINES: readonly SearchLine[] = [
 
 const SAMPLE_CARD_THUMB = '/discord/alohomora-thumb.webp'
 
+// The real wand mark, on the midnight circle a Discord avatar crops to. The
+// mark's own indigo would nearly vanish against Discord's grey surface, so the
+// circle carries the brand's background rather than being transparent.
+// Decorative: the bot's name is printed beside it on every message.
 function BotAvatar() {
   return (
     <span
-      className="flex size-8 shrink-0 items-center justify-center rounded-full border"
-      style={{ background: '#1C1838', borderColor: '#2E2A50' }}
+      className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full"
+      style={{ background: '#13122A' }}
     >
-      <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true">
-        <path d="M3 21 15 9l-1.8-1.8L1.2 19.2Z" fill="#6E66C9" />
-        <path d="m18 2 1.4 3.1L22.5 6.5l-3.1 1.4L18 11l-1.4-3.1L13.5 6.5l3.1-1.4Z" fill="#E8B23A" />
-      </svg>
+      <Image
+        src="/revelio-icon.svg"
+        alt=""
+        width={68}
+        height={68}
+        aria-hidden
+        className="size-5"
+      />
     </span>
   )
 }
@@ -201,6 +209,13 @@ export function CommandChannel() {
           /collection
         </span>
         <span>{t('sample.typing')}</span>
+        {/* Discord's own caret, so the line reads as mid-typing rather than sent.
+            globals.css owns the keyframes as --animate-caret-blink. */}
+        <span
+          className="inline-block h-4 w-px animate-caret-blink motion-reduce:animate-none"
+          style={{ background: DISCORD_TEXT }}
+          aria-hidden
+        />
       </div>
     </div>
   )

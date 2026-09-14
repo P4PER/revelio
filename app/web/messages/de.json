@@ -550,7 +550,7 @@
     "hostingProvider": "Hosting-Anbieter",
     "responsiblePerson": "Verantwortliche Person (optional)",
     "githubUrl": "GitHub-URL",
-    "discordInviteUrl": "Discord-Installationslink",
+    "discordInviteUrl": "Discord-Bot-Installationslink",
     "save": "Speichern",
     "saved": "Einstellungen gespeichert.",
     "saveError": "Einstellungen konnten nicht gespeichert werden."
@@ -754,7 +754,7 @@
     "you": "du",
     "cardImageAlt": "Karte {name}",
     "commandsTitle": "Was du tippen kannst",
-    "commandsIntro": "Tippe / in jedem Kanal, den der Bot sieht. Den Rest ergänzt Discord.",
+    "commandsIntro": "Tippe <slash>/</slash> in jedem Kanal, den der Bot sieht. Den Rest ergänzt Discord.",
     "ephemeral": "Nur du siehst es",
     "commands": {
       "card": {
@@ -786,7 +786,7 @@
       "addTitle": "Bot hinzufügen",
       "addBody": "Ein Klick, keine Rechte außer Schreiben.",
       "linkTitle": "Konto verknüpfen",
-      "linkBody": "Nur für /collection und /mydecks nötig, unter Einstellungen und dann Verbindungen.",
+      "linkBody": "Nur für <cmd>/collection</cmd> und <cmd>/mydecks</cmd> nötig, unter Einstellungen und dann Verbindungen.",
       "typeTitle": "Slash tippen",
       "typeBody": "Die Befehle erscheinen in jedem Kanal, den der Bot sieht."
     },

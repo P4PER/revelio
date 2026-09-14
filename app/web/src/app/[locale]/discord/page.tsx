@@ -11,9 +11,9 @@ import { CommandChannel } from '@/components/discord/command-channel'
 import { CommandGrid } from '@/components/discord/command-grid'
 import { DiscordCta } from '@/components/discord/discord-cta'
 
-// `/discord/docs` does not exist yet. Passing the path here is the one change
-// that turns the reference tile on once it does.
-const DOCS_HREF = null
+// The reference tile's target. `/discord/docs` is not built yet, so this link
+// is live ahead of its page: set it back to null to hide the tile again.
+const DOCS_HREF = '/discord/docs'
 
 export const dynamic = 'force-dynamic'
 

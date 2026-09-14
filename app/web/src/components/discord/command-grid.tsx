@@ -1,6 +1,7 @@
 import { BookText, ArrowRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/../i18n/navigation'
+import { CommandCode } from '@/components/discord/command-code'
 
 type CommandKey = 'card' | 'search' | 'deck' | 'collection' | 'mydecks'
 
@@ -40,10 +41,12 @@ function CommandCard({ command }: { command: Command }) {
 }
 
 /**
- * The reference tile. Deliberately not a sixth command: dashed indigo border, a
+ * The reference tile. Deliberately not a sixth command: a dashed border, a
  * document glyph and a sans-face title, so nobody reads it as something they can
- * type. It is absent until a docs route exists, which keeps the grid from
- * offering a link to a 404 - five tiles still fill the rows cleanly.
+ * type. It carries the same card surface as its neighbours and spends its accent
+ * on the gold primary rather than a blue wash, which stayed legible in neither
+ * theme. Passing no `docsHref` drops it and the remaining five tiles still fill
+ * the rows cleanly, which is the escape hatch if the docs route goes away.
  */
 function ReferenceTile({ href }: { href: string }) {
   const t = useTranslations('discord')
@@ -51,12 +54,12 @@ function ReferenceTile({ href }: { href: string }) {
     <li>
       <Link
         href={href}
-        className="flex h-full flex-col justify-center gap-1.5 rounded-xl border border-dashed border-secondary-ink/55 bg-secondary/25 p-4 transition-colors hover:bg-secondary/40"
+        className="flex h-full flex-col justify-center gap-1.5 rounded-xl border border-dashed border-primary/50 bg-card p-4 transition-colors hover:bg-accent/40"
       >
-        <BookText className="size-5 text-secondary-ink" aria-hidden />
-        <span className="flex items-center gap-1.5 font-semibold text-secondary-ink">
+        <BookText className="size-5 text-primary-ink" aria-hidden />
+        <span className="flex items-center gap-1.5 font-semibold text-foreground">
           {t('reference.title')}
-          <ArrowRight className="size-4" aria-hidden />
+          <ArrowRight className="size-4 text-primary-ink" aria-hidden />
         </span>
         <span className="text-sm leading-relaxed text-muted-foreground">
           {t('reference.description')}
@@ -78,17 +81,21 @@ export function CommandGrid({ docsHref }: { docsHref?: string | null }) {
         {t('commandsTitle')}
       </h2>
       <p className="mx-auto mt-2 max-w-md text-center text-sm text-muted-foreground">
-        {t('commandsIntro')}
+        {t.rich('commandsIntro', {
+          slash: (chunks) => (
+            <span className="font-mono font-medium text-primary-ink">{chunks}</span>
+          ),
+        })}
       </p>
 
-      <ul className="mx-auto mt-8 grid max-w-3xl gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mx-auto mt-8 grid max-w-4xl gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {COMMANDS.map((command) => (
           <CommandCard key={command.key} command={command} />
         ))}
         {docsHref && <ReferenceTile href={docsHref} />}
       </ul>
 
-      <ol className="mx-auto mt-10 grid max-w-3xl gap-5 border-t border-border/60 pt-8 sm:grid-cols-3">
+      <ol className="mx-auto mt-10 grid max-w-4xl gap-5 border-t border-border/60 pt-8 sm:grid-cols-3">
         {STEPS.map((step, i) => (
           <li key={step} className="flex gap-3">
             <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-primary/50 font-mono text-xs text-primary-ink">
@@ -98,7 +105,9 @@ export function CommandGrid({ docsHref }: { docsHref?: string | null }) {
               <b className="block text-[0.9rem] font-medium text-foreground">
                 {t(`steps.${step}Title`)}
               </b>
-              {t(`steps.${step}Body`)}
+              {t.rich(`steps.${step}Body`, {
+                cmd: (chunks) => <CommandCode>{chunks}</CommandCode>,
+              })}
             </span>
           </li>
         ))}

@@ -550,7 +550,7 @@
     "hostingProvider": "Hosting provider",
     "responsiblePerson": "Responsible person (optional)",
     "githubUrl": "GitHub URL",
-    "discordInviteUrl": "Discord install URL",
+    "discordInviteUrl": "Discord bot install URL",
     "save": "Save",
     "saved": "Settings saved.",
     "saveError": "Could not save settings."
@@ -791,7 +791,7 @@
     "you": "you",
     "cardImageAlt": "{name} card",
     "commandsTitle": "What you can type",
-    "commandsIntro": "Type / in any channel the bot can see. Discord fills in the rest.",
+    "commandsIntro": "Type <slash>/</slash> in any channel the bot can see. Discord fills in the rest.",
     "ephemeral": "Only you see it",
     "commands": {
       "card": {
@@ -823,7 +823,7 @@
       "addTitle": "Add the bot",
       "addBody": "One click, no permissions beyond posting.",
       "linkTitle": "Link your account",
-      "linkBody": "Only needed for /collection and /mydecks, from Settings then Connections.",
+      "linkBody": "Only needed for <cmd>/collection</cmd> and <cmd>/mydecks</cmd>, from Settings then Connections.",
       "typeTitle": "Type a slash",
       "typeBody": "Commands appear in every channel the bot can see."
     },

@@ -19,11 +19,19 @@ function renderGrid(docsHref?: string | null) {
 }
 
 describe('CommandGrid', () => {
+  // Tile names are spans; the same commands also appear as <code> chips in the
+  // step copy below, so the selector is what keeps this unambiguous.
   it('lists all five commands', () => {
     renderGrid()
     for (const name of ['/card', '/search', '/deck', '/collection', '/mydecks']) {
-      expect(screen.getByText(name)).toBeInTheDocument()
+      expect(screen.getByText(name, { selector: 'span' })).toBeInTheDocument()
     }
+  })
+
+  it('renders the step copy commands as code chips', () => {
+    renderGrid()
+    expect(screen.getByText('/collection', { selector: 'code' })).toBeInTheDocument()
+    expect(screen.getByText('/mydecks', { selector: 'code' })).toBeInTheDocument()
   })
 
   // /collection and /mydecks defer ephemerally in the bot, so the page must not

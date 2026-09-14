@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkMdx from 'remark-mdx'
+import remarkRehype from 'remark-rehype'
+import rehypeSlug from 'rehype-slug'
+import { visit } from 'unist-util-visit'
 import remarkToc from '../remark-toc.mjs'
 
 // The plugin injects an ESM export node into the tree. Reading it back out of
@@ -15,6 +18,18 @@ function tocOf(markdown: string): unknown {
   const node = tree.children.find((child) => child.type === 'mdxjsEsm')
   if (!node?.value) return undefined
   return JSON.parse(node.value.replace('export const toc = ', '').replace(/;$/, ''))
+}
+
+// The ids rehype-slug actually writes onto the rendered headings. The toc is
+// only useful if its ids are a subset of these, matched heading for heading.
+function renderedIds(markdown: string): string[] {
+  const md = unified().use(remarkParse)
+  const hast = unified().use(remarkRehype).use(rehypeSlug).runSync(md.parse(markdown))
+  const ids: string[] = []
+  visit(hast, 'element', (node: { tagName?: string; properties?: { id?: string } }) => {
+    if (/^h[1-6]$/.test(node.tagName ?? '') && node.properties?.id) ids.push(node.properties.id)
+  })
+  return ids
 }
 
 describe('remarkToc', () => {
@@ -45,6 +60,19 @@ describe('remarkToc', () => {
     expect(tocOf('## The `/search` command\n')).toEqual([
       { depth: 2, id: 'the-search-command', text: 'The /search command' },
     ])
+  })
+
+  // rehype-slug runs one slugger across h1-h6, so a heading this plugin does
+  // not list still consumes a suffix. Skip it and every id after the collision
+  // is off by one: the rail links to the h4 and the second h2 becomes
+  // unreachable. Ids must be taken from every heading, listed or not.
+  it('stays in step with rehype-slug across headings it does not list', () => {
+    const markdown = '## Options\n\n#### Options\n\n## Options\n'
+    expect(tocOf(markdown)).toEqual([
+      { depth: 2, id: 'options', text: 'Options' },
+      { depth: 2, id: 'options-2', text: 'Options' },
+    ])
+    expect(renderedIds(markdown)).toEqual(['options', 'options-1', 'options-2'])
   })
 
   it('exports an empty list for a file with no headings', () => {

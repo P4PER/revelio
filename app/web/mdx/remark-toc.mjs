@@ -53,9 +53,14 @@ export default function remarkToc() {
     const toc = []
 
     visit(tree, 'heading', (node) => {
-      if (!LISTED_DEPTHS.has(node.depth)) return
+      // Slug every heading, not only the listed ones. rehype-slug runs a
+      // single slugger over h1-h6, so skipping one here would leave this
+      // counter behind: with `#### Options` between two `## Options`, the h4
+      // takes `options-1` on the page while the rail hands that id to the
+      // second h2 - which then has no anchor pointing at it at all.
       const text = plainText(node)
-      toc.push({ depth: node.depth, id: slugger.slug(text), text })
+      const id = slugger.slug(text)
+      if (LISTED_DEPTHS.has(node.depth)) toc.push({ depth: node.depth, id, text })
     })
 
     tree.children.unshift({

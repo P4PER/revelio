@@ -5,7 +5,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // identity translator so we assert on the translation KEYS the page wires up
 // (the client form is stubbed, so no NextIntlClientProvider is needed).
 vi.mock('next-intl/server', () => ({
-  setRequestLocale: vi.fn(),
   getTranslations: async () => (k: string) => k,
 }))
 const getSession = vi.fn(async () => null as unknown)
@@ -35,7 +34,7 @@ beforeEach(() => {
 
 describe('ContactPage', () => {
   it('renders the accent title, intro, and the form', async () => {
-    const ui = await ContactPage({ params: Promise.resolve({ locale: 'en' }) })
+    const ui = await ContactPage()
     render(ui)
 
     const heading = screen.getByRole('heading', { level: 1 })
@@ -46,7 +45,7 @@ describe('ContactPage', () => {
   })
 
   it('passes empty defaults for a signed-out visitor', async () => {
-    render(await ContactPage({ params: Promise.resolve({ locale: 'en' }) }))
+    render(await ContactPage())
     const form = screen.getByTestId('contact-form')
     expect(form).toHaveAttribute('data-name', '')
     expect(form).toHaveAttribute('data-email', '')
@@ -56,7 +55,7 @@ describe('ContactPage', () => {
     getSession.mockResolvedValue({
       user: { displayUsername: 'Hermione', username: 'hermione', email: 'hermione@example.com' },
     })
-    render(await ContactPage({ params: Promise.resolve({ locale: 'en' }) }))
+    render(await ContactPage())
     const form = screen.getByTestId('contact-form')
     expect(form).toHaveAttribute('data-name', 'Hermione')
     expect(form).toHaveAttribute('data-email', 'hermione@example.com')

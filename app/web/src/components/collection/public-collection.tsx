@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { resolveCollectionOwner, getCollectionVisibility } from '@revelio/db'
 import { getSession } from '@/lib/server/session'
 import { getDb } from '@/lib/server/db'
@@ -21,7 +21,6 @@ export async function PublicCollection({
   identifier: string
   searchParams: Record<string, string | string[] | undefined>
 }) {
-  setRequestLocale(locale)
   const db = getDb()
   const owner = await resolveCollectionOwner(db, decodeURIComponent(identifier))
   if (!owner) notFound()

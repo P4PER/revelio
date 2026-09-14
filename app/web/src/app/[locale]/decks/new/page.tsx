@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { listSets } from '@revelio/db'
 import { getDb } from '@/lib/server/db'
 import { getSession } from '@/lib/server/session'
@@ -8,13 +8,7 @@ import { DeckBuilder } from '@/components/deck/deck-builder'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>
-}): Promise<Metadata> {
-  const { locale } = await params
-  setRequestLocale(locale)
+export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('decks')
   // Interactive builder tool, not indexable content — keep out of the index.
   return { title: t('title'), robots: { index: false } }
@@ -26,7 +20,6 @@ export default async function NewDeckPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  setRequestLocale(locale)
   const [sets, session] = await Promise.all([listSets(getDb(), locale), getSession()])
 
   return (

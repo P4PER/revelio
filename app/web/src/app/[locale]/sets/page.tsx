@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { setRequestLocale, getTranslations } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import type { SetDTO } from '@revelio/core'
 import { getDb } from '@/lib/server/db'
 import { listSets } from '@revelio/db'
@@ -10,13 +10,7 @@ export const dynamic = 'force-dynamic'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>
-}): Promise<Metadata> {
-  const { locale } = await params
-  setRequestLocale(locale)
+export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('sets')
   return { title: t('title') }
 }
@@ -39,7 +33,6 @@ function SetSection({ title, sets }: { title: string; sets: SetDTO[] }) {
 
 export default async function SetsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  setRequestLocale(locale)
   const t = await getTranslations('sets')
   const sets = await listSets(getDb(), locale)
   const official = sets.filter((s) => s.isOfficial).sort(byReleaseDate)

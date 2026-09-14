@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { getDeck, listSets } from '@revelio/db'
 import type { BuilderState } from '@/lib/deck-model'
 import { getDb } from '@/lib/server/db'
@@ -14,8 +14,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: string; id: string }>
 }): Promise<Metadata> {
-  const { locale, id } = await params
-  setRequestLocale(locale)
+  const { id } = await params
   const [session, existing, t] = await Promise.all([
     getSession(),
     getDeck(getDb(), id),
@@ -31,7 +30,6 @@ export default async function EditDeckPage({
   params: Promise<{ locale: string; id: string }>
 }) {
   const { locale, id } = await params
-  setRequestLocale(locale)
   const [session, existing, sets] = await Promise.all([
     getSession(),
     getDeck(getDb(), id),

@@ -5,7 +5,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // translator that echoes "<namespace>.<key>", so the assertions pin down both
 // the namespace the page reads from and the key it wires up.
 vi.mock('next-intl/server', () => ({
-  setRequestLocale: vi.fn(),
   getTranslations: async ({ namespace }: { namespace: string }) =>
     (k: string) => `${namespace}.${k}`,
 }))

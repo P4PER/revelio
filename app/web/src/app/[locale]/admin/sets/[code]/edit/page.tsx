@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { setRequestLocale, getTranslations } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { ChevronLeft } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import { routing } from '@/../i18n/routing'
@@ -18,8 +18,7 @@ export default async function EditSetPage({
 }: {
   params: Promise<{ locale: string; code: string }>
 }) {
-  const { locale, code } = await params
-  setRequestLocale(locale)
+  const { code } = await params
   const set = await getSetForEdit(getDb(), code)
   if (!set) notFound()
   const t = await getTranslations('admin.sets')

@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { cache } from 'react'
 import { notFound } from 'next/navigation'
-import { setRequestLocale } from 'next-intl/server'
 import { effectiveImageLang, imageKey, imageUrl } from '@revelio/core'
 import { routing } from '@/../i18n/routing'
 import { getPathname } from '@/../i18n/navigation'
@@ -55,7 +54,6 @@ export default async function CardPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const { locale, id } = await params
-  setRequestLocale(locale)
   const card = await loadCard(id, locale)
   if (!card) notFound()
   const { loc } = pickLocalization(card, locale)

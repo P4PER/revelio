@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { getDeckForViewer, getDeckLikeState } from '@revelio/db'
 import { getDb } from '@/lib/server/db'
 import { getSession } from '@/lib/server/session'
@@ -15,8 +15,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: string; id: string }>
 }): Promise<Metadata> {
-  const { locale, id } = await params
-  setRequestLocale(locale)
+  const { id } = await params
   const [session, t] = await Promise.all([getSession(), getTranslations('decks')])
   // getDeckForViewer returns null for a deck this viewer can't see, so a private
   // deck's name never leaks into the title for a non-owner.
@@ -29,8 +28,7 @@ export default async function DeckOverviewPage({
 }: {
   params: Promise<{ locale: string; id: string }>
 }) {
-  const { locale, id } = await params
-  setRequestLocale(locale)
+  const { id } = await params
   const [session, cookieStore] = await Promise.all([getSession(), cookies()])
   const viewerId = session?.user?.id ?? null
   const existing = await getDeckForViewer(getDb(), id, viewerId)

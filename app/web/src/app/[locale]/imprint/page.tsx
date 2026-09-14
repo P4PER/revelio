@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { setRequestLocale, getTranslations } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { useTranslations } from 'next-intl'
 import { ProseShell } from '@/components/legal/prose-shell'
 import { ContactEmail } from '@/components/legal/contact-email'
@@ -8,13 +8,7 @@ import { BRAND_NAME } from '@/lib/brand'
 
 export const dynamic = 'force-dynamic'
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>
-}): Promise<Metadata> {
-  const { locale } = await params
-  setRequestLocale(locale)
+export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('imprint')
   return { title: t('metaTitle') }
 }
@@ -71,9 +65,7 @@ export function ImprintContent({
   )
 }
 
-export default async function ImprintPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params
-  setRequestLocale(locale)
+export default async function ImprintPage() {
   const settings = await getCachedSiteSettings()
   return (
     <ImprintContent

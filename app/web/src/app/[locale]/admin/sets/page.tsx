@@ -1,4 +1,4 @@
-import { setRequestLocale, getTranslations } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { Plus } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import { getDb } from '@/lib/server/db'
@@ -12,7 +12,6 @@ const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
 export default async function AdminSetsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  setRequestLocale(locale)
   const t = await getTranslations('admin.sets')
   const sets = await listSets(getDb(), locale)
 

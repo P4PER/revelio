@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { setRequestLocale, getTranslations } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { getDb } from '@/lib/server/db'
 import { getSetByCode } from '@revelio/db'
 import { formatReleaseMonth } from '@/lib/set-sort'
@@ -20,7 +20,6 @@ export async function generateMetadata({
   params: Promise<{ locale: string; code: string }>
 }): Promise<Metadata> {
   const { locale, code } = await params
-  setRequestLocale(locale)
   const set = await getSetByCode(getDb(), code, locale)
   return set ? { title: `${set.name} (${set.code})` } : {}
 }
@@ -31,7 +30,6 @@ export default async function SetPage({
   params: Promise<{ locale: string; code: string }>
 }) {
   const { locale, code } = await params
-  setRequestLocale(locale)
   const set = await getSetByCode(getDb(), code, locale)
   if (!set) notFound()
   const t = await getTranslations('sets')

@@ -1,25 +1,17 @@
 import type { Metadata } from 'next'
-import { setRequestLocale, getTranslations } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { ContactForm } from '@/components/legal/contact-form'
 import { getSession } from '@/lib/server/session'
 
 // Rendered per request so the submit-timing token is fresh and never statically cached.
 export const dynamic = 'force-dynamic'
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>
-}): Promise<Metadata> {
-  const { locale } = await params
-  setRequestLocale(locale)
+export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('contact')
   return { title: t('metaTitle') }
 }
 
-export default async function ContactPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params
-  setRequestLocale(locale)
+export default async function ContactPage() {
   const t = await getTranslations('contact')
 
   // Prefill for signed-in users so they don't retype what we already know. Mirrors

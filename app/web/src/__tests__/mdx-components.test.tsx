@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { NextIntlClientProvider } from 'next-intl'
 import type { ComponentType, ReactNode } from 'react'
 import { useMDXComponents } from '@/mdx-components'
 
@@ -17,7 +18,7 @@ function renderTag(tag: string, children: ReactNode) {
 
 describe('useMDXComponents', () => {
   it('maps every element a docs page uses', () => {
-    for (const tag of ['h2', 'h3', 'p', 'a', 'code', 'ul', 'ol', 'li', 'table']) {
+    for (const tag of ['h2', 'h3', 'p', 'a', 'code', 'pre', 'ul', 'ol', 'li', 'table']) {
       expect(components).toHaveProperty(tag)
     }
   })
@@ -47,6 +48,43 @@ describe('useMDXComponents', () => {
   it('renders body copy in the muted foreground, not the heading colour', () => {
     renderTag('p', 'Body copy.')
     expect(screen.getByText('Body copy.').className).toContain('text-muted-foreground')
+  })
+
+  // Routing is localePrefix 'as-needed', so a bare <a href="/discord"> sends a
+  // German reader to the English page and lets the proxy reset their locale.
+  // Internal routes must go through next-intl's Link; anchors and external
+  // URLs must not, since Link would try to localize them.
+  it('routes internal links through next-intl and leaves the rest alone', () => {
+    const Anchor = components.a as ComponentType<{ href: string; children: ReactNode }>
+
+    // Rendered as a German reader sees it: the prefix is what Link adds and a
+    // bare <a> does not.
+    const inDe = (href: string) =>
+      render(
+        <NextIntlClientProvider locale="de" messages={{}}>
+          <Anchor href={href}>link</Anchor>
+        </NextIntlClientProvider>,
+      ).container.querySelector('a')
+
+    expect(inDe('/discord')?.getAttribute('href')).toBe('/de/discord')
+    expect(inDe('#limits')?.getAttribute('href')).toBe('#limits')
+    expect(inDe('https://discord.com/')?.getAttribute('href')).toBe('https://discord.com/')
+  })
+
+  // MDX renders a fenced block as <pre><code class="language-x">. The inline
+  // chrome must stay off it, and rehype's language class must survive so
+  // syntax highlighting stays possible.
+  it('keeps inline chrome off a fenced code block and preserves its language class', () => {
+    const Code = components.code as ComponentType<{ className?: string; children: ReactNode }>
+    const { container } = render(<Code className="language-bash">npm test</Code>)
+    const code = container.querySelector('code')
+    expect(code?.className).toContain('language-bash')
+    expect(code?.className).not.toContain('bg-muted')
+  })
+
+  it('scrolls a code block inside its own box, not the page body', () => {
+    const { container } = renderTag('pre', <code>a very long command</code>)
+    expect(container.querySelector('pre')?.className).toContain('overflow-x-auto')
   })
 
   // Gold at full strength fails AA as text in light theme; primary-ink is the

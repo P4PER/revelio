@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { setRequestLocale, getTranslations } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { ChevronLeft } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import { getDb } from '@/lib/server/db'
@@ -16,8 +16,7 @@ export const dynamic = 'force-dynamic'
 export default async function EditUserPage(
   { params }: { params: Promise<{ locale: string; id: string }> },
 ) {
-  const { locale, id } = await params
-  setRequestLocale(locale)
+  const { id } = await params
   const session = await getSession()
   if (!hasRequiredRole(session?.user?.role, 'admin')) notFound()
 

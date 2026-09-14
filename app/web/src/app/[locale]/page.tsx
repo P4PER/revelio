@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { useLocale, useTranslations } from 'next-intl'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import type { SetDTO } from '@revelio/core'
 import { routing } from '@/../i18n/routing'
 import { getPathname, Link } from '@/../i18n/navigation'
@@ -25,7 +25,6 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  setRequestLocale(locale)
   const t = await getTranslations('home')
 
   const languages: Record<string, string> = Object.fromEntries(
@@ -113,7 +112,6 @@ export default async function HomePage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  setRequestLocale(locale)
   const [sets, showcase] = await Promise.all([
     listSets(getDb(), locale),
     getHomeShowcase(locale, new Date()),

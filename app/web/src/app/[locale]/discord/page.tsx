@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { useTranslations } from 'next-intl'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { routing } from '@/../i18n/routing'
 import { getPathname } from '@/../i18n/navigation'
 import { getCachedSiteSettings } from '@/lib/server/site-settings'
@@ -24,7 +24,6 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  setRequestLocale(locale)
   const t = await getTranslations('discord')
 
   const languages: Record<string, string> = Object.fromEntries(
@@ -74,13 +73,7 @@ export function DiscordContent({ inviteUrl }: { inviteUrl: string | null }) {
   )
 }
 
-export default async function DiscordPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>
-}) {
-  const { locale } = await params
-  setRequestLocale(locale)
+export default async function DiscordPage() {
   const settings = await getCachedSiteSettings()
   return <DiscordContent inviteUrl={settings?.discordInviteUrl ?? null} />
 }

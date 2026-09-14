@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { getCollectionVisibility } from '@revelio/db'
 import { getSession } from '@/lib/server/session'
 import { getDb } from '@/lib/server/db'
@@ -24,7 +24,6 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  setRequestLocale(locale)
   const t = await getTranslations({ locale, namespace: 'collection' })
   // A personal page, and renderable signed out since the teaser landed - keep
   // it out of search indexes either way.
@@ -38,7 +37,6 @@ export default async function CollectionPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const { locale } = await params
-  setRequestLocale(locale)
   const session = await getSession()
   const userId = session?.user?.id
   const sp = toURLSearchParams(await searchParams)

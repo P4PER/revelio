@@ -4,7 +4,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // Server component: mock the next-intl/server helpers to a translator that
 // echoes "<namespace>.<key>", so assertions pin down namespace and key both.
 vi.mock('next-intl/server', () => ({
-  setRequestLocale: vi.fn(),
   getTranslations: async (namespace: string) => (k: string) => `${namespace}.${k}`,
 }))
 
@@ -20,7 +19,7 @@ vi.mock('@/../i18n/navigation', () => ({
 
 import DecksPage from '../page'
 
-const renderPage = () => DecksPage({ params: Promise.resolve({ locale: 'en' }) })
+const renderPage = () => DecksPage()
 
 beforeEach(() => {
   getSession.mockReset()

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { getSearchClient, runSearch } from '@/lib/server/search-client'
 import { CARD_TILE_FIELDS } from '@/lib/search-projections'
 import { pageQuery, parseSearchParams, toURLSearchParams } from '@/lib/search-params'
@@ -19,14 +19,10 @@ import { listSets } from '@revelio/db'
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
 export async function generateMetadata({
-  params,
   searchParams,
 }: {
-  params: Promise<{ locale: string }>
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }): Promise<Metadata> {
-  const { locale } = await params
-  setRequestLocale(locale)
   const state = parseSearchParams(toURLSearchParams(await searchParams))
   const t = await getTranslations('search')
   return { title: state.q.trim() || t('title') }
@@ -40,7 +36,6 @@ export default async function SearchPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const { locale } = await params
-  setRequestLocale(locale)
   const current = toURLSearchParams(await searchParams)
   const state = parseSearchParams(current)
   const results = await runSearch(getSearchClient(), locale, state, CARD_TILE_FIELDS)

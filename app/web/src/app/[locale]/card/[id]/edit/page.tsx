@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { setRequestLocale, getTranslations } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { Plus, ChevronLeft } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import { routing } from '@/../i18n/routing'
@@ -15,13 +15,7 @@ import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string; id: string }>
-}): Promise<Metadata> {
-  const { locale } = await params
-  setRequestLocale(locale)
+export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('edit')
   return { title: t('title') }
 }
@@ -34,7 +28,6 @@ export default async function EditCardPage({
   searchParams: Promise<{ lang?: string }>
 }) {
   const { locale, id } = await params
-  setRequestLocale(locale)
   const session = await getSession()
   if (!hasRequiredRole(session?.user?.role, 'editor')) notFound()
 

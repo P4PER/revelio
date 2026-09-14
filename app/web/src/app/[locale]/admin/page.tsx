@@ -1,5 +1,4 @@
 import { cookies } from 'next/headers'
-import { setRequestLocale } from 'next-intl/server'
 import { redirect } from '@/../i18n/navigation'
 import { getSession } from '@/lib/server/session'
 import { hasRequiredRole } from '@/lib/roles'
@@ -13,7 +12,6 @@ export default async function AdminIndexPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  setRequestLocale(locale)
   const [session, cookieStore] = await Promise.all([getSession(), cookies()])
   const isAdmin = hasRequiredRole(session?.user?.role, 'admin')
   const target = resolveAdminSection(cookieStore.get(ADMIN_SECTION_COOKIE)?.value, isAdmin)

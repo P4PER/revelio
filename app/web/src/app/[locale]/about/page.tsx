@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { ArrowUpRight } from 'lucide-react'
-import { setRequestLocale, getTranslations } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/../i18n/navigation'
 import { getCachedSiteSettings } from '@/lib/server/site-settings'
@@ -14,13 +14,7 @@ const TECH = ['Next.js', 'React', 'Meilisearch', 'PostgreSQL', 'Tailwind CSS']
 
 const HPTCG_URL = 'https://harrypottertcg.com/'
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>
-}): Promise<Metadata> {
-  const { locale } = await params
-  setRequestLocale(locale)
+export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('about')
   return { title: t('metaTitle') }
 }
@@ -132,9 +126,7 @@ export function AboutContent({ githubUrl }: { githubUrl: string | null }) {
   )
 }
 
-export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params
-  setRequestLocale(locale)
+export default async function AboutPage() {
   const settings = await getCachedSiteSettings()
   return <AboutContent githubUrl={settings?.githubUrl ?? null} />
 }

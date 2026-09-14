@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { getDb } from '@/lib/server/db'
 import { getSession } from '@/lib/server/session'
 import { listPublicDecks } from '@revelio/db'
@@ -14,9 +14,7 @@ export const dynamic = 'force-dynamic'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
-  const { locale } = await params
-  setRequestLocale(locale)
+export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('decks')
   return { title: t('explore.title') }
 }
@@ -29,7 +27,6 @@ export default async function DecksBrowsePage({
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const { locale } = await params
-  setRequestLocale(locale)
   const sp = await searchParams
   const usp = new URLSearchParams()
   for (const [k, v] of Object.entries(sp)) {

@@ -3,7 +3,7 @@ import { Poppins } from 'next/font/google'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
 import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
+import { getMessages, getTranslations } from 'next-intl/server'
 import { routing } from '@/../i18n/routing'
 import { buildSiteMetadata, THEME_COLOR, THEME_COLOR_LIGHT } from '@/lib/seo'
 import { SiteHeader } from '@/components/layout/site-header'
@@ -19,7 +19,6 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  setRequestLocale(locale)
   const t = await getTranslations('meta')
   return buildSiteMetadata({ locale, description: t('description') })
 }
@@ -55,7 +54,6 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params
   if (!hasLocale(routing.locales, locale)) notFound()
-  setRequestLocale(locale)
   const messages = await getMessages()
   // The layout is already dynamic (getSession), so reading a cookie is free.
   // No attribute means "follow the OS" - globals.css handles that in CSS, so

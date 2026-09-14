@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { Plus } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import { getDb } from '@/lib/server/db'
@@ -13,25 +13,13 @@ import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>
-}): Promise<Metadata> {
-  const { locale } = await params
-  setRequestLocale(locale)
+export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('decks')
   // Personal ("my decks") and thin when logged out — keep out of the index.
   return { title: t('list.title'), robots: { index: false } }
 }
 
-export default async function DecksPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>
-}) {
-  const { locale } = await params
-  setRequestLocale(locale)
+export default async function DecksPage() {
   const session = await getSession()
   const t = await getTranslations('decks')
 

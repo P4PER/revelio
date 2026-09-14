@@ -88,7 +88,9 @@ export function CommandGrid({ docsHref }: { docsHref?: string | null }) {
     <section
       id="commands"
       aria-labelledby="commands-title"
-      className="border-t border-border/60 py-14"
+      // scroll-mt keeps the heading off the viewport edge when the hero CTA
+      // lands here, rather than flush against the top.
+      className="scroll-mt-8 border-t border-border/60 py-14"
     >
       <h2 id="commands-title" className="text-center text-xl font-semibold text-foreground">
         {t('commandsTitle')}

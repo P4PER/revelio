@@ -66,6 +66,10 @@ export default async function LocaleLayout({
       lang={locale}
       className={poppins.variable}
       data-theme={theme === 'system' ? undefined : theme}
+      // Pairs with `scroll-behavior: smooth` in globals.css: it is what lets
+      // the App Router force `auto` around its own scroll on a route change,
+      // so only in-page anchors animate. Remove it and navigations glide.
+      data-scroll-behavior="smooth"
     >
       <body className="min-h-screen bg-background text-foreground font-sans antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>

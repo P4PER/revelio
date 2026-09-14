@@ -74,7 +74,7 @@ describe('DiscordContent', () => {
     renderPage('en', en, INVITE)
     expect(screen.getByRole('link', { name: /Full reference/i })).toHaveAttribute(
       'href',
-      '/discord/docs',
+      '/docs/discord',
     )
   })
 })

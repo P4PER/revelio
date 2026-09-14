@@ -47,10 +47,10 @@ describe('CommandGrid', () => {
   })
 
   it('links the reference tile once a docs route is given', () => {
-    renderGrid('/discord/docs')
+    renderGrid('/docs/discord')
     expect(screen.getByRole('link', { name: /Full reference/i })).toHaveAttribute(
       'href',
-      '/discord/docs',
+      '/docs/discord',
     )
   })
 

@@ -11,6 +11,19 @@
   }
 }
 
+/* Same-page anchors glide rather than teleport. Has to live on `html`, the
+   element that actually scrolls, so it is global - which is why
+   [locale]/layout.tsx carries `data-scroll-behavior="smooth"`: that opt-in is
+   what stops the App Router animating its scroll-to-top on every navigation,
+   while leaving hash-only changes smooth. Targets want `scroll-mt-*` so the
+   heading clears the viewport edge. No-preference because a scroll this long
+   is a vestibular trigger. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 /* Touch devices (no hover): reveal controls that are otherwise hover-only. */
 @custom-variant touch (@media (hover: none));
 

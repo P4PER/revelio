@@ -1047,4 +1047,4 @@ These belong under `## Deployment` in the pull request, because none of them are
 - **Apply the migration.** `0014_*.sql` adds `site_settings.discord_invite_url`. Mind the stale-image trap: `docker compose run --rm migrate` without `--build` reports success while applying nothing. Confirm with `docker compose exec -T postgres psql -U revelio -d revelio -c "\d site_settings"`.
 - **Set the install URL** in Admin then Site settings. Until it is set, the page renders without an install button by design.
 - **The Discord application must be set to Public** in the developer portal, or the install URL works for nobody but its owner. This is outside the repo entirely.
-- **`/discord/docs` does not exist.** The reference tile is wired but switched off (`docsHref={null}`). Turning it on is a one-line change once that page lands.
+- **`/docs/discord` does not exist.** The reference tile links it anyway, on purpose: the tile ships ahead of its page, so until that route lands the link is a 404. Setting `DOCS_HREF` back to `null` in `page.tsx` hides the tile again. (Task 5 below planned `/discord/docs`; the route was renamed during review.)

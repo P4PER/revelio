@@ -4,7 +4,7 @@
 
 **Goal:** Prove `@next/mdx` compiles under Next 16.3.1 with Turbopack, then wire the permanent MDX pipeline - config, component map, and a table-of-contents plugin - ending with a real `/docs` route rendering an MDX file.
 
-**Architecture:** MDX files live in `web/content/docs/`, outside the `app/` tree, and are pulled in by explicit `import()`. `next.config.ts` composes `withNextIntl(withMDX(nextConfig))`. A local remark plugin injects `export const toc` so the right-hand rail can list a page's headings without a second parse. No docs framework: `mdx-components.tsx` maps MDX elements onto Revelio's own Tailwind classes.
+**Architecture:** MDX files live in `app/web/content/docs/`, deliberately outside the App Router tree (`app/web/src/app/`), and are pulled in by explicit `import()`. `next.config.ts` composes `withNextIntl(withMDX(nextConfig))`. A local remark plugin injects `export const toc` so the right-hand rail can list a page's headings without a second parse. No docs framework: `mdx-components.tsx` maps MDX elements onto Revelio's own Tailwind classes.
 
 **Tech Stack:** Next.js 16.3.1 (App Router, Turbopack), React 19.2, MDX via `@next/mdx`, unified/remark/rehype, vitest + Testing Library.
 
@@ -80,7 +80,10 @@ Change the final export line from `export default withNextIntl(nextConfig)` to:
 export default withNextIntl(withMDX(nextConfig))
 ```
 
-Do **not** add `mdx` to `pageExtensions`: content lives in `content/docs/`, not `app/`, and is reached by explicit import. The `app/` tree stays TSX-only.
+Do **not** add `mdx` to `pageExtensions`: content lives in `app/web/content/docs/`, not under
+the App Router tree, and is reached by explicit import. Adding the extension would change
+module resolution for every route just to serve five content files, and a stray `.mdx`
+under `src/app/` would be treated as routing surface. The App Router tree stays TSX-only.
 
 - [ ] **Step 4: Create the spike content file**
 

@@ -1,13 +1,13 @@
-import Spike from '@/../content/docs/spike.en.mdx'
+import Overview from '@/../content/docs/discord.en.mdx'
 
-// Phase 1 proof only. Task 4 of this plan replaces the body, and phase 3
-// replaces the whole page with the docs hub.
+// Phase 1 proof: one locale, no shell, no registry. Phase 3 replaces this with
+// the docs hub and resolves content through the page registry instead.
 export const dynamic = 'force-dynamic'
 
 export default function DocsPage() {
   return (
     <main className="mx-auto max-w-[76rem] px-6 py-16">
-      <Spike />
+      <Overview />
     </main>
   )
 }

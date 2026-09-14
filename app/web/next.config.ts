@@ -8,7 +8,26 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
 // outside the App Router tree, and is reached by explicit import. Registering
 // the extension would change module resolution for every route, and a stray
 // .mdx under src/app/ would become routing surface. The app tree stays TSX-only.
-const withMDX = createMDX({})
+// remarkToc injects `export const toc`; rehypeSlug puts the matching ids on the
+// rendered headings. They must stay paired - the ids the rail links to are the
+// ones rehype-slug writes.
+//
+// Plugins are named by module path, not imported and passed by reference:
+// Turbopack serializes loader options to pass them across threads, and a
+// function is not serializable ("does not have serializable options"). It
+// resolves each string itself. vitest.config.mts imports remark-toc.mjs
+// directly, since Vite has no such constraint.
+//
+// The local plugin needs an absolute path: @next/mdx resolves these with
+// require.resolve(path, { paths: [projectRoot] }), and Node ignores `paths`
+// for a relative specifier, resolving it against node_modules/@next/mdx
+// instead. Same cwd assumption as turbopack.root above - next runs in web/.
+const withMDX = createMDX({
+  options: {
+    remarkPlugins: [[resolve('./mdx/remark-toc.mjs'), {}]],
+    rehypePlugins: [['rehype-slug', {}]],
+  },
+})
 
 // next is hoisted to app/node_modules — turbopack.root must reach that level.
 // path.resolve('..') from app/web/ gives app/ where node_modules/next lives.

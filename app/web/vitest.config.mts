@@ -1,12 +1,23 @@
+// .mts, not .ts: web/package.json has no "type": "module", so Vite bundles a
+// .ts config to CJS, and the remark/rehype chain this config imports is ESM-only
+// ("ESM file cannot be loaded by `require`"). The .mts extension makes it ESM.
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
+import mdx from '@mdx-js/rollup'
+import rehypeSlug from 'rehype-slug'
+import remarkToc from './mdx/remark-toc.mjs'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    // Same remark/rehype pair as next.config.ts, so a test asserts what the
+    // build actually produces rather than a second, drifting pipeline.
+    mdx({ remarkPlugins: [remarkToc], rehypePlugins: [rehypeSlug] }),
+    react(),
+  ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

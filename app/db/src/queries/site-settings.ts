@@ -11,6 +11,7 @@ export type SiteSettingsInput = {
   hostingProvider: string | null
   responsiblePerson: string | null
   githubUrl: string | null
+  discordInviteUrl: string | null
 }
 
 const SITE_SETTINGS_ID = 'singleton'

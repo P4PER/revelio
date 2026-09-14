@@ -31,7 +31,7 @@ test('the browse pane keeps its reserved band under the deck sheet while the pag
   expect(atTop.reserved).toBeGreaterThan(0)
   expect(atTop.gap).toBeLessThanOrEqual(1)
 
-  await page.evaluate(() => window.scrollTo(0, 300))
+  await page.evaluate(() => window.scrollTo({ top: 300, behavior: 'instant' }))
   const scrolled = await measure()
   // Guards the assertion below: a page that cannot scroll would pass it for
   // the wrong reason.
@@ -67,7 +67,7 @@ test('the phone page holds still while the deck sheet is open, and scrolls once 
   // Shut: the footer is reachable like on any other page.
   expect(await wheelDown()).toBeGreaterThan(0)
 
-  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
   await page.click('[data-deck-sheet] button')
   await expect(page.locator('[data-deck-sheet] button').first()).toHaveAttribute(
     'aria-expanded',
@@ -112,6 +112,6 @@ test('the desktop workbench never locks the page', async ({ page }) => {
     .toBe('')
   expect(await page.evaluate(() => document.body.style.position)).toBe('')
 
-  await page.evaluate(() => window.scrollTo(0, 200))
+  await page.evaluate(() => window.scrollTo({ top: 200, behavior: 'instant' }))
   expect(await page.evaluate(() => window.scrollY)).toBe(200)
 })

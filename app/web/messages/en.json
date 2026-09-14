@@ -30,6 +30,7 @@
     "collection": "Collection",
     "aboutLink": "About",
     "contact": "Contact",
+    "discordBot": "Discord bot",
     "github": "GitHub",
     "legal": "Legal",
     "privacy": "Privacy Policy",
@@ -542,13 +543,14 @@
   },
   "adminSettings": {
     "title": "Site settings",
-    "intro": "Operator and legal details shown on the Imprint and Privacy pages, plus the footer GitHub link.",
+    "intro": "Operator and legal details shown on the Imprint and Privacy pages, plus the footer GitHub link and the Discord bot install link.",
     "operatorName": "Operator name",
     "operatorAddress": "Postal address",
     "contactEmail": "Contact email",
     "hostingProvider": "Hosting provider",
     "responsiblePerson": "Responsible person (optional)",
     "githubUrl": "GitHub URL",
+    "discordInviteUrl": "Discord bot install URL",
     "save": "Save",
     "saved": "Settings saved.",
     "saveError": "Could not save settings."
@@ -773,6 +775,71 @@
     "creditsBody": "Thanks to the players, collectors, and preservationists whose scans, checklists, and shared knowledge make a project like this possible — including the community at <link>harrypottertcg.com</link>.",
     "exploreTitle": "Start exploring",
     "exploreBody": "Jump into the <sets>card sets</sets> or reveal a <random>random card</random>."
+  },
+  "discord": {
+    "metaTitle": "Revelio for Discord",
+    "metaDescription": "Look up any Harry Potter TCG card, share a decklist and check your collection without leaving Discord.",
+    "heading": "Summon any card <b>without leaving the chat</b>",
+    "tagline": "Look up a card mid-argument. Share a decklist without a screenshot. Check what you are missing from a set - privately.",
+    "install": "Add to Discord",
+    "seeAnswers": "See what it answers",
+    "trust": {
+      "anyServer": "Works in any server",
+      "noMessages": "Cannot read your messages",
+      "privateReplies": "Personal answers stay private"
+    },
+    "channelName": "deck-talk",
+    "usedCommand": "<user>{userName}</user> used <cmd>{command}</cmd>",
+    "botName": "Revelio",
+    "appTag": "App",
+    "you": "you",
+    "cardImageAlt": "{name} card",
+    "commandsTitle": "What you can type",
+    "commandsIntro": "Type <slash>/</slash> in any channel the bot can see. Discord fills in the rest.",
+    "ephemeral": "Only you see it",
+    "commands": {
+      "card": {
+        "description": "The full card: text, flavour, cost, lesson, rarity, legality, rulings, and the art."
+      },
+      "search": {
+        "description": "The same search as the site, paged, with a link back to the full results."
+      },
+      "deck": {
+        "description": "Any public decklist by link or id: character, main deck, sideboard, legality."
+      },
+      "collection": {
+        "description": "How far along you are, overall or in one set."
+      },
+      "mydecks": {
+        "description": "Your decks, public and private, with their formats and sizes."
+      }
+    },
+    "reference": {
+      "title": "Full reference",
+      "description": "Every option each command takes, how account linking works, and exactly what the bot can and cannot read."
+    },
+    "steps": {
+      "addTitle": "Add the bot",
+      "addBody": "One click, no permissions beyond posting.",
+      "linkTitle": "Link your account",
+      "linkBody": "Only needed for <cmd>/collection</cmd> and <cmd>/mydecks</cmd>, from Settings then Connections.",
+      "typeTitle": "Type a slash",
+      "typeBody": "Commands appear in every channel the bot can see."
+    },
+    "sample": {
+      "cardName": "Alohomora",
+      "cardText": "Search your deck. You may take a Location or Adventure card from your deck, show it to your opponent and put it into your hand. Then shuffle your deck.",
+      "cardFooter": "Adventures at Hogwarts - #32",
+      "fieldType": "Type",
+      "fieldTypeValue": "Spell",
+      "fieldLesson": "Lesson",
+      "fieldLessonValue": "Charms",
+      "fieldCost": "Cost",
+      "fieldCostValue": "4",
+      "searchTitle": "42 cards",
+      "searchFooter": "Page 1 of 5 - view all on revelio.cards",
+      "typing": "set: Chamber of Secrets"
+    }
   },
   "privacy": {
     "metaTitle": "Privacy Policy",

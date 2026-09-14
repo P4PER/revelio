@@ -18,7 +18,13 @@ import { Input } from '@/components/ui/input'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { Button } from '@/components/ui/button'
 
-type TextField = 'operatorName' | 'contactEmail' | 'hostingProvider' | 'responsiblePerson' | 'githubUrl'
+type TextField =
+  | 'operatorName'
+  | 'contactEmail'
+  | 'hostingProvider'
+  | 'responsiblePerson'
+  | 'githubUrl'
+  | 'discordInviteUrl'
 
 function toValues(initial: SiteSettings | null): SiteSettingsFormValues {
   return {
@@ -28,6 +34,7 @@ function toValues(initial: SiteSettings | null): SiteSettingsFormValues {
     hostingProvider: initial?.hostingProvider ?? '',
     responsiblePerson: initial?.responsiblePerson ?? '',
     githubUrl: initial?.githubUrl ?? '',
+    discordInviteUrl: initial?.discordInviteUrl ?? '',
   }
 }
 
@@ -102,6 +109,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings | null }) 
         {textField('hostingProvider')}
         {textField('responsiblePerson')}
         {textField('githubUrl')}
+        {textField('discordInviteUrl')}
         <Button type="submit" disabled={form.formState.isSubmitting}>
           {t('save')}
         </Button>

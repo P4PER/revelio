@@ -1,0 +1,132 @@
+import { BookText, ArrowRight } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/../i18n/navigation'
+import { CommandCode } from '@/components/discord/command-code'
+
+type CommandKey = 'card' | 'search' | 'deck' | 'collection' | 'mydecks'
+
+type Command = { key: CommandKey; options: readonly string[]; personal: boolean }
+
+// Order is most-used first, as the design shows it. `personal` drives the "only
+// you see it" tag: those two commands defer ephemerally in the bot (see
+// bot/src/discord/commands/collection.ts), so the page must not imply their
+// answers land in the channel for everyone.
+//
+// Option names are data, not copy: they are the literal option names the bot
+// registers with Discord (bot/src/discord/commands/*.ts), identical in every
+// language, so a visitor types the same thing either way.
+const COMMANDS: readonly Command[] = [
+  { key: 'card', options: ['name'], personal: false },
+  { key: 'search', options: ['query', 'lesson', 'type', 'set', 'page'], personal: false },
+  { key: 'deck', options: ['deck'], personal: false },
+  { key: 'collection', options: ['set'], personal: true },
+  { key: 'mydecks', options: [], personal: true },
+]
+
+const STEPS = ['add', 'link', 'type'] as const
+
+function CommandCard({ command }: { command: Command }) {
+  const t = useTranslations('discord')
+  return (
+    <li className="flex flex-col gap-1.5 rounded-xl border border-border bg-card p-4">
+      <span className="font-mono text-sm font-medium text-primary-ink">/{command.key}</span>
+      {/* Chips, like every other typed thing on the page. Plain indigo text was
+          illegible against the card and plain muted text was indistinguishable
+          from the description below; the tinted chip is both readable and
+          clearly a different kind of thing from prose. */}
+      {command.options.length > 0 && (
+        <span className="flex flex-wrap gap-1 text-xs">
+          {command.options.map((option) => (
+            <CommandCode key={option}>{option}</CommandCode>
+          ))}
+        </span>
+      )}
+      <span className="text-sm leading-relaxed text-muted-foreground">
+        {t(`commands.${command.key}.description`)}
+      </span>
+      {command.personal && (
+        <span className="mt-auto self-start rounded-full border border-border px-2 py-0.5 text-[0.62rem] font-medium uppercase tracking-wider text-muted-foreground">
+          {t('ephemeral')}
+        </span>
+      )}
+    </li>
+  )
+}
+
+/**
+ * The reference tile. Deliberately not a sixth command: a dashed border, a
+ * document glyph and a sans-face title, so nobody reads it as something they can
+ * type. It carries the same card surface as its neighbours and spends its accent
+ * on the gold primary rather than a blue wash, which stayed legible in neither
+ * theme. Passing no `docsHref` drops it and the remaining five tiles still fill
+ * the rows cleanly, which is the escape hatch if the docs route goes away.
+ */
+function ReferenceTile({ href }: { href: string }) {
+  const t = useTranslations('discord')
+  return (
+    <li>
+      <Link
+        href={href}
+        className="flex h-full flex-col justify-center gap-1.5 rounded-xl border border-dashed border-primary/50 bg-card p-4 transition-colors hover:bg-accent/40"
+      >
+        <BookText className="size-5 text-primary-ink" aria-hidden />
+        <span className="flex items-center gap-1.5 font-semibold text-foreground">
+          {t('reference.title')}
+          <ArrowRight className="size-4 text-primary-ink" aria-hidden />
+        </span>
+        <span className="text-sm leading-relaxed text-muted-foreground">
+          {t('reference.description')}
+        </span>
+      </Link>
+    </li>
+  )
+}
+
+export function CommandGrid({ docsHref }: { docsHref?: string | null }) {
+  const t = useTranslations('discord')
+  return (
+    <section
+      id="commands"
+      aria-labelledby="commands-title"
+      // scroll-mt keeps the heading off the viewport edge when the hero CTA
+      // lands here, rather than flush against the top.
+      className="scroll-mt-8 border-t border-border/60 py-14"
+    >
+      <h2 id="commands-title" className="text-center text-xl font-semibold text-foreground">
+        {t('commandsTitle')}
+      </h2>
+      <p className="mx-auto mt-2 max-w-md text-center text-sm text-muted-foreground">
+        {t.rich('commandsIntro', {
+          slash: (chunks) => (
+            <span className="font-mono font-medium text-primary-ink">{chunks}</span>
+          ),
+        })}
+      </p>
+
+      <ul className="mx-auto mt-8 grid max-w-4xl gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {COMMANDS.map((command) => (
+          <CommandCard key={command.key} command={command} />
+        ))}
+        {docsHref && <ReferenceTile href={docsHref} />}
+      </ul>
+
+      <ol className="mx-auto mt-10 grid max-w-4xl gap-5 border-t border-border/60 pt-8 sm:grid-cols-3">
+        {STEPS.map((step, i) => (
+          <li key={step} className="flex gap-3">
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-primary/50 font-mono text-xs text-primary-ink">
+              {i + 1}
+            </span>
+            <span className="text-sm leading-relaxed text-muted-foreground">
+              <b className="block text-[0.9rem] font-medium text-foreground">
+                {t(`steps.${step}Title`)}
+              </b>
+              {t.rich(`steps.${step}Body`, {
+                cmd: (chunks) => <CommandCode>{chunks}</CommandCode>,
+              })}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}

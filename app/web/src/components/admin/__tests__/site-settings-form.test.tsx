@@ -31,10 +31,22 @@ describe('SiteSettingsForm', () => {
     renderForm({
       id: 'singleton', operatorName: 'Jane Doe', operatorAddress: 'Main St 1',
       contactEmail: 'hi@revelio.cards', hostingProvider: 'Acme', responsiblePerson: null,
-      githubUrl: 'https://github.com/x/y', updatedAt: new Date(),
+      githubUrl: 'https://github.com/x/y', discordInviteUrl: null, updatedAt: new Date(),
     })
     expect(screen.getByDisplayValue('Jane Doe')).toBeInTheDocument()
     expect(screen.getByDisplayValue('hi@revelio.cards')).toBeInTheDocument()
+  })
+
+  it('prefills the discord install url', () => {
+    renderForm({
+      id: 'singleton', operatorName: null, operatorAddress: null,
+      contactEmail: null, hostingProvider: null, responsiblePerson: null,
+      githubUrl: null, discordInviteUrl: 'https://discord.com/oauth2/authorize?client_id=1',
+      updatedAt: new Date(),
+    })
+    expect(screen.getByLabelText(en.adminSettings.discordInviteUrl)).toHaveValue(
+      'https://discord.com/oauth2/authorize?client_id=1',
+    )
   })
 
   it('shows a reactive validation error for a bad email and does not submit', async () => {

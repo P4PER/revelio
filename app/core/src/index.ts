@@ -1,4 +1,5 @@
 export * from './attributes'
+export * from './bot-commands'
 export * from './labels'
 export * from './schemas'
 export * from './domain'

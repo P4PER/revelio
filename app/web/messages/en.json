@@ -784,7 +784,7 @@
     "seeAnswers": "See what it answers",
     "availability": "Works in any server. Personal answers stay private to you.",
     "channelName": "deck-talk",
-    "usedCommand": "{user} used {command}",
+    "usedCommand": "<user>{userName}</user> used <cmd>{command}</cmd>",
     "botName": "Revelio",
     "appTag": "App",
     "you": "you",

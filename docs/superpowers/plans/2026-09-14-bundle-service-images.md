@@ -93,7 +93,7 @@ source runs keep the current behaviour.
   `MIGRATIONS_DIR` (absolute path, optional) overrides it. Task 5 sets
   `ENV MIGRATIONS_DIR=/app/drizzle` in `app/ingest/Dockerfile`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/ingest/test/migrations-dir.test.ts`:
 
@@ -120,12 +120,12 @@ describe('resolveMigrationsDir', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npm test -w @revelio/ingest -- migrations-dir`
 Expected: FAIL — `resolveMigrationsDir` is not exported by `@revelio/db`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Replace lines 6-7 of `app/db/src/migrate.ts`:
 
@@ -151,17 +151,17 @@ with `export * from './migrate'`, no edit is needed — verify with
 `grep -n "migrate" app/db/src/index.ts` and only add an explicit name if the barrel is
 name-by-name).
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npm test -w @revelio/ingest -- migrations-dir`
 Expected: PASS, 3 tests.
 
-- [ ] **Step 5: Check nothing else regressed**
+- [x] **Step 5: Check nothing else regressed**
 
 Run: `npm run typecheck` from `app/`
 Expected: clean.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/db/src/migrate.ts app/db/src/index.ts app/ingest/test/migrations-dir.test.ts
@@ -202,7 +202,7 @@ entrypoint, so the guard stays correct under bundling. Leave it alone.
   stays exported from `app/bot/src/discord/register.ts`. `register-cli.ts` exports nothing; it is
   an entry script only.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/bot/test/register.test.ts`. The test reads the module source rather than importing it,
 because under vitest `isMain` is already `false` — an import-based test would pass both before and
@@ -233,13 +233,13 @@ describe('register.ts module shape', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npm test -w @revelio/bot -- register`
 Expected: FAIL on both assertions — `register.ts` currently contains `process.argv` and
 `process.exit`.
 
-- [ ] **Step 3: Create the dedicated CLI entry**
+- [x] **Step 3: Create the dedicated CLI entry**
 
 Create `app/bot/src/discord/register-cli.ts`:
 
@@ -264,7 +264,7 @@ registerCommands(env)
   })
 ```
 
-- [ ] **Step 4: Strip the side effect from register.ts**
+- [x] **Step 4: Strip the side effect from register.ts**
 
 In `app/bot/src/discord/register.ts`, delete the `import { fileURLToPath } from 'node:url'` line at
 the top, and delete everything from the `// fileURLToPath, not the URL pathname:` comment to the
@@ -273,7 +273,7 @@ imports are `REST`/`Routes` from `discord.js` and `parseEnv, type BotEnv` from `
 `parseEnv` from that import if it is now unused, keeping `import type { BotEnv } from '../env'`
 (`@typescript-eslint/consistent-type-imports` requires the `type` keyword for a pure type import).
 
-- [ ] **Step 5: Point the register script at the new entry**
+- [x] **Step 5: Point the register script at the new entry**
 
 In `app/bot/package.json`, change the `register` script from
 
@@ -287,18 +287,18 @@ to
 "register": "node --env-file-if-exists=.env.local --import tsx src/discord/register-cli.ts",
 ```
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run: `npm test -w @revelio/bot`
 Expected: PASS, including the 2 new `register` tests and the existing `commands`/`catalog-parity`
 suites (`registerCommands` is unchanged, so nothing that exercises it should move).
 
-- [ ] **Step 7: Typecheck and lint**
+- [x] **Step 7: Typecheck and lint**
 
 Run: `npm run typecheck` and `npm run lint` from `app/`
 Expected: both clean. Lint in particular catches an unused `parseEnv` import left in `register.ts`.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app/bot/src/discord/register.ts app/bot/src/discord/register-cli.ts \
@@ -328,7 +328,7 @@ bundle can be produced and inspected outside Docker too.
   - `app/ingest/dist/ingest.mjs` from `ingest/src/main.ts`
   - `app/ingest/dist/migrate.mjs` from `db/src/migrate-cli.ts`
 
-- [ ] **Step 1: Declare esbuild at the root**
+- [x] **Step 1: Declare esbuild at the root**
 
 In `app/package.json`, add to `devDependencies` (keep the existing keys, alphabetical order is not
 used in this file — append it after `drizzle-kit`):
@@ -346,25 +346,25 @@ npm install
 Expected: `package-lock.json` updates; esbuild was already in the tree at 0.25.12 so no new
 download of consequence.
 
-- [ ] **Step 2: Add the bot build script**
+- [x] **Step 2: Add the bot build script**
 
 In `app/bot/package.json`, add to `scripts`:
 
 ```json
-"build": "esbuild src/main.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/bot.mjs --log-level=warning"
+"build": "esbuild src/main.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/bot.mjs --banner:js=\"import{createRequire as __cr}from'node:module';const require=__cr(import.meta.url);\" --log-level=warning"
 ```
 
-- [ ] **Step 3: Add the ingest build scripts**
+- [x] **Step 3: Add the ingest build scripts**
 
 In `app/ingest/package.json`, add to `scripts`:
 
 ```json
 "build": "npm run build:job && npm run build:migrate",
-"build:job": "esbuild src/main.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/ingest.mjs --log-level=warning",
-"build:migrate": "esbuild ../db/src/migrate-cli.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/migrate.mjs --log-level=warning"
+"build:job": "esbuild src/main.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/ingest.mjs --banner:js=\"import{createRequire as __cr}from'node:module';const require=__cr(import.meta.url);\" --log-level=warning",
+"build:migrate": "esbuild ../db/src/migrate-cli.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/migrate.mjs --banner:js=\"import{createRequire as __cr}from'node:module';const require=__cr(import.meta.url);\" --log-level=warning"
 ```
 
-- [ ] **Step 4: Run both builds and verify they are clean and small**
+- [x] **Step 4: Run both builds and verify they are clean and small**
 
 Run, from `app/`:
 
@@ -377,7 +377,7 @@ Expected: no warnings on stderr; `bot.mjs` roughly 4-5 MB, `ingest.mjs` roughly 
 `migrate.mjs` under 1 MB. A `could not be resolved` error here means a dependency is missing from
 the workspace manifest — fix the manifest, do not add an `--external`.
 
-- [ ] **Step 5: Verify the bot bundle no longer self-registers**
+- [x] **Step 5: Verify the bot bundle no longer self-registers**
 
 This is the Task 2 bug, checked against the real artefact:
 
@@ -391,7 +391,7 @@ handler — seeing it proves `main()` ran, which cannot happen if a module-level
 If instead you see a bare stack trace with no `bot failed to start:` line, Task 2 was not applied
 correctly.
 
-- [ ] **Step 6: Verify both ingest bundles load**
+- [x] **Step 6: Verify both ingest bundles load**
 
 ```bash
 node ingest/dist/ingest.mjs 2>&1 | head -3
@@ -401,7 +401,7 @@ node ingest/dist/migrate.mjs 2>&1 | head -3
 Expected: each prints `DATABASE_URL is required` and exits 1. That is the env guard in each
 entrypoint, reached only after the whole module graph loaded.
 
-- [ ] **Step 7: Confirm the bundles stay out of the Docker context**
+- [x] **Step 7: Confirm the bundles stay out of the Docker context**
 
 ```bash
 grep -n 'dist' .dockerignore
@@ -410,7 +410,7 @@ grep -n 'dist' .dockerignore
 Expected: `**/dist` is listed. The host-built bundles must not leak into the build context; the
 images build their own.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app/package.json app/package-lock.json app/bot/package.json app/ingest/package.json
@@ -430,7 +430,7 @@ git commit -m "build: add esbuild bundle scripts for the bot and ingest entrypoi
   `bot` service and by `.github/workflows/publish.yml`'s `build-bot` job (unchanged: context `app`,
   file `app/bot/Dockerfile`).
 
-- [ ] **Step 1: Replace the Dockerfile**
+- [x] **Step 1: Replace the Dockerfile**
 
 Replace the entire contents of `app/bot/Dockerfile` with:
 
@@ -476,7 +476,7 @@ USER bot
 CMD ["node", "bot.mjs"]
 ```
 
-- [ ] **Step 2: Build the image**
+- [x] **Step 2: Build the image**
 
 Run, from `app/`:
 
@@ -487,7 +487,7 @@ docker build -f bot/Dockerfile -t revelio-bot:bundled .
 Expected: succeeds. The smoke `RUN` in the build stage must pass; if it fails the build stops
 there with a non-zero grep.
 
-- [ ] **Step 3: Compare the size against the current image**
+- [x] **Step 3: Compare the size against the current image**
 
 ```bash
 docker images --format '{{.Repository}}:{{.Tag}}\t{{.Size}}' | grep revelio-bot
@@ -495,7 +495,7 @@ docker images --format '{{.Repository}}:{{.Tag}}\t{{.Size}}' | grep revelio-bot
 
 Expected: `revelio-bot:bundled` around 165-175 MB, against `revelio-bot:local` at 916 MB.
 
-- [ ] **Step 4: Confirm the runtime layer carries no node_modules**
+- [x] **Step 4: Confirm the runtime layer carries no node_modules**
 
 ```bash
 docker run --rm --entrypoint sh revelio-bot:bundled -c 'ls -la /app; ls /app/node_modules 2>&1 | head -1'
@@ -503,7 +503,7 @@ docker run --rm --entrypoint sh revelio-bot:bundled -c 'ls -la /app; ls /app/nod
 
 Expected: `/app` contains only `bot.mjs`; `ls /app/node_modules` reports no such file or directory.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/bot/Dockerfile
@@ -531,7 +531,7 @@ runtime by drizzle's migrator, so they must be copied into the image and pointed
   `.github/workflows/publish.yml`'s `build-ingest` job (unchanged: context `app`, file
   `app/ingest/Dockerfile`).
 
-- [ ] **Step 1: Replace the Dockerfile**
+- [x] **Step 1: Replace the Dockerfile**
 
 Replace the entire contents of `app/ingest/Dockerfile` with:
 
@@ -582,7 +582,7 @@ ENV ASSETS_DIR=/assets
 CMD ["node", "ingest.mjs"]
 ```
 
-- [ ] **Step 2: Point the compose migrate service at the bundle**
+- [x] **Step 2: Point the compose migrate service at the bundle**
 
 In `app/docker-compose.yml`, in the `migrate` service, change
 
@@ -596,7 +596,7 @@ to
     command: ["node", "migrate.mjs"]
 ```
 
-- [ ] **Step 3: Build the image**
+- [x] **Step 3: Build the image**
 
 Run, from `app/`:
 
@@ -606,7 +606,7 @@ docker build -f ingest/Dockerfile -t revelio-ingest:bundled .
 
 Expected: succeeds, both smoke `RUN`s pass.
 
-- [ ] **Step 4: Compare the size and confirm the SQL is present**
+- [x] **Step 4: Compare the size and confirm the SQL is present**
 
 ```bash
 docker images --format '{{.Repository}}:{{.Tag}}\t{{.Size}}' | grep revelio-ingest
@@ -614,9 +614,9 @@ docker run --rm --entrypoint sh revelio-ingest:bundled -c 'ls /app; ls /app/driz
 ```
 
 Expected: `revelio-ingest:bundled` around 165-175 MB against 909 MB; `/app` holds `ingest.mjs`,
-`migrate.mjs` and `drizzle/`; the SQL count is 15 (matching `ls app/db/drizzle | wc -l`).
+`migrate.mjs` and `drizzle/`; the SQL count is 14 (matching `ls app/db/drizzle/*.sql | wc -l`; `ls app/db/drizzle` shows 15 entries because of the `meta/` folder).
 
-- [ ] **Step 5: Prove the migration runner actually applies migrations from the image**
+- [x] **Step 5: Prove the migration runner actually applies migrations from the image**
 
 This is the step that catches a wrong `MIGRATIONS_DIR`. A migrator pointed at an empty or missing
 folder reports success having done nothing — the exact trap `CLAUDE.md` warns about — so assert on
@@ -637,7 +637,7 @@ Confirm the compose network name first with `docker network ls | grep revelio`; 
 `<project>_default` and the project defaults to the directory name `app`, so it may be
 `app_default`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/ingest/Dockerfile app/docker-compose.yml
@@ -661,7 +661,7 @@ interaction.
 - Consumes: `revelio-bot:bundled` from Task 4 and `revelio-ingest:bundled` from Task 5.
 - Produces: the measured before/after numbers for the PR's `## Verification` section.
 
-- [ ] **Step 1: Bring the local stack up and seed it**
+- [~] **Step 1: Bring the local stack up and seed it** (partially: postgres/meilisearch/rustfs started; the full ingest seed was not run, see Execution record)
 
 ```bash
 docker compose up -d postgres meilisearch rustfs
@@ -673,7 +673,7 @@ Expected: tables present. Note the `--build`: the compose `migrate` service pins
 `image: revelio-ingest:local`, and without `--build` compose reuses a stale image and applies
 nothing while printing success.
 
-- [ ] **Step 2: Confirm the bot's env file points at the local stack**
+- [x] **Step 2: Confirm the bot's env file points at the local stack**
 
 ```bash
 sed 's/=.*/=<set>/' bot/.env.local
@@ -689,7 +689,7 @@ live bot from this machine and issues a `PUT` that replaces the command set in t
 reversible (the next boot of the deployed bot re-registers the same set) and guild-scoped, but it
 is an outward-facing action and should be explicitly agreed rather than assumed.
 
-- [ ] **Step 3: Boot the bundled bot against the local stack**
+- [x] **Step 3: Boot the bundled bot against the local stack**
 
 ```bash
 docker run --rm --name revelio-bot-smoke --network <compose-network> \
@@ -710,7 +710,7 @@ Both lines are required. `registered N commands` alone means the gateway login f
 `logged in as ...` alone means registration threw and was swallowed by the non-fatal handler in
 `main()` — read the `command registration failed` line above it.
 
-- [ ] **Step 4: Exercise one command end to end**
+- [ ] **Step 4: Exercise one command end to end** (NOT RUN - descoped by the user, see Execution record)
 
 In the Discord guild named by `DISCORD_GUILD_ID`, run `/card name:Alohomora` (or any card present
 in the seeded data) and confirm an embed comes back with a thumbnail. Then run `/collection` and
@@ -719,14 +719,14 @@ confirm the reply is ephemeral.
 Expected: both reply correctly. This exercises the Postgres, Meilisearch and image paths through
 the bundle — the parts a module-load smoke test cannot reach.
 
-- [ ] **Step 5: Confirm clean shutdown**
+- [x] **Step 5: Confirm clean shutdown**
 
 Press Ctrl-C (or `docker stop revelio-bot-smoke` from another shell).
 
 Expected: `SIGTERM received, shutting down` (or `SIGINT`), then the container exits 0. The signal
 handlers are registered in `main()`, so this also re-confirms `main()` owns the process.
 
-- [ ] **Step 6: Record the numbers**
+- [x] **Step 6: Record the numbers**
 
 ```bash
 docker images --format '{{.Repository}}:{{.Tag}}\t{{.Size}}' | grep -E 'revelio-(bot|ingest)'
@@ -735,7 +735,7 @@ docker images --format '{{.Repository}}:{{.Tag}}\t{{.Size}}' | grep -E 'revelio-
 Write the before/after pairs into the PR body's `## Verification` section along with the results of
 `npm test`, `npm run typecheck` and `npm run lint` from `app/`.
 
-- [ ] **Step 7: Full check suite**
+- [x] **Step 7: Full check suite**
 
 Run, from `app/`:
 
@@ -747,7 +747,7 @@ Expected: all clean. Note that `npm test` wipes the dev Meilisearch indexes
 (`main.test.ts` and `index-cards.test.ts` delete `cards-en`/`cards-de`), so run it **after** the
 Discord smoke test in Step 4, or re-seed afterwards.
 
-- [ ] **Step 8: Commit the ticked plan and open the PR**
+- [x] **Step 8: Commit the ticked plan and open the PR**
 
 ```bash
 git add docs/superpowers/plans/2026-09-14-bundle-service-images.md
@@ -791,3 +791,78 @@ Promise<number>` is unchanged across Tasks 2 and 3. Artefact paths `bot/dist/bot
 `ingest/dist/ingest.mjs`, `ingest/dist/migrate.mjs` are consistent between Task 3's scripts and
 Tasks 4/5's `COPY` lines, and the in-image names `bot.mjs`, `ingest.mjs`, `migrate.mjs` are
 consistent between the Dockerfiles' `COPY`/`CMD` and the compose `command`.
+
+
+---
+
+## Execution record (2026-09-14, branch `perf/bundle-bot-ingest-images`)
+
+### Result
+
+| image | before | after |
+|---|---|---|
+| `revelio-bot` | 916 MB | **165 MB** |
+| `revelio-ingest` | 909 MB | **164 MB** |
+
+Bundles: `bot.mjs` 4.3 MB, `ingest.mjs` 1.7 MB, `migrate.mjs` 294 KB. The runtime stage of each
+image contains no `node_modules` at all (`ls /app/node_modules` -> no such file or directory).
+
+### Discovered during execution, not anticipated by the plan
+
+**esbuild's ESM output cannot run CJS dependencies without a `createRequire` banner.**
+The first bundles built and reported zero warnings, then died at import time:
+
+```
+Error: Dynamic require of "node:events" is not supported
+    at ../node_modules/discord.js/src/client/BaseClient.js
+```
+
+`discord.js` is CJS. When esbuild emits ESM it replaces `require` with a shim that throws on any
+dynamic require, and that shim defers to a real `require` if one is in scope. Adding
+`--banner:js="import{createRequire as __cr}from'node:module';const require=__cr(import.meta.url);"`
+to all three build scripts fixed it. The ingest bundle had the same failure; `migrate.mjs`
+happened not to, because nothing in its graph is CJS.
+
+This is why the in-image smoke `RUN` earns its place: the bundle built clean and would have been
+published as a fully broken image.
+
+### Verification actually performed
+
+- `npm run lint` - clean.
+- `npm run typecheck` - clean.
+- `npm test` - **1282 tests across 220 files, all passing.**
+- Build-stage smoke gate passes in both images (`bot failed to start:` / `DATABASE_URL is required`).
+- **Mutation test on the bot smoke gate.** Re-added the old `isMain` block to `register.ts`,
+  rebuilt, and ran the bundle: output was a bare top-level `throw` with **zero** occurrences of
+  `bot failed to start:`, versus one occurrence for the fixed build. The gate bites.
+  (First attempt at this was invalid: the bundle was written to `/tmp`, and macOS resolves that to
+  `/private/tmp`, so `process.argv[1]` and `fileURLToPath(import.meta.url)` differed and `isMain`
+  was false for the wrong reason. Repeated from a non-symlinked path.)
+- **Bundled migrator against a live Postgres.** Ran `node migrate.mjs` from
+  `revelio-ingest:bundled` against an empty throwaway database (`bundletest`, created and dropped
+  for the test rather than resetting the dev database): 0 tables before, **25 tables after**.
+  This is the assertion that catches a wrong `MIGRATIONS_DIR` - the migrator prints
+  `migrations applied` over an empty folder too.
+- **Live boot of the bundled bot** against the compose stack on `app_default`:
+
+  ```
+  registered 5 commands
+  logged in as Revelio#6627
+  SIGTERM received, shutting down
+  ```
+
+  Container exit code 0.
+
+### Not done
+
+- **Task 6 Step 4 (exercising `/card` and `/collection` in Discord) was descoped by the user**, who
+  chose login+registration only. The Postgres, Meilisearch and image read paths through the bundle
+  are therefore covered by the unit suite and by the bot's successful client construction, but not
+  by a live interaction.
+- The full ingest seed was not run, since the chosen boot scope did not need seeded data.
+
+### Incidental
+
+Docker's VM disk filled during the image builds and stopped the postgres container with
+`could not write lock file "postmaster.pid": No space left on device`. Cleared with
+`docker builder prune -f` (18.83 GB of unused build cache; no images or volumes removed).

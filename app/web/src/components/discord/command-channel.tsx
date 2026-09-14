@@ -164,25 +164,30 @@ export function CommandChannel() {
           </Embed>
         </BotMessage>
 
-        <CommandContext command="/search" />
-        <BotMessage time="21:05">
-          <Embed accent={BRAND_GOLD}>
-            <p className="mb-1 text-sm font-semibold" style={{ color: DISCORD_LINK }}>
-              {t('sample.searchTitle')}
-            </p>
-            <ul className="mb-2 text-[0.8rem]">
-              {SEARCH_LINES.map((line) => (
-                <li key={line.name}>
-                  <b style={{ color: DISCORD_HEADING }}>{line.name}</b> &middot; {line.setCode} #
-                  {line.number}
-                </li>
-              ))}
-            </ul>
-            <p className="text-[0.69rem]" style={{ color: DISCORD_MUTED }}>
-              {t('sample.searchFooter')}
-            </p>
-          </Embed>
-        </BotMessage>
+        {/* On a phone the panel sits between the CTA and the commands, so the
+            second answer is hidden there: one embed already proves the point
+            and saves a screen of scrolling. */}
+        <div className="hidden flex-col gap-3 sm:flex">
+          <CommandContext command="/search" />
+          <BotMessage time="21:05">
+            <Embed accent={BRAND_GOLD}>
+              <p className="mb-1 text-sm font-semibold" style={{ color: DISCORD_LINK }}>
+                {t('sample.searchTitle')}
+              </p>
+              <ul className="mb-2 text-[0.8rem]">
+                {SEARCH_LINES.map((line) => (
+                  <li key={line.name}>
+                    <b style={{ color: DISCORD_HEADING }}>{line.name}</b> &middot; {line.setCode} #
+                    {line.number}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[0.69rem]" style={{ color: DISCORD_MUTED }}>
+                {t('sample.searchFooter')}
+              </p>
+            </Embed>
+          </BotMessage>
+        </div>
       </div>
 
       <div

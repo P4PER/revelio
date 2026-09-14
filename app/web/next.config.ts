@@ -1,8 +1,14 @@
 import type { NextConfig } from 'next'
+import createMDX from '@next/mdx'
 import createNextIntlPlugin from 'next-intl/plugin'
 import { resolve } from 'node:path'
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
+// No 'mdx' in pageExtensions on purpose: content lives in web/content/docs/,
+// outside the App Router tree, and is reached by explicit import. Registering
+// the extension would change module resolution for every route, and a stray
+// .mdx under src/app/ would become routing surface. The app tree stays TSX-only.
+const withMDX = createMDX({})
 
 // next is hoisted to app/node_modules — turbopack.root must reach that level.
 // path.resolve('..') from app/web/ gives app/ where node_modules/next lives.
@@ -28,4 +34,4 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@revelio/core', '@revelio/search', '@revelio/db'],
 }
 
-export default withNextIntl(nextConfig)
+export default withNextIntl(withMDX(nextConfig))

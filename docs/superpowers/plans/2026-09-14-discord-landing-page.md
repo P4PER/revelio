@@ -44,7 +44,7 @@ Adds the nullable column, threads it through the DTO, the Zod schema, the server
 - Consumes: nothing.
 - Produces: `SiteSettings.discordInviteUrl: string | null` (from `typeof siteSettings.$inferSelect`), reachable in `web` via `getCachedSiteSettings()`. Tasks 3 and 6 read it.
 
-- [ ] **Step 1: Write the failing action test**
+- [x] **Step 1: Write the failing action test**
 
 Append to `app/web/src/lib/actions/__tests__/site-settings-actions.test.ts`, inside the existing top-level `describe`. Read the file first: it already mocks `requireRole`, `getDb` and `upsertSiteSettings`; reuse those mocks rather than adding new ones, and copy the shape of the neighbouring "persists" test for the valid-input payload.
 
@@ -96,12 +96,12 @@ it('stores an empty discord invite url as null', async () => {
 })
 ```
 
-- [ ] **Step 2: Run it to make sure it fails**
+- [x] **Step 2: Run it to make sure it fails**
 
 Run: `npm test -w web -- src/lib/actions/__tests__/site-settings-actions.test.ts`
 Expected: FAIL. The valid-url case fails because `upsertSiteSettings` is called without `discordInviteUrl`; the `javascript:` case fails because Zod strips the unknown key instead of rejecting it, so the action returns `{ ok: true }`.
 
-- [ ] **Step 3: Add the column to the schema**
+- [x] **Step 3: Add the column to the schema**
 
 In `app/db/src/schema.ts`, add one line to the `siteSettings` table, after `githubUrl`:
 
@@ -111,7 +111,7 @@ In `app/db/src/schema.ts`, add one line to the `siteSettings` table, after `gith
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 ```
 
-- [ ] **Step 4: Generate the migration**
+- [x] **Step 4: Generate the migration**
 
 Run from `app/db`: `npm run generate`
 
@@ -123,7 +123,7 @@ ALTER TABLE "site_settings" ADD COLUMN "discord_invite_url" text;
 
 If it contains anything else — a dropped table, a recreated `site_settings`, a touched `0000` — stop and report. Do not edit `0000_*.sql` and do not delete the `drizzle/` folder.
 
-- [ ] **Step 5: Extend the DTO input**
+- [x] **Step 5: Extend the DTO input**
 
 In `app/db/src/queries/site-settings.ts`, add the field to `SiteSettingsInput`:
 
@@ -141,7 +141,7 @@ export type SiteSettingsInput = {
 
 `SiteSettings` needs no change — it is inferred from the table.
 
-- [ ] **Step 6: Extend the Zod schema**
+- [x] **Step 6: Extend the Zod schema**
 
 In `app/web/src/lib/schemas/site-settings.ts`, add one field to the object returned by `makeSiteSettingsSchema`, reusing the existing `isUrl` refinement:
 
@@ -150,7 +150,7 @@ In `app/web/src/lib/schemas/site-settings.ts`, add one field to the object retur
     discordInviteUrl: z.string().trim().max(500).refine(isUrl, t('url')),
 ```
 
-- [ ] **Step 7: Pass it through the action**
+- [x] **Step 7: Pass it through the action**
 
 In `app/web/src/lib/actions/site-settings-actions.ts`, add one line to the `upsertSiteSettings` call:
 
@@ -159,12 +159,12 @@ In `app/web/src/lib/actions/site-settings-actions.ts`, add one line to the `upse
     discordInviteUrl: nullify(d.discordInviteUrl),
 ```
 
-- [ ] **Step 8: Run the action tests**
+- [x] **Step 8: Run the action tests**
 
 Run: `npm test -w web -- src/lib/actions/__tests__/site-settings-actions.test.ts`
 Expected: PASS, all three new cases included.
 
-- [ ] **Step 9: Write the failing form test**
+- [x] **Step 9: Write the failing form test**
 
 Append to `app/web/src/components/admin/__tests__/site-settings-form.test.tsx`, matching the existing tests' render helper:
 
@@ -182,12 +182,12 @@ it('renders the discord invite url field with its saved value', () => {
 
 Read the file first. If it has no `EMPTY_SETTINGS` constant or `renderForm` helper, follow whatever shape the neighbouring tests use to build a `SiteSettings | null` and render `<SiteSettingsForm initial={...} />`.
 
-- [ ] **Step 10: Run it to make sure it fails**
+- [x] **Step 10: Run it to make sure it fails**
 
 Run: `npm test -w web -- src/components/admin/__tests__/site-settings-form.test.tsx`
 Expected: FAIL with `Unable to find a label with the text of: Discord install URL`.
 
-- [ ] **Step 11: Add the field to the form**
+- [x] **Step 11: Add the field to the form**
 
 In `app/web/src/components/admin/site-settings-form.tsx`, three edits:
 
@@ -205,7 +205,7 @@ type TextField = 'operatorName' | 'contactEmail' | 'hostingProvider' | 'responsi
         {textField('discordInviteUrl')}
 ```
 
-- [ ] **Step 12: Add the label copy**
+- [x] **Step 12: Add the label copy**
 
 In `app/web/messages/en.json`, `adminSettings`:
 
@@ -229,17 +229,17 @@ Also update `adminSettings.intro` in both, which currently promises only the Git
     "intro": "Betreiber- und Rechtsangaben für Impressum und Datenschutz, dazu der GitHub-Link im Footer und der Installationslink des Discord-Bots.",
 ```
 
-- [ ] **Step 13: Run the form tests**
+- [x] **Step 13: Run the form tests**
 
 Run: `npm test -w web -- src/components/admin/__tests__/site-settings-form.test.tsx`
 Expected: PASS.
 
-- [ ] **Step 14: Typecheck**
+- [x] **Step 14: Typecheck**
 
 Run from `app/`: `npm run typecheck`
 Expected: clean. A failure here most likely means a caller of `SiteSettingsInput` is missing the new required key.
 
-- [ ] **Step 15: Commit**
+- [x] **Step 15: Commit**
 
 The schema edit and its generated migration go in one commit, and it must land before `verify` runs.
 
@@ -252,7 +252,7 @@ git add app/db/src/schema.ts app/db/drizzle app/db/src/queries/site-settings.ts 
 git commit -m "feat(db): store the discord bot install url in site settings"
 ```
 
-- [ ] **Step 16: Verify the migration is consistent**
+- [x] **Step 16: Verify the migration is consistent**
 
 Run from `app/db`: `npm run check && npm run verify`
 Expected: both pass. `verify` fails if the schema drifted from the migrations; if it does, the generate step was skipped or the migration was not committed.
@@ -271,7 +271,7 @@ Every string the page renders, in both locales, with a parity test. Tasks 3 to 6
 - Consumes: nothing.
 - Produces: the `discord` namespace. Component tasks read it with `useTranslations('discord')`.
 
-- [ ] **Step 1: Write the failing parity test**
+- [x] **Step 1: Write the failing parity test**
 
 Create `app/web/src/components/discord/__tests__/discord-i18n.test.ts`, modelled on `src/components/auth/__tests__/auth-i18n.test.ts`:
 
@@ -308,12 +308,12 @@ describe('discord i18n', () => {
 })
 ```
 
-- [ ] **Step 2: Run it to make sure it fails**
+- [x] **Step 2: Run it to make sure it fails**
 
 Run: `npm test -w web -- src/components/discord/__tests__/discord-i18n.test.ts`
 Expected: FAIL — `en.discord` is undefined.
 
-- [ ] **Step 3: Add the English catalog**
+- [x] **Step 3: Add the English catalog**
 
 Add to `app/web/messages/en.json`, as a new top-level `discord` key (place it after `about` to keep related page namespaces together):
 
@@ -388,7 +388,7 @@ Add to `app/web/messages/en.json`, as a new top-level `discord` key (place it af
 
 The five `sample.searchLine*` card names are not translated — they are card names, which render the same in both catalogs. Hardcode the five lines in the component (Task 4) as data, not copy.
 
-- [ ] **Step 4: Add the German catalog**
+- [x] **Step 4: Add the German catalog**
 
 Add the same structure to `app/web/messages/de.json`:
 
@@ -461,12 +461,12 @@ Add the same structure to `app/web/messages/de.json`:
   }
 ```
 
-- [ ] **Step 5: Run the parity test**
+- [x] **Step 5: Run the parity test**
 
 Run: `npm test -w web -- src/components/discord/__tests__/discord-i18n.test.ts`
 Expected: PASS, all three cases.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/web/messages/en.json app/web/messages/de.json \
@@ -488,7 +488,7 @@ The install button. The single place that decides whether an install affordance 
 - Consumes: `discord.install` from Task 2; the existing `DiscordMark` at `@/components/discord-mark`; `Button` from `@/components/ui/button`.
 - Produces: `export function DiscordCta({ inviteUrl }: { inviteUrl: string | null }): ReactElement | null`. Tasks 6 renders it.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/web/src/components/discord/__tests__/discord-cta.test.tsx`:
 
@@ -532,12 +532,12 @@ describe('DiscordCta', () => {
 })
 ```
 
-- [ ] **Step 2: Run it to make sure it fails**
+- [x] **Step 2: Run it to make sure it fails**
 
 Run: `npm test -w web -- src/components/discord/__tests__/discord-cta.test.tsx`
 Expected: FAIL — cannot resolve `@/components/discord/discord-cta`.
 
-- [ ] **Step 3: Implement the component**
+- [x] **Step 3: Implement the component**
 
 Create `app/web/src/components/discord/discord-cta.tsx`:
 
@@ -566,12 +566,12 @@ export function DiscordCta({ inviteUrl }: { inviteUrl: string | null }) {
 
 `bg-brand-discord` resolves through the existing `--color-brand-discord` token (`#5865F2`) already declared in `globals.css`. Do not add a new colour.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `npm test -w web -- src/components/discord/__tests__/discord-cta.test.tsx`
 Expected: PASS, all three cases.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/web/src/components/discord/discord-cta.tsx \
@@ -593,7 +593,7 @@ The static Discord channel mockup: two bot answers (a card embed and a search em
 - Consumes: `discord.sample.*`, `discord.channelName`, `discord.usedCommand`, `discord.botName`, `discord.appTag`, `discord.you`, `discord.cardImageAlt` from Task 2.
 - Produces: `export function CommandChannel(): ReactElement`. No props. Task 6 renders it.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/web/src/components/discord/__tests__/command-channel.test.tsx`:
 
@@ -640,12 +640,12 @@ describe('CommandChannel', () => {
 })
 ```
 
-- [ ] **Step 2: Run it to make sure it fails**
+- [x] **Step 2: Run it to make sure it fails**
 
 Run: `npm test -w web -- src/components/discord/__tests__/command-channel.test.tsx`
 Expected: FAIL — cannot resolve `@/components/discord/command-channel`.
 
-- [ ] **Step 3: Implement the component**
+- [x] **Step 3: Implement the component**
 
 Create `app/web/src/components/discord/command-channel.tsx`. Build the markup from the "The page" mockup in the artifact — its channel panel is the design of record for spacing, colours and the embed anatomy.
 
@@ -682,12 +682,12 @@ Requirements the tests and the design both depend on:
 - Discord's own surface colours (`#313338`, `#2b2d31`, `#f2f3f5`, `#949ba4`) are **literals in this component, not theme tokens** — it is a depiction of Discord's UI, which does not follow the visitor's Revelio theme. Add a comment saying so, or a reviewer will flag it as a token violation.
 - The panel is decorative chrome around real text: no `role`, no interactive elements, no headings that would pollute the page's heading outline.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `npm test -w web -- src/components/discord/__tests__/command-channel.test.tsx`
 Expected: PASS, all four cases.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/web/src/components/discord/command-channel.tsx \
@@ -709,7 +709,7 @@ The five command tiles plus the reference tile. The reference tile is behind a p
 - Consumes: `discord.commands.*`, `discord.commandsTitle`, `discord.commandsIntro`, `discord.ephemeral`, `discord.reference.*`, `discord.steps.*` from Task 2; `Link` from `@/../i18n/navigation`.
 - Produces: `export function CommandGrid({ docsHref }: { docsHref?: string | null }): ReactElement`. Task 6 renders it.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/web/src/components/discord/__tests__/command-grid.test.tsx`:
 
@@ -769,12 +769,12 @@ describe('CommandGrid', () => {
 })
 ```
 
-- [ ] **Step 2: Run it to make sure it fails**
+- [x] **Step 2: Run it to make sure it fails**
 
 Run: `npm test -w web -- src/components/discord/__tests__/command-grid.test.tsx`
 Expected: FAIL — cannot resolve `@/components/discord/command-grid`.
 
-- [ ] **Step 3: Implement the component**
+- [x] **Step 3: Implement the component**
 
 Create `app/web/src/components/discord/command-grid.tsx`. Drive the tiles from a local constant so the markup stays one loop:
 
@@ -800,12 +800,12 @@ Requirements from the design:
 - The section heading is an `<h2>`; the page's `<h1>` lives in the hero (Task 6).
 - The three steps sit below the grid, separated by a top border.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `npm test -w web -- src/components/discord/__tests__/command-grid.test.tsx`
 Expected: PASS, all five cases.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/web/src/components/discord/command-grid.tsx \
@@ -827,7 +827,7 @@ Composes the three components into the route, with metadata and the settings rea
 - Consumes: `DiscordCta`, `CommandChannel`, `CommandGrid` from Tasks 3 to 5; `getCachedSiteSettings` from `@/lib/server/site-settings`; `StarField` from `@/components/star-field`.
 - Produces: `export function DiscordContent({ inviteUrl }: { inviteUrl: string | null })` — the presentational view tests render — and the async default export.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/web/src/app/[locale]/discord/__tests__/discord.test.tsx`, modelled on `about/__tests__/about.test.tsx`:
 
@@ -891,12 +891,12 @@ describe('DiscordContent', () => {
 })
 ```
 
-- [ ] **Step 2: Run it to make sure it fails**
+- [x] **Step 2: Run it to make sure it fails**
 
 Run: `npm test -w web -- src/app/\[locale\]/discord/__tests__/discord.test.tsx`
 Expected: FAIL — cannot resolve `../page`.
 
-- [ ] **Step 3: Implement the page**
+- [x] **Step 3: Implement the page**
 
 Create `app/web/src/app/[locale]/discord/page.tsx`. Copy the structure of `about/page.tsx` exactly: `export const dynamic = 'force-dynamic'`, an async `generateMetadata` building per-locale `alternates.languages` from `routing.locales` plus an `x-default`, the exported presentational component, and the async default export that resolves settings and hands them down.
 
@@ -939,12 +939,12 @@ For `DiscordContent`:
 - The secondary "See what it answers" button is an anchor to the `#commands` fragment on the `CommandGrid` section. It is not a `Link` — it does not change route.
 - Pass `docsHref={null}` to `CommandGrid`. `/discord/docs` does not exist yet; the tile turns on by passing the path once it does.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `npm test -w web -- src/app/\[locale\]/discord/__tests__/discord.test.tsx`
 Expected: PASS, all five cases.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add "app/web/src/app/[locale]/discord"
@@ -966,7 +966,7 @@ The only navigation into the page. Deliberately not in the header nav, which sta
 - Consumes: the `/discord` route from Task 6.
 - Produces: nothing downstream.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `app/web/src/components/layout/__tests__/site-footer.test.tsx`, inside the existing `describe`:
 
@@ -981,12 +981,12 @@ it('links the Discord bot page from the About column', () => {
 })
 ```
 
-- [ ] **Step 2: Run it to make sure it fails**
+- [x] **Step 2: Run it to make sure it fails**
 
 Run: `npm test -w web -- src/components/layout/__tests__/site-footer.test.tsx`
 Expected: FAIL — no link named "Discord bot".
 
-- [ ] **Step 3: Add the footer link**
+- [x] **Step 3: Add the footer link**
 
 In `app/web/src/components/layout/site-footer.tsx`, add one `FooterLink` to the About column, between Contact and the conditional GitHub link:
 
@@ -998,7 +998,7 @@ In `app/web/src/components/layout/site-footer.tsx`, add one `FooterLink` to the 
 
 It is an internal route, so it uses `FooterLink` (which wraps next-intl's locale-aware `Link`) and carries no `ArrowUpRight` — that glyph means "leaves the site" in this footer.
 
-- [ ] **Step 4: Add the label copy**
+- [x] **Step 4: Add the label copy**
 
 In `app/web/messages/en.json`, `footer`:
 
@@ -1012,12 +1012,12 @@ In `app/web/messages/de.json`, `footer`:
     "discordBot": "Discord-Bot",
 ```
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 Run: `npm test -w web -- src/components/layout/__tests__/site-footer.test.tsx`
 Expected: PASS.
 
-- [ ] **Step 6: Full verification**
+- [x] **Step 6: Full verification**
 
 Run from `app/`, and record the real numbers — they go in the PR's Verification section:
 
@@ -1029,7 +1029,7 @@ npm run lint
 
 Expected: all three clean. If `npm test` wipes your local dev Meilisearch, that is known and unrelated to this change.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app/web/src/components/layout/site-footer.tsx \

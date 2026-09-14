@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { CommandChannel } from '@/components/discord/command-channel'
 import { CommandGrid } from '@/components/discord/command-grid'
 import { DiscordCta } from '@/components/discord/discord-cta'
+import { TrustRow } from '@/components/discord/trust-row'
 
 // The reference tile's target. `/discord/docs` is not built yet, so this link
 // is live ahead of its page: set it back to null to hide the tile again.
@@ -62,7 +63,7 @@ export function DiscordContent({ inviteUrl }: { inviteUrl: string | null }) {
               <a href="#commands">{t('seeAnswers')}</a>
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground">{t('availability')}</p>
+          <TrustRow />
         </div>
 
         <CommandChannel />

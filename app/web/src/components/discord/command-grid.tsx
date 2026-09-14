@@ -5,29 +5,42 @@ import { CommandCode } from '@/components/discord/command-code'
 
 type CommandKey = 'card' | 'search' | 'deck' | 'collection' | 'mydecks'
 
-type Command = { key: CommandKey; personal: boolean }
+type Command = { key: CommandKey; options: readonly string[]; personal: boolean }
 
 // Order is most-used first, as the design shows it. `personal` drives the "only
 // you see it" tag: those two commands defer ephemerally in the bot (see
 // bot/src/discord/commands/collection.ts), so the page must not imply their
 // answers land in the channel for everyone.
+//
+// Option names are data, not copy: they are the literal option names the bot
+// registers with Discord (bot/src/discord/commands/*.ts), identical in every
+// language, so a visitor types the same thing either way.
 const COMMANDS: readonly Command[] = [
-  { key: 'card', personal: false },
-  { key: 'search', personal: false },
-  { key: 'deck', personal: false },
-  { key: 'collection', personal: true },
-  { key: 'mydecks', personal: true },
+  { key: 'card', options: ['name'], personal: false },
+  { key: 'search', options: ['query', 'lesson', 'type', 'set', 'page'], personal: false },
+  { key: 'deck', options: ['deck'], personal: false },
+  { key: 'collection', options: ['set'], personal: true },
+  { key: 'mydecks', options: [], personal: true },
 ]
 
 const STEPS = ['add', 'link', 'type'] as const
 
 function CommandCard({ command }: { command: Command }) {
   const t = useTranslations('discord')
-  const options = t(`commands.${command.key}.options`)
   return (
     <li className="flex flex-col gap-1.5 rounded-xl border border-border bg-card p-4">
       <span className="font-mono text-sm font-medium text-primary-ink">/{command.key}</span>
-      {options && <span className="font-mono text-xs text-secondary-ink">{options}</span>}
+      {/* Chips, like every other typed thing on the page. Plain indigo text was
+          illegible against the card and plain muted text was indistinguishable
+          from the description below; the tinted chip is both readable and
+          clearly a different kind of thing from prose. */}
+      {command.options.length > 0 && (
+        <span className="flex flex-wrap gap-1 text-xs">
+          {command.options.map((option) => (
+            <CommandCode key={option}>{option}</CommandCode>
+          ))}
+        </span>
+      )}
       <span className="text-sm leading-relaxed text-muted-foreground">
         {t(`commands.${command.key}.description`)}
       </span>

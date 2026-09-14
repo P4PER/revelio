@@ -783,7 +783,11 @@
     "tagline": "Look up a card mid-argument. Share a decklist without a screenshot. Check what you are missing from a set - privately.",
     "install": "Add to Discord",
     "seeAnswers": "See what it answers",
-    "availability": "Works in any server. Personal answers stay private to you.",
+    "trust": {
+      "anyServer": "Works in any server",
+      "noMessages": "Cannot read your messages",
+      "privateReplies": "Personal answers stay private"
+    },
     "channelName": "deck-talk",
     "usedCommand": "<user>{userName}</user> used <cmd>{command}</cmd>",
     "botName": "Revelio",
@@ -795,23 +799,18 @@
     "ephemeral": "Only you see it",
     "commands": {
       "card": {
-        "options": "name",
         "description": "The full card: text, flavour, cost, lesson, rarity, legality, rulings, and the art."
       },
       "search": {
-        "options": "query, lesson, type, set, page",
         "description": "The same search as the site, paged, with a link back to the full results."
       },
       "deck": {
-        "options": "deck",
         "description": "Any public decklist by link or id: character, main deck, sideboard, legality."
       },
       "collection": {
-        "options": "set",
         "description": "How far along you are, overall or in one set."
       },
       "mydecks": {
-        "options": "",
         "description": "Your decks, public and private, with their formats and sizes."
       }
     },

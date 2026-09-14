@@ -746,7 +746,11 @@
     "tagline": "Eine Karte mitten in der Diskussion nachschlagen. Ein Deck ohne Screenshot teilen. Nachsehen, was dir in einem Set noch fehlt - privat.",
     "install": "Zu Discord hinzufügen",
     "seeAnswers": "Sieh, was er antwortet",
-    "availability": "Funktioniert auf jedem Server. Persönliche Antworten siehst nur du.",
+    "trust": {
+      "anyServer": "Auf jedem Server nutzbar",
+      "noMessages": "Liest deine Nachrichten nicht",
+      "privateReplies": "Persönliche Antworten bleiben privat"
+    },
     "channelName": "deck-talk",
     "usedCommand": "<user>{userName}</user> nutzte <cmd>{command}</cmd>",
     "botName": "Revelio",
@@ -758,23 +762,18 @@
     "ephemeral": "Nur du siehst es",
     "commands": {
       "card": {
-        "options": "name",
         "description": "Die ganze Karte: Text, Flavour, Kosten, Lektion, Seltenheit, Legalität, Rulings und das Artwork."
       },
       "search": {
-        "options": "query, lesson, type, set, page",
         "description": "Dieselbe Suche wie auf der Website, seitenweise, mit Link zu den vollständigen Ergebnissen."
       },
       "deck": {
-        "options": "deck",
         "description": "Jedes öffentliche Deck per Link oder ID: Startcharakter, Hauptdeck, Sideboard, Legalität."
       },
       "collection": {
-        "options": "set",
         "description": "Wie weit du bist, insgesamt oder in einem Set."
       },
       "mydecks": {
-        "options": "",
         "description": "Deine Decks, öffentlich und privat, mit Format und Kartenzahl."
       }
     },

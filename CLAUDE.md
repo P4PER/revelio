@@ -59,6 +59,17 @@ DATABASE_URL=postgres://revelio:revelio@localhost:5432/revelio npx tsx db/src/mi
 
 Either way, confirm the change actually landed rather than trusting the success line — e.g. `docker compose exec -T postgres psql -U revelio -d revelio -c "\d <table>"`.
 
+
+
+### Image builds
+
+`web` ships Next's `output: standalone`. **`bot` and `ingest` ship a single esbuild bundle each**, not a `node_modules` tree: a bare `npm ci` at the workspaces root hoists every dependency of all six workspaces into one folder, so the runtime image used to carry `next`, `lucide-react`, `sharp` and the whole toolchain for services that import none of it (916 MB / 909 MB, against 165 MB / 164 MB bundled). The `build` script in `bot/package.json` and `ingest/package.json` produces the bundle; the runtime stage copies only the `.mjs` and runs it with plain `node`. Two consequences:
+
+- **The ESM bundles need the `createRequire` banner** in those build scripts. `discord.js` and parts of the ingest tree are CJS, and esbuild's ESM output otherwise stubs `require` with a shim that throws `Dynamic require of "node:events" is not supported` at import time. It builds clean and fails at boot, so each Dockerfile runs the bundle once in the build stage and greps for the expected env-guard message.
+- **A module imported into a bundle must have no top-level side effect**, in particular no `process.argv[1] === fileURLToPath(import.meta.url)` entry guard: inside a bundle both sides are the bundle itself, so the guard fires and can exit before `main()` runs. CLI entrypoints get their own file (`bot/src/discord/register-cli.ts`), and `bot/test/register.test.ts` enforces it.
+
+The `ingest` image carries the `db/drizzle` SQL separately at `/app/drizzle` with `MIGRATIONS_DIR` pointing at it — drizzle's migrator reads those files at runtime, and the bundle's own `import.meta.url` would resolve `../drizzle` to `/drizzle`.
+
 **Env files are per workspace, and there is no root `app/.env`.** `docker-compose.yml` hardcodes every value its services need (hostnames are the service names `postgres`, `meilisearch`, `rustfs`) and does no `${VAR}` interpolation, so a root `.env` would be read by nothing. Next reads `app/web/.env.local`, and the bot reads `app/bot/.env.local` (both have a committed `.env.example` beside them). Use `localhost` + published ports in those two, since they run on the host; the compose `bot` service loads `bot/.env.local` via `env_file` and overrides the two hostnames. `app/ingest/.env.example` documents the ingest job's variables for a deployed run — nothing auto-loads it, pass it with `docker run --env-file`.
 
 ## Architecture

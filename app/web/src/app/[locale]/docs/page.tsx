@@ -7,8 +7,10 @@ import OverviewEn from '@/../content/docs/discord.en.mdx'
 // the locale for every slug instead of this one hardcoded pair.
 export const dynamic = 'force-dynamic'
 
-export default async function DocsPage() {
-  const locale = await getLocale()
+// Split out of the async server component so it can be tested: an async
+// component calling getLocale() has no request scope under vitest, which is
+// why the about and discord pages expose a sync view the same way.
+export function DocsOverview({ locale }: { locale: string }) {
   const Overview = locale === 'de' ? OverviewDe : OverviewEn
 
   return (
@@ -16,4 +18,8 @@ export default async function DocsPage() {
       <Overview />
     </main>
   )
+}
+
+export default async function DocsPage() {
+  return <DocsOverview locale={await getLocale()} />
 }

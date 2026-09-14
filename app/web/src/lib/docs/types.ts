@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import { routing } from '@/../i18n/routing'
+import type { routing } from '@/../i18n/routing'
 
 /**
  * Every page the docs section serves. Declared as a union rather than derived

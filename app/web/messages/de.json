@@ -738,6 +738,71 @@
     "exploreTitle": "Loslegen",
     "exploreBody": "Stöbere in den <sets>Kartensets</sets> oder enthülle eine <random>zufällige Karte</random>."
   },
+  "discord": {
+    "metaTitle": "Revelio für Discord",
+    "metaDescription": "Jede Karte des Harry-Potter-Sammelkartenspiels nachschlagen, Decks teilen und die eigene Sammlung prüfen, ohne Discord zu verlassen.",
+    "heading": "Jede Karte beschwören, <b>ohne den Chat zu verlassen</b>",
+    "tagline": "Eine Karte mitten in der Diskussion nachschlagen. Ein Deck ohne Screenshot teilen. Nachsehen, was dir in einem Set noch fehlt - privat.",
+    "seeAnswers": "Sieh, was er antwortet",
+    "availability": "Funktioniert auf jedem Server. Persönliche Antworten siehst nur du.",
+    "channelName": "deck-talk",
+    "usedCommand": "{user} nutzte {command}",
+    "botName": "Revelio",
+    "appTag": "App",
+    "you": "du",
+    "cardImageAlt": "Karte {name}",
+    "commandsTitle": "Was du tippen kannst",
+    "commandsIntro": "Tippe / in jedem Kanal, den der Bot sieht. Den Rest ergänzt Discord.",
+    "ephemeral": "Nur du siehst es",
+    "commands": {
+      "card": {
+        "options": "name",
+        "description": "Die ganze Karte: Text, Flavour, Kosten, Lektion, Seltenheit, Legalität, Rulings und das Artwork."
+      },
+      "search": {
+        "options": "query, lesson, type, set, page",
+        "description": "Dieselbe Suche wie auf der Website, seitenweise, mit Link zu den vollständigen Ergebnissen."
+      },
+      "deck": {
+        "options": "deck",
+        "description": "Jedes öffentliche Deck per Link oder ID: Startcharakter, Hauptdeck, Sideboard, Legalität."
+      },
+      "collection": {
+        "options": "set",
+        "description": "Wie weit du bist, insgesamt oder in einem Set."
+      },
+      "mydecks": {
+        "options": "",
+        "description": "Deine Decks, öffentlich und privat, mit Format und Kartenzahl."
+      }
+    },
+    "reference": {
+      "title": "Vollständige Referenz",
+      "description": "Jede Option jedes Befehls, wie die Kontoverknüpfung funktioniert und was der Bot lesen kann und was nicht."
+    },
+    "steps": {
+      "addTitle": "Bot hinzufügen",
+      "addBody": "Ein Klick, keine Rechte außer Schreiben.",
+      "linkTitle": "Konto verknüpfen",
+      "linkBody": "Nur für /collection und /mydecks nötig, unter Einstellungen und dann Verbindungen.",
+      "typeTitle": "Slash tippen",
+      "typeBody": "Die Befehle erscheinen in jedem Kanal, den der Bot sieht."
+    },
+    "sample": {
+      "cardName": "Alohomora",
+      "cardText": "Durchsuche dein Deck. Du darfst eine Ort- oder Abenteuerkarte aus deinem Deck nehmen, sie deinem Gegner zeigen und auf deine Hand nehmen. Mische danach dein Deck.",
+      "cardFooter": "Adventures at Hogwarts - #32",
+      "fieldType": "Typ",
+      "fieldTypeValue": "Zauber",
+      "fieldLesson": "Lektion",
+      "fieldLessonValue": "Zauberkunst",
+      "fieldCost": "Kosten",
+      "fieldCostValue": "4",
+      "searchTitle": "42 Karten",
+      "searchFooter": "Seite 1 von 5 - alle auf revelio.cards",
+      "typing": "set: Kammer des Schreckens"
+    }
+  },
   "privacy": {
     "metaTitle": "Datenschutzerklärung",
     "title": "Datenschutzerklärung",

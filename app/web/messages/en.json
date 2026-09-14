@@ -775,6 +775,72 @@
     "exploreTitle": "Start exploring",
     "exploreBody": "Jump into the <sets>card sets</sets> or reveal a <random>random card</random>."
   },
+  "discord": {
+    "metaTitle": "Revelio for Discord",
+    "metaDescription": "Look up any Harry Potter TCG card, share a decklist and check your collection without leaving Discord.",
+    "heading": "Summon any card <b>without leaving the chat</b>",
+    "tagline": "Look up a card mid-argument. Share a decklist without a screenshot. Check what you are missing from a set - privately.",
+    "install": "Add to Discord",
+    "seeAnswers": "See what it answers",
+    "availability": "Works in any server. Personal answers stay private to you.",
+    "channelName": "deck-talk",
+    "usedCommand": "{user} used {command}",
+    "botName": "Revelio",
+    "appTag": "App",
+    "you": "you",
+    "cardImageAlt": "{name} card",
+    "commandsTitle": "What you can type",
+    "commandsIntro": "Type / in any channel the bot can see. Discord fills in the rest.",
+    "ephemeral": "Only you see it",
+    "commands": {
+      "card": {
+        "options": "name",
+        "description": "The full card: text, flavour, cost, lesson, rarity, legality, rulings, and the art."
+      },
+      "search": {
+        "options": "query, lesson, type, set, page",
+        "description": "The same search as the site, paged, with a link back to the full results."
+      },
+      "deck": {
+        "options": "deck",
+        "description": "Any public decklist by link or id: character, main deck, sideboard, legality."
+      },
+      "collection": {
+        "options": "set",
+        "description": "How far along you are, overall or in one set."
+      },
+      "mydecks": {
+        "options": "",
+        "description": "Your decks, public and private, with their formats and sizes."
+      }
+    },
+    "reference": {
+      "title": "Full reference",
+      "description": "Every option each command takes, how account linking works, and exactly what the bot can and cannot read."
+    },
+    "steps": {
+      "addTitle": "Add the bot",
+      "addBody": "One click, no permissions beyond posting.",
+      "linkTitle": "Link your account",
+      "linkBody": "Only needed for /collection and /mydecks, from Settings then Connections.",
+      "typeTitle": "Type a slash",
+      "typeBody": "Commands appear in every channel the bot can see."
+    },
+    "sample": {
+      "cardName": "Alohomora",
+      "cardText": "Search your deck. You may take a Location or Adventure card from your deck, show it to your opponent and put it into your hand. Then shuffle your deck.",
+      "cardFooter": "Adventures at Hogwarts - #32",
+      "fieldType": "Type",
+      "fieldTypeValue": "Spell",
+      "fieldLesson": "Lesson",
+      "fieldLessonValue": "Charms",
+      "fieldCost": "Cost",
+      "fieldCostValue": "4",
+      "searchTitle": "42 cards",
+      "searchFooter": "Page 1 of 5 - view all on revelio.cards",
+      "typing": "set: Chamber of Secrets"
+    }
+  },
   "privacy": {
     "metaTitle": "Privacy Policy",
     "title": "Privacy Policy",

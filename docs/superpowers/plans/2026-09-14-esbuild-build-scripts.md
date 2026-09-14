@@ -1,6 +1,6 @@
 # esbuild Build Scripts Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Move the esbuild `createRequire` banner out of three shell-escaped npm script strings into one `build.mjs` per workspace, so the reason the banner exists lives next to the code that needs it.
 
@@ -56,7 +56,7 @@ The banner is correct and load-bearing. What is not good practice is its packagi
 - Consumes: nothing from earlier tasks.
 - Produces: the `banner` shape `{ js: string }` and the option set (`bundle`, `platform: 'node'`, `target: 'node22'`, `format: 'esm'`, `logLevel: 'warning'`) that Task 2 repeats verbatim for its own two entrypoints.
 
-- [ ] **Step 1: Record the baseline hash of the current bundle**
+- [x] **Step 1: Record the baseline hash of the current bundle**
 
 ```bash
 cd app
@@ -68,7 +68,7 @@ Expected: `4e292b0783cf6bee229cf546970718cb6f4046e8c01e565cbc8c2da32835bb6f  bot
 
 If it differs, a dependency moved since this plan was written. Use the hash you just recorded as the baseline for Step 4 and note the discrepancy in the PR.
 
-- [ ] **Step 2: Write `app/bot/build.mjs`**
+- [x] **Step 2: Write `app/bot/build.mjs`**
 
 ```js
 import * as esbuild from 'esbuild'
@@ -85,23 +85,29 @@ const banner = {
   js: "import{createRequire as __cr}from'node:module';const require=__cr(import.meta.url);",
 }
 
-await esbuild.build({
-  entryPoints: ['src/main.ts'],
-  outfile: 'dist/bot.mjs',
-  bundle: true,
-  platform: 'node',
-  target: 'node22',
-  format: 'esm',
-  banner,
-  logLevel: 'warning',
-})
+// esbuild has already printed the formatted error at this logLevel, so rethrowing
+// would only add an unhandled-rejection stack on top of it. Exit on the message.
+try {
+  await esbuild.build({
+    entryPoints: ['src/main.ts'],
+    outfile: 'dist/bot.mjs',
+    bundle: true,
+    platform: 'node',
+    target: 'node22',
+    format: 'esm',
+    banner,
+    logLevel: 'warning',
+  })
+} catch {
+  process.exit(1)
+}
 ```
 
-- [ ] **Step 3: Point the npm script at it**
+- [x] **Step 3: Point the npm script at it**
 
 In `app/bot/package.json`, replace the `build` value with `node build.mjs`. The whole escaped esbuild invocation goes away.
 
-- [ ] **Step 4: Rebuild and prove the output is byte-identical**
+- [x] **Step 4: Rebuild and prove the output is byte-identical**
 
 ```bash
 cd app
@@ -112,7 +118,7 @@ shasum -a 256 bot/dist/bot.mjs
 
 Expected: the exact hash from Step 1. A different hash means the option set drifted - diff the two bundles before going further.
 
-- [ ] **Step 5: Confirm the banner is still the first line and the bundle boots**
+- [x] **Step 5: Confirm the banner is still the first line and the bundle boots**
 
 ```bash
 cd app
@@ -122,7 +128,7 @@ env -i node bot/dist/bot.mjs 2>&1 | grep -q 'bot failed to start:' && echo "smok
 
 Expected: the banner line, then `smoke OK`. This is the same assertion `bot/Dockerfile:30` makes.
 
-- [ ] **Step 6: Lint the new file**
+- [x] **Step 6: Lint the new file**
 
 ```bash
 cd app
@@ -131,7 +137,7 @@ npm run lint
 
 Expected: clean. `app/eslint.config.mjs:13` already globs `{core,search,db,ingest,bot}/**/*.mjs`, so `build.mjs` is linted; the two type rules never fire on it.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app/bot/build.mjs app/bot/package.json
@@ -151,7 +157,7 @@ git commit -m "refactor(bot): move the esbuild banner into a build script"
 - Consumes: the banner text and option set established in Task 1. They are repeated in full here rather than imported - the two workspaces stay independent.
 - Produces: nothing later tasks depend on.
 
-- [ ] **Step 1: Record the baseline hashes of the current bundles**
+- [x] **Step 1: Record the baseline hashes of the current bundles**
 
 ```bash
 cd app
@@ -165,7 +171,7 @@ Expected:
 42e1ece23b1ffdc1dd859dd20b571c99f118a0cfd83f233dfad6a443032c9a28  ingest/dist/migrate.mjs
 ```
 
-- [ ] **Step 2: Write `app/ingest/build.mjs`**
+- [x] **Step 2: Write `app/ingest/build.mjs`**
 
 Note `migrate-cli.ts` deliberately lives in `db` and is bundled from here: the ingest image ships the migration runner, and `db` has no build step of its own.
 
@@ -194,20 +200,26 @@ const entries = [
   { entryPoints: ['../db/src/migrate-cli.ts'], outfile: 'dist/migrate.mjs' },
 ]
 
-for (const entry of entries) {
-  await esbuild.build({
-    ...entry,
-    bundle: true,
-    platform: 'node',
-    target: 'node22',
-    format: 'esm',
-    banner,
-    logLevel: 'warning',
-  })
+// esbuild has already printed the formatted error at this logLevel, so rethrowing
+// would only add an unhandled-rejection stack on top of it. Exit on the message.
+try {
+  for (const entry of entries) {
+    await esbuild.build({
+      ...entry,
+      bundle: true,
+      platform: 'node',
+      target: 'node22',
+      format: 'esm',
+      banner,
+      logLevel: 'warning',
+    })
+  }
+} catch {
+  process.exit(1)
 }
 ```
 
-- [ ] **Step 3: Collapse the three npm scripts into one**
+- [x] **Step 3: Collapse the three npm scripts into one**
 
 In `app/ingest/package.json`, set `build` to `node build.mjs` and delete both `build:job` and `build:migrate`. Nothing else references those two names - confirm with:
 
@@ -218,7 +230,7 @@ grep -rn "build:job\|build:migrate" --include='*.json' --include='*.yml' --inclu
 
 Expected: no hits outside `ingest/package.json` itself and this plan.
 
-- [ ] **Step 4: Rebuild and prove both outputs are byte-identical**
+- [x] **Step 4: Rebuild and prove both outputs are byte-identical**
 
 ```bash
 cd app
@@ -229,7 +241,7 @@ shasum -a 256 ingest/dist/ingest.mjs ingest/dist/migrate.mjs
 
 Expected: the two hashes from Step 1, unchanged.
 
-- [ ] **Step 5: Confirm both bundles boot to their env guard**
+- [x] **Step 5: Confirm both bundles boot to their env guard**
 
 ```bash
 cd app
@@ -240,7 +252,7 @@ env -i node ingest/dist/ingest.mjs  2>&1 | grep -q 'DATABASE_URL is required' \
 
 Expected: `smoke OK`. Same assertion as `ingest/Dockerfile:26-27`.
 
-- [ ] **Step 6: Lint**
+- [x] **Step 6: Lint**
 
 ```bash
 cd app
@@ -249,7 +261,7 @@ npm run lint
 
 Expected: clean.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app/ingest/build.mjs app/ingest/package.json
@@ -268,15 +280,15 @@ git commit -m "refactor(ingest): move the esbuild banner into a build script"
 - Consumes: the file names created in Tasks 1 and 2.
 - Produces: nothing.
 
-- [ ] **Step 1: Update the two sentences that name the old location**
+- [x] **Step 1: Update the two sentences that name the old location**
 
 The section currently says the bundle is produced by "The `build` script in `bot/package.json` and `ingest/package.json`", and that "The ESM bundles need the `createRequire` banner **in those build scripts**". Both now point at `bot/build.mjs` and `ingest/build.mjs`. Keep the explanation of *why* the banner is needed where it is - it is repeated in the scripts now, but CLAUDE.md is what a reader hits first.
 
-- [ ] **Step 2: Leave the historical plan docs alone**
+- [x] **Step 2: Leave the historical plan docs alone**
 
 `docs/superpowers/plans/` records what was executed at the time. Do not rewrite the bundled-image plan to match the new file layout.
 
-- [ ] **Step 3: Full verification sweep before the PR**
+- [x] **Step 3: Full verification sweep before the PR**
 
 ```bash
 cd app
@@ -287,7 +299,7 @@ npm run lint
 
 Expected: all clean. `tsconfig.typecheck.json` includes only `src` in both workspaces, so `build.mjs` is not typechecked - that is intended, it is a build script, not shipped code.
 
-- [ ] **Step 4: Build one image end to end**
+- [x] **Step 4: Build one image end to end**
 
 ```bash
 cd app
@@ -296,9 +308,51 @@ docker build -f bot/Dockerfile -t revelio-bot:refactor-check .
 
 Expected: success, including the `RUN env -i node bot/dist/bot.mjs ... grep -q` layer at `bot/Dockerfile:30`. This is the real gate: it proves `build.mjs` reached the image and the banner still does its job inside it.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add CLAUDE.md
 git commit -m "docs: point the image-build notes at the new build scripts"
 ```
+
+---
+
+## Outcome
+
+Executed on 2026-09-14, branch `refactor/esbuild-build-scripts`.
+
+**The refactor is provably output-preserving.** All three bundles hash identically
+before and after:
+
+```
+4e292b0783cf6bee229cf546970718cb6f4046e8c01e565cbc8c2da32835bb6f  bot/dist/bot.mjs
+8913b0596abd2040e4ca0d1993d95ca1853a0fe2b506b569e312c6907cdc4483  ingest/dist/ingest.mjs
+42e1ece23b1ffdc1dd859dd20b571c99f118a0cfd83f233dfad6a443032c9a28  ingest/dist/migrate.mjs
+```
+
+Verification run:
+
+- `npm test` - exit 0, 1282 tests across five workspaces (core 39, ingest 138,
+  search 49, web 927, bot 129).
+- `npm run typecheck` - clean. `npm run lint` - clean.
+- `docker build` on both Dockerfiles - success, including the `env -i node ... grep -q`
+  smoke layers, at 165 MB / 164 MB.
+- `/code-review medium` - no correctness findings. It independently rebuilt with the old
+  CLI invocations from `git show main:app/*/package.json` and `cmp`'d against the new
+  output.
+
+### Deviation from the plan as written
+
+One change landed that the plan did not anticipate, raised by the code review: on a build
+failure the rejection escaped the top-level `await` and printed a 23-line
+unhandled-rejection stack on top of esbuild's own one-line formatted error. Both scripts
+now wrap the build in `try { ... } catch { process.exit(1) }`, which is the pattern
+esbuild's own docs pair with the JS API. Output is 2 lines instead of 23; the exit code
+was already 1 and is unchanged. The Task 1 and Task 2 code blocks above were updated to
+match what shipped.
+
+### Notes for future local work
+
+The Dockerfiles' `env -i node <bundle>` smoke command does not reproduce verbatim on
+macOS: `env -i` clears `PATH` and BSD `env` then cannot resolve a bare `node`. Use
+`env -i /usr/local/bin/node <bundle>` locally. It works as written inside Alpine.

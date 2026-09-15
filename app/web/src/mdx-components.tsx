@@ -1,6 +1,8 @@
 import type { MDXComponents } from 'mdx/types'
 import type { ComponentPropsWithoutRef } from 'react'
 import { Link } from '@/../i18n/navigation'
+import { Callout } from '@/components/docs/callout'
+import { CommandTable } from '@/components/docs/command-table'
 import { cn } from '@/lib/utils'
 
 // Docs prose deliberately reuses the type scale already set by the about and
@@ -87,6 +89,10 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         <table {...props} className={cn('w-full border-collapse text-sm', className)} />
       </div>
     ),
+    // Available to every MDX file without an import, which is the whole point
+    // of MDX over plain markdown here.
+    Callout,
+    CommandTable,
     ...components,
   }
 }

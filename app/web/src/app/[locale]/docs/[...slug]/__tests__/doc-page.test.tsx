@@ -3,7 +3,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect } from 'vitest'
 import en from '@/../messages/en.json'
 import de from '@/../messages/de.json'
-import { DocArticle } from '../page'
+import { DocArticle, editUrlFor } from '../page'
 
 function Body() {
   return <h2 id="what-you-need">What you need</h2>
@@ -55,5 +55,32 @@ describe('a docs content page', () => {
     renderArticle('de', de)
     expect(screen.getByRole('heading', { level: 1, name: 'Befehle' })).toBeInTheDocument()
     expect(screen.getByText('Discord-Bot')).toBeInTheDocument()
+  })
+
+  // The [locale] layout wraps children in a plain div, so a page without its
+  // own main leaves a screen reader no landmark to jump the rails with.
+  it('wraps the reading column in a main landmark', () => {
+    renderArticle()
+    expect(screen.getByRole('main')).toBeInTheDocument()
+  })
+})
+
+describe('the edit link', () => {
+  // githubUrl is the repository root, so "Edit this page" has to name the file
+  // or it drops the reader on the README.
+  it('points at the source file for the page and locale', () => {
+    expect(editUrlFor('https://github.com/P4PER/revelio', 'discord/commands', 'de')).toBe(
+      'https://github.com/P4PER/revelio/edit/main/app/web/content/docs/discord-commands.de.mdx',
+    )
+  })
+
+  it('tolerates a trailing slash on the configured repository', () => {
+    expect(editUrlFor('https://github.com/P4PER/revelio/', 'discord', 'en')).toBe(
+      'https://github.com/P4PER/revelio/edit/main/app/web/content/docs/discord.en.mdx',
+    )
+  })
+
+  it('offers no link when no repository is configured', () => {
+    expect(editUrlFor(null, 'discord', 'en')).toBeNull()
   })
 })

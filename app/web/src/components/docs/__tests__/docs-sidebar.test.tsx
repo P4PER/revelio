@@ -70,7 +70,7 @@ describe('DocsSidebar', () => {
   it('renders German titles in German', () => {
     renderSidebar('de', de)
     const nav = screen.getByRole('navigation', { name: 'Dokumentation' })
-    expect(within(nav).getByRole('link', { name: 'Ueberblick' })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: 'Überblick' })).toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: 'Befehle' })).toBeInTheDocument()
   })
 })

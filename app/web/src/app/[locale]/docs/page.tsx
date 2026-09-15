@@ -2,16 +2,36 @@ import type { Metadata } from 'next'
 import { useTranslations } from 'next-intl'
 import { getTranslations } from 'next-intl/server'
 import { ArrowRight, BookText, Code2 } from 'lucide-react'
-import { Link } from '@/../i18n/navigation'
+import { routing } from '@/../i18n/routing'
+import { Link, getPathname } from '@/../i18n/navigation'
+import { SITE_URL as BASE_URL } from '@/lib/site'
 import { DOCS_NAV, docId } from '@/lib/docs/nav'
 
 export const dynamic = 'force-dynamic'
 
 const SECTION_ICON = { discord: BookText, api: Code2 } as const
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
   const t = await getTranslations('docs')
-  return { title: t('metaTitle'), description: t('metaDescription') }
+
+  // The hub is the footer's route into the section, so /docs and /de/docs must
+  // canonicalise the same way their children do.
+  const languages: Record<string, string> = Object.fromEntries(
+    routing.locales.map((l) => [l, `${BASE_URL}${getPathname({ href: '/docs', locale: l })}`]),
+  )
+  languages['x-default'] =
+    `${BASE_URL}${getPathname({ href: '/docs', locale: routing.defaultLocale })}`
+
+  return {
+    title: t('metaTitle'),
+    description: t('metaDescription'),
+    alternates: { canonical: `${BASE_URL}${getPathname({ href: '/docs', locale })}`, languages },
+  }
 }
 
 /**

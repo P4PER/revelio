@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 import type { SitemapEntry } from '@revelio/db'
 import { routing } from '@/../i18n/routing'
 import { getPathname } from '@/../i18n/navigation'
+import { DOCS_NAV } from '@/lib/docs/nav'
 import { SITE_URL } from '@/lib/site'
 
 type Entry = MetadataRoute.Sitemap[number]
@@ -40,6 +41,10 @@ export const STATIC_ROUTES = [
   '/contact',
   '/imprint',
   '/privacy',
+  // Derived, not hand-listed: a page added to DOCS_NAV reaches the sitemap
+  // without a second edit here.
+  '/docs',
+  ...DOCS_NAV.flatMap((section) => section.pages.map((slug) => `/docs/${slug}`)),
 ]
 
 export function buildSitemap(data: { cards: SitemapEntry[]; sets: SitemapEntry[] }): MetadataRoute.Sitemap {

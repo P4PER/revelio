@@ -2,6 +2,7 @@ import type { MDXComponents } from 'mdx/types'
 import type { ComponentPropsWithoutRef } from 'react'
 import { Link } from '@/../i18n/navigation'
 import { Callout } from '@/components/docs/callout'
+import { CommandExample } from '@/components/docs/command-example'
 import { CommandTable } from '@/components/docs/command-table'
 import { cn } from '@/lib/utils'
 
@@ -92,6 +93,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     // Available to every MDX file without an import, which is the whole point
     // of MDX over plain markdown here.
     Callout,
+    CommandExample,
     CommandTable,
     ...components,
   }

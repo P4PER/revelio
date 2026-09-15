@@ -32,6 +32,8 @@
     "contact": "Contact",
     "discordBot": "Discord bot",
     "github": "GitHub",
+    "reference": "Reference",
+    "documentation": "Documentation",
     "legal": "Legal",
     "privacy": "Privacy Policy",
     "imprint": "Imprint",
@@ -839,6 +841,49 @@
       "searchTitle": "42 cards",
       "searchFooter": "Page 1 of 5 - view all on revelio.cards",
       "typing": "set: Chamber of Secrets"
+    }
+  },
+  "docs": {
+    "metaTitle": "Documentation",
+    "metaDescription": "Reference for Revelio's Discord bot: every command, account linking, and what the bot can and cannot read.",
+    "railHeading": "Documentation",
+    "onThisPage": "On this page",
+    "editPage": "Edit this page",
+    "breadcrumb": "Documentation",
+    "planned": "Planned",
+    "hubTitle": "Documentation",
+    "hubLede": "Reference for the parts of Revelio that are not the card database itself. Everything here is kept in step with what actually ships.",
+    "sections": {
+      "discord": {
+        "title": "Discord bot",
+        "summary": "Five slash commands for card, deck and collection lookups inside Discord."
+      },
+      "api": {
+        "title": "API",
+        "summary": "Programmatic access to cards, sets and rulings. Not built yet, and this section appears when it is."
+      }
+    },
+    "pages": {
+      "discord": {
+        "title": "Overview",
+        "description": "What the Discord bot does, what it needs, and how to add it to a server."
+      },
+      "discord-commands": {
+        "title": "Commands",
+        "description": "Every option each of the five slash commands takes."
+      },
+      "discord-linking": {
+        "title": "Account linking",
+        "description": "Connecting your Discord account to Revelio, and disconnecting it again."
+      },
+      "discord-privacy": {
+        "title": "Privacy and limits",
+        "description": "What the bot can read, what it cannot, and the limits you will run into."
+      },
+      "discord-troubleshooting": {
+        "title": "Troubleshooting",
+        "description": "What to try when a command does not behave."
+      }
     }
   },
   "privacy": {

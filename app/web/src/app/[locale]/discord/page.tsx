@@ -12,8 +12,7 @@ import { CommandGrid } from '@/components/discord/command-grid'
 import { DiscordCta } from '@/components/discord/discord-cta'
 import { TrustRow } from '@/components/discord/trust-row'
 
-// The reference tile's target. `/docs/discord` is not built yet, so this link
-// is live ahead of its page: set it back to null to hide the tile again.
+// The reference tile's target: set it back to null to hide the tile again.
 const DOCS_HREF = '/docs/discord'
 
 export const dynamic = 'force-dynamic'

@@ -52,7 +52,7 @@
 
   Tasks 2, 3 and 4 all consume these.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/web/src/lib/docs/__tests__/docs-registry.test.ts`:
 
@@ -144,7 +144,7 @@ describe('docs i18n', () => {
 })
 ```
 
-- [ ] **Step 2: Run it to make sure it fails**
+- [x] **Step 2: Run it to make sure it fails**
 
 ```bash
 cd app
@@ -153,7 +153,7 @@ cd app
 
 Expected: FAIL - cannot resolve `@/lib/docs/nav`.
 
-- [ ] **Step 3: Write the shared types**
+- [x] **Step 3: Write the shared types**
 
 Create `app/web/src/lib/docs/types.ts`:
 
@@ -184,7 +184,7 @@ export type DocModule = { default: ComponentType; toc: readonly TocEntry[] }
 export type DocLoader = () => Promise<DocModule>
 ```
 
-- [ ] **Step 4: Write the navigation manifest**
+- [x] **Step 4: Write the navigation manifest**
 
 Create `app/web/src/lib/docs/nav.ts`:
 
@@ -234,7 +234,7 @@ export function isDocSlug(value: string): value is DocSlug {
 }
 ```
 
-- [ ] **Step 5: Create the placeholder content files**
+- [x] **Step 5: Create the placeholder content files**
 
 Eight files. Each is body-only prose with one `##` heading, enough for the shell and the TOC to have something real to render; phase 4 replaces every one of them. `content/docs/discord.{en,de}.mdx` already exists from phase 1 and is left alone.
 
@@ -273,7 +273,7 @@ Create the remaining six with the same shape, changing only the lede:
 
 Each English file keeps the `## Coming shortly` heading and paragraph shown above; each German file keeps `## In Kuerze` and its paragraph.
 
-- [ ] **Step 6: Write the registry**
+- [x] **Step 6: Write the registry**
 
 Create `app/web/src/lib/docs/registry.ts`:
 
@@ -326,7 +326,7 @@ export async function loadDoc(slug: DocSlug, locale: DocLocale): Promise<DocModu
 }
 ```
 
-- [ ] **Step 7: Add the `docs` namespace to both catalogs**
+- [x] **Step 7: Add the `docs` namespace to both catalogs**
 
 Add to `app/web/messages/en.json`, as a new top-level `"docs"` key:
 
@@ -424,7 +424,7 @@ Add the same structure to `app/web/messages/de.json` with the same keys:
   }
 ```
 
-- [ ] **Step 8: Run the test to verify it passes**
+- [x] **Step 8: Run the test to verify it passes**
 
 ```bash
 cd app
@@ -433,7 +433,7 @@ cd app
 
 Expected: PASS - 6 map tests, 10 content-loading cases, 3 i18n tests.
 
-- [ ] **Step 9: Prove the registry's type guarantee is real**
+- [x] **Step 9: Prove the registry's type guarantee is real**
 
 This is the claim the whole approach rests on, so demonstrate it rather than trusting it.
 
@@ -446,7 +446,7 @@ cd app
 
 Expected: FAIL, naming `'discord/linking'` as not satisfying `Record<DocSlug, Record<DocLocale, DocLoader>>`. Restore the line and re-run to confirm it passes. If typecheck passes with the line missing, the `satisfies` clause is not doing its job and must be fixed before going further.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 cd /Users/timon.wegener/WebstormProjects/revelio
@@ -467,7 +467,7 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "feat(web): map docs pages to
 - Consumes: `DOCS_NAV`, `docId` (Task 1); `Link` and `usePathname` from `@/../i18n/navigation`.
 - Produces: `<DocsSidebar />` (client component, no props - it reads the active path itself) and the `/docs` layout that wraps every docs route.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/web/src/components/docs/__tests__/docs-sidebar.test.tsx`:
 
@@ -550,7 +550,7 @@ describe('DocsSidebar', () => {
 })
 ```
 
-- [ ] **Step 2: Run it to make sure it fails**
+- [x] **Step 2: Run it to make sure it fails**
 
 ```bash
 cd app
@@ -559,7 +559,7 @@ cd app
 
 Expected: FAIL - cannot resolve `@/components/docs/docs-sidebar`.
 
-- [ ] **Step 3: Write the sidebar**
+- [x] **Step 3: Write the sidebar**
 
 Create `app/web/src/components/docs/docs-sidebar.tsx`:
 
@@ -645,7 +645,7 @@ export function DocsSidebar() {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 ```bash
 cd app
@@ -654,11 +654,11 @@ cd app
 
 Expected: PASS, 6 tests.
 
-- [ ] **Step 5: Prove the active-page test bites**
+- [x] **Step 5: Prove the active-page test bites**
 
 Temporarily change `const active = pathname === href(slug)` to `const active = false` and re-run. Expected: "marks the page being read, and only that one" FAILS. Revert and confirm green.
 
-- [ ] **Step 6: Write the layout**
+- [x] **Step 6: Write the layout**
 
 Create `app/web/src/app/[locale]/docs/layout.tsx`:
 
@@ -681,7 +681,7 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
 }
 ```
 
-- [ ] **Step 7: Verify the suite and the build**
+- [x] **Step 7: Verify the suite and the build**
 
 ```bash
 cd app
@@ -690,7 +690,7 @@ cd app
 
 Expected: all pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 cd /Users/timon.wegener/WebstormProjects/revelio
@@ -712,7 +712,7 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "feat(web): add the docs side
 - Consumes: `loadDoc`, `isDocSlug`, `docId`, `DocSlug`, `TocEntry`, `DocLocale` (Task 1); `getCachedSiteSettings` from `@/lib/server/site-settings`.
 - Produces: `<DocsToc toc={...} editUrl={...} />`, and the route that serves every slug in the registry.
 
-- [ ] **Step 1: Write the failing test for the rail**
+- [x] **Step 1: Write the failing test for the rail**
 
 Create `app/web/src/components/docs/__tests__/docs-toc.test.tsx`:
 
@@ -778,7 +778,7 @@ describe('DocsToc', () => {
 })
 ```
 
-- [ ] **Step 2: Run it to make sure it fails**
+- [x] **Step 2: Run it to make sure it fails**
 
 ```bash
 cd app
@@ -787,7 +787,7 @@ cd app
 
 Expected: FAIL - cannot resolve `@/components/docs/docs-toc`.
 
-- [ ] **Step 3: Write the rail**
+- [x] **Step 3: Write the rail**
 
 Create `app/web/src/components/docs/docs-toc.tsx`:
 
@@ -842,7 +842,7 @@ export function DocsToc({ toc, editUrl }: { toc: readonly TocEntry[]; editUrl: s
 }
 ```
 
-- [ ] **Step 4: Run the rail test to verify it passes**
+- [x] **Step 4: Run the rail test to verify it passes**
 
 ```bash
 cd app
@@ -851,7 +851,7 @@ cd app
 
 Expected: PASS, 5 tests.
 
-- [ ] **Step 5: Write the failing test for the route**
+- [x] **Step 5: Write the failing test for the route**
 
 The page is split the way `about/page.tsx` and `discord/page.tsx` already split theirs: an
 async server default export that resolves data, and a **sync, prop-driven view** beside it.
@@ -926,7 +926,7 @@ The 404 paths are not mocked here. `isDocSlug` is already covered in Task 1, and
 below proves the real route returns 404 for an unknown slug - which is what actually
 matters and what a `next/navigation` mock cannot tell you.
 
-- [ ] **Step 6: Run it to make sure it fails**
+- [x] **Step 6: Run it to make sure it fails**
 
 ```bash
 cd app
@@ -935,7 +935,7 @@ cd app
 
 Expected: FAIL - `../page` has no export named `DocArticle`.
 
-- [ ] **Step 7: Write the route**
+- [x] **Step 7: Write the route**
 
 Create `app/web/src/app/[locale]/docs/[...slug]/page.tsx`:
 
@@ -1040,7 +1040,7 @@ export default async function DocPage({ params }: Params) {
 }
 ```
 
-- [ ] **Step 8: Run the route test to verify it passes**
+- [x] **Step 8: Run the route test to verify it passes**
 
 ```bash
 cd app
@@ -1049,7 +1049,7 @@ cd app
 
 Expected: PASS, 5 tests.
 
-- [ ] **Step 9: Verify the real routes render**
+- [x] **Step 9: Verify the real routes render**
 
 ```bash
 cd app
@@ -1067,7 +1067,7 @@ curl -s -o /dev/null -w '%{http_code}\n' http://localhost:3100/docs/discord/nons
 
 Expected: `200` for all four real routes, `404` for the nonsense slug. Stop the dev server.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 cd /Users/timon.wegener/WebstormProjects/revelio
@@ -1089,7 +1089,7 @@ Replaces phase 1's placeholder `/docs` page with the section index.
 - Consumes: `DOCS_NAV`, `docId` (Task 1).
 - Produces: `DocsHub`, a named export beside the default, so the test renders it without awaiting a server component.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/web/src/app/[locale]/docs/__tests__/docs-hub.test.tsx`:
 
@@ -1149,7 +1149,7 @@ describe('the docs hub', () => {
 })
 ```
 
-- [ ] **Step 2: Run it to make sure it fails**
+- [x] **Step 2: Run it to make sure it fails**
 
 ```bash
 cd app
@@ -1158,7 +1158,7 @@ cd app
 
 Expected: FAIL - `../page` has no export named `DocsHub`.
 
-- [ ] **Step 3: Write the hub**
+- [x] **Step 3: Write the hub**
 
 Replace the whole contents of `app/web/src/app/[locale]/docs/page.tsx`:
 
@@ -1249,7 +1249,7 @@ export default function DocsHubPage() {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 ```bash
 cd app
@@ -1258,7 +1258,7 @@ cd app
 
 Expected: PASS, 5 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /Users/timon.wegener/WebstormProjects/revelio
@@ -1279,7 +1279,7 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "feat(web): land the docs hub
 - Consumes: nothing from earlier tasks - only the `/docs` route they produced.
 - Produces: no new exports.
 
-- [ ] **Step 1: Add the message keys**
+- [x] **Step 1: Add the message keys**
 
 In `app/web/messages/en.json`, inside the existing `"footer"` object, add:
 
@@ -1295,7 +1295,7 @@ In `app/web/messages/de.json`, inside `"footer"`:
     "documentation": "Dokumentation",
 ```
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 In `app/web/src/components/layout/__tests__/site-footer.test.tsx`, add these tests inside the existing `describe('SiteFooter', ...)` block:
 
@@ -1332,7 +1332,7 @@ In `app/web/src/components/layout/__tests__/site-footer.test.tsx`, add these tes
 
 Also update the existing `renders the three navigation columns with internal links` test name and body: rename it to `renders the four navigation columns with internal links`, and delete from it the two assertions that look for GitHub inside the About column, if present.
 
-- [ ] **Step 3: Run it to make sure it fails**
+- [x] **Step 3: Run it to make sure it fails**
 
 ```bash
 cd app
@@ -1341,7 +1341,7 @@ cd app
 
 Expected: FAIL - no navigation landmark named "Reference".
 
-- [ ] **Step 4: Add the column**
+- [x] **Step 4: Add the column**
 
 In `app/web/src/components/layout/site-footer.tsx`, change the grid class on the columns wrapper from:
 
@@ -1387,7 +1387,7 @@ Then move the GitHub link out of the About column into a new column placed immed
           </FooterColumn>
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 ```bash
 cd app
@@ -1396,7 +1396,7 @@ cd app
 
 Expected: PASS, including the three new tests.
 
-- [ ] **Step 6: Verify the whole workspace and build**
+- [x] **Step 6: Verify the whole workspace and build**
 
 ```bash
 cd app
@@ -1406,11 +1406,11 @@ cd app
 
 Expected: all pass.
 
-- [ ] **Step 7: Check both themes and the responsive collapse by eye**
+- [x] **Step 7: Check both themes and the responsive collapse by eye**
 
 Take screenshots with the repo's bundled chromium (no Chrome is installed on this machine); import Playwright by absolute path from `app/web/node_modules`. Capture `/docs` and `/docs/discord/commands` at widths 1280, 1100 and 800, in both themes, and confirm: at 1280 three columns; at 1100 the right rail is gone; at 800 the sidebar is a band above the content; and the reading column never scrolls sideways.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 cd /Users/timon.wegener/WebstormProjects/revelio
@@ -1433,3 +1433,18 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "feat(web): give the footer a
 The content is placeholder prose - one heading per page. `<CommandTable>` and `<Callout>`,
 the real reference text, and the `/llms.txt` and sitemap entries are all phase 4. Nothing here
 reads `BOT_COMMANDS`, so phase 2 can land before or after this phase.
+
+## Execution notes
+
+Executed on branch `feat/docs-shell`, one commit per task.
+
+- Task 1's `types.ts` imports `routing` as `import type` - the snippet's value
+  import is only ever used in `typeof routing.locales`, which
+  `@typescript-eslint/consistent-type-imports` rejects.
+- Task 4 replaces the `DocsOverview` export that phase 1's
+  `docs/__tests__/docs-page.test.tsx` imported. Its page-level describe is
+  superseded by the registry and route tests, so that block was removed and the
+  file renamed to `docs-content.test.tsx`, which is what it now covers.
+- Task 3, Step 9 ran against the dev server already up on port 3000 rather than
+  a second one on 3100: Next 16 refuses to start a second dev server for the
+  same directory.

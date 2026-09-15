@@ -32,6 +32,8 @@
     "contact": "Kontakt",
     "discordBot": "Discord-Bot",
     "github": "GitHub",
+    "reference": "Referenz",
+    "documentation": "Dokumentation",
     "legal": "Rechtliches",
     "privacy": "Datenschutz",
     "imprint": "Impressum",
@@ -802,6 +804,49 @@
       "searchTitle": "42 Karten",
       "searchFooter": "Seite 1 von 5 - alle auf revelio.cards",
       "typing": "set: Kammer des Schreckens"
+    }
+  },
+  "docs": {
+    "metaTitle": "Dokumentation",
+    "metaDescription": "Referenz zum Discord-Bot von Revelio: jeder Befehl, die Kontoverknüpfung und was der Bot lesen kann und was nicht.",
+    "railHeading": "Dokumentation",
+    "onThisPage": "Auf dieser Seite",
+    "editPage": "Diese Seite bearbeiten",
+    "breadcrumb": "Dokumentation",
+    "planned": "Geplant",
+    "hubTitle": "Dokumentation",
+    "hubLede": "Referenz für die Teile von Revelio, die nicht die Kartendatenbank selbst sind. Alles hier bleibt mit dem im Gleichschritt, was tatsächlich live ist.",
+    "sections": {
+      "discord": {
+        "title": "Discord-Bot",
+        "summary": "Fünf Slash-Befehle für Karten-, Deck- und Sammlungsabfragen direkt in Discord."
+      },
+      "api": {
+        "title": "API",
+        "summary": "Programmatischer Zugriff auf Karten, Sets und Rulings. Noch nicht gebaut; dieser Bereich erscheint, sobald es so weit ist."
+      }
+    },
+    "pages": {
+      "discord": {
+        "title": "Überblick",
+        "description": "Was der Discord-Bot kann, was er braucht und wie du ihn zu einem Server hinzufügst."
+      },
+      "discord-commands": {
+        "title": "Befehle",
+        "description": "Jede Option, die jeder der fünf Slash-Befehle annimmt."
+      },
+      "discord-linking": {
+        "title": "Kontoverknüpfung",
+        "description": "Dein Discord-Konto mit Revelio verbinden und wieder trennen."
+      },
+      "discord-privacy": {
+        "title": "Datenschutz und Grenzen",
+        "description": "Was der Bot lesen kann, was nicht, und welche Grenzen dir begegnen."
+      },
+      "discord-troubleshooting": {
+        "title": "Fehlerbehebung",
+        "description": "Was zu tun ist, wenn ein Befehl sich nicht wie erwartet verhält."
+      }
     }
   },
   "privacy": {

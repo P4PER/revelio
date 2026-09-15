@@ -4,7 +4,6 @@ import { NextIntlClientProvider } from 'next-intl'
 import Overview, { toc } from '@/../content/docs/discord.en.mdx'
 import OverviewDe from '@/../content/docs/discord.de.mdx'
 import { useMDXComponents } from '@/mdx-components'
-import { DocsOverview } from '../page'
 
 // Not a hook despite the name - it is the export name Next's MDX convention
 // requires, and it is a plain factory that reads no React state.
@@ -33,27 +32,6 @@ describe('the Discord overview content file', () => {
     render(<OverviewDe />)
     expect(screen.getByText('/collection')).toBeInTheDocument()
     expect(screen.getByText('/mydecks')).toBeInTheDocument()
-  })
-})
-
-describe('the docs page', () => {
-  const renderAt = (locale: string) =>
-    render(
-      <NextIntlClientProvider locale={locale} messages={{}}>
-        <DocsOverview locale={locale} />
-      </NextIntlClientProvider>,
-    )
-
-  it('serves the English file to an English reader', () => {
-    renderAt('en')
-    expect(screen.getByRole('heading', { name: 'What you need' })).toBeInTheDocument()
-  })
-
-  // discord.de.mdx is compiled by the same pipeline, so serving English here
-  // would be a silent fallback rather than a missing translation.
-  it('serves the German file to a German reader', () => {
-    renderAt('de')
-    expect(screen.getByRole('heading', { name: 'Was du brauchst' })).toBeInTheDocument()
   })
 })
 

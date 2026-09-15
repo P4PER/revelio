@@ -68,7 +68,7 @@ export function SiteFooterView({
   return (
     <footer className="border-t border-border/60">
       <div className="mx-auto max-w-[76rem] px-6 py-12">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1fr]">
           <div className="sm:col-span-2 lg:col-span-1">
             <BrandMark />
             <p className="mt-3 max-w-xs text-sm text-muted-foreground">{t('tagline')}</p>
@@ -90,6 +90,15 @@ export function SiteFooterView({
             <FooterLink href="/about">{t('aboutLink')}</FooterLink>
             <FooterLink href="/contact">{t('contact')}</FooterLink>
             <FooterLink href="/discord">{t('discordBot')}</FooterLink>
+          </FooterColumn>
+
+          {/* Docs are deliberately absent from the header nav - a destination
+              you go looking for, not one of five things every visitor needs -
+              so this column is their only standing route in. Named Reference
+              rather than Developers because /docs/discord is written for a
+              player looking for bot help, not for a developer. */}
+          <FooterColumn label={t('reference')}>
+            <FooterLink href="/docs">{t('documentation')}</FooterLink>
             {githubUrl && (
               <Button variant="link" size="sm" asChild className={linkClass}>
                 <a

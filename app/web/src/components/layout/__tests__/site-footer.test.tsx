@@ -41,7 +41,7 @@ describe('SiteFooter', () => {
     expect(screen.getByText(/Warner Bros\./)).toBeInTheDocument()
   })
 
-  it('renders the three navigation columns with internal links', () => {
+  it('renders the four navigation columns with internal links', () => {
     renderFooter()
     const browse = screen.getByRole('navigation', { name: 'Browse' })
     expect(within(browse).getByRole('link', { name: 'Sets' })).toHaveAttribute('href', '/sets')
@@ -84,5 +84,34 @@ describe('SiteFooter', () => {
     expect(link).toHaveAttribute('href', 'https://github.com/P4PER/revelio')
     expect(link).toHaveAttribute('target', '_blank')
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  // Docs are deliberately absent from the header nav, so this column is the
+  // only standing route to them.
+  it('links the documentation from its own Reference column', () => {
+    renderFooter()
+    const reference = screen.getByRole('navigation', { name: 'Reference' })
+    expect(within(reference).getByRole('link', { name: 'Documentation' })).toHaveAttribute(
+      'href',
+      '/docs',
+    )
+  })
+
+  // GitHub is reference material and moved out of About, which would otherwise
+  // leave Reference holding a single link.
+  it('carries GitHub in the Reference column, not About', () => {
+    renderFooter('https://github.com/P4PER/revelio')
+    const reference = screen.getByRole('navigation', { name: 'Reference' })
+    expect(within(reference).getByRole('link', { name: /GitHub/ })).toBeInTheDocument()
+
+    const about = screen.getByRole('navigation', { name: 'About' })
+    expect(within(about).queryByRole('link', { name: /GitHub/ })).toBeNull()
+  })
+
+  it('keeps the Reference column when no repository is configured', () => {
+    renderFooter(null)
+    const reference = screen.getByRole('navigation', { name: 'Reference' })
+    expect(within(reference).getByRole('link', { name: 'Documentation' })).toBeInTheDocument()
+    expect(within(reference).queryByRole('link', { name: /GitHub/ })).toBeNull()
   })
 })

@@ -1,6 +1,73 @@
-Was der Bot sehen kann, was nicht, und welche Grenzen dir begegnen.
+Der Bot ist so gebaut, dass er so wenig wie möglich sieht. Diese Seite beschreibt
+genau, was er lesen kann, was nicht, wo seine Antworten landen und auf welche
+Grenzen du irgendwann stößt.
 
-## In Kürze
+## Was der Bot lesen kann
 
-Diese Seite entsteht gerade. Die [Discord-Bot-Seite](/discord) deckt solange
-die Grundlagen ab.
+Der Bot meldet sich bei Discord mit einer einzigen Anforderung an: der Liste der
+Server, zu denen er hinzugefügt wurde. Mehr Zugriff hat er nicht.
+
+Zu lesen bekommt er das, was du in die Optionen eines Slash-Befehls tippst -
+einen Kartennamen, eine Suchanfrage, einen Deck-Link. Sonst erreicht ihn nichts
+aus dem Gespräch.
+
+Für `/collection` und `/mydecks` liest er zusätzlich deine eigenen
+Revelio-Daten, die er über das von dir selbst verknüpfte Discord-Konto auflöst.
+Er greift dafür direkt über eine private Netzwerkverbindung zu, mit einem
+Suchschlüssel, der nur lesen darf: Der Bot kann den Kartenindex nicht
+verändern, und die Schlüssel, die das könnten, bekommt er nie zu sehen.
+
+## Was er nicht lesen kann
+
+Er kann keine Nachrichteninhalte lesen. Weder deine noch die von anderen, auch
+nicht in einem Kanal, in dem er sitzt - und auch keine Nachricht, die ihn
+erwähnt. Nachrichteninhalte zu lesen ist eine privilegierte Berechtigung, die
+Discord gegenüber begründet werden muss, und Slash-Befehle brauchen sie nicht.
+Deshalb wurde sie nie angefragt.
+
+Aus demselben Grund kann er die Mitgliederliste eines Servers nicht abrufen.
+
+Er kann niemanden erwähnen. Jede Antwort wird mit vollständig abgeschalteten
+Erwähnungen gesendet, sodass dein zurückgegebener Text wirkungslos bleibt: Wer
+`/card name:@everyone` tippt, sieht diesen Text und pingt niemanden. Das ist eine
+pauschale Regel auf dem Client, kein Filter pro Befehl - in einem neuen Befehl
+kann sie also nicht vergessen werden.
+
+## Wo die Antworten erscheinen
+
+`/card`, `/search` und `/deck` antworten im Kanal, sichtbar für alle. Es geht
+dabei um das Spiel, nicht um dich.
+
+`/collection` und `/mydecks` antworten privat - nur du siehst die Antwort, auch
+in einem vollen Kanal. Das wird entschieden, bevor der Befehl überhaupt etwas
+tut. Es gibt also keinen Weg, auf dem eine langsame Abfrage oder ein Fehler aus
+einer privaten Antwort eine öffentliche macht.
+
+Genau deshalb listet `/mydecks` deine privaten Decks neben den öffentlichen auf:
+Niemand sonst liest mit.
+
+<Callout>
+"Privat" heißt hier privat gegenüber dem Kanal, im Sinne von Discord: Nur du
+siehst die Antwort. Discord selbst verarbeitet die Nachricht weiterhin, wie
+alles andere, was du sendest.
+</Callout>
+
+## Grenzen, die dir begegnen
+
+Suchergebniszahlen sind Schätzungen. Die Trefferzahl, die die Suchmaschine
+meldet, fällt zu hoch aus. Die letzte Seite eines langen Ergebnissatzes kann
+deshalb hinter dem Ende der echten Ergebnisse liegen. Fragst du sie ab, sagt dir
+der Bot, dass die Seite außerhalb des Bereichs liegt, statt ein leeres Embed zu
+zeigen - geh eine Seite zurück.
+
+Lange Antworten werden gekürzt, nicht riskiert. Discord weist eine zu große
+Nachricht rundheraus ab und lässt den ganzen Befehl scheitern. Deshalb kürzt der
+Bot vorher: Eine Embed-Beschreibung ist auf 4.096 Zeichen begrenzt, ein einzelnes
+Feld auf 1.024, ein Embed auf 25 Felder und eine einfache Nachricht auf 2.000
+Zeichen. `/mydecks` hört an der Grenze auf und sagt dazu, wie viele Decks es
+weggelassen hat, statt die Liste stillschweigend enden zu lassen.
+
+Das Artwork in einem Embed ist die 300-Pixel-Vorschau, nicht der Scan in voller
+Größe. In der Größe, in der Discord es anzeigt, ist es scharf, und die Antwort
+bleibt schnell. Die Kartenseite auf revelio.cards - im Embed immer einen Klick
+entfernt - hat das vollständige Bild.

@@ -1,6 +1,53 @@
-Was zu tun ist, wenn ein Befehl sich nicht wie erwartet verhält.
+Vier Dinge gehen oft genug schief, dass es sich lohnt, sie aufzuschreiben. Jedes
+hat eine Ursache und eine Lösung.
 
-## In Kürze
+## Die Befehle erscheinen nicht
 
-Diese Seite entsteht gerade. Die [Discord-Bot-Seite](/discord) deckt solange
-die Grundlagen ab.
+Wer in einem Server mit dem Bot `/` tippt, sollte `card`, `search`, `deck`,
+`collection` und `mydecks` aufgelistet bekommen. Wenn nicht:
+
+- **Warte einen Moment und starte dann deinen Discord-Client neu.** Der Bot
+  veröffentlicht seine Befehlsliste bei jedem Start neu bei Discord, und dein
+  Client hält sie zwischengespeichert. Ein Neustart lädt sie neu.
+- **Prüfe, ob der Bot wirklich in diesem Server ist.** Die Befehle gehören zum
+  Bot und tauchen deshalb nur dort auf, wo er hinzugefügt wurde. Den
+  Installationslink findest du auf der [Discord-Bot-Seite](/discord); zum
+  Hinzufügen brauchst du das Recht "Server verwalten".
+- **Eine veraltete Liste ist möglich.** Schlägt das Veröffentlichen der
+  Befehlsliste fehl, protokolliert der Bot das und läuft mit der zuvor
+  veröffentlichten Liste weiter, statt den Start zu verweigern - er kann also
+  online sein und antworten, während die angezeigte Liste eine Version zurück
+  ist. Der nächste erfolgreiche Start bringt das in Ordnung.
+
+## Es heißt, ich müsse mein Konto verknüpfen
+
+`/collection` und `/mydecks` beantworten Fragen zu dir und müssen deshalb
+wissen, wer du bist. Die Antwort enthält einen direkten Link auf die
+Einstellungsseite, auf der du verknüpfst. Die [Kontoverknüpfung](/docs/discord/linking)
+beschreibt den Weg Schritt für Schritt.
+
+Schon verknüpft und wirst trotzdem gefragt? Dafür gibt es zwei Möglichkeiten. Du
+benutzt womöglich ein anderes Discord-Konto als das verknüpfte - die Verknüpfung
+gilt einem bestimmten Discord-Konto, nicht deinem Namen. Oder das dahinter
+liegende Revelio-Konto ist gesperrt: Eine Sperre wird auch hier geprüft, ein
+gesperrtes Konto wird in Discord also genauso abgewiesen wie auf der Website.
+
+## Ein Deck wird nicht gefunden
+
+`/deck` schlägt ausschließlich öffentliche Decks nach. Ein privates Deck wird so
+auch dann nicht gefunden, wenn es deines ist - nimm dafür `/mydecks`, das deine
+eigenen Decks auflistet, private eingeschlossen, und privat antwortet.
+
+Ansonsten liegt es meist an der ID. Füge lieber den ganzen Deck-Link ein, statt
+die ID von Hand abzutippen; der Befehl nimmt beides an, und beim vollständigen
+Link kann man sich nicht vertippen.
+
+## Eine Ergebnisseite ist leer
+
+Fragst du `/search` nach einer Seite, kann es sein, dass sie laut Bot außerhalb
+des Bereichs liegt - obwohl die zuvor angezeigte Trefferzahl mehr nahegelegt hat.
+
+Das liegt daran, dass diese Trefferzahl eine Schätzung ist. Die Suchmaschine
+meldet eine ungefähre Gesamtzahl, die zu hoch ausfällt, und die daraus
+abgeleitete Seitenzahl ist deshalb eine Obergrenze, keine Zusage. Geh eine Seite
+zurück: Die Ergebnisse bis dorthin sind echt.

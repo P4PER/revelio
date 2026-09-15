@@ -1,6 +1,55 @@
-Dein Discord-Konto mit Revelio verbinden und wieder trennen.
+Die Verknüpfung verbindet ein Discord-Konto mit einem Revelio-Konto, damit der
+Bot weiß, wessen Sammlung und wessen Decks er beantworten soll. Sie geschieht auf
+der Website, nicht in Discord, und dauert einen Klick.
 
-## In Kürze
+## Wozu die Verknüpfung dient
 
-Diese Seite entsteht gerade. Die [Discord-Bot-Seite](/discord) deckt solange
-die Grundlagen ab.
+Zwei der fünf Befehle beantworten Fragen zu dir statt zum Spiel: `/collection`
+und `/mydecks`. Nur diese beiden brauchen eine Verknüpfung. `/card`, `/search`
+und `/deck` funktionieren für alle im Server, verknüpft oder nicht.
+
+Dahinter steckt keine eigene Revelio-zu-Discord-Tabelle. Die Verknüpfung *ist*
+der Kontoeintrag, den die Anmeldung ohnehin führt, nur als Discord-Eintrag
+gekennzeichnet. Deshalb wird er beim Trennen gelöscht und nicht bloß als inaktiv
+markiert.
+
+Eine Anmeldung mit Discord ist bewusst nicht möglich. Die Verbindung dient nur
+dem Verknüpfen: Du meldest dich bei Revelio mit einem Code per E-Mail an, und
+Discord kommt anschließend dazu. Ein Discord-Profil allein kann weder ein
+Revelio-Konto anlegen noch dich in eines einloggen.
+
+## Konto verknüpfen
+
+1. Melde dich wie gewohnt bei Revelio an, mit einem Einmalcode per E-Mail.
+2. Öffne **Einstellungen**, dann **Verknüpfungen**.
+3. Wähle **Discord verknüpfen** und bestätige die Abfrage, die Discord dir
+   zeigt.
+
+Revelio fragt Discord nach zwei Dingen und nach nicht mehr: nach deiner
+Identität - Benutzer-ID, Benutzername und Avatar - und nach deiner
+E-Mail-Adresse. Nicht nach deinen Servern, nicht nach deinen Freunden, nicht nach
+deinen Nachrichten und nach nichts, was du geschrieben hast. Discord muss diese
+E-Mail-Adresse bestätigt haben; ist sie es nicht, wird die Verknüpfung abgelehnt
+und Revelio sagt das auch.
+
+Die beiden Adressen müssen nicht übereinstimmen: Die E-Mail deines
+Discord-Kontos und die deines Revelio-Kontos dürfen völlig verschieden sein, die
+Verknüpfung funktioniert trotzdem.
+
+## Verknüpfung lösen
+
+In derselben Ansicht unter Verknüpfungen gibt es **Trennen**. Das tut zweierlei:
+Es entfernt die Verbindung auf Revelios Seite, und es zieht Revelios
+Berechtigung bei Discord zurück. Revelio verschwindet damit auch aus deiner
+Discord-Liste *Autorisierte Apps*, statt dort ungenutzt stehen zu bleiben.
+
+Wenn du dein Revelio-Konto löschst, passiert dasselbe automatisch - danach bleibt
+nichts mehr aufzuräumen.
+
+<Callout>
+Nach dem Trennen antworten `/collection` und `/mydecks` nicht mehr, sondern
+verweisen mit einem Link zurück auf die Einstellungen. Alles andere funktioniert
+weiter. Erneutes Verknüpfen geht genauso schnell, und deine Sammlung und deine
+Decks bleiben in der Zwischenzeit unberührt - sie hängen an deinem
+Revelio-Konto, nicht an der Verknüpfung.
+</Callout>

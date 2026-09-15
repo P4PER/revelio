@@ -1,6 +1,51 @@
-Connecting your Discord account to Revelio, and disconnecting it again.
+Linking connects one Discord account to one Revelio account, so the bot knows
+whose collection and whose decks to answer about. It is done on the website, not
+in Discord, and it takes one click.
 
-## Coming shortly
+## What linking is for
 
-This page is being written. The [Discord bot page](/discord) covers the basics
-in the meantime.
+Two of the five commands answer about you rather than about the game:
+`/collection` and `/mydecks`. Those are the only ones that need a link. `/card`,
+`/search` and `/deck` work for anyone in the server, linked or not.
+
+There is no separate Revelio-to-Discord table behind this. The link *is* the
+account record the sign-in system already keeps, tagged as a Discord one, which
+is why unlinking removes it outright rather than flagging it inactive.
+
+Signing in with Discord is not possible, on purpose. The connection is link-only:
+you sign in to Revelio with an email code, and Discord is attached to that
+account afterwards. A Discord profile on its own cannot create a Revelio account
+or sign you into one.
+
+## Linking your account
+
+1. Sign in to Revelio the usual way, with a one-time code sent to your email.
+2. Open **Settings**, then **Connections**.
+3. Choose **Link Discord** and approve the prompt Discord shows you.
+
+Revelio asks Discord for two things and no more: your identity - user id,
+username and avatar - and your email address. It does not ask for your servers,
+your friends, your messages, or anything you have written. Discord has to have
+verified that email address; if it has not, the link is refused and Revelio says
+so.
+
+The two addresses do not have to match: the email on your Discord account and the
+email on your Revelio account can be completely different, and linking still
+works.
+
+## Unlinking
+
+The same Connections pane has **Unlink**. Using it does two things: it removes
+the connection on Revelio's side, and it withdraws Revelio's authorization at
+Discord, so Revelio is gone from your Discord *Authorized Apps* list as well
+rather than lingering there unused.
+
+Deleting your Revelio account does the same thing on the way out, so there is
+nothing left to tidy up afterwards.
+
+<Callout>
+Once you unlink, `/collection` and `/mydecks` stop answering and reply with a link
+back to Settings instead. Everything else keeps working. Linking again is the same
+one click, and your collection and decks are untouched in the meantime - they live
+on your Revelio account, not on the link.
+</Callout>

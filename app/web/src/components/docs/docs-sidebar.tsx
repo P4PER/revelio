@@ -8,8 +8,12 @@ import type { DocSlug } from '@/lib/docs/types'
 
 const PAGE_LINK =
   'block border-l-2 border-border px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+// Indigo marks the page on the light ground, gold on the dark one. Both are
+// the theme's own ink token, so each stays readable against its background.
+// The wash fades out to the right rather than filling the row, so the mark
+// reads as an accent on the rail's edge and not as a block.
 const PAGE_LINK_ACTIVE =
-  'block border-l-2 border-primary bg-primary/10 px-2.5 py-1.5 text-sm font-semibold text-primary-ink'
+  'block border-l-2 border-secondary-ink bg-gradient-to-r from-secondary-ink/10 to-transparent px-2.5 py-1.5 text-sm font-semibold text-secondary-ink dark:border-primary dark:from-primary/10 dark:text-primary-ink'
 
 function href(slug: DocSlug): string {
   return `/docs/${slug}`

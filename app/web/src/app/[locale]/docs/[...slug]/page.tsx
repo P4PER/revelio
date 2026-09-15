@@ -74,7 +74,7 @@ export function DocArticle({
     // The [locale] layout wraps children in a plain div, so each route brings
     // its own main landmark - as the hub and every other page already do.
     <main className="grid min-[1180px]:grid-cols-[minmax(0,1fr)_14rem]">
-      <article className="min-w-0 py-10 min-[860px]:px-12">
+      <article className="min-w-0 pb-10 min-[860px]:px-12">
         {sectionKey && (
           <p className="mb-3 text-sm text-muted-foreground">{t(`sections.${sectionKey}.title`)}</p>
         )}

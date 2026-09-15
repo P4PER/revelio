@@ -46,7 +46,7 @@ export function DocsHub() {
   const t = useTranslations('docs')
 
   return (
-    <main className="px-0 py-10 min-[860px]:px-12">
+    <main className="px-0 pb-10 min-[860px]:px-12">
       <h1 className="text-3xl font-semibold tracking-tight text-foreground">{t('hubTitle')}</h1>
       <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-muted-foreground">
         {t('hubLede')}

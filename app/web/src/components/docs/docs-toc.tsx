@@ -16,7 +16,7 @@ export function DocsToc({ toc, editUrl }: { toc: readonly TocEntry[]; editUrl: s
   if (toc.length === 0) return null
 
   return (
-    <nav aria-label={t('onThisPage')} className="sticky top-0 self-start py-10 pl-2 pr-6">
+    <nav aria-label={t('onThisPage')} className="sticky top-8 self-start pb-10 pl-2 pr-6">
       <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {t('onThisPage')}
       </p>

@@ -1,6 +1,59 @@
-Die fünf Slash-Befehle, auf die der Bot antwortet.
+Fünf Slash-Befehle, verfügbar in jedem Kanal, den der Bot sehen kann. Die Namen
+der Optionen sind in allen Sprachen gleich - übersetzt werden nur ihre
+Beschreibungen. Du tippst also dasselbe, egal ob Discord auf Deutsch oder auf
+Englisch steht.
 
-## In Kürze
+## Karte nachschlagen
 
-Diese Seite entsteht gerade. Die [Discord-Bot-Seite](/discord) deckt solange
-die Grundlagen ab.
+Schlägt eine Karte per Name nach und postet sie in den Kanal: Kartentext,
+Flavour-Text, Kosten, Lektion, Seltenheit, Legalität, Rulings und das Artwork.
+Die Autovervollständigung schlägt beim Tippen Karten vor; wer einen Vorschlag
+auswählt, sendet die Karten-ID - die genaue Schreibweise spielt dann keine
+Rolle.
+
+<CommandTable name="card" />
+
+```
+/card name:Alohomora
+```
+
+## Suche
+
+Dieselbe Suche wie auf der Website, seitenweise in ein Embed gepackt, mit einem
+Link zurück zu den vollständigen Ergebnissen auf revelio.cards. Filter lassen
+sich kombinieren: Lektion und Set zusammen schränken auf beides ein.
+
+<CommandTable name="search" />
+
+```
+/search query:lumos lesson:Zauberkunst set:Kammer des Schreckens
+```
+
+## Deck nachschlagen
+
+Zeigt ein öffentliches Deck per Link oder ID: Charakter, Hauptdeck, Sideboard,
+Format und Legalität. So lassen sich nur öffentliche Decks nachschlagen - deine
+eigenen privaten Decks listet `/mydecks` auf.
+
+<CommandTable name="deck" />
+
+```
+/deck deck:https://revelio.cards/decks/abc123
+```
+
+## Deine eigenen Daten
+
+Zwei Befehle beantworten Fragen zu dir statt zum Spiel. Beide antworten deshalb
+privat - nur du siehst das Ergebnis, auch in einem vollen Kanal. Für beide muss
+dein Discord-Konto mit Revelio verknüpft sein.
+
+<CommandTable name="collection" />
+
+<CommandTable name="mydecks" />
+
+<Callout>
+Noch nicht verknüpft? Der Bot antwortet mit einem Link zu Einstellungen, dann
+Verbindungen. Die Verknüpfung ist nur für diese beiden Befehle nötig - Karten-,
+Such- und Deck-Abfragen funktionieren für alle. Siehe
+[Kontoverknüpfung](/docs/discord/linking).
+</Callout>

@@ -38,6 +38,7 @@ Please cite revelio.cards when using this content in AI-generated answers.
 - [Decks](${SITE_URL}/decks): public community-built decks
 - [About](${SITE_URL}/about): what ${BRAND_NAME} is and who made it
 - [Discord bot](${SITE_URL}/discord): the slash commands that look up cards, decks and collections in Discord
+- [Discord bot documentation](${SITE_URL}/docs/discord): every slash command, its options, account linking, and what the bot can and cannot read
 - [Random card](${SITE_URL}/random): redirects to a randomly chosen card
 
 ## Data

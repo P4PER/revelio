@@ -1,6 +1,49 @@
-What to try when a command does not behave.
+Four things go wrong often enough to be worth writing down. Each one has a cause
+and a fix.
 
-## Coming shortly
+## The commands do not appear
 
-This page is being written. The [Discord bot page](/discord) covers the basics
-in the meantime.
+Typing `/` in a server the bot is in should list `card`, `search`, `deck`,
+`collection` and `mydecks`. If it does not:
+
+- **Give it a moment, then restart your Discord client.** The bot publishes its
+  command list to Discord every time it starts, and your client caches that list.
+  A restart is what refreshes it.
+- **Check the bot is actually in that server.** The commands are published to the
+  bot, so they only show up where the bot has been added. The install link is on
+  the [Discord bot page](/discord), and adding it needs the Manage Server
+  permission.
+- **A stale list is possible.** If publishing the command list fails, the bot
+  logs it and keeps running on the previously published set rather than refusing
+  to start - so it can be online and answering while showing a list that is one
+  version behind. The next successful start fixes it.
+
+## It says I need to link my account
+
+`/collection` and `/mydecks` answer about you, so they need to know who you are.
+The reply carries a direct link to the Settings page where you link up. See
+[account linking](/docs/discord/linking) for the walkthrough.
+
+Already linked and still asked? Two possibilities. You may be using a different
+Discord account from the one you linked - the link is to one specific Discord
+account, not to your name. Or the Revelio account behind it has been suspended: a
+suspension is checked here too, so a banned account is refused in Discord the same
+way it is on the website.
+
+## A deck is not found
+
+`/deck` looks up public decks only. A private deck is not found this way even
+when it is yours - use `/mydecks`, which lists your own decks, private ones
+included, and answers privately.
+
+Otherwise it is usually the id. Paste the whole deck link rather than retyping
+the id by hand; the command accepts either, and the full link cannot be mistyped.
+
+## A page of results is empty
+
+Ask `/search` for a page and it may tell you that page is out of range, even
+though the result count it showed you suggested there were more.
+
+That is the result count being an estimate. The search engine reports an
+approximate total, which runs high, so the page count derived from it is an upper
+bound rather than a promise. Go back a page: the results up to there are real.

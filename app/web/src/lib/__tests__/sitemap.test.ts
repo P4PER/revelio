@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { DOCS_NAV } from '@/lib/docs/nav'
 import { buildSitemap, localizedEntries, STATIC_ROUTES } from '../sitemap'
 
 const BASE = 'https://revelio.cards'
@@ -58,5 +59,23 @@ describe('buildSitemap', () => {
 
   it('never lists admin, auth, or editor routes', () => {
     expect(urls.some((u) => /\/(admin|login|register|edit|collection)(\/|$)/.test(u))).toBe(false)
+  })
+})
+
+describe('the sitemap covers the docs', () => {
+  it('lists the hub and every docs page as a static route', () => {
+    expect(STATIC_ROUTES).toContain('/docs')
+    for (const slug of DOCS_NAV.flatMap((section) => section.pages)) {
+      expect(STATIC_ROUTES).toContain(`/docs/${slug}`)
+    }
+  })
+
+  // Each page needs its full hreflang alternates, or Google treats the German
+  // page as a duplicate of the English one.
+  it('emits both locales with alternates for a docs page', () => {
+    const entries = buildSitemap({ cards: [], sets: [] })
+    const docs = entries.filter((entry) => entry.url.includes('/docs/discord/commands'))
+    expect(docs).toHaveLength(2)
+    expect(Object.keys(docs[0].alternates!.languages!)).toContain('x-default')
   })
 })

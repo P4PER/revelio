@@ -1,6 +1,50 @@
-The five slash commands the bot answers to.
+Five slash commands, available in every channel the bot can see. Option names are
+the same in every language - only their descriptions are translated, so you type
+the same thing whether Discord is set to English or German.
 
-## Coming shortly
+## Card lookup
 
-This page is being written. The [Discord bot page](/discord) covers the basics
-in the meantime.
+Looks up one card by name and posts it to the channel: text, flavour, cost,
+lesson, rarity, legality, rulings and the art. Autocomplete suggests cards as you
+type, and picking a suggestion sends the card's id, so exact spelling never
+matters.
+
+<CommandTable name="card" />
+
+<CommandExample>/card name:Alohomora</CommandExample>
+
+## Search
+
+The same search the site runs, paged into an embed, with a link back to the full
+results on revelio.cards. Filters combine: a lesson and a set together narrow to
+both.
+
+<CommandTable name="search" />
+
+<CommandExample>/search query:lumos lesson:Charms set:Chamber of Secrets</CommandExample>
+
+## Deck lookup
+
+Shows a public decklist by link or id: its character, main deck, sideboard,
+format and legality. Only public decks can be looked up this way - your own
+private decks are listed by `/mydecks`.
+
+<CommandTable name="deck" />
+
+<CommandExample>/deck deck:https://revelio.cards/decks/abc123</CommandExample>
+
+## Your own data
+
+Two commands answer about you rather than about the game, so both reply
+privately - only you see the result, even in a busy channel. Both need your
+Discord account linked to Revelio first.
+
+<CommandTable name="collection" />
+
+<CommandTable name="mydecks" />
+
+<Callout>
+Not linked yet? The bot replies with a link to Settings, then Connections.
+Linking is only needed for these two commands - card, search and deck lookups
+work for anyone. See [account linking](/docs/discord/linking).
+</Callout>

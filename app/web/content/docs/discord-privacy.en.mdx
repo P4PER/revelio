@@ -1,6 +1,67 @@
-What the bot can see, what it cannot, and the limits you will run into.
+The bot is built to see as little as possible. This page sets out exactly what it
+can read, what it cannot, where its answers land, and the limits you will
+eventually run into.
 
-## Coming shortly
+## What the bot can read
 
-This page is being written. The [Discord bot page](/discord) covers the basics
-in the meantime.
+The bot connects to Discord asking for one thing only: the list of servers it has
+been added to. That is the whole of its access.
+
+What it actually reads is what you type into a slash command's options - a card
+name, a search query, a deck link. Nothing else about the conversation reaches
+it.
+
+For `/collection` and `/mydecks` it also reads your own Revelio data, resolved
+through the Discord account you linked yourself. It reaches that data directly
+over a private network connection, with a read-only search key: the bot cannot
+write to the card index, and it never sees the keys that could.
+
+## What it cannot read
+
+It cannot read message content. Not yours, not anyone's, not even in a channel it
+is sitting in - and that includes messages that mention it. Reading message
+content is a privileged permission that has to be justified to Discord, and slash
+commands do not need it, so it was never asked for.
+
+It cannot list a server's members, for the same reason.
+
+It cannot mention anyone. Every reply is sent with mentions switched off
+wholesale, so echoing your input back is inert: typing `/card name:@everyone`
+prints that text and pings nobody. This is a blanket rule on the client, not a
+filter applied per command, so it cannot be forgotten in a new one.
+
+## Where answers appear
+
+`/card`, `/search` and `/deck` answer in the channel, visibly to everyone. They
+are about the game, not about you.
+
+`/collection` and `/mydecks` answer privately - only you see the reply, even in a
+busy channel. That is decided before the command does any work at all, so there
+is no path where a slow query or an error turns a private answer into a public
+one.
+
+That is also why `/mydecks` lists your private decks alongside your public ones:
+nobody else is reading it.
+
+<Callout>
+"Private" here means private to the channel, in Discord's sense: only you see the
+reply. Discord itself still handles the message, as it does everything else you
+send.
+</Callout>
+
+## Limits you may notice
+
+Search totals are estimates. The result count the search engine reports
+over-counts, so the last page of a long result set can be past the end of the
+real results. Ask for it and the bot tells you the page is out of range rather
+than showing you a blank embed - go back a page.
+
+Long answers are cut, not risked. Discord rejects an oversized message outright
+and fails the whole command, so the bot trims first: an embed description is
+capped at 4,096 characters, a single field at 1,024, an embed at 25 fields, and a
+plain message at 2,000. `/mydecks` stops at the limit and says how many decks it
+left out rather than silently ending the list.
+
+Card art in an embed is the 300-pixel thumbnail, not the full-size scan. It is
+sharp at the size Discord displays it, and it keeps the reply quick. The card page
+on revelio.cards - always one click away in the embed - has the full image.

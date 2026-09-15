@@ -31,6 +31,12 @@ describe('/llms.txt', () => {
     }
   })
 
+  it('points an agent at the docs section', async () => {
+    const body = await GET().text()
+    expect(body).toContain('/docs/discord')
+    expect(body).toMatch(/Discord bot documentation/i)
+  })
+
   it('keeps every H2 section as a pure list of markdown links (llms.txt spec)', async () => {
     const lines = (await GET().text()).split('\n')
     let inSection = false

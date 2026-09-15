@@ -58,6 +58,17 @@ describe('CommandTable', () => {
     )
   })
 
+  // Autocomplete is structure, so it comes from the manifest flag rather than
+  // from a sentence someone remembered to write. Flip the flag in the bot and
+  // this marker goes with it.
+  it('marks an autocompleting option from the manifest flag', () => {
+    renderTable('search')
+    const autocompleting = screen.getByText('set').closest('tr')!
+    expect(within(autocompleting).getByText('Autocompletes')).toBeInTheDocument()
+    const plain = screen.getByText('query').closest('tr')!
+    expect(within(plain).queryByText('Autocompletes')).toBeNull()
+  })
+
   it('states the floor on an option that has one', () => {
     renderTable('search')
     const row = screen.getByText('page').closest('tr')!

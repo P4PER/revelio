@@ -837,6 +837,7 @@
       "typeInteger": "Zahl",
       "typeChoice": "Auswahl",
       "noOptions": "Nimmt keine Optionen entgegen.",
+      "autocompletes": "Autovervollständigung",
       "minimum": "Mindestens {min}.",
       "ephemeral": "Nur du siehst es",
       "public": "Antwortet im Kanal",
@@ -845,7 +846,7 @@
     "commands": {
       "card": {
         "options": {
-          "name": "Vervollständigt automatisch über alle Karten der Datenbank. Wer einen Vorschlag auswählt, sendet die Karten-ID - die genaue Schreibweise spielt dann keine Rolle."
+          "name": "Die Vorschläge umfassen alle Karten der Datenbank. Wer einen auswählt, sendet die Karten-ID - die genaue Schreibweise spielt dann keine Rolle."
         }
       },
       "search": {
@@ -853,7 +854,7 @@
           "query": "Suchbegriffe. Ein Treffer im Kartennamen steht immer vor einem Treffer im Kartentext oder im Flavour-Text.",
           "lesson": "Schränkt auf eine Lektion ein.",
           "type": "Schränkt auf einen Kartentyp ein.",
-          "set": "Vervollständigt automatisch über die Set-Namen.",
+          "set": "Schränkt auf ein Set ein. Die Vorschläge umfassen die Set-Namen.",
           "page": "Welche Ergebnisseite angezeigt wird. Die Gesamtzahl ist geschätzt, deshalb kann eine Seite innerhalb der angegebenen Anzahl leer bleiben."
         }
       },
@@ -864,7 +865,7 @@
       },
       "collection": {
         "options": {
-          "set": "Schränkt die Übersicht auf ein Set statt auf die ganze Sammlung ein. Vervollständigt automatisch über die Set-Namen."
+          "set": "Schränkt die Übersicht auf ein Set statt auf die ganze Sammlung ein. Die Vorschläge umfassen die Set-Namen."
         }
       },
       "mydecks": { "options": {} }

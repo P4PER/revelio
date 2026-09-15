@@ -1,8 +1,16 @@
-import { Children, type ReactNode } from 'react'
+import { Children, isValidElement, type ReactNode } from 'react'
 
 type CommandOption = { name: string; value: string }
 
 type Invocation = { command: string; options: CommandOption[] }
+
+/**
+ * The chrome of a code block, shared with the `pre` override in
+ * mdx-components.tsx so a fenced block and a rendered invocation cannot drift
+ * into two different boxes.
+ */
+export const CODE_BLOCK =
+  'mt-5 overflow-x-auto rounded-xl border border-border bg-muted p-4 font-mono text-sm'
 
 // An option name is lower-case and ends at its first colon. Anchoring on that
 // shape is what keeps `deck:https://revelio.cards/...` one option rather than
@@ -15,11 +23,15 @@ const OPTION = /^([a-z][a-z0-9_]*):(.*)$/
  *
  * Whitespace alone does not delimit an option: a value may contain spaces, so
  * a fragment belongs to the option before it until a fragment appears that
- * looks like a new option name.
+ * looks like a new option name. A fragment before any option at all belongs to
+ * the command - `/deck view abc123` is a bare argument, not something to drop
+ * on the floor, and silently shortening the line would show a reader a command
+ * that is not the one they must type.
  */
 function parse(source: string): Invocation {
-  const [command, ...rest] = source.trim().split(/\s+/)
+  const [head, ...rest] = source.trim().split(/\s+/)
   const options: CommandOption[] = []
+  let command = head
   for (const fragment of rest) {
     const match = OPTION.exec(fragment)
     if (match) {
@@ -27,14 +39,27 @@ function parse(source: string): Invocation {
     } else if (options.length > 0) {
       const last = options[options.length - 1]
       last.value = last.value ? `${last.value} ${fragment}` : fragment
+    } else {
+      command = `${command} ${fragment}`
     }
   }
   return { command, options }
 }
 
+/**
+ * The invocation as plain text.
+ *
+ * Recursive because MDX parses a component's children as markdown: an example
+ * holding `query:*lum*` arrives as a string, an <em>, and a string rather than
+ * one string, and reading only the top level would drop the middle of the line.
+ */
 function textOf(children: ReactNode): string {
   return Children.toArray(children)
-    .map((child) => (typeof child === 'string' || typeof child === 'number' ? String(child) : ''))
+    .map((child) => {
+      if (typeof child === 'string' || typeof child === 'number') return String(child)
+      if (isValidElement<{ children?: ReactNode }>(child)) return textOf(child.props.children)
+      return ''
+    })
     .join('')
 }
 
@@ -55,7 +80,7 @@ export function CommandExample({ children }: { children: ReactNode }) {
   const { command, options } = parse(textOf(children))
 
   return (
-    <pre className="mt-5 overflow-x-auto rounded-xl border border-border bg-muted p-4 font-mono text-sm">
+    <pre className={CODE_BLOCK}>
       <code>
         <span className="text-primary-ink">{command}</span>
         {options.map((option) => (

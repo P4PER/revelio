@@ -47,6 +47,24 @@ describe('CommandExample', () => {
     expect(screen.getByText('https://revelio.cards/decks/abc123')).toBeInTheDocument()
   })
 
+  // Dropping it would print a command that is not the one the reader must
+  // type, and no test or build would notice.
+  it('keeps a bare argument that precedes any option', () => {
+    const { container } = render(<CommandExample>/deck view abc123</CommandExample>)
+    expect(container.textContent).toBe('/deck view abc123')
+  })
+
+  // MDX parses a component's children as markdown, so an example holding
+  // emphasis arrives as string / element / string rather than one string.
+  it('reads through a child element that markdown introduced', () => {
+    const { container } = render(
+      <CommandExample>
+        /search query:<em>lum</em>os
+      </CommandExample>,
+    )
+    expect(container.textContent).toBe('/search query:lumos')
+  })
+
   it('renders a command that takes no options', () => {
     const { container } = render(<CommandExample>/mydecks</CommandExample>)
     expect(container.textContent).toBe('/mydecks')

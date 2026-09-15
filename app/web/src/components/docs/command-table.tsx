@@ -1,8 +1,7 @@
 import { useLocale, useTranslations } from 'next-intl'
 import {
+  ATTRIBUTES,
   BOT_COMMANDS,
-  LESSONS,
-  TYPES,
   attrLabel,
   type BotCommandName,
   type CommandOptionSpec,
@@ -13,11 +12,18 @@ const HEAD =
   'border-b border-border px-4 py-2 text-left text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground'
 
 // The manifest names a scope rather than listing values, so a new lesson or
-// card type reaches the docs without anyone editing them.
-function choiceCodes(scope: CommandOptionSpec['choices']): string[] {
-  if (scope === 'lessons') return LESSONS.map((lesson) => lesson.code)
-  if (scope === 'types') return TYPES.map((type) => type.code)
-  return []
+// card type reaches the docs without anyone editing them. ATTRIBUTES is keyed
+// by the same scope names attrLabel takes, so widening the manifest's `choices`
+// union in core needs no edit here and cannot silently render an empty list.
+function choiceValues(
+  scope: CommandOptionSpec['choices'],
+  locale: string,
+): { code: string; label: string }[] {
+  if (!scope) return []
+  return ATTRIBUTES[scope].map((attribute) => ({
+    code: attribute.code,
+    label: attrLabel(scope, attribute.code, locale),
+  }))
 }
 
 /**
@@ -61,15 +67,15 @@ export function CommandTable({ name }: { name: BotCommandName }) {
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr>
-                <th className={HEAD}>{t('commandTable.option')}</th>
-                <th className={HEAD}>{t('commandTable.type')}</th>
-                <th className={HEAD}>{t('commandTable.required')}</th>
-                <th className={HEAD}>{t('commandTable.notes')}</th>
+                <th scope="col" className={HEAD}>{t('commandTable.option')}</th>
+                <th scope="col" className={HEAD}>{t('commandTable.type')}</th>
+                <th scope="col" className={HEAD}>{t('commandTable.required')}</th>
+                <th scope="col" className={HEAD}>{t('commandTable.notes')}</th>
               </tr>
             </thead>
             <tbody>
               {command.options.map((option) => {
-                const codes = choiceCodes(option.choices)
+                const choices = choiceValues(option.choices, locale)
                 return (
                   <tr key={option.name}>
                     <td className={`${CELL} font-mono font-medium text-foreground`}>
@@ -95,18 +101,21 @@ export function CommandTable({ name }: { name: BotCommandName }) {
                       {t(`commands.${command.name}.options.${option.name}`)}
                       {option.min !== undefined &&
                         ` ${t('commandTable.minimum', { min: option.min })}`}
-                      {codes.length > 0 && (
+                      {option.autocomplete && (
+                        <span className="mt-1.5 flex">
+                          <span className="rounded border border-secondary-ink/45 px-1.5 py-0.5 text-[0.68rem] font-medium text-secondary-ink">
+                            {t('commandTable.autocompletes')}
+                          </span>
+                        </span>
+                      )}
+                      {choices.length > 0 && (
                         <ul className="mt-1.5 flex flex-wrap gap-1">
-                          {codes.map((code) => (
+                          {choices.map((choice) => (
                             <li
-                              key={code}
+                              key={choice.code}
                               className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground"
                             >
-                              {attrLabel(
-                                option.choices === 'lessons' ? 'lessons' : 'types',
-                                code,
-                                locale,
-                              )}
+                              {choice.label}
                             </li>
                           ))}
                         </ul>

@@ -863,6 +863,49 @@
         "summary": "Programmatic access to cards, sets and rulings. Not built yet, and this section appears when it is."
       }
     },
+    "commandTable": {
+      "option": "Option",
+      "type": "Type",
+      "required": "Required",
+      "notes": "Notes",
+      "isRequired": "Required",
+      "isOptional": "Optional",
+      "typeString": "Text",
+      "typeInteger": "Number",
+      "typeChoice": "Choice",
+      "noOptions": "Takes no options.",
+      "minimum": "Minimum {min}.",
+      "ephemeral": "Only you see it",
+      "public": "Posts to the channel",
+      "linkRequired": "Needs a linked account"
+    },
+    "commands": {
+      "card": {
+        "options": {
+          "name": "Autocompletes against every card in the database. Picking a suggestion sends the card id, so exact spelling never matters."
+        }
+      },
+      "search": {
+        "options": {
+          "query": "Search terms. A match on a card's name always ranks above a match in its text or flavour.",
+          "lesson": "Narrows to one lesson.",
+          "type": "Narrows to one card type.",
+          "set": "Autocompletes against set names.",
+          "page": "Which page of results to show. Totals are estimated, so a page inside the reported count can still come back empty."
+        }
+      },
+      "deck": {
+        "options": {
+          "deck": "A deck link or its id. Only public decks can be looked up this way; your own private decks are listed by /mydecks."
+        }
+      },
+      "collection": {
+        "options": {
+          "set": "Narrows the summary to one set instead of your whole collection. Autocompletes against set names."
+        }
+      },
+      "mydecks": { "options": {} }
+    },
     "pages": {
       "discord": {
         "title": "Overview",

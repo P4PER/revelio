@@ -826,6 +826,49 @@
         "summary": "Programmatischer Zugriff auf Karten, Sets und Rulings. Noch nicht gebaut; dieser Bereich erscheint, sobald es so weit ist."
       }
     },
+    "commandTable": {
+      "option": "Option",
+      "type": "Typ",
+      "required": "Pflicht",
+      "notes": "Hinweise",
+      "isRequired": "Pflicht",
+      "isOptional": "Optional",
+      "typeString": "Text",
+      "typeInteger": "Zahl",
+      "typeChoice": "Auswahl",
+      "noOptions": "Nimmt keine Optionen entgegen.",
+      "minimum": "Mindestens {min}.",
+      "ephemeral": "Nur du siehst es",
+      "public": "Antwortet im Kanal",
+      "linkRequired": "Braucht ein verknüpftes Konto"
+    },
+    "commands": {
+      "card": {
+        "options": {
+          "name": "Vervollständigt automatisch über alle Karten der Datenbank. Wer einen Vorschlag auswählt, sendet die Karten-ID - die genaue Schreibweise spielt dann keine Rolle."
+        }
+      },
+      "search": {
+        "options": {
+          "query": "Suchbegriffe. Ein Treffer im Kartennamen steht immer vor einem Treffer im Kartentext oder im Flavour-Text.",
+          "lesson": "Schränkt auf eine Lektion ein.",
+          "type": "Schränkt auf einen Kartentyp ein.",
+          "set": "Vervollständigt automatisch über die Set-Namen.",
+          "page": "Welche Ergebnisseite angezeigt wird. Die Gesamtzahl ist geschätzt, deshalb kann eine Seite innerhalb der angegebenen Anzahl leer bleiben."
+        }
+      },
+      "deck": {
+        "options": {
+          "deck": "Ein Deck-Link oder dessen ID. So lassen sich nur öffentliche Decks nachschlagen; deine privaten Decks listet /mydecks auf."
+        }
+      },
+      "collection": {
+        "options": {
+          "set": "Schränkt die Übersicht auf ein Set statt auf die ganze Sammlung ein. Vervollständigt automatisch über die Set-Namen."
+        }
+      },
+      "mydecks": { "options": {} }
+    },
     "pages": {
       "discord": {
         "title": "Überblick",

@@ -853,6 +853,11 @@
     "editPage": "Edit this page",
     "breadcrumb": "Documentation",
     "planned": "Planned",
+    "pager": {
+      "label": "Previous and next page",
+      "previous": "Previous",
+      "next": "Next"
+    },
     "hubTitle": "Documentation",
     "hubLede": "Reference for the parts of Revelio that are not the card database itself. Everything here is kept in step with what actually ships.",
     "sections": {

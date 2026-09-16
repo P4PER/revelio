@@ -191,7 +191,8 @@
     "registerSubtitle": "Enter your email and a username to create your {brand} account.",
     "differentEmail": "Use a different email",
     "noAccountError": "No account found for that email. Please register first.",
-    "usernameTaken": "That username is taken. Please choose another."
+    "usernameTaken": "That username is taken. Please choose another.",
+    "termsNotice": "By pressing “{button}” you agree to our <terms>Terms of Service</terms> and to follow our <rules>rules for acceptable use</rules>. Our <privacy>Privacy Policy</privacy> explains how we handle your data."
   },
   "admin": {
     "title": "Admin",

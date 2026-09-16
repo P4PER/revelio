@@ -11,4 +11,13 @@ describe('auth i18n', () => {
       expect('sendCode' in m.auth).toBe(false)
     }
   })
+
+  it('carries the terms notice with its button placeholder in both locales', () => {
+    for (const m of [en, de]) {
+      expect(m.auth.termsNotice).toContain('{button}')
+      expect(m.auth.termsNotice).toContain('<terms>')
+      expect(m.auth.termsNotice).toContain('<rules>')
+      expect(m.auth.termsNotice).toContain('<privacy>')
+    }
+  })
 })

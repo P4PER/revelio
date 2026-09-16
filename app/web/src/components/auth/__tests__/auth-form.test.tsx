@@ -142,4 +142,30 @@ describe('AuthForm', () => {
       '/register?redirect=%2Fdecks%2Fmine',
     )
   })
+
+  // § 305(2) BGB: the terms bind only if the visitor is pointed to them before
+  // the click that concludes the contract. The notice names that button by its
+  // real label, so a renamed button cannot leave it quoting a stale one.
+  it('register mode tells the visitor what pressing Register agrees to', () => {
+    renderForm('register')
+    expect(screen.getByText(/By pressing “Register” you agree to our/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute('href', '/terms')
+    expect(screen.getByRole('link', { name: 'rules for acceptable use' })).toHaveAttribute(
+      'href',
+      '/terms#acceptable-use',
+    )
+    expect(screen.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute('href', '/privacy')
+  })
+
+  it('places the notice before the Register button', () => {
+    renderForm('register')
+    const notice = screen.getByText(/By pressing “Register”/)
+    const button = screen.getByRole('button', { name: 'Register' })
+    expect(notice.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('login mode shows no terms notice', () => {
+    renderForm('login')
+    expect(screen.queryByRole('link', { name: 'Terms of Service' })).not.toBeInTheDocument()
+  })
 })

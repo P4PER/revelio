@@ -191,7 +191,8 @@
     "registerSubtitle": "Gib deine E-Mail und einen Benutzernamen ein, um dein {brand}-Konto zu erstellen.",
     "differentEmail": "Andere E-Mail verwenden",
     "noAccountError": "Kein Konto für diese E-Mail gefunden. Bitte zuerst registrieren.",
-    "usernameTaken": "Dieser Benutzername ist vergeben. Bitte einen anderen wählen."
+    "usernameTaken": "Dieser Benutzername ist vergeben. Bitte einen anderen wählen.",
+    "termsNotice": "Mit Klick auf „{button}“ stimmst du unseren <terms>Nutzungsbedingungen</terms> zu und verpflichtest dich, unsere <rules>Regeln zur zulässigen Nutzung</rules> einzuhalten. Wie wir mit deinen Daten umgehen, erklärt unsere <privacy>Datenschutzerklärung</privacy>."
   },
   "admin": {
     "title": "Admin",

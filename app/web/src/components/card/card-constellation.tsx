@@ -54,7 +54,7 @@ function ConstellationCard({
             src={imageUrl(imageBase, thumbKey(card.id, card.imageVersion))}
             alt={card.name}
             sizes={mobile ? '128px' : '160px'}
-            frameClassName="rounded-lg"
+            frameClassName="rounded-lg [image-rendering:-webkit-optimize-contrast]"
           />
         </span>
       </span>

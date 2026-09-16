@@ -70,6 +70,7 @@ describe('SiteFooter', () => {
     renderFooter()
     const legal = screen.getByRole('navigation', { name: 'Legal' })
     expect(within(legal).getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute('href', '/privacy')
+    expect(within(legal).getByRole('link', { name: 'Terms of Service' })).toHaveAttribute('href', '/terms')
     expect(within(legal).getByRole('link', { name: 'Imprint' })).toHaveAttribute('href', '/imprint')
   })
 

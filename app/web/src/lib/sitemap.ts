@@ -41,6 +41,7 @@ export const STATIC_ROUTES = [
   '/contact',
   '/imprint',
   '/privacy',
+  '/terms',
   // Derived, not hand-listed: a page added to DOCS_NAV reaches the sitemap
   // without a second edit here.
   '/docs',

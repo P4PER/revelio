@@ -126,8 +126,9 @@ export function SiteFooterView({
             <p className="text-xs text-muted-foreground">
               {t('copyright', { year, brand: BRAND_NAME })}
             </p>
-            <nav aria-label={t('legal')} className="flex items-center gap-4">
+            <nav aria-label={t('legal')} className="flex flex-wrap items-center gap-x-4 gap-y-1">
               <LegalLink href="/privacy">{t('privacy')}</LegalLink>
+              <LegalLink href="/terms">{t('terms')}</LegalLink>
               <LegalLink href="/imprint">{t('imprint')}</LegalLink>
             </nav>
           </div>

@@ -6,10 +6,13 @@ import { DocsSidebar } from '@/components/docs/docs-sidebar'
 export default function DocsLayout({ children }: { children: ReactNode }) {
   return (
     <div className="mx-auto flex max-w-[76rem] flex-col px-6 py-8 min-[860px]:flex-row min-[860px]:px-0">
-      {/* Sticky on wide screens, a band above the content below 860px. The
-          container owns the top margin - py-8, as every other page container
-          uses - so the rail's divider starts below it rather than at the header. */}
-      <aside className="border-b border-border/60 pb-6 min-[860px]:sticky min-[860px]:top-8 min-[860px]:w-[15.5rem] min-[860px]:shrink-0 min-[860px]:self-start min-[860px]:border-b-0 min-[860px]:border-r min-[860px]:pb-0 min-[860px]:pl-6 min-[860px]:pr-4">
+      {/* Sticky in the gutter from 860px up, and gone below it - stacked above
+          the article it put seven nav rows between the reader and the heading
+          they came for. The page renders DocsMobileBar in its place, which
+          holds the same tree in a drawer. The container owns the top margin -
+          py-8, as every other page container uses - so the rail's divider
+          starts below it rather than at the header. */}
+      <aside className="hidden min-[860px]:sticky min-[860px]:top-8 min-[860px]:block min-[860px]:w-[15.5rem] min-[860px]:shrink-0 min-[860px]:self-start min-[860px]:border-r min-[860px]:border-border/60 min-[860px]:pl-6 min-[860px]:pr-4">
         <DocsSidebar />
       </aside>
       <div className="min-w-0 flex-1">{children}</div>

@@ -16,4 +16,8 @@ export const LEGAL_DOCUMENTS = {
     en: () => import('@/../content/legal/terms.en.mdx'),
     de: () => import('@/../content/legal/terms.de.mdx'),
   },
+  privacy: {
+    en: () => import('@/../content/legal/privacy.en.mdx'),
+    de: () => import('@/../content/legal/privacy.de.mdx'),
+  },
 } satisfies Record<string, Record<LegalLocale, LegalDocumentLoader>>

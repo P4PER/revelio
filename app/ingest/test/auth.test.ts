@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { emailOTP, username, admin } from 'better-auth/plugins'
+import { eq } from 'drizzle-orm'
 import { schema } from '@revelio/db'
 import { withMigratedDb } from './helpers'
 
@@ -15,6 +16,14 @@ beforeAll(async () => {
     secret: 'test-secret-please-change',
     database: drizzleAdapter(ctx.db, { provider: 'pg', schema }),
     emailAndPassword: { enabled: false },
+    // Mirrors web/src/lib/server/auth.ts. input:false is the guarantee under
+    // test: no Better Auth endpoint may let a client write its own acceptance.
+    user: {
+      additionalFields: {
+        termsVersion: { type: 'string', required: false, input: false },
+        termsAcceptedAt: { type: 'date', required: false, input: false },
+      },
+    },
     plugins: [
       username(),
       admin(),
@@ -45,6 +54,32 @@ afterAll(async () => {
 })
 
 describe('email-OTP auth', () => {
+  it('never lets a client set its own terms acceptance', async () => {
+    await auth.api.sendVerificationOTP({ body: { email: 'terms@example.com', type: 'sign-in' } })
+    const res = await auth.api.signInEmailOTP({
+      body: { email: 'terms@example.com', otp: lastOtp },
+      asResponse: true,
+    })
+    const cookie = res.headers.get('set-cookie') ?? ''
+
+    const session = await auth.api.getSession({ headers: new Headers({ cookie }) })
+    expect(session?.user.termsVersion ?? null).toBeNull()
+
+    // Rejected or silently ignored, the stored value must not move.
+    await auth.api
+      .updateUser({
+        headers: new Headers({ cookie }),
+        body: { termsVersion: '2099-01-01' } as Record<string, unknown>,
+      })
+      .catch(() => {})
+
+    const [row] = await ctx.db
+      .select({ v: schema.user.termsVersion })
+      .from(schema.user)
+      .where(eq(schema.user.email, 'terms@example.com'))
+    expect(row.v).toBeNull()
+  })
+
   it('signs up a new user via OTP and creates a session', async () => {
     await auth.api.sendVerificationOTP({ body: { email: 'ann@example.com', type: 'sign-in' } })
     expect(lastOtp).toMatch(/^\d{6}$/)

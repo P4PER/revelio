@@ -30,6 +30,18 @@ export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL,
   database: drizzleAdapter(db, { provider: 'pg', schema }),
   emailAndPassword: { enabled: false },
+  user: {
+    additionalFields: {
+      // Terms of Service acceptance (db/src/auth-schema.ts). Declared so the
+      // session carries termsVersion for the acceptance banner and so a
+      // future `@better-auth/cli generate` keeps the columns. input:false:
+      // no Better Auth endpoint may write them - sign-up and updateUser
+      // bodies reject or drop them - and only acceptTermsAction does, from
+      // the session and the server's own TERMS_VERSION.
+      termsVersion: { type: 'string', required: false, input: false },
+      termsAcceptedAt: { type: 'date', required: false, input: false },
+    },
+  },
   // Prefix auth cookies so they share the `revelio.` family with our functional
   // cookies (revelio.locale, revelio.theme, revelio.deck-view) — e.g.
   // `revelio.session_token` (Better Auth prepends `__Secure-` over HTTPS).

@@ -90,6 +90,18 @@ describe('DocsSidebar', () => {
     expect(screen.queryByRole('link', { name: 'Commands' })).toBeNull()
   })
 
+  // aria-controls has to point at an element that exists. Unmounting the list
+  // on collapse leaves the IDREF dangling, so AT following it finds nothing.
+  it('keeps the panel aria-controls names in the DOM while collapsed', async () => {
+    const user = userEvent.setup()
+    renderSidebar()
+    const toggle = screen.getByRole('button', { name: /Discord bot/ })
+    await user.click(toggle)
+    const panelId = toggle.getAttribute('aria-controls')
+    expect(panelId).toBeTruthy()
+    expect(document.getElementById(panelId as string)).not.toBeNull()
+  })
+
   // Nothing to expand into, so it must not offer a control that does nothing.
   it('leaves the planned section as a plain label, not a disclosure', () => {
     renderSidebar()

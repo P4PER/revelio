@@ -56,7 +56,7 @@ describe('a docs content page', () => {
   // thing left saying which page this is.
   it('names the page on the mobile bar', () => {
     renderArticle()
-    expect(screen.getByRole('button', { name: en.docs.openNav })).toHaveTextContent('Commands')
+    expect(screen.getByRole('button', { name: /Commands/ })).toHaveTextContent('Commands')
   })
 
   it('lists the page headings in the contents rail', () => {

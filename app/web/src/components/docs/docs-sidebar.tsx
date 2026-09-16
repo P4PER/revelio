@@ -71,24 +71,26 @@ function NavSection({ section }: { section: DocSection }) {
         {title}
       </button>
 
-      {open && (
-        <ul id={panelId} className="flex flex-col">
-          {section.pages.map((slug) => {
-            const active = pathname === href(slug)
-            return (
-              <li key={slug}>
-                <Link
-                  href={href(slug)}
-                  aria-current={active ? 'page' : undefined}
-                  className={active ? PAGE_LINK_ACTIVE : PAGE_LINK}
-                >
-                  {t(`pages.${docId(slug)}.title`)}
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
-      )}
+      {/* Hidden rather than unmounted: aria-controls has to point at an element
+          that exists, and AT following a dangling IDREF finds nothing. `hidden`
+          keeps the list out of the accessibility tree and out of the tab order
+          all the same. */}
+      <ul id={panelId} hidden={!open} className="flex flex-col">
+        {section.pages.map((slug) => {
+          const active = pathname === href(slug)
+          return (
+            <li key={slug}>
+              <Link
+                href={href(slug)}
+                aria-current={active ? 'page' : undefined}
+                className={active ? PAGE_LINK_ACTIVE : PAGE_LINK}
+              >
+                {t(`pages.${docId(slug)}.title`)}
+              </Link>
+            </li>
+          )
+        })}
+      </ul>
     </div>
   )
 }

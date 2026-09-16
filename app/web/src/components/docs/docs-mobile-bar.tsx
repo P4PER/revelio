@@ -69,14 +69,24 @@ export function DocsMobileBar({
   const hiddenFrom = toc.length > 0 ? 'min-[1180px]:hidden' : 'min-[860px]:hidden'
 
   return (
-    <div
+    // A landmark of its own: below 860px this bar is the whole of the docs
+    // navigation, and one that sits in no landmark is one a screen reader
+    // cannot jump to. Its own label, because between 860 and 1180 the rail's
+    // "Documentation" landmark is on screen beside it.
+    <nav
+      aria-label={t('mobileNav')}
       className={`sticky top-0 z-30 -mx-6 -mt-8 mb-6 flex h-12 items-center gap-2 border-b border-border/60 bg-background/95 px-3 backdrop-blur min-[860px]:mx-0 min-[860px]:px-12 ${hiddenFrom}`}
     >
       <Sheet open={navOpen} onOpenChange={setNavOpen}>
         <SheetTrigger asChild>
+          {/* The label carries the page name as well as the action. An
+              aria-label replaces the visible text rather than adding to it, so
+              naming only the action would leave a screen reader without the
+              breadcrumb this trigger exists to be - and would fail WCAG 2.5.3,
+              since "click Commands" would match nothing. */}
           <Button
             variant="ghost"
-            aria-label={t('openNav')}
+            aria-label={`${title}: ${t('openNav')}`}
             className={`${NAV_TRIGGER} min-[860px]:hidden`}
           >
             <PanelLeft className="text-primary-ink" aria-hidden />
@@ -117,6 +127,6 @@ export function DocsMobileBar({
           </PopoverContent>
         </Popover>
       )}
-    </div>
+    </nav>
   )
 }

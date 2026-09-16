@@ -8,9 +8,14 @@ import { cn } from '@/lib/utils'
 
 // Docs prose deliberately reuses the type scale already set by the about and
 // discord pages rather than introducing a third one.
+// scroll-mt keeps a heading clear of the viewport edge when the contents list
+// jumps to it. Below 1180px that edge is the docs bar - sticky, 48px - so the
+// offset has to clear the bar, not just the edge; an h2's own pt-6 happens to
+// absorb most of it, an h3 has nothing to hide behind.
+const SCROLL_OFFSET = 'scroll-mt-16 min-[1180px]:scroll-mt-8'
 const HEADING_2 =
-  'mt-11 border-t border-border/60 pt-6 text-xl font-semibold tracking-tight text-foreground first:mt-0 first:border-t-0 first:pt-0 scroll-mt-8'
-const HEADING_3 = 'mt-8 text-base font-semibold text-foreground scroll-mt-8'
+  `mt-11 border-t border-border/60 pt-6 text-xl font-semibold tracking-tight text-foreground first:mt-0 first:border-t-0 first:pt-0 ${SCROLL_OFFSET}`
+const HEADING_3 = `mt-8 text-base font-semibold text-foreground ${SCROLL_OFFSET}`
 const PARAGRAPH = 'mt-4 max-w-[65ch] text-sm leading-relaxed text-muted-foreground sm:text-base'
 const LIST =
   'mt-4 max-w-[65ch] list-outside space-y-1.5 pl-5 text-sm leading-relaxed text-muted-foreground sm:text-base'

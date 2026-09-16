@@ -35,13 +35,32 @@ describe('DocsMobileBar', () => {
   // so the trigger is the only thing telling a reader where they are.
   it('names the page being read on the menu trigger', () => {
     renderBar()
-    expect(screen.getByRole('button', { name: en.docs.openNav })).toHaveTextContent('Commands')
+    expect(screen.getByRole('button', { name: /Commands/ })).toBeInTheDocument()
+  })
+
+  // An aria-label replaces the visible text rather than adding to it, so the
+  // breadcrumb has to be in the accessible name too: without it a screen reader
+  // never hears which page this is, and "click Commands" does nothing for a
+  // voice-control user (WCAG 2.5.3, Label in Name).
+  it('keeps the page name in the trigger\'s accessible name', () => {
+    renderBar()
+    const trigger = screen.getByRole('button', { name: /Commands/ })
+    expect(trigger).toHaveAccessibleName(expect.stringContaining('Commands'))
+    expect(trigger).toHaveAccessibleName(expect.stringContaining(en.docs.openNav))
+  })
+
+  // Below 860px this bar is the only way through the docs, and a bar in no
+  // landmark is one a screen reader cannot jump to.
+  it('is a navigation landmark of its own', () => {
+    renderBar()
+    const nav = screen.getByRole('navigation', { name: en.docs.mobileNav })
+    expect(within(nav).getByRole('button', { name: /Commands/ })).toBeInTheDocument()
   })
 
   it('lists every page in the drawer', async () => {
     const user = userEvent.setup()
     renderBar()
-    await user.click(screen.getByRole('button', { name: en.docs.openNav }))
+    await user.click(screen.getByRole('button', { name: /Commands/ }))
     const drawer = within(screen.getByRole('dialog'))
     for (const name of ['Overview', 'Commands', 'Account linking', 'Troubleshooting']) {
       expect(drawer.getByRole('link', { name })).toBeInTheDocument()
@@ -51,7 +70,7 @@ describe('DocsMobileBar', () => {
   it('closes the drawer when a page is picked', async () => {
     const user = userEvent.setup()
     renderBar()
-    await user.click(screen.getByRole('button', { name: en.docs.openNav }))
+    await user.click(screen.getByRole('button', { name: /Commands/ }))
     await user.click(within(screen.getByRole('dialog')).getByRole('link', { name: 'Overview' }))
     expect(screen.queryByRole('dialog')).toBeNull()
   })

@@ -25,7 +25,7 @@ describe('the docs hub', () => {
   // without it a phone reader arrives with no way into the section at all.
   it('offers the documentation menu on narrow screens', () => {
     renderHub()
-    expect(screen.getByRole('button', { name: en.docs.openNav })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: new RegExp(en.docs.openNav) })).toBeInTheDocument()
   })
 
   it('names itself', () => {

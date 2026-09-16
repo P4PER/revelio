@@ -967,6 +967,12 @@
     "operatorContactLabel": "E-Mail:",
     "effective": "Gültig ab {date, date, long}"
   },
+  "termsBanner": {
+    "label": "Nutzungsbedingungen",
+    "body": "Bitte lies unsere aktuellen <terms>Nutzungsbedingungen</terms> und stimme ihnen zu.",
+    "accept": "Zustimmen",
+    "error": "Deine Zustimmung konnte nicht gespeichert werden. Bitte versuche es erneut."
+  },
   "imprint": {
     "metaTitle": "Impressum",
     "title": "Impressum",

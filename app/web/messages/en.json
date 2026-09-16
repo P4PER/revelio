@@ -1004,6 +1004,12 @@
     "operatorContactLabel": "Email:",
     "effective": "Effective from {date, date, long}"
   },
+  "termsBanner": {
+    "label": "Terms of Service",
+    "body": "Please review and accept our current <terms>Terms of Service</terms>.",
+    "accept": "Accept terms",
+    "error": "Couldn’t save your acceptance. Please try again."
+  },
   "imprint": {
     "metaTitle": "Imprint",
     "title": "Imprint",

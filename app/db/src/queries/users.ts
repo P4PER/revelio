@@ -93,3 +93,16 @@ export async function clearUserBan(db: DB, id: string): Promise<void> {
 export async function deleteUserById(db: DB, id: string): Promise<void> {
   await db.delete(user).where(eq(user.id, id))
 }
+
+// Stamps which Terms of Service version a user accepted, and when. Called only
+// by web's acceptTermsAction with the server's own TERMS_VERSION and clock,
+// never with client input, so the row is evidence of what was actually shown.
+// A later acceptance replaces the earlier one: the current contract is what
+// matters, and the version string says which text that was.
+export async function recordTermsAcceptance(
+  db: DB, id: string, version: string, acceptedAt: Date,
+): Promise<void> {
+  await db.update(user)
+    .set({ termsVersion: version, termsAcceptedAt: acceptedAt })
+    .where(eq(user.id, id))
+}

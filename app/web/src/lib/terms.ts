@@ -11,3 +11,8 @@
 export const TERMS_VERSION = '2026-09-16'
 
 export const TERMS_EFFECTIVE_DATE = new Date(`${TERMS_VERSION}T00:00:00Z`)
+
+/** True when an account's stored acceptance is missing or for an older text. */
+export function needsTermsAcceptance(accepted: string | null | undefined): boolean {
+  return accepted !== TERMS_VERSION
+}

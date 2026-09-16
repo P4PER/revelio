@@ -8,6 +8,7 @@ import { routing } from '@/../i18n/routing'
 import { buildSiteMetadata, THEME_COLOR, THEME_COLOR_LIGHT } from '@/lib/seo'
 import { SiteHeader } from '@/components/layout/site-header'
 import { SiteFooter } from '@/components/layout/site-footer'
+import { TermsBanner } from '@/components/legal/terms-banner'
 import { Toaster } from '@/components/ui/sonner'
 import { SearchHotkey } from '@/components/search/search-hotkey'
 import { THEME_COOKIE, parseTheme } from '@/lib/theme'
@@ -75,6 +76,7 @@ export default async function LocaleLayout({
               just below the fold and only appears once you scroll down. */}
           <div className="flex min-h-screen flex-col">
             <SiteHeader />
+            <TermsBanner />
             <div className="flex-1">{children}</div>
           </div>
           <SiteFooter />

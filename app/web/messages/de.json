@@ -916,7 +916,7 @@
     "sslBody": "Diese Website nutzt aus Sicherheitsgründen und zum Schutz der Übertragung vertraulicher Inhalte eine TLS-Verschlüsselung. Eine verschlüsselte Verbindung erkennen Sie an der Zeichenfolge „https://“ und dem Schloss-Symbol in der Adresszeile Ihres Browsers.",
     "processingTitle": "3. Welche Daten wir verarbeiten",
     "accountTitle": "Kontodaten",
-    "accountBody": "Wenn Sie ein Konto anlegen, verarbeiten wir Ihre E-Mail-Adresse, Ihren Benutzernamen, Ihren Anzeigenamen, Ihre Rolle und den Status der E-Mail-Bestätigung, um Ihnen Ihr Konto und dessen Funktionen bereitzustellen. Rechtsgrundlage: Erfüllung eines Vertrags (Art. 6 Abs. 1 lit. b DSGVO).",
+    "accountBody": "Wenn Sie ein Konto anlegen, verarbeiten wir Ihre E-Mail-Adresse, Ihren Benutzernamen, Ihren Anzeigenamen, Ihre Rolle und den Status der E-Mail-Bestätigung, um Ihnen Ihr Konto und dessen Funktionen bereitzustellen. Rechtsgrundlage: Erfüllung eines Vertrags (Art. 6 Abs. 1 lit. b DSGVO). Wenn Sie sich registrieren oder später geänderten Nutzungsbedingungen zustimmen, speichern wir außerdem, welcher Fassung der Nutzungsbedingungen Sie wann zugestimmt haben, damit wir nachweisen können, welche Bedingungen für Ihr Konto gelten. Rechtsgrundlage: unser berechtigtes Interesse am Nachweis der vereinbarten Bedingungen (Art. 6 Abs. 1 lit. f DSGVO).",
     "sessionTitle": "Sitzungsdaten",
     "sessionBody": "Um Sie angemeldet zu halten und den Dienst vor Missbrauch zu schützen, speichern wir ein Sitzungs-Token zusammen mit Ihrer IP-Adresse und der User-Agent-Kennung Ihres Browsers bis zum Ablauf der Sitzung. Rechtsgrundlage: unser berechtigtes Interesse am Betrieb und an der Sicherheit des Dienstes (Art. 6 Abs. 1 lit. f DSGVO).",
     "logsTitle": "Server-Logfiles",
@@ -966,6 +966,12 @@
     "notConfigured": "Nicht konfiguriert",
     "operatorContactLabel": "E-Mail:",
     "effective": "Gültig ab {date, date, long}"
+  },
+  "termsBanner": {
+    "label": "Nutzungsbedingungen",
+    "body": "Bitte lies unsere aktuellen <terms>Nutzungsbedingungen</terms> und stimme ihnen zu.",
+    "accept": "Zustimmen",
+    "error": "Deine Zustimmung konnte nicht gespeichert werden. Bitte versuche es erneut."
   },
   "imprint": {
     "metaTitle": "Impressum",

@@ -953,7 +953,7 @@
     "sslBody": "This site uses TLS encryption for security and to protect the transmission of confidential content. You can recognise an encrypted connection by the “https://” prefix and the lock icon in your browser’s address bar.",
     "processingTitle": "3. Data we process",
     "accountTitle": "Account data",
-    "accountBody": "When you create an account we process your email address, username, display name, role, and email-verification status so that we can provide your account and its features. Legal basis: performance of a contract (Art. 6(1)(b) GDPR).",
+    "accountBody": "When you create an account we process your email address, username, display name, role, and email-verification status so that we can provide your account and its features. Legal basis: performance of a contract (Art. 6(1)(b) GDPR). When you register, or later accept updated terms of service, we also store which version of the terms of service you accepted and when, so that we can prove which terms apply to your account. Legal basis: our legitimate interest in being able to prove the terms agreed (Art. 6(1)(f) GDPR).",
     "sessionTitle": "Session data",
     "sessionBody": "To keep you signed in and to protect the service against misuse, we store a session token together with your IP address and your browser’s user-agent until the session expires. Legal basis: our legitimate interest in operating and securing the service (Art. 6(1)(f) GDPR).",
     "logsTitle": "Server log files",
@@ -1003,6 +1003,12 @@
     "notConfigured": "Not configured",
     "operatorContactLabel": "Email:",
     "effective": "Effective from {date, date, long}"
+  },
+  "termsBanner": {
+    "label": "Terms of Service",
+    "body": "Please review and accept our current <terms>Terms of Service</terms>.",
+    "accept": "Accept terms",
+    "error": "Couldn’t save your acceptance. Please try again."
   },
   "imprint": {
     "metaTitle": "Imprint",

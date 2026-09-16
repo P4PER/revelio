@@ -7,10 +7,11 @@ import { routing } from '@/../i18n/routing'
 import { getPathname } from '@/../i18n/navigation'
 import { SITE_URL as BASE_URL } from '@/lib/site'
 import { getCachedSiteSettings } from '@/lib/server/site-settings'
-import { DOCS_NAV, docId, isDocSlug } from '@/lib/docs/nav'
+import { DOCS_NAV, docId, docNeighbours, isDocSlug } from '@/lib/docs/nav'
 import { loadDoc } from '@/lib/docs/registry'
 import { DocsToc } from '@/components/docs/docs-toc'
 import { DocsMobileBar } from '@/components/docs/docs-mobile-bar'
+import { DocsPager } from '@/components/docs/docs-pager'
 import type { DocLocale, DocSlug, TocEntry } from '@/lib/docs/types'
 
 type Params = { params: Promise<{ locale: string; slug: string[] }> }
@@ -71,6 +72,7 @@ export function DocArticle({
   const t = useTranslations('docs')
   const sectionKey = sectionKeyOf(slug)
   const title = t(`pages.${docId(slug)}.title`)
+  const neighbours = docNeighbours(slug)
 
   return (
     <>
@@ -87,6 +89,13 @@ export function DocArticle({
           <div className="mt-6">
             <Body />
           </div>
+          {/* The rule only when there is something under it: a lone page
+              would otherwise end on a border with nothing beneath. */}
+          {(neighbours.prev || neighbours.next) && (
+            <div className="mt-12 border-t border-border pt-6">
+              <DocsPager {...neighbours} />
+            </div>
+          )}
         </article>
         <div className="hidden min-[1180px]:block">
           <DocsToc toc={toc} editUrl={editUrl} />

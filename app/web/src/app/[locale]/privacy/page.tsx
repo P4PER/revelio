@@ -57,6 +57,8 @@ export function PrivacyContent({
       <p>{t('emailBody')}</p>
       <h3>{t('contactTitle')}</h3>
       <p>{t('contactBody')}</p>
+      <h3>{t('moderationTitle')}</h3>
+      <p>{t('moderationBody')}</p>
       <h3>{t('discordTitle')}</h3>
       <p>{t('discordBody')}</p>
 

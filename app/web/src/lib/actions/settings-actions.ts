@@ -8,7 +8,7 @@ import { usernameAvailable, emailHasAccount } from '@/lib/actions/auth-actions'
 import { generateCode, storeCode, consumeCode, emailChangeId, deleteId } from '@/lib/server/account-codes'
 import { renderOtpEmail } from '@/lib/email/otp-template'
 import { sendMail } from '@/lib/email/mailer'
-import { getCachedSiteSettings } from '@/lib/server/site-settings'
+import { getFooterContactEmail } from '@/lib/server/site-settings'
 import { unlinkAndRevokeDiscord } from '@/lib/server/discord-oauth'
 
 export type SettingsResult = { ok: true } | { ok: false; error: string }
@@ -33,8 +33,8 @@ export async function updateUsername(username: string): Promise<SettingsResult> 
 }
 
 async function sendCodeMail(to: string, otp: string, type: 'change-email' | 'delete-account') {
-  const settings = await getCachedSiteSettings()
-  const { subject, html, text } = await renderOtpEmail({ otp, type, contactEmail: settings?.contactEmail ?? '' })
+  const contactEmail = await getFooterContactEmail()
+  const { subject, html, text } = await renderOtpEmail({ otp, type, contactEmail })
   await sendMail({ to, subject, html, text })
 }
 

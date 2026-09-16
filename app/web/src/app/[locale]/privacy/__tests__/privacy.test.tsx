@@ -23,6 +23,16 @@ function renderPrivacy(locale: 'en' | 'de', messages: typeof en | typeof de, pro
 }
 
 describe('PrivacyContent', () => {
+  it('documents moderation data in both locales', () => {
+    renderPrivacy('en', en, FULL)
+    expect(screen.getByRole('heading', { name: 'Moderation' })).toBeInTheDocument()
+    expect(screen.getByText(/Art\. 17 of the Digital Services Act/)).toBeInTheDocument()
+    cleanup()
+    renderPrivacy('de', de, FULL)
+    expect(screen.getByRole('heading', { name: 'Moderation' })).toBeInTheDocument()
+    expect(screen.getByText(/Art\. 6 Abs\. 1 lit\. c DSGVO/)).toBeInTheDocument()
+  })
+
   it('discloses the terms acceptance record in both locales', () => {
     renderPrivacy('en', en, FULL)
     expect(screen.getByText(/which version of the terms of service you accepted and when/)).toBeInTheDocument()

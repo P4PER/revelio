@@ -3,11 +3,18 @@ import { revalidatePath } from 'next/cache'
 import { requireRole } from '@/lib/server/session'
 import { getDb } from '@/lib/server/db'
 import { unlinkAndRevokeDiscord } from '@/lib/server/discord-oauth'
+import { getFooterContactEmail } from '@/lib/server/site-settings'
+import { renderBanEmail } from '@/lib/email/ban-template'
+import { sendMail } from '@/lib/email/mailer'
 import {
   getUserForAdmin, countAdmins, updateUserRole, setUserBan, clearUserBan, deleteUserById,
 } from '@revelio/db'
 
 export type UserActionResult = { ok: true } | { ok: false; error: string }
+
+// A ban whose notice could not be emailed still succeeded: the ban stands and
+// the admin form tells the admin to send the reasons by hand.
+export type BanUserResult = UserActionResult | { ok: true; warning: 'notify-failed' }
 
 const ROLES = ['user', 'editor', 'admin'] as const
 
@@ -38,14 +45,30 @@ export async function setUserRole(userId: string, role: string): Promise<UserAct
 
 export async function banUser(
   userId: string, reason: string, expiresAt: string | null,
-): Promise<UserActionResult> {
+): Promise<BanUserResult> {
   const session = await requireRole('admin')
   if (userId === session.user.id) return { ok: false, error: 'self' }
+  // Art. 17(3) DSA: the statement of reasons must give the facts and grounds.
+  const trimmed = reason.trim()
+  if (!trimmed) return { ok: false, error: 'reason-required' }
   const expires = expiresAt ? new Date(expiresAt) : null
-  if (expires && Number.isNaN(expires.getTime())) return { ok: false, error: 'invalid' }
+  // Better Auth lifts a ban whose expiry has passed at the next sign-in, so a
+  // past date would store no effective ban yet still email a suspension notice.
+  if (expires && !(expires.getTime() > Date.now())) return { ok: false, error: 'invalid' }
   const db = getDb()
-  await setUserBan(db, userId, reason.trim() || null, expires)
+  const target = await getUserForAdmin(db, userId)
+  if (!target) return { ok: false, error: 'not-found' }
+  await setUserBan(db, userId, trimmed, expires)
   revalidateUser(userId)
+  const contactEmail = await getFooterContactEmail()
+  try {
+    const mail = await renderBanEmail({ reason: trimmed, expiresAt: expires, contactEmail })
+    await sendMail({ to: target.email, ...mail })
+  } catch {
+    // Never log the reason or the address: both are personal data.
+    console.error('could not send the ban notice')
+    return { ok: true, warning: 'notify-failed' }
+  }
   return { ok: true }
 }
 

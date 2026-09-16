@@ -1,7 +1,7 @@
 # Terms of Service design
 
 Date: 2026-09-16
-Status: approved; Phases 1 and 2 implemented
+Status: implemented
 
 ## Problem
 
@@ -294,7 +294,9 @@ account was suspended, until when (or permanently), the reason the admin entered
 term relied on (a link to `/terms#acceptable-use` or the relevant section), and that
 they can object via the contact form. A new template beside `otp-template.tsx` and
 `contact-template.tsx`, sharing `RenderedEmail`. The user table stores no locale, so the email
-carries English with German below, like a bilingual notice.
+goes out in English; the template takes an optional `locale` (with `en` and `de` copy in both
+catalogs) for when the account stores a language, rather than a bilingual body that grows with
+every locale added.
 
 **Reason becomes required.** `banUser` currently accepts an empty reason
 (`reason.trim() || null`). Art. 17(3) requires the facts and grounds, so the admin ban

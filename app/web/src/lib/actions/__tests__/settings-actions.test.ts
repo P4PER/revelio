@@ -9,7 +9,7 @@ const m = vi.hoisted(() => ({
   consumeCode: vi.fn(async () => ({ newEmail: 'new@owl.post' })),
   renderOtpEmail: vi.fn(async () => ({ subject: 's', html: 'h', text: 't' })),
   sendMail: vi.fn(async () => {}),
-  getCachedSiteSettings: vi.fn(async () => ({ contactEmail: 'c@x' })),
+  getFooterContactEmail: vi.fn(async () => 'c@x'),
   deleteUserById: vi.fn(async () => {}),
   getUserExport: vi.fn(async () => ({ profile: {}, decks: [], collection: { visibility: 'private', ownedCards: [] }, likes: [] })),
   update: vi.fn(() => ({ set: () => ({ where: async () => {} }) })),
@@ -26,7 +26,7 @@ vi.mock('@/lib/server/account-codes', () => ({
 }))
 vi.mock('@/lib/email/otp-template', () => ({ renderOtpEmail: m.renderOtpEmail }))
 vi.mock('@/lib/email/mailer', () => ({ sendMail: m.sendMail }))
-vi.mock('@/lib/server/site-settings', () => ({ getCachedSiteSettings: m.getCachedSiteSettings }))
+vi.mock('@/lib/server/site-settings', () => ({ getFooterContactEmail: m.getFooterContactEmail }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
 // Deletion revokes the Discord link first. Stubbed here so the suite does not
 // pull in lib/server/auth (a live Postgres client at import time) through it.
@@ -45,7 +45,7 @@ beforeEach(() => {
   m.generateCode.mockReturnValue('123456')
   m.consumeCode.mockResolvedValue({ newEmail: 'new@owl.post' })
   m.renderOtpEmail.mockResolvedValue({ subject: 's', html: 'h', text: 't' })
-  m.getCachedSiteSettings.mockResolvedValue({ contactEmail: 'c@x' })
+  m.getFooterContactEmail.mockResolvedValue('c@x')
   m.getUserExport.mockResolvedValue({ profile: {}, decks: [], collection: { visibility: 'private', ownedCards: [] }, likes: [] })
   m.update.mockReturnValue({ set: () => ({ where: async () => {} }) })
 })

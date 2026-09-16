@@ -271,11 +271,14 @@
       "banSection": "Sperrstatus",
       "dangerSection": "Gefahrenzone",
       "banReason": "Grund",
+      "banReasonHint": "Wird dem Benutzer zusammen mit den zugrunde liegenden Nutzungsbedingungen per E-Mail geschickt. Beschreiben Sie, was vorgefallen ist, nicht nur ein Stichwort.",
+      "reasonRequiredError": "Geben Sie vor dem Sperren einen Grund an.",
+      "banNotifyFailed": "Benutzer gesperrt, aber die Benachrichtigung konnte nicht gesendet werden. Teilen Sie den Grund bitte selbst mit.",
       "banExpires": "Läuft ab (optional)",
       "banAction": "Benutzer sperren",
       "unbanAction": "Sperre aufheben",
       "banConfirmTitle": "Diesen Benutzer sperren?",
-      "banConfirmBody": "Er kann sich nicht anmelden, bis die Sperre aufgehoben wird.",
+      "banConfirmBody": "Er kann sich nicht anmelden, bis die Sperre aufgehoben wird, und erhält den Grund per E-Mail.",
       "deleteAction": "Benutzer löschen",
       "deleteConfirmTitle": "Diesen Benutzer dauerhaft löschen?",
       "deleteConfirmBody": "Dies löscht auch dauerhaft {decks} Deck(s) und alle zugehörigen Daten. Dies kann nicht rückgängig gemacht werden.",
@@ -902,6 +905,22 @@
       }
     }
   },
+  "email": {
+    "footer": {
+      "disclaimer": "Revelio ist ein inoffizielles Fanprojekt zum Harry Potter Trading Card Game (2001, WotC).",
+      "linkLabel": "revelio.cards",
+      "contactLabel": "Fragen?"
+    },
+    "ban": {
+      "subject": "Ihr Revelio-Konto wurde gesperrt",
+      "heading": "Ihr Konto wurde gesperrt",
+      "measureTemporary": "Wir haben Ihr Revelio-Konto bis zum {date, date, long} gesperrt. Während der Sperre können Sie sich nicht anmelden, und der Revelio-Discord-Bot kann Ihre Sammlung und Decks nicht anzeigen.",
+      "measurePermanent": "Wir haben Ihr Revelio-Konto dauerhaft gesperrt. Sie können sich nicht anmelden, und der Revelio-Discord-Bot kann Ihre Sammlung und Decks nicht anzeigen.",
+      "reasonLabel": "Grund",
+      "grounds": "Diese Entscheidung stützt sich auf unsere <terms>Nutzungsbedingungen</terms>, insbesondere Abschnitt 5 (Zulässige Nutzung) und Abschnitt 8 (Meldungen und Moderation). Sie wurde von einer Person nach Prüfung Ihres Kontos getroffen; automatisierte Mittel wurden nicht eingesetzt.",
+      "objection": "Wenn Sie diese Entscheidung für falsch halten, können Sie über unser <contact>Kontaktformular</contact> widersprechen. Wir prüfen die Entscheidung dann erneut. Ihr Recht, den Rechtsweg zu beschreiten, bleibt unberührt."
+    }
+  },
   "privacy": {
     "metaTitle": "Datenschutzerklärung",
     "title": "Datenschutzerklärung",
@@ -927,6 +946,8 @@
     "emailBody": "Zur Anmeldung senden wir Einmalcodes an Ihre E-Mail-Adresse über unseren E-Mail-Auftragsverarbeiter. Rechtsgrundlage: Erfüllung eines Vertrags (Art. 6 Abs. 1 lit. b DSGVO).",
     "contactTitle": "Kontaktanfragen",
     "contactBody": "Wenn Sie uns über das Kontaktformular oder per E-Mail kontaktieren, verarbeiten wir den Namen, die E-Mail-Adresse und den Inhalt Ihrer Nachricht, um Ihre Anfrage zu bearbeiten. Diese Nachrichten werden dem Betreiber per E-Mail zugestellt und nicht in unserer Datenbank gespeichert. Rechtsgrundlage: unser berechtigtes Interesse an der Beantwortung von Anfragen sowie, soweit Ihre Anfrage auf einen Vertrag gerichtet ist, dessen Erfüllung (Art. 6 Abs. 1 lit. f und b DSGVO).",
+    "moderationTitle": "Moderation",
+    "moderationBody": "Sperren wir ein Konto wegen eines Verstoßes gegen unsere Nutzungsbedingungen, speichern wir den Grund und das Ende der Sperre beim Konto und senden beides per E-Mail an die betroffene Person, wie es Art. 17 des Digital Services Act verlangt. Diese Daten werden gelöscht, wenn die Sperre aufgehoben oder das Konto gelöscht wird. Rechtsgrundlage: Erfüllung einer rechtlichen Verpflichtung (Art. 6 Abs. 1 lit. c DSGVO i. V. m. Art. 17 DSA).",
     "discordTitle": "Discord-Verknüpfung",
     "discordBody": "Wenn Sie Ihr Discord-Konto verknüpfen, übermittelt uns Discord Ihre Discord-Benutzer-ID, Ihren Benutzernamen, Ihr Profilbild und die E-Mail-Adresse dieses Discord-Kontos. Wir speichern die Benutzer-ID zusammen mit Ihrem Revelio-Konto, damit der Revelio-Bot Sie erkennen kann, sowie die von Discord ausgestellten Zugriffstokens für die Verbindung und die von Ihnen erteilten Berechtigungen. Ihre Discord-E-Mail-Adresse speichern wir nicht; Ihr Discord-Passwort und Ihre Nachrichten erhalten wir zu keiner Zeit. Bei der Nutzung des Bots werden die Karten-, Deck- und Sammlungsdaten der Antwort an Discord übermittelt, das sie Ihnen zustellt; Antworten mit Ihrer eigenen Sammlung oder Ihren Decks werden privat gesendet und sind nur für Sie sichtbar. Sie können die Verknüpfung jederzeit unter Einstellungen, Verknüpfungen aufheben. Dabei wird die gespeicherte Verbindung gelöscht und Discord aufgefordert, die Berechtigung für Revelio zu widerrufen, sodass die Anwendung auch aus Ihren autorisierten Discord-Apps verschwindet. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO, da die Verknüpfung zur Erbringung der von Ihnen gewünschten Leistung erforderlich ist.",
     "cookiesTitle": "4. Cookies",

@@ -1696,3 +1696,31 @@ Open the PR with `/opt/homebrew/bin/gh pr create`. Title: `refactor(web): move t
 - `## Verification`: one bullet per command actually run with its real result (`npm test -w web` with the count, `npm run typecheck`, `npm run lint`, `npm run build -w web`), plus the before/after Playwright capture: rendered text and per-block computed styles of all six legal URLs identical to `main`, and both states of the responsible-person section checked.
 - `## Deployment`: nothing outside the diff. No env var, migration or ingest run.
 - `## Notes for review`: the MDX was generated from the catalogs and each rendered block diffed against its source key, so review it for structure (components, headings, the `WhenSet` passage) rather than rereading the legal text. `LAST_UPDATED` is deliberately unchanged. Link this plan and the terms spec.
+
+---
+
+### Task 5: Review follow-up - date in the document, stronger parity
+
+Two gaps a best-practice pass found after the PR opened. Neither changes a rendered word.
+
+1. **The privacy date lived apart from its text.** `LAST_UPDATED` stayed in `privacy/page.tsx` while the body moved to MDX, so an edit made where the text lives leaves the date stale. `/terms` is not affected: its effective date is `TERMS_EFFECTIVE_DATE`, which is tied to `TERMS_VERSION` and the acceptance record, and stays in code.
+2. **The parity test compared heading depths only.** A German file that lost `<OperatorDetails>` or `<SiteSetting>` still passed, which would drop a mandatory disclosure silently.
+
+**Files:**
+- Modify: `app/web/src/components/legal/legal-mdx.tsx` (add `LastUpdated`)
+- Modify: `app/web/src/components/legal/__tests__/legal-mdx.test.tsx`
+- Modify: `app/web/content/legal/privacy.{en,de}.mdx` (append `<LastUpdated date="2026-09-16" />`)
+- Modify: `app/web/src/app/[locale]/privacy/page.tsx` (drop `LAST_UPDATED` and the footer paragraph)
+- Modify: `app/web/src/lib/legal/__tests__/content-parity.test.ts`
+- Modify: `app/web/messages/{en,de}.json` (`privacy.lastUpdated` -> `legal.lastUpdated`)
+
+**Interfaces:**
+- `LastUpdated({ date: string })`, `date` as `YYYY-MM-DD`. Renders `<p className="mt-8 text-xs text-muted-foreground/70">` with `legal.lastUpdated`, the date read as UTC midnight: the same element the page rendered, in the same position (last child of `ProseShell`).
+
+- [ ] **Step 1: Failing tests.**
+  - `legal-mdx.test.tsx`: `LastUpdated` renders `Last updated: September 16, 2026` (en) / `Zuletzt aktualisiert: 16. September 2026` (de) with the muted classes.
+  - `content-parity.test.ts`: render each document to static markup with every capitalized entry of `LEGAL_COMPONENTS` replaced by a recorder that logs `[name, props minus children]` and renders its children, and every MDX prop set to its own name (`operatorName: 'operatorName'`, ...). Assert the en and de logs are equal, which covers settings, `Anchor` ids and the date. Assert every `LastUpdated` date matches `YYYY-MM-DD`. Keep the heading-depth assertion.
+  - Run both and see the `LastUpdated` tests fail.
+- [ ] **Step 2: Implement.** Add `LastUpdated`, move the message key, append the element to both privacy documents, remove `LAST_UPDATED` from the page.
+- [ ] **Step 3: Verify.** Web tests, typecheck, lint; real-app capture of all six pages diffed against `legal-before` (text and shape identical); mutation check: delete `<SiteSetting>` from `privacy.de.mdx` and confirm the parity test fails, then restore.
+- [ ] **Step 4: Commit** as `refactor(web): date the privacy policy in its document and compare legal components across locales`, then update the PR body.

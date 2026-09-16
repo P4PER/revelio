@@ -3,7 +3,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi } from 'vitest'
 import en from '@/../messages/en.json'
 import de from '@/../messages/de.json'
-import { TIME_ZONE } from '@/../i18n/routing'
+import { TIME_ZONE } from '@/../i18n/time-zone'
 
 // legal-mdx imports next-intl's navigation Link, which needs the Next router
 // that jsdom lacks. None of these tests renders a link through it.

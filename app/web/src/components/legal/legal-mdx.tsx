@@ -73,7 +73,7 @@ export function Anchor({ id }: AnchorProps) {
  * The date a document's text last changed, closing the document. It lives in
  * the MDX rather than the page so an edit to the text and its date land in the
  * same file. The day is read as UTC midnight, like every calendar day the app
- * stores; see TIME_ZONE in i18n/routing.ts.
+ * stores; see TIME_ZONE in i18n/time-zone.ts.
  */
 export function LastUpdated({ date }: LastUpdatedProps) {
   const t = useTranslations('legal')

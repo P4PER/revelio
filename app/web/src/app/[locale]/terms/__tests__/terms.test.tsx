@@ -4,7 +4,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi } from 'vitest'
 import en from '@/../messages/en.json'
 import de from '@/../messages/de.json'
-import { TIME_ZONE } from '@/../i18n/routing'
+import { TIME_ZONE } from '@/../i18n/time-zone'
 
 // next-intl's navigation Link needs the Next router, which jsdom lacks. A plain
 // anchor keeps what the test asserts: the href.

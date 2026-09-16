@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { TIME_ZONE } from '../routing'
+import { TIME_ZONE } from '../time-zone'
 
 const rootLocale = vi.fn<() => Promise<string>>()
 const notFound = vi.fn<() => never>(() => {

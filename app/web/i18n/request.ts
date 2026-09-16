@@ -2,7 +2,8 @@ import { hasLocale } from 'next-intl'
 import { getRequestConfig } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import * as rootParams from 'next/root-params'
-import { routing, TIME_ZONE } from './routing'
+import { routing } from './routing'
+import { TIME_ZONE } from './time-zone'
 
 // The locale comes from the `[locale]` root param, which a Server Component can
 // read directly since Next 16.3 - next-intl's older `requestLocale` (fed by the

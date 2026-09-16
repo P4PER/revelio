@@ -1,7 +1,7 @@
 # Terms of Service design
 
 Date: 2026-09-16
-Status: approved; Phase 1 implemented
+Status: approved; Phases 1 and 2 implemented
 
 ## Problem
 

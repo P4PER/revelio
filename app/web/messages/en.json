@@ -660,6 +660,15 @@
       "emailLabel": "Email",
       "subjectLabel": "Subject",
       "messageLabel": "Message"
+    },
+    "ban": {
+      "subject": "Your Revelio account has been suspended",
+      "heading": "Your account has been suspended",
+      "measureTemporary": "We have suspended your Revelio account until {date, date, long}. While it is suspended you cannot sign in, and the Revelio Discord bot cannot show your collection or decks.",
+      "measurePermanent": "We have suspended your Revelio account permanently. You cannot sign in, and the Revelio Discord bot cannot show your collection or decks.",
+      "reasonLabel": "Reason",
+      "grounds": "This decision relies on our <terms>Terms of Service</terms>, in particular section 5 (acceptable use) and section 8 (reporting and moderation). It was taken by a person after reviewing your account; no automated means were used.",
+      "objection": "If you think this decision is wrong, you can object through our <contact>contact form</contact>. We will then review the decision again. Your right to take legal action remains unaffected."
     }
   },
   "settings": {

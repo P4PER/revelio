@@ -902,6 +902,17 @@
       }
     }
   },
+  "email": {
+    "ban": {
+      "subject": "Ihr Revelio-Konto wurde gesperrt",
+      "heading": "Ihr Konto wurde gesperrt",
+      "measureTemporary": "Wir haben Ihr Revelio-Konto bis zum {date, date, long} gesperrt. Während der Sperre können Sie sich nicht anmelden, und der Revelio-Discord-Bot kann Ihre Sammlung und Decks nicht anzeigen.",
+      "measurePermanent": "Wir haben Ihr Revelio-Konto dauerhaft gesperrt. Sie können sich nicht anmelden, und der Revelio-Discord-Bot kann Ihre Sammlung und Decks nicht anzeigen.",
+      "reasonLabel": "Grund",
+      "grounds": "Diese Entscheidung stützt sich auf unsere <terms>Nutzungsbedingungen</terms>, insbesondere Abschnitt 5 (Zulässige Nutzung) und Abschnitt 8 (Meldungen und Moderation). Sie wurde von einer Person nach Prüfung Ihres Kontos getroffen; automatisierte Mittel wurden nicht eingesetzt.",
+      "objection": "Wenn Sie diese Entscheidung für falsch halten, können Sie über unser <contact>Kontaktformular</contact> widersprechen. Wir prüfen die Entscheidung dann erneut. Ihr Recht, den Rechtsweg zu beschreiten, bleibt unberührt."
+    }
+  },
   "privacy": {
     "metaTitle": "Datenschutzerklärung",
     "title": "Datenschutzerklärung",

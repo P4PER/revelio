@@ -6,7 +6,8 @@ import de from '@/../messages/de.json'
 // for the locale that lacks it, so every namespace the UI reads has to exist in
 // both. Namespaces below are rendered through createTranslator pinned to 'en'
 // (see src/lib/email/otp-template.tsx) and are deliberately untranslated.
-const ENGLISH_ONLY = ['email']
+// email.ban is not among them: the ban notice renders in any locale it is given.
+const ENGLISH_ONLY = ['email.otp', 'email.contact']
 
 type Catalogue = Record<string, unknown>
 
@@ -41,6 +42,15 @@ function messageAt(catalogue: Catalogue, path: string): string {
   return path.split('.').reduce<unknown>((node, key) => (node as Catalogue)[key], catalogue) as string
 }
 
+function hasPath(catalogue: Catalogue, path: string): boolean {
+  let node: unknown = catalogue
+  for (const key of path.split('.')) {
+    if (typeof node !== 'object' || node === null || !(key in node)) return false
+    node = (node as Catalogue)[key]
+  }
+  return true
+}
+
 describe('message catalogue parity', () => {
   it('defines the same keys in English and German', () => {
     expect(translatedPaths(de)).toEqual(translatedPaths(en))
@@ -48,8 +58,8 @@ describe('message catalogue parity', () => {
 
   it('leaves the English-only namespaces out of the German catalogue', () => {
     for (const ns of ENGLISH_ONLY) {
-      expect(ns in en).toBe(true)
-      expect(ns in de).toBe(false)
+      expect(hasPath(en, ns)).toBe(true)
+      expect(hasPath(de, ns)).toBe(false)
     }
   })
 

@@ -1724,3 +1724,20 @@ Two gaps a best-practice pass found after the PR opened. Neither changes a rende
 - [ ] **Step 2: Implement.** Add `LastUpdated`, move the message key, append the element to both privacy documents, remove `LAST_UPDATED` from the page.
 - [ ] **Step 3: Verify.** Web tests, typecheck, lint; real-app capture of all six pages diffed against `legal-before` (text and shape identical); mutation check: delete `<SiteSetting>` from `privacy.de.mdx` and confirm the parity test fails, then restore.
 - [ ] **Step 4: Commit** as `refactor(web): date the privacy policy in its document and compare legal components across locales`, then update the PR body.
+
+---
+
+### Task 6: Format the terms effective date in UTC
+
+`terms/page.tsx` formats `TERMS_EFFECTIVE_DATE` (UTC midnight) without a time zone, and none is configured app-wide, so a server west of UTC prints "Effective from" the day before. Task 5 fixed the same thing for `LastUpdated`. The version string and the acceptance check are unaffected; only the rendered line is wrong.
+
+**Files:**
+- Create: `app/web/src/lib/legal/date-formats.ts` - `UTC_LONG_DATE`, moved out of `legal-mdx.tsx` so the page and the component share one definition
+- Modify: `app/web/src/components/legal/legal-mdx.tsx` (import it)
+- Modify: `app/web/src/app/[locale]/terms/page.tsx` (pass it to `t('effective', ...)`)
+- Modify: `app/web/src/app/[locale]/terms/__tests__/terms.test.tsx`
+
+- [ ] **Step 1: Failing test.** Render `TermsContent` in `de` under `timeZone="America/Los_Angeles"` and expect `Gültig ab 16. September 2026`, derived from `TERMS_VERSION` rather than hardcoded so a version bump does not break it. Run it and see it print the 15th.
+- [ ] **Step 2: Fix.** Move `UTC_LONG_DATE` to `lib/legal/date-formats.ts`, import it in both places.
+- [ ] **Step 3: Verify.** Web tests, typecheck, lint; `/terms` and `/de/terms` capture unchanged against `legal-before`.
+- [ ] **Step 4: Commit** as `fix(web): print the terms effective date in utc`, push, add it to the PR body.

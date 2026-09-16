@@ -1,7 +1,7 @@
 # Terms of Service design
 
 Date: 2026-09-16
-Status: approved, not yet implemented
+Status: approved; Phase 1 implemented
 
 ## Problem
 
@@ -201,7 +201,7 @@ German:
 > (2) Bei leichter Fahrlässigkeit haften wir nur für die Verletzung einer wesentlichen
 > Vertragspflicht, also einer Pflicht, deren Erfüllung die ordnungsgemäße Nutzung von
 > Revelio überhaupt erst ermöglicht und auf deren Einhaltung Sie regelmäßig vertrauen
-> darfst. In diesem Fall ist unsere Haftung auf den bei Vertragsschluss vorhersehbaren,
+> dürfen. In diesem Fall ist unsere Haftung auf den bei Vertragsschluss vorhersehbaren,
 > für diese Art von Dienst typischen Schaden begrenzt.
 >
 > (3) Im Übrigen ist unsere Haftung für leichte Fahrlässigkeit ausgeschlossen.

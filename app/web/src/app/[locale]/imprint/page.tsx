@@ -1,10 +1,24 @@
 import type { Metadata } from 'next'
+import type { MDXContent } from 'mdx/types'
+import { notFound } from 'next/navigation'
+import { hasLocale, useTranslations } from 'next-intl'
 import { getTranslations } from 'next-intl/server'
-import { useTranslations } from 'next-intl'
+import { routing } from '@/../i18n/routing'
 import { ProseShell } from '@/components/legal/prose-shell'
-import { ContactEmail } from '@/components/legal/contact-email'
-import { getCachedSiteSettings } from '@/lib/server/site-settings'
+import { LEGAL_COMPONENTS } from '@/components/legal/legal-mdx'
 import { BRAND_NAME } from '@/lib/brand'
+import { LEGAL_DOCUMENTS } from '@/lib/legal/documents'
+import { getCachedSiteSettings } from '@/lib/server/site-settings'
+
+type ImprintContentProps = {
+  Document: MDXContent
+  operatorName: string | null
+  operatorAddress: string | null
+  contactEmail: string | null
+  responsiblePerson: string | null
+}
+
+type ImprintPageProps = { params: Promise<{ locale: string }> }
 
 export const dynamic = 'force-dynamic'
 
@@ -13,51 +27,30 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t('metaTitle') }
 }
 
+/**
+ * Sync and prop-driven so it renders in a test tree as well as on the server.
+ * The site settings reach the MDX as props, where the legal components read
+ * them from `props`.
+ */
 export function ImprintContent({
+  Document,
   operatorName,
   operatorAddress,
   contactEmail,
   responsiblePerson,
-}: {
-  operatorName: string | null
-  operatorAddress: string | null
-  contactEmail: string | null
-  responsiblePerson: string | null
-}) {
+}: ImprintContentProps) {
   const t = useTranslations('imprint')
   const tf = useTranslations('footer')
-  const nc = t('notConfigured')
   return (
     <ProseShell>
       <h1>{t('title')}</h1>
-
-      <h2>{t('providerTitle')}</h2>
-      <p className="whitespace-pre-line">{`${operatorName ?? nc}\n${operatorAddress ?? nc}`}</p>
-
-      <h2>{t('contactTitle')}</h2>
-      <p>
-        {t('contactLabel')} <ContactEmail email={contactEmail} fallback={nc} />
-      </p>
-
-      {responsiblePerson && (
-        <>
-          <h2>{t('responsibleTitle')}</h2>
-          {/* § 18(2) MStV wants name + address; the responsible person is the
-              operator, so reuse the § 5 operator address. */}
-          <p className="whitespace-pre-line">{`${responsiblePerson}\n${operatorAddress ?? nc}`}</p>
-        </>
-      )}
-
-      <h2>{t('disputeTitle')}</h2>
-      <p>{t('disputeBody')}</p>
-
-      <h2>{t('liabilityContentTitle')}</h2>
-      <p>{t('liabilityContentBody')}</p>
-      <h2>{t('liabilityLinksTitle')}</h2>
-      <p>{t('liabilityLinksBody')}</p>
-      <h2>{t('copyrightTitle')}</h2>
-      <p>{t('copyrightBody')}</p>
-
+      <Document
+        components={LEGAL_COMPONENTS}
+        operatorName={operatorName}
+        operatorAddress={operatorAddress}
+        contactEmail={contactEmail}
+        responsiblePerson={responsiblePerson}
+      />
       <p className="mt-8 text-xs leading-relaxed text-muted-foreground/70">
         {tf('disclaimer', { brand: BRAND_NAME })}
       </p>
@@ -65,10 +58,16 @@ export function ImprintContent({
   )
 }
 
-export default async function ImprintPage() {
-  const settings = await getCachedSiteSettings()
+export default async function ImprintPage({ params }: ImprintPageProps) {
+  const { locale } = await params
+  if (!hasLocale(routing.locales, locale)) notFound()
+  const [{ default: Document }, settings] = await Promise.all([
+    LEGAL_DOCUMENTS.imprint[locale](),
+    getCachedSiteSettings(),
+  ])
   return (
     <ImprintContent
+      Document={Document}
       operatorName={settings?.operatorName ?? null}
       operatorAddress={settings?.operatorAddress ?? null}
       contactEmail={settings?.contactEmail ?? null}

@@ -6,7 +6,7 @@ import { getTranslations } from 'next-intl/server'
 import { routing } from '@/../i18n/routing'
 import { ProseShell } from '@/components/legal/prose-shell'
 import { LEGAL_COMPONENTS } from '@/components/legal/legal-mdx'
-import { TERMS_DOCUMENTS } from '@/lib/legal/terms-documents'
+import { LEGAL_DOCUMENTS } from '@/lib/legal/documents'
 import { getCachedSiteSettings } from '@/lib/server/site-settings'
 import { TERMS_EFFECTIVE_DATE } from '@/lib/terms'
 
@@ -53,7 +53,7 @@ export default async function TermsPage({ params }: TermsPageProps) {
   const { locale } = await params
   if (!hasLocale(routing.locales, locale)) notFound()
   const [{ default: Document }, settings] = await Promise.all([
-    TERMS_DOCUMENTS[locale](),
+    LEGAL_DOCUMENTS.terms[locale](),
     getCachedSiteSettings(),
   ])
   return (

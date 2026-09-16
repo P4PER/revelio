@@ -3,6 +3,7 @@ import { createTranslator } from 'next-intl'
 import { render } from '@react-email/render'
 import { Heading, Link, Text } from '@react-email/components'
 import { getPathname } from '@/../i18n/navigation'
+import { TIME_ZONE } from '@/../i18n/time-zone'
 import { EmailLayout, emailHeading, emailText } from './layout'
 import { EMAIL_MESSAGES } from './messages'
 import type { EmailLocale, RenderedEmail } from './types'
@@ -15,11 +16,6 @@ export type BanEmailInput = {
   // The user table stores no language yet; once it does, the caller passes it.
   locale?: EmailLocale
 }
-
-// Ban expiry dates are picked as calendar days in the admin form and stored at
-// UTC midnight, so they are shown in the operator's zone, where that is still
-// the same day.
-const TIME_ZONE = 'Europe/Berlin'
 
 const link: CSSProperties = { color: '#3B3194', textDecoration: 'underline' }
 

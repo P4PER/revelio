@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 
 /**
- * Narrow centered prose column shared by the privacy and imprint pages so they
- * read as one family. Styles headings/paragraphs/lists/links via arbitrary
+ * Narrow centered prose column shared by the legal pages (privacy, imprint,
+ * terms) so they read as one family. Styles headings/paragraphs/lists/links via arbitrary
  * variants - the project has no Tailwind typography plugin.
  */
 export function ProseShell({ children }: { children: ReactNode }) {

@@ -10,12 +10,14 @@ const h = vi.hoisted(() => ({
   acceptTermsAction: vi.fn(),
   refresh: vi.fn(),
   toastError: vi.fn(),
+  pathname: vi.fn(() => '/'),
 }))
 vi.mock('@/lib/server/session', () => ({ getSession: h.getSession }))
 vi.mock('@/lib/actions/terms-actions', () => ({ acceptTermsAction: h.acceptTermsAction }))
 vi.mock('sonner', () => ({ toast: { error: h.toastError } }))
 vi.mock('@/../i18n/navigation', () => ({
   useRouter: () => ({ refresh: h.refresh }),
+  usePathname: () => h.pathname(),
   Link: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a>,
 }))
 
@@ -28,6 +30,7 @@ function withIntl(node: React.ReactNode) {
 
 beforeEach(() => {
   Object.values(h).forEach((f) => f.mockReset())
+  h.pathname.mockReturnValue('/')
 })
 
 describe('TermsBanner', () => {
@@ -55,6 +58,20 @@ describe('TermsBanner', () => {
 })
 
 describe('TermsBannerView', () => {
+  // The deck builder sizes its phone shell as the viewport less the header, so
+  // a strip above it would push the deck sheet off the bottom of the screen.
+  it.each(['/decks/new', '/decks/abc123/edit'])('stays out of the deck builder at %s', (path) => {
+    h.pathname.mockReturnValue(path)
+    const { container } = render(withIntl(<TermsBannerView />))
+    expect(container).toBeEmptyDOMElement()
+  })
+
+  it.each(['/decks', '/decks/abc123', '/decks/mine'])('still shows on the other deck pages at %s', (path) => {
+    h.pathname.mockReturnValue(path)
+    render(withIntl(<TermsBannerView />))
+    expect(screen.getByRole('region', { name: 'Terms of Service' })).toBeInTheDocument()
+  })
+
   it('links the terms', () => {
     render(withIntl(<TermsBannerView />))
     expect(screen.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute('href', '/terms')

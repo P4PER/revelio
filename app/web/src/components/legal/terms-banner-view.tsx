@@ -2,9 +2,16 @@
 import { useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { Link, useRouter } from '@/../i18n/navigation'
+import { Link, usePathname, useRouter } from '@/../i18n/navigation'
 import { acceptTermsAction } from '@/lib/actions/terms-actions'
 import { Button } from '@/components/ui/button'
+
+// The deck builder's full-screen editors. Their phone shell is sized as the
+// viewport less --header-h, so a strip between the header and the builder
+// pushes the deck sheet off the bottom of the screen. The banner waits for the
+// next page instead; its height varies with wrapping and language, so the
+// builder cannot simply subtract it.
+const HIDDEN_ON = /^\/decks\/(new|[^/]+\/edit)$/
 
 /**
  * Asks a signed-in account to accept the current Terms of Service. No dismiss
@@ -16,6 +23,7 @@ export function TermsBannerView() {
   const t = useTranslations('termsBanner')
   const router = useRouter()
   const [pending, start] = useTransition()
+  const pathname = usePathname() // locale-stripped, e.g. /decks/new
 
   function accept() {
     start(async () => {
@@ -31,6 +39,8 @@ export function TermsBannerView() {
       toast.error(t('error'))
     })
   }
+
+  if (HIDDEN_ON.test(pathname)) return null
 
   return (
     // Gold tint in both themes, like the deck builder's save prompt: the site's

@@ -23,6 +23,14 @@ function renderPrivacy(locale: 'en' | 'de', messages: typeof en | typeof de, pro
 }
 
 describe('PrivacyContent', () => {
+  it('discloses the terms acceptance record in both locales', () => {
+    renderPrivacy('en', en, FULL)
+    expect(screen.getByText(/which version of the terms of service you accepted and when/)).toBeInTheDocument()
+    cleanup()
+    renderPrivacy('de', de, FULL)
+    expect(screen.getByText(/welcher Fassung der Nutzungsbedingungen Sie wann zugestimmt haben/)).toBeInTheDocument()
+  })
+
   it('renders the English title and injects operator values', () => {
     renderPrivacy('en', en, FULL)
     expect(screen.getByRole('heading', { level: 1, name: 'Privacy Policy' })).toBeInTheDocument()

@@ -7,7 +7,7 @@ import { getCachedSiteSettings } from '@/lib/server/site-settings'
 
 export const dynamic = 'force-dynamic'
 
-const LAST_UPDATED = new Date('2026-09-10T00:00:00Z')
+const LAST_UPDATED = new Date('2026-09-16T00:00:00Z')
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('privacy')

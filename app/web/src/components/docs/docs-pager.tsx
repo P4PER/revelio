@@ -1,8 +1,7 @@
 import { useTranslations } from 'next-intl'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
-import { docId } from '@/lib/docs/nav'
-import type { DocNeighbours } from '@/lib/docs/nav'
+import { docId, type DocNeighbours } from '@/lib/docs/nav'
 import type { DocSlug } from '@/lib/docs/types'
 
 type PagerCardProps = {

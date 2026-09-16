@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { routing } from '@/../i18n/routing'
-import { DOCS_NAV, docId, docNeighbours, isDocSlug } from '@/lib/docs/nav'
-import type { DocSection } from '@/lib/docs/nav'
+import { DOCS_NAV, docId, docNeighbours, isDocSlug, type DocSection } from '@/lib/docs/nav'
 import { DOC_PAGES, loadDoc } from '@/lib/docs/registry'
 import en from '@/../messages/en.json'
 import de from '@/../messages/de.json'

@@ -58,17 +58,41 @@ not legal advice; a short review by a lawyer before relying on it is recommended
 
 ## Phases
 
-Each phase gets its own plan under `docs/superpowers/plans/` and ships as its own PR.
+Each phase gets its own plan under `docs/superpowers/plans/` and ships as its own PR. Phase 1 shares its PR with this spec and the three plans.
 
 ### Phase 1: the `/terms` page and incorporation at registration
 
-**Page.** `web/src/app/[locale]/terms/page.tsx`, built exactly like
-`privacy/page.tsx`: a `TermsContent` component taking operator props from
-`getCachedSiteSettings()`, rendered in `ProseShell`, `export const dynamic =
-'force-dynamic'`, and the effective date from `TERMS_VERSION` shown at the foot. Copy lives in a new
-`terms` namespace in `web/messages/en.json` and `de.json`. Each numbered section gets a
-stable `id` so it can be deep-linked; `acceptable-use` is the one linked from
-registration.
+**Content as MDX.** The terms body is legal prose of about fifty numbered paragraphs, so it
+lives in `web/content/legal/terms.en.mdx` and `terms.de.mdx` rather than as message keys:
+one reviewable file per language, readable diffs, and links as plain markdown. It sits
+in `content/legal/`, not `content/docs/`, so it stays out of the docs registry, sidebar,
+pager and "Edit this page" link. Short UI strings stay in the message catalogs: the page
+`title`/`metaTitle`, the operator block's labels, the effective-date line, the footer
+label and the registration notice.
+
+**Loader.** `web/src/lib/legal/terms-documents.ts` maps each locale to a literal
+`import()` of its file, constrained with `satisfies Record<Locale, ...>` over
+`routing.locales`, so a missing translation fails `npm run typecheck` the way the docs
+registry does.
+
+**Page.** `web/src/app/[locale]/terms/page.tsx`: the default export loads the locale's
+document and the site settings, and hands both to a sync, prop-driven `TermsContent`
+(testable without a server), rendered in `ProseShell` with `export const dynamic =
+'force-dynamic'` and the effective date from `TERMS_VERSION` at the foot.
+
+- **Styling.** Next's MDX provider (`src/mdx-components.tsx`) gives `h2`, `p`, lists and
+  links the docs type scale. The page passes a `LEGAL_COMPONENTS` map that turns those
+  back into plain elements, so `ProseShell` styles `/terms` exactly like `/privacy` and
+  `/imprint`. Internal links still go through next-intl's `Link`; external links open in
+  a new tab.
+- **Operator data.** The MDX renders `<OperatorDetails name={props.operatorName}
+  address={props.operatorAddress} email={props.contactEmail} />`; the page passes the
+  three values as props to the document. A module-level component, not a closure built
+  during render.
+- **Stable anchors.** `rehype-slug` derives heading ids from the translated text, so
+  German headings get German ids. Each section therefore starts with
+  `<Anchor id="acceptable-use" />` (and so on), an empty block element with a
+  language-independent id; registration links `/terms#acceptable-use` in both locales.
 
 **Terms version.** A single exported constant, `TERMS_VERSION` (the effective date as
 `'2026-09-16'`-style string), in `web/src/lib/terms.ts`, isomorphic. The page renders
@@ -176,7 +200,7 @@ German:
 >
 > (2) Bei leichter Fahrlässigkeit haften wir nur für die Verletzung einer wesentlichen
 > Vertragspflicht, also einer Pflicht, deren Erfüllung die ordnungsgemäße Nutzung von
-> Revelio überhaupt erst ermöglicht und auf deren Einhaltung du regelmäßig vertrauen
+> Revelio überhaupt erst ermöglicht und auf deren Einhaltung Sie regelmäßig vertrauen
 > darfst. In diesem Fall ist unsere Haftung auf den bei Vertragsschluss vorhersehbaren,
 > für diese Art von Dienst typischen Schaden begrenzt.
 >
@@ -185,7 +209,9 @@ German:
 > (4) Die Haftungsbeschränkungen der Absätze 2 und 3 gelten auch für die persönliche
 > Haftung unserer Vertreter und Erfüllungsgehilfen.
 
-The German copy addresses the reader as "du", matching the rest of `de.json`.
+The German terms address the reader as "Sie", matching the privacy policy and imprint
+(`privacy.*`, `imprint.*` in `de.json`). The registration notice below uses "du",
+matching the rest of the `auth` namespace it sits in.
 
 **Registration notice.** In `web/src/components/auth/auth-form.tsx`, register mode
 only, between the username field and the submit button, so it is read before the
@@ -208,8 +234,9 @@ rests on Art. 6(1)(b) GDPR, and wording it as consent would misstate the legal b
 - Footer legal column: `Terms of Service` between Privacy Policy and Imprint
   (`web/src/components/layout/site-footer.tsx`, `footer.terms`).
 - `STATIC_ROUTES` in `web/src/lib/sitemap.ts`: add `/terms`.
-- `/discord` page and `content/docs/discord-privacy.{en,de}.mdx`: a sentence linking
-  the terms next to the existing privacy reference.
+- `content/docs/discord-privacy.{en,de}.mdx`: a closing "Legal" section linking the
+  terms and the privacy policy. The `/discord` landing page carries no legal links of
+  its own (the footer covers it), so it is left alone.
 
 **Discord developer portal** (manual, recorded in the PR's Deployment section):
 Terms of Service URL `https://revelio.cards/terms`, Privacy Policy URL
@@ -219,9 +246,9 @@ Terms of Service URL `https://revelio.cards/terms`, Privacy Policy URL
 operator data and the not-configured fallback, every section anchor present, liability
 paragraphs present); footer test for the new link; sitemap test for `/terms`;
 `auth-form` test that register mode shows the notice with links to `/terms`,
-`/terms#acceptable-use` and `/privacy` and login mode does not; the `terms` namespace
-holds the same keys in `en.json` and `de.json` (asserted in the page test, as
-`privacy.test.tsx` does for its namespace).
+`/terms#acceptable-use` and `/privacy` and login mode does not. Because both language
+versions are declared equally binding, the page test renders both documents and asserts
+they have the same section anchors and the same numbered paragraphs in each section.
 
 ### Phase 2: recording acceptance
 

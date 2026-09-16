@@ -1,8 +1,15 @@
+import type { ReactNode } from 'react'
 import { render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import en from '@/../messages/en.json'
 import de from '@/../messages/de.json'
+
+vi.mock('@/../i18n/navigation', () => ({
+  Link: ({ href, children }: { href: string; children: ReactNode }) => <a href={href}>{children}</a>,
+  usePathname: () => '/docs/discord/commands',
+}))
+
 import { DocArticle, editUrlFor } from '../page'
 
 function Body() {
@@ -43,6 +50,13 @@ describe('a docs content page', () => {
   it('renders the MDX body below the title', () => {
     renderArticle()
     expect(screen.getByRole('heading', { level: 2, name: 'What you need' })).toBeInTheDocument()
+  })
+
+  // Below 860px the rail is behind the drawer, so the bar's trigger is the only
+  // thing left saying which page this is.
+  it('names the page on the mobile bar', () => {
+    renderArticle()
+    expect(screen.getByRole('button', { name: /Commands/ })).toHaveTextContent('Commands')
   })
 
   it('lists the page headings in the contents rail', () => {

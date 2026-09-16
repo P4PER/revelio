@@ -10,6 +10,7 @@ import { getCachedSiteSettings } from '@/lib/server/site-settings'
 import { DOCS_NAV, docId, isDocSlug } from '@/lib/docs/nav'
 import { loadDoc } from '@/lib/docs/registry'
 import { DocsToc } from '@/components/docs/docs-toc'
+import { DocsMobileBar } from '@/components/docs/docs-mobile-bar'
 import type { DocLocale, DocSlug, TocEntry } from '@/lib/docs/types'
 
 type Params = { params: Promise<{ locale: string; slug: string[] }> }
@@ -69,26 +70,29 @@ export function DocArticle({
 }) {
   const t = useTranslations('docs')
   const sectionKey = sectionKeyOf(slug)
+  const title = t(`pages.${docId(slug)}.title`)
 
   return (
-    // The [locale] layout wraps children in a plain div, so each route brings
-    // its own main landmark - as the hub and every other page already do.
-    <main className="grid min-[1180px]:grid-cols-[minmax(0,1fr)_14rem]">
-      <article className="min-w-0 pb-10 min-[860px]:px-12">
-        {sectionKey && (
-          <p className="mb-3 text-sm text-muted-foreground">{t(`sections.${sectionKey}.title`)}</p>
-        )}
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-          {t(`pages.${docId(slug)}.title`)}
-        </h1>
-        <div className="mt-6">
-          <Body />
+    <>
+      {/* Both rails are hidden on a narrow screen; this is where they go. */}
+      <DocsMobileBar title={title} toc={toc} editUrl={editUrl} />
+      {/* The [locale] layout wraps children in a plain div, so each route brings
+          its own main landmark - as the hub and every other page already do. */}
+      <main className="grid min-[1180px]:grid-cols-[minmax(0,1fr)_14rem]">
+        <article className="min-w-0 pb-10 min-[860px]:px-12">
+          {sectionKey && (
+            <p className="mb-3 text-sm text-muted-foreground">{t(`sections.${sectionKey}.title`)}</p>
+          )}
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">{title}</h1>
+          <div className="mt-6">
+            <Body />
+          </div>
+        </article>
+        <div className="hidden min-[1180px]:block">
+          <DocsToc toc={toc} editUrl={editUrl} />
         </div>
-      </article>
-      <div className="hidden min-[1180px]:block">
-        <DocsToc toc={toc} editUrl={editUrl} />
-      </div>
-    </main>
+      </main>
+    </>
   )
 }
 

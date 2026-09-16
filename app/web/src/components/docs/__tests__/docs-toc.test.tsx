@@ -44,6 +44,13 @@ describe('DocsToc', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
+  // An inline anchor paints its border and left padding on the first line only,
+  // so a heading long enough to wrap used to hang outside the rail.
+  it('renders each anchor as a block so a wrapped entry keeps its indent', () => {
+    renderToc()
+    expect(screen.getByRole('link', { name: 'Card lookup' }).className).toContain('block')
+  })
+
   it('offers the edit link only when a repository is configured', () => {
     renderToc(TOC, 'https://github.com/P4PER/revelio')
     expect(screen.getByRole('link', { name: /Edit this page/ })).toHaveAttribute(

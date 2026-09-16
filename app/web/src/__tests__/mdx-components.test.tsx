@@ -31,6 +31,19 @@ describe('useMDXComponents', () => {
     expect(container.querySelector('h2')?.id).toBe('limits')
   })
 
+  // The docs bar is sticky and 48px tall below 1180px, so a heading jumped to
+  // from the contents list has to clear more than the 32px the desktop rail
+  // needs. An h3 carries no top padding of its own to hide behind.
+  it('offsets a heading anchor past the sticky bar on a narrow screen', () => {
+    for (const tag of ['h2', 'h3']) {
+      const Heading = components[tag as 'h2' | 'h3'] as ComponentType<{ children: ReactNode }>
+      const { container } = render(<Heading>Limits</Heading>)
+      const className = container.querySelector(tag)?.className ?? ''
+      expect(className).toContain('scroll-mt-16')
+      expect(className).toContain('min-[1180px]:scroll-mt-8')
+    }
+  })
+
   // A long option table must scroll inside its own box; the reading column
   // itself must never scroll sideways.
   it('wraps a table in a horizontally scrollable container', () => {

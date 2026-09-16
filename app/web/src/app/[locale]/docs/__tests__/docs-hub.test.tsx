@@ -7,6 +7,7 @@ import de from '@/../messages/de.json'
 
 vi.mock('@/../i18n/navigation', () => ({
   Link: ({ href, children }: { href: string; children: ReactNode }) => <a href={href}>{children}</a>,
+  usePathname: () => '/docs',
 }))
 
 import { DocsHub } from '../page'
@@ -20,6 +21,13 @@ function renderHub(locale: 'en' | 'de' = 'en', messages: typeof en | typeof de =
 }
 
 describe('the docs hub', () => {
+  // The hub has no headings of its own, so the bar carries the map alone - and
+  // without it a phone reader arrives with no way into the section at all.
+  it('offers the documentation menu on narrow screens', () => {
+    renderHub()
+    expect(screen.getByRole('button', { name: new RegExp(en.docs.openNav) })).toBeInTheDocument()
+  })
+
   it('names itself', () => {
     renderHub()
     expect(screen.getByRole('heading', { level: 1, name: 'Documentation' })).toBeInTheDocument()

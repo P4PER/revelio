@@ -20,18 +20,19 @@ function PagerCard({ slug, direction }: PagerCardProps) {
   const Chevron = isNext ? ChevronRight : ChevronLeft
 
   return (
-    // The direction and title sit in two stacked spans, which an accessible
-    // name computation would run together ("NextAccount linking"). The label
-    // spells out the same words with a space, so the visible text is still
-    // contained in the name (WCAG 2.5.3).
     <Link
       href={`/docs/${slug}`}
-      aria-label={`${label} ${title}`}
       className={isNext ? `${CARD} justify-end text-right sm:col-start-2` : CARD}
     >
       {!isNext && <Chevron className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
       <span className="flex min-w-0 flex-col">
         <span className="text-xs text-muted-foreground">{label}</span>
+        {/* Name computations differ on whether two stacked spans get a space
+            between them; one that does not reads "NextAccount linking". A
+            flex container drops whitespace-only text from layout, so this
+            costs nothing on screen, and the name stays the visible text rather
+            than an aria-label that could drift from it (WCAG 2.5.3). jsdom
+            always inserts the space, so no unit test can hold this line. */}{' '}
         <span className="text-sm font-semibold text-foreground group-hover:text-primary-ink">
           {title}
         </span>

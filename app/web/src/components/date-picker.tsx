@@ -28,6 +28,8 @@ export function DatePicker({
   ariaLabel,
   placeholder,
   disabled,
+  minDate,
+  maxDate,
 }: {
   value: string
   onChange: (next: string) => void
@@ -35,6 +37,10 @@ export function DatePicker({
   ariaLabel?: string
   placeholder?: string
   disabled?: boolean
+  // Selectable range. Each bound also clamps the month and year dropdowns;
+  // without them the picker spans 1990 to the end of next year.
+  minDate?: Date
+  maxDate?: Date
 }) {
   const locale = useLocale()
   const [open, setOpen] = useState(false)
@@ -62,9 +68,10 @@ export function DatePicker({
         <Calendar
           mode="single"
           captionLayout="dropdown"
-          startMonth={new Date(1990, 0)}
-          endMonth={new Date(new Date().getFullYear() + 1, 11)}
+          startMonth={minDate ?? new Date(1990, 0)}
+          endMonth={maxDate ?? new Date(new Date().getFullYear() + 1, 11)}
           selected={date}
+          disabled={[minDate && { before: minDate }, maxDate && { after: maxDate }].filter((m) => m !== undefined)}
           defaultMonth={date}
           onSelect={(d) => {
             onChange(d ? toYMD(d) : '')

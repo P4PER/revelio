@@ -51,7 +51,9 @@ export async function banUser(
   const trimmed = reason.trim()
   if (!trimmed) return { ok: false, error: 'reason-required' }
   const expires = expiresAt ? new Date(expiresAt) : null
-  if (expires && Number.isNaN(expires.getTime())) return { ok: false, error: 'invalid' }
+  // Better Auth lifts a ban whose expiry has passed at the next sign-in, so a
+  // past date would store no effective ban yet still email a suspension notice.
+  if (expires && !(expires.getTime() > Date.now())) return { ok: false, error: 'invalid' }
   const db = getDb()
   const target = await getUserForAdmin(db, userId)
   if (!target) return { ok: false, error: 'not-found' }

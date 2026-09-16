@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
@@ -56,6 +56,27 @@ describe('UserBanForm', () => {
   it('tells the admin the reason goes to the user', () => {
     renderForm(false)
     expect(screen.getByLabelText(t.banReason)).toHaveAccessibleDescription(t.banReasonHint)
+  })
+
+  // A ban ending today or earlier is lifted at the next sign-in, and the server
+  // rejects it, so the picker does not offer those days.
+  it('offers no expiry day before tomorrow', async () => {
+    renderForm(false)
+    await userEvent.click(expiryTrigger())
+    expect(await screen.findByRole('button', { name: /today/i })).toBeDisabled()
+  })
+
+  // A ban cannot end in the past, so the year dropdown starts at the current
+  // year instead of the shared picker's 1990.
+  it('offers expiry years from now up to ten years ahead', async () => {
+    renderForm(false)
+    await userEvent.click(expiryTrigger())
+    const years = within(await screen.findByRole('combobox', { name: /year/i }))
+      .getAllByRole('option')
+      .map((o) => Number(o.textContent))
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).getFullYear()
+    expect(years[0]).toBe(tomorrow)
+    expect(years.at(-1)).toBe(tomorrow + 10)
   })
 
   async function confirmBan() {

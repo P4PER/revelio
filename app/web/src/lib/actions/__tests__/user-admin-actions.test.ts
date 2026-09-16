@@ -109,6 +109,14 @@ describe('banUser / unbanUser', () => {
     expect(m.sendMail).not.toHaveBeenCalled()
   })
 
+  // Better Auth lifts a ban whose expiry has passed at the next sign-in, so a
+  // past date would store no ban at all but still email a suspension notice.
+  it('rejects an expiry that is not in the future', async () => {
+    expect(await banUser('u2', 'spam', '2020-01-01')).toEqual({ ok: false, error: 'invalid' })
+    expect(m.setUserBan).not.toHaveBeenCalled()
+    expect(m.sendMail).not.toHaveBeenCalled()
+  })
+
   it('stores the trimmed reason', async () => {
     await banUser('u2', '  spam  ', null)
     expect(m.setUserBan.mock.calls[0][2]).toBe('spam')

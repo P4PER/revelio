@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, it, expect } from 'vitest'
-import { TERMS_VERSION, TERMS_EFFECTIVE_DATE } from '../terms'
+import { TERMS_VERSION, TERMS_EFFECTIVE_DATE, needsTermsAcceptance } from '../terms'
 
 // The terms text TERMS_VERSION was published with, as a SHA-256 over both
 // language files with whitespace collapsed. Update it only together with
@@ -50,5 +50,20 @@ describe('TERMS_VERSION', () => {
       'content/legal/terms.*.mdx changed: set TERMS_VERSION to the new effective date, ' +
         'then update PINNED_TERMS to that version and the hash shown here',
     ).toEqual(PINNED_TERMS)
+  })
+})
+
+describe('needsTermsAcceptance', () => {
+  it('asks an account that never accepted', () => {
+    expect(needsTermsAcceptance(null)).toBe(true)
+    expect(needsTermsAcceptance(undefined)).toBe(true)
+  })
+
+  it('asks an account on an older version', () => {
+    expect(needsTermsAcceptance('2000-01-01')).toBe(true)
+  })
+
+  it('leaves an account on the current version alone', () => {
+    expect(needsTermsAcceptance(TERMS_VERSION)).toBe(false)
   })
 })

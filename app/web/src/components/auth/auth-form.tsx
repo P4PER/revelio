@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl'
 import { ArrowLeft } from 'lucide-react'
 import { authClient } from '@/lib/auth-client'
 import { emailHasAccount, usernameAvailable } from '@/lib/actions/auth-actions'
+import { acceptTermsAction } from '@/lib/actions/terms-actions'
 import { BRAND_NAME } from '@/lib/brand'
 import { loginHref, registerHref } from '@/lib/redirect-path'
 import { Input } from '@/components/ui/input'
@@ -97,6 +98,14 @@ export function AuthForm({
         setVerifying(false)
         setCodeError(t('usernameTaken'))
         return
+      }
+      // The visitor pressed Register under the terms notice, and the account is
+      // now complete. Best-effort: if this write fails the acceptance banner asks
+      // again, which beats failing a registration that has already succeeded.
+      try {
+        await acceptTermsAction()
+      } catch {
+        // Covered by the banner on the next render.
       }
     }
     // Refresh so server components (e.g. the header) re-render with the new

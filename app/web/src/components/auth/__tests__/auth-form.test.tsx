@@ -14,11 +14,16 @@ vi.mock('@/lib/auth-client', () => ({
     emailOtp: { sendVerificationOtp: (...a: unknown[]) => sendVerificationOtp(...a) },
     signIn: { emailOtp: (...a: unknown[]) => signInEmailOtp(...a) },
     updateUser: (...a: unknown[]) => updateUser(...a),
+    signOut: vi.fn(async () => {}),
   },
 }))
 vi.mock('@/lib/actions/auth-actions', () => ({
   emailHasAccount: (...a: unknown[]) => emailHasAccount(...a),
   usernameAvailable: (...a: unknown[]) => usernameAvailable(...a),
+}))
+const acceptTermsAction = vi.fn(async () => ({ ok: true as const }))
+vi.mock('@/lib/actions/terms-actions', () => ({
+  acceptTermsAction: (...a: unknown[]) => acceptTermsAction(...a),
 }))
 const push = vi.fn()
 vi.mock('@/../i18n/navigation', () => ({
@@ -44,6 +49,7 @@ beforeEach(() => {
   emailHasAccount.mockClear()
   usernameAvailable.mockClear()
   push.mockClear()
+  acceptTermsAction.mockClear()
 })
 
 async function signIn(redirectTo: string | null) {
@@ -167,5 +173,43 @@ describe('AuthForm', () => {
   it('login mode shows no terms notice', () => {
     renderForm('login')
     expect(screen.queryByRole('link', { name: 'Terms of Service' })).not.toBeInTheDocument()
+  })
+
+  async function registerAs(username: string) {
+    renderForm('register')
+    await userEvent.type(screen.getByLabelText('Email'), 'new@example.com')
+    await userEvent.type(screen.getByLabelText('Username'), username)
+    await userEvent.click(screen.getByRole('button', { name: 'Register' }))
+    fireEvent.change(await screen.findByLabelText('Verification code'), {
+      target: { value: '123456' },
+    })
+    await userEvent.click(screen.getByRole('button', { name: 'Verify' }))
+  }
+
+  it('records terms acceptance once the account is fully registered', async () => {
+    await registerAs('Hermione')
+    expect(acceptTermsAction).toHaveBeenCalledTimes(1)
+    expect(updateUser.mock.invocationCallOrder[0]).toBeLessThan(
+      acceptTermsAction.mock.invocationCallOrder[0],
+    )
+  })
+
+  it('records nothing when the username step fails', async () => {
+    updateUser.mockResolvedValueOnce({ error: { message: 'taken' } } as never)
+    await registerAs('Hermione')
+    expect(acceptTermsAction).not.toHaveBeenCalled()
+  })
+
+  // The banner asks again on the next page, so a failed write must not strand
+  // a user who has just registered successfully.
+  it('still finishes registration when recording acceptance fails', async () => {
+    acceptTermsAction.mockRejectedValueOnce(new Error('network'))
+    await registerAs('Hermione')
+    expect(push).toHaveBeenCalledWith('/')
+  })
+
+  it('records nothing on login', async () => {
+    await signIn(null)
+    expect(acceptTermsAction).not.toHaveBeenCalled()
   })
 })

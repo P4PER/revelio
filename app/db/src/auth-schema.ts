@@ -18,6 +18,12 @@ export const user = pgTable("user", {
   banned: boolean("banned").default(false),
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),
+  // Terms of Service acceptance: the TERMS_VERSION (web/src/lib/terms.ts) the
+  // user accepted and when. Null means never accepted - accounts that predate
+  // the terms. Declared as input:false additionalFields in web's auth.ts, so
+  // Better Auth never lets a client write them; only acceptTermsAction does.
+  termsVersion: text("terms_version"),
+  termsAcceptedAt: timestamp("terms_accepted_at"),
 });
 
 export const session = pgTable(

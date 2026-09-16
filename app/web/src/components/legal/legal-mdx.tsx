@@ -6,6 +6,11 @@ import { ContactEmail } from '@/components/legal/contact-email'
 
 type AnchorProps = { id: string }
 
+type LastUpdatedProps = {
+  /** A calendar day as YYYY-MM-DD. */
+  date: string
+}
+
 type OperatorAddressProps = {
   name: string | null
   address: string | null
@@ -21,6 +26,13 @@ type WhenSetProps = {
   value: string | null
   children: ReactNode
 }
+
+// Overrides the `long` style that `{date, date, long}` names with the same
+// fields, pinned to UTC. Spelled out because `dateStyle` cannot be mixed with
+// the fields of the built-in style it is merged into.
+const UTC_LONG_DATE = {
+  dateTime: { long: { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' } },
+} as const
 
 /**
  * Component map for legal MDX (content/legal/). Next's MDX provider,
@@ -47,6 +59,7 @@ export const LEGAL_COMPONENTS: MDXComponents = {
       <a {...props} href={href} target="_blank" rel="noopener noreferrer" />
     ),
   Anchor,
+  LastUpdated,
   OperatorAddress,
   OperatorContact,
   OperatorDetails,
@@ -61,6 +74,22 @@ export const LEGAL_COMPONENTS: MDXComponents = {
  */
 export function Anchor({ id }: AnchorProps) {
   return <span id={id} data-terms-anchor="" className="block scroll-mt-20" />
+}
+
+/**
+ * The date a document's text last changed, closing the document. It lives in
+ * the MDX rather than the page so an edit to the text and its date land in the
+ * same file. The day is UTC midnight and is formatted in UTC: no time zone is
+ * configured app-wide, so a server west of UTC would otherwise print the day
+ * before.
+ */
+export function LastUpdated({ date }: LastUpdatedProps) {
+  const t = useTranslations('legal')
+  return (
+    <p className="mt-8 text-xs text-muted-foreground/70">
+      {t('lastUpdated', { date: new Date(`${date}T00:00:00Z`) }, UTC_LONG_DATE)}
+    </p>
+  )
 }
 
 /** Operator name and postal address as one paragraph, a line each. */

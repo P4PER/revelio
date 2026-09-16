@@ -21,8 +21,6 @@ type PrivacyPageProps = { params: Promise<{ locale: string }> }
 
 export const dynamic = 'force-dynamic'
 
-const LAST_UPDATED = new Date('2026-09-16T00:00:00Z')
-
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('privacy')
   return { title: t('metaTitle') }
@@ -51,9 +49,6 @@ export function PrivacyContent({
         contactEmail={contactEmail}
         hostingProvider={hostingProvider}
       />
-      <p className="mt-8 text-xs text-muted-foreground/70">
-        {t('lastUpdated', { date: LAST_UPDATED })}
-      </p>
     </ProseShell>
   )
 }

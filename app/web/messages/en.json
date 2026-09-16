@@ -955,12 +955,12 @@
   },
   "legal": {
     "notConfigured": "Not configured",
-    "emailLabel": "Email:"
+    "emailLabel": "Email:",
+    "lastUpdated": "Last updated: {date, date, long}"
   },
   "privacy": {
     "metaTitle": "Privacy Policy",
-    "title": "Privacy Policy",
-    "lastUpdated": "Last updated: {date, date, long}"
+    "title": "Privacy Policy"
   },
   "terms": {
     "metaTitle": "Terms of Service",

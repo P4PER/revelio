@@ -12,7 +12,14 @@ vi.mock('@/../i18n/navigation', () => ({
   ),
 }))
 
-import { OperatorAddress, OperatorContact, OperatorDetails, SiteSetting, WhenSet } from '../legal-mdx'
+import {
+  LastUpdated,
+  OperatorAddress,
+  OperatorContact,
+  OperatorDetails,
+  SiteSetting,
+  WhenSet,
+} from '../legal-mdx'
 
 function renderIn(locale: 'en' | 'de', ui: React.ReactNode) {
   return render(
@@ -21,6 +28,26 @@ function renderIn(locale: 'en' | 'de', ui: React.ReactNode) {
     </NextIntlClientProvider>,
   )
 }
+
+describe('LastUpdated', () => {
+  it('formats the date in the reader language as a muted footnote', () => {
+    const { container } = renderIn('en', <LastUpdated date="2026-09-16" />)
+    const paragraph = container.querySelector('p')
+    expect(paragraph?.textContent).toBe('Last updated: September 16, 2026')
+    expect(paragraph).toHaveClass('mt-8', 'text-xs', 'text-muted-foreground/70')
+  })
+
+  // No time zone is configured app-wide, so the server formats in its own. A
+  // day west of UTC must not print as the day before.
+  it('keeps the calendar day in a time zone west of UTC', () => {
+    const { container } = render(
+      <NextIntlClientProvider locale="de" messages={de} timeZone="America/Los_Angeles">
+        <LastUpdated date="2026-09-16" />
+      </NextIntlClientProvider>,
+    )
+    expect(container.querySelector('p')?.textContent).toBe('Zuletzt aktualisiert: 16. September 2026')
+  })
+})
 
 describe('OperatorAddress', () => {
   it('puts name and address on separate lines of one paragraph', () => {

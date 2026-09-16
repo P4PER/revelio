@@ -923,12 +923,12 @@
   },
   "legal": {
     "notConfigured": "Nicht konfiguriert",
-    "emailLabel": "E-Mail:"
+    "emailLabel": "E-Mail:",
+    "lastUpdated": "Zuletzt aktualisiert: {date, date, long}"
   },
   "privacy": {
     "metaTitle": "Datenschutzerklärung",
-    "title": "Datenschutzerklärung",
-    "lastUpdated": "Zuletzt aktualisiert: {date, date, long}"
+    "title": "Datenschutzerklärung"
   },
   "terms": {
     "metaTitle": "Nutzungsbedingungen",

@@ -36,6 +36,7 @@
     "documentation": "Dokumentation",
     "legal": "Rechtliches",
     "privacy": "Datenschutz",
+    "terms": "Nutzungsbedingungen",
     "imprint": "Impressum",
     "copyright": "© {year} {brand}",
     "backToTop": "Nach oben",
@@ -190,7 +191,8 @@
     "registerSubtitle": "Gib deine E-Mail und einen Benutzernamen ein, um dein {brand}-Konto zu erstellen.",
     "differentEmail": "Andere E-Mail verwenden",
     "noAccountError": "Kein Konto für diese E-Mail gefunden. Bitte zuerst registrieren.",
-    "usernameTaken": "Dieser Benutzername ist vergeben. Bitte einen anderen wählen."
+    "usernameTaken": "Dieser Benutzername ist vergeben. Bitte einen anderen wählen.",
+    "termsNotice": "Mit Klick auf „{button}“ stimmst du unseren <terms>Nutzungsbedingungen</terms> zu und verpflichtest dich, unsere <rules>Regeln zur zulässigen Nutzung</rules> einzuhalten. Wie wir mit deinen Daten umgehen, erklärt unsere <privacy>Datenschutzerklärung</privacy>."
   },
   "admin": {
     "title": "Admin",
@@ -957,6 +959,13 @@
     "changesTitle": "14. Änderungen dieser Datenschutzerklärung",
     "changesBody": "Wir können diese Datenschutzerklärung anpassen, um sie an geänderte Rechtslagen oder an Änderungen unseres Dienstes anzupassen. Es gilt jeweils die aktuelle Fassung.",
     "lastUpdated": "Zuletzt aktualisiert: {date, date, long}"
+  },
+  "terms": {
+    "metaTitle": "Nutzungsbedingungen",
+    "title": "Nutzungsbedingungen",
+    "notConfigured": "Nicht konfiguriert",
+    "operatorContactLabel": "E-Mail:",
+    "effective": "Gültig ab {date, date, long}"
   },
   "imprint": {
     "metaTitle": "Impressum",

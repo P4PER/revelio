@@ -45,6 +45,14 @@ describe('buildSitemap', () => {
     }
   })
 
+  // Discord links the bot's Terms of Service URL, and the page is indexable
+  // like the privacy policy and imprint next to it.
+  it('lists the terms of service', () => {
+    expect(STATIC_ROUTES).toContain('/terms')
+    expect(urls).toContain(`${BASE}/terms`)
+    expect(urls).toContain(`${BASE}/de/terms`)
+  })
+
   it('includes card and set pages in both locales', () => {
     expect(urls).toContain(`${BASE}/card/bs-1`)
     expect(urls).toContain(`${BASE}/de/card/bs-1`)

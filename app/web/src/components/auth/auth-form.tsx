@@ -150,6 +150,31 @@ export function AuthForm({
             </div>
           )}
           <FieldError>{emailForm.formState.errors.root?.message}</FieldError>
+          {register && (
+            // Incorporates the terms (§ 305(2) BGB): shown before the click that
+            // concludes the contract. Links open in a new tab so reading the terms
+            // does not throw away what the visitor has typed.
+            <p className="text-sm text-muted-foreground">
+              {t.rich('termsNotice', {
+                button: t('register'),
+                terms: (chunks) => (
+                  <Link href="/terms" target="_blank" className="text-foreground underline">
+                    {chunks}
+                  </Link>
+                ),
+                rules: (chunks) => (
+                  <Link href="/terms#acceptable-use" target="_blank" className="text-foreground underline">
+                    {chunks}
+                  </Link>
+                ),
+                privacy: (chunks) => (
+                  <Link href="/privacy" target="_blank" className="text-foreground underline">
+                    {chunks}
+                  </Link>
+                ),
+              })}
+            </p>
+          )}
           <Button type="submit" size="lg" disabled={emailForm.formState.isSubmitting} className="w-full font-semibold">
             {register ? t('register') : t('login')}
           </Button>

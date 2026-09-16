@@ -958,6 +958,13 @@
     "changesBody": "Wir können diese Datenschutzerklärung anpassen, um sie an geänderte Rechtslagen oder an Änderungen unseres Dienstes anzupassen. Es gilt jeweils die aktuelle Fassung.",
     "lastUpdated": "Zuletzt aktualisiert: {date, date, long}"
   },
+  "terms": {
+    "metaTitle": "Nutzungsbedingungen",
+    "title": "Nutzungsbedingungen",
+    "notConfigured": "Nicht konfiguriert",
+    "operatorContactLabel": "E-Mail:",
+    "effective": "Gültig ab {date, date, long}"
+  },
   "imprint": {
     "metaTitle": "Impressum",
     "title": "Impressum",

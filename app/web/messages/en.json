@@ -995,6 +995,13 @@
     "changesBody": "We may amend this privacy policy to keep it consistent with current legal requirements or to reflect changes to our service. The current version always applies.",
     "lastUpdated": "Last updated: {date, date, long}"
   },
+  "terms": {
+    "metaTitle": "Terms of Service",
+    "title": "Terms of Service",
+    "notConfigured": "Not configured",
+    "operatorContactLabel": "Email:",
+    "effective": "Effective from {date, date, long}"
+  },
   "imprint": {
     "metaTitle": "Imprint",
     "title": "Imprint",

@@ -33,9 +33,11 @@ export function TermsBannerView() {
   }
 
   return (
-    <div role="region" aria-label={t('label')} className="border-b border-border/60 bg-muted/40">
+    // Gold tint in both themes, like the deck builder's save prompt: the site's
+    // look for a prompt that asks the user to act.
+    <div role="region" aria-label={t('label')} className="border-b border-primary/30 bg-primary/10">
       <div className="mx-auto flex max-w-[76rem] flex-col gap-3 px-6 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-foreground">
           {t.rich('body', {
             terms: (chunks) => (
               <Link href="/terms" className="text-foreground underline">

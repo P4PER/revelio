@@ -66,6 +66,24 @@ describe('UserBanForm', () => {
     expect(await screen.findByRole('button', { name: /today/i })).toBeDisabled()
   })
 
+  // The server reads the picked day as UTC midnight. West of UTC in the evening
+  // the local tomorrow has already started in UTC, so it must not be offered.
+  it('takes tomorrow from the UTC date, not the local one', async () => {
+    const tz = process.env.TZ
+    process.env.TZ = 'America/New_York'
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-09-17T01:00:00Z')) // 20:00 on Sep 16 in New York
+    try {
+      renderForm(false)
+      await userEvent.click(expiryTrigger())
+      expect(await screen.findByRole('button', { name: /September 17th/ })).toBeDisabled()
+      expect(screen.getByRole('button', { name: /September 18th/ })).toBeEnabled()
+    } finally {
+      vi.useRealTimers()
+      process.env.TZ = tz
+    }
+  })
+
   // A ban cannot end in the past, so the year dropdown starts at the current
   // year instead of the shared picker's 1990.
   it('offers expiry years from now up to ten years ahead', async () => {

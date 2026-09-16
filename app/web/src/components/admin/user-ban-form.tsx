@@ -29,11 +29,13 @@ const ERROR_KEYS: Record<string, 'selfError' | 'reasonRequiredError'> = {
 // A temporary ban longer than this should be a permanent one (no expiry).
 const MAX_BAN_YEARS = 10
 
-// Better Auth lifts a ban whose expiry has passed, and expiry days are stored at
-// UTC midnight, so the earliest day that still bans anyone is tomorrow.
+// Better Auth lifts a ban whose expiry has passed, and banUser reads the picked
+// day as UTC midnight, so the earliest day that still bans anyone is tomorrow
+// by the UTC calendar. Built as a local date because the picker compares local
+// calendar days.
 function tomorrow(): Date {
   const d = new Date()
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
+  return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1)
 }
 
 function maxExpiry(): Date {

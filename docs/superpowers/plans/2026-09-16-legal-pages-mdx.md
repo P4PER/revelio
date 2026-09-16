@@ -1727,17 +1727,21 @@ Two gaps a best-practice pass found after the PR opened. Neither changes a rende
 
 ---
 
-### Task 6: Format the terms effective date in UTC
+### Task 6: One app-wide time zone for date formatting
 
-`terms/page.tsx` formats `TERMS_EFFECTIVE_DATE` (UTC midnight) without a time zone, and none is configured app-wide, so a server west of UTC prints "Effective from" the day before. Task 5 fixed the same thing for `LastUpdated`. The version string and the acceptance check are unaffected; only the rendered line is wrong.
+`terms/page.tsx` formats `TERMS_EFFECTIVE_DATE` (UTC midnight), and next-intl has no `timeZone` configured, so it formats in the host's own zone: a server west of UTC prints "Effective from" the day before. `LastUpdated` has the same exposure. The version string and the acceptance check are unaffected; only the rendered line is wrong.
+
+The fix belongs in the i18n config, not in a per-call format override: next-intl recommends setting `timeZone` in `i18n/request.ts`, and `NextIntlClientProvider` in a Server Component inherits it (next-intl 4.14, `NextIntlClientProviderServer`). The ban email already formats in `Europe/Berlin` for exactly this reason, with its own constant.
 
 **Files:**
-- Create: `app/web/src/lib/legal/date-formats.ts` - `UTC_LONG_DATE`, moved out of `legal-mdx.tsx` so the page and the component share one definition
-- Modify: `app/web/src/components/legal/legal-mdx.tsx` (import it)
-- Modify: `app/web/src/app/[locale]/terms/page.tsx` (pass it to `t('effective', ...)`)
-- Modify: `app/web/src/app/[locale]/terms/__tests__/terms.test.tsx`
+- Modify: `app/web/i18n/routing.ts` - export `TIME_ZONE = 'Europe/Berlin'`, with the reason (calendar days are UTC midnight; Berlin is always ahead of UTC)
+- Modify: `app/web/i18n/request.ts` - `timeZone: TIME_ZONE`
+- Modify: `app/web/i18n/__tests__/request.test.ts` - the config returns `TIME_ZONE`
+- Modify: `app/web/src/lib/email/ban-template.tsx` - import `TIME_ZONE` instead of declaring its own
+- Modify: `app/web/src/components/legal/legal-mdx.tsx`, `app/web/src/app/[locale]/terms/page.tsx` - plain `t(...)` again, no format override
+- Modify: `app/web/src/components/legal/__tests__/legal-mdx.test.tsx`, `app/web/src/app/[locale]/terms/__tests__/terms.test.tsx` - render the date under `TIME_ZONE` and expect the stored day (terms: derived from `TERMS_VERSION`)
 
-- [ ] **Step 1: Failing test.** Render `TermsContent` in `de` under `timeZone="America/Los_Angeles"` and expect `Gültig ab 16. September 2026`, derived from `TERMS_VERSION` rather than hardcoded so a version bump does not break it. Run it and see it print the 15th.
-- [ ] **Step 2: Fix.** Move `UTC_LONG_DATE` to `lib/legal/date-formats.ts`, import it in both places.
-- [ ] **Step 3: Verify.** Web tests, typecheck, lint; `/terms` and `/de/terms` capture unchanged against `legal-before`.
-- [ ] **Step 4: Commit** as `fix(web): print the terms effective date in utc`, push, add it to the PR body.
+- [ ] **Step 1: Tests.** Add the request-config test; mutation check: remove `timeZone` from the config and confirm it fails.
+- [ ] **Step 2: Fix.** As listed above.
+- [ ] **Step 3: Verify.** Web tests, typecheck, lint, build; all six legal pages unchanged against `legal-before`.
+- [ ] **Step 4: Commit** as `fix(web): format every date in one app time zone`, push, add it to the PR body.

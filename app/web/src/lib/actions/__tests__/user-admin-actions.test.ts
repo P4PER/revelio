@@ -12,6 +12,7 @@ const m = vi.hoisted(() => ({
   unlinkAndRevokeDiscord: vi.fn(async () => 0),
   renderBanEmail: vi.fn(async () => ({ subject: 's', html: 'h', text: 't' })),
   sendMail: vi.fn(async () => {}),
+  getCachedSiteSettings: vi.fn(async () => ({ contactEmail: 'help@x.test' })),
 }))
 vi.mock('@/lib/server/session', () => ({ requireRole: m.requireRole }))
 vi.mock('@/lib/server/db', () => ({ getDb: () => ({}) }))
@@ -25,6 +26,7 @@ vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
 vi.mock('@/lib/server/discord-oauth', () => ({ unlinkAndRevokeDiscord: m.unlinkAndRevokeDiscord }))
 vi.mock('@/lib/email/ban-template', () => ({ renderBanEmail: m.renderBanEmail }))
 vi.mock('@/lib/email/mailer', () => ({ sendMail: m.sendMail }))
+vi.mock('@/lib/server/site-settings', () => ({ getCachedSiteSettings: m.getCachedSiteSettings }))
 
 import {
   setUserRole, banUser, unbanUser, deleteUser,
@@ -36,6 +38,7 @@ beforeEach(() => {
   m.getUserForAdmin.mockResolvedValue({ id: 'u2', role: 'user', email: 'u2@x.test' })
   m.renderBanEmail.mockResolvedValue({ subject: 's', html: 'h', text: 't' })
   m.sendMail.mockResolvedValue(undefined)
+  m.getCachedSiteSettings.mockResolvedValue({ contactEmail: 'help@x.test' })
   m.countAdmins.mockResolvedValue(2)
 })
 
@@ -130,7 +133,9 @@ describe('banUser / unbanUser', () => {
 
   it('emails the banned user the reason and expiry after storing the ban', async () => {
     expect(await banUser('u2', 'spam', '2030-01-01')).toEqual({ ok: true })
-    expect(m.renderBanEmail).toHaveBeenCalledWith({ reason: 'spam', expiresAt: new Date('2030-01-01') })
+    expect(m.renderBanEmail).toHaveBeenCalledWith({
+      reason: 'spam', expiresAt: new Date('2030-01-01'), contactEmail: 'help@x.test',
+    })
     expect(m.sendMail).toHaveBeenCalledWith({ to: 'u2@x.test', subject: 's', html: 'h', text: 't' })
     expect(m.setUserBan.mock.invocationCallOrder[0]).toBeLessThan(m.sendMail.mock.invocationCallOrder[0])
   })
@@ -143,6 +148,15 @@ describe('banUser / unbanUser', () => {
     expect(await banUser('u2', 'spam', null)).toEqual({ ok: true, warning: 'notify-failed' })
     expect(m.setUserBan).toHaveBeenCalled()
     spy.mockRestore()
+  })
+
+  // The contact address only fills an optional footer line; failing to read it
+  // must not cost the user their statement of reasons.
+  it('still sends the notice when the site settings cannot be read', async () => {
+    m.getCachedSiteSettings.mockRejectedValueOnce(new Error('db down'))
+    expect(await banUser('u2', 'spam', null)).toEqual({ ok: true })
+    expect(m.renderBanEmail).toHaveBeenCalledWith({ reason: 'spam', expiresAt: null, contactEmail: '' })
+    expect(m.sendMail).toHaveBeenCalled()
   })
 
   it('does not email on unban', async () => {

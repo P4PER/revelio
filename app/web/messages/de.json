@@ -906,6 +906,11 @@
     }
   },
   "email": {
+    "footer": {
+      "disclaimer": "Revelio ist ein inoffizielles Fanprojekt zum Harry Potter Trading Card Game (2001, WotC).",
+      "linkLabel": "revelio.cards",
+      "contactLabel": "Fragen?"
+    },
     "ban": {
       "subject": "Ihr Revelio-Konto wurde gesperrt",
       "heading": "Ihr Konto wurde gesperrt",

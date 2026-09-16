@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache'
 import { requireRole } from '@/lib/server/session'
 import { getDb } from '@/lib/server/db'
 import { unlinkAndRevokeDiscord } from '@/lib/server/discord-oauth'
+import { getCachedSiteSettings } from '@/lib/server/site-settings'
 import { renderBanEmail } from '@/lib/email/ban-template'
 import { sendMail } from '@/lib/email/mailer'
 import {
@@ -59,8 +60,13 @@ export async function banUser(
   if (!target) return { ok: false, error: 'not-found' }
   await setUserBan(db, userId, trimmed, expires)
   revalidateUser(userId)
+  // The contact address only fills an optional footer line, so a failed read
+  // must not stop the notice itself.
+  const settings = await getCachedSiteSettings().catch(() => null)
   try {
-    const mail = await renderBanEmail({ reason: trimmed, expiresAt: expires })
+    const mail = await renderBanEmail({
+      reason: trimmed, expiresAt: expires, contactEmail: settings?.contactEmail ?? '',
+    })
     await sendMail({ to: target.email, ...mail })
   } catch {
     // Never log the reason or the address: both are personal data.

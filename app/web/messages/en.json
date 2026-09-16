@@ -651,7 +651,9 @@
       "expiry": "Expires in {minutes} minutes",
       "textExpiry": "This code expires in {minutes} minutes and can be used once.",
       "preview": "Your Revelio code is {code}. It expires in {minutes} minutes.",
-      "reassurance": "Didn’t try to sign in? You can safely ignore this email — no one can get in without the code.",
+      "reassurance": "Didn’t try to sign in? You can safely ignore this email — no one can get in without the code."
+    },
+    "footer": {
       "disclaimer": "Revelio is an unofficial fan project for the Harry Potter Trading Card Game (2001, WotC).",
       "linkLabel": "revelio.cards",
       "contactLabel": "Questions?"

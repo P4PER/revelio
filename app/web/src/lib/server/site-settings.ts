@@ -17,3 +17,16 @@ export async function loadSiteSettings(): Promise<SiteSettings | null> {
 export const getCachedSiteSettings = unstable_cache(loadSiteSettings, ['site-settings'], {
   tags: [SITE_SETTINGS_TAG],
 })
+
+/**
+ * The operator contact shown in an email footer, or '' when unset or unreadable.
+ * That line is optional, so a failed read must never stop the email it sits in.
+ * Not for the contact form, where the address is the recipient.
+ */
+export async function getFooterContactEmail(): Promise<string> {
+  try {
+    return (await getCachedSiteSettings())?.contactEmail ?? ''
+  } catch {
+    return ''
+  }
+}

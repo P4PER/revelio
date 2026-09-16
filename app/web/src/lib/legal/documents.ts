@@ -20,4 +20,8 @@ export const LEGAL_DOCUMENTS = {
     en: () => import('@/../content/legal/privacy.en.mdx'),
     de: () => import('@/../content/legal/privacy.de.mdx'),
   },
+  imprint: {
+    en: () => import('@/../content/legal/imprint.en.mdx'),
+    de: () => import('@/../content/legal/imprint.de.mdx'),
+  },
 } satisfies Record<string, Record<LegalLocale, LegalDocumentLoader>>

@@ -6,6 +6,11 @@ export type DocSection = {
   pages: readonly DocSlug[]
 }
 
+export type DocNeighbours = {
+  prev: DocSlug | null
+  next: DocSlug | null
+}
+
 // Order is reading order, not alphabetical: a visitor who lands on the section
 // should start at the overview. A planned section carries no pages and renders
 // as a label rather than a link, so the shell can advertise what is coming
@@ -40,4 +45,17 @@ export function docId(slug: DocSlug): string {
 
 export function isDocSlug(value: string): value is DocSlug {
   return SLUGS.has(value)
+}
+
+/**
+ * The pages either side of `slug` in reading order: DOCS_NAV flattened across
+ * sections, so the pager needs no list of its own. A planned section has no
+ * pages, so it can never be a neighbour. The `nav` parameter lets a test fake a
+ * second live section.
+ */
+export function docNeighbours(slug: DocSlug, nav: readonly DocSection[] = DOCS_NAV): DocNeighbours {
+  const order = nav.flatMap((section) => section.pages)
+  const index = order.indexOf(slug)
+  if (index === -1) return { prev: null, next: null }
+  return { prev: order[index - 1] ?? null, next: order[index + 1] ?? null }
 }

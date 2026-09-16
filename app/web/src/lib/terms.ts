@@ -5,7 +5,8 @@
  *
  * Bump it only together with a change to content/legal/terms.*.mdx. A bump
  * makes every account whose stored version differs see the acceptance banner
- * again.
+ * again. lib/__tests__/terms.test.ts pins a hash of the text to this version,
+ * so a wording change without a bump fails the suite.
  */
 export const TERMS_VERSION = '2026-09-16'
 

@@ -816,6 +816,11 @@
     "editPage": "Diese Seite bearbeiten",
     "breadcrumb": "Dokumentation",
     "planned": "Geplant",
+    "pager": {
+      "label": "Vorherige und nächste Seite",
+      "previous": "Zurück",
+      "next": "Weiter"
+    },
     "hubTitle": "Dokumentation",
     "hubLede": "Referenz für die Teile von Revelio, die nicht die Kartendatenbank selbst sind. Alles hier bleibt mit dem im Gleichschritt, was tatsächlich live ist.",
     "sections": {

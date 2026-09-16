@@ -1,12 +1,14 @@
 import type { ReactNode } from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi } from 'vitest'
 import en from '@/../messages/en.json'
 import de from '@/../messages/de.json'
 
 vi.mock('@/../i18n/navigation', () => ({
-  Link: ({ href, children }: { href: string; children: ReactNode }) => <a href={href}>{children}</a>,
+  Link: ({ href, children, ...rest }: { href: string; children: ReactNode }) => (
+    <a href={href} {...rest}>{children}</a>
+  ),
   usePathname: () => '/docs/discord/commands',
 }))
 
@@ -69,6 +71,21 @@ describe('a docs content page', () => {
     renderArticle('de', de)
     expect(screen.getByRole('heading', { level: 1, name: 'Befehle' })).toBeInTheDocument()
     expect(screen.getByText('Discord-Bot')).toBeInTheDocument()
+  })
+
+  // Below 860px the rail is behind the drawer, so the foot of the page is the
+  // one place a reader can move on without opening it.
+  it('links the neighbouring pages at the foot of the article', () => {
+    renderArticle()
+    const pager = screen.getByRole('navigation', { name: 'Previous and next page' })
+    expect(within(pager).getByRole('link', { name: 'Previous Overview' })).toHaveAttribute(
+      'href',
+      '/docs/discord',
+    )
+    expect(within(pager).getByRole('link', { name: 'Next Account linking' })).toHaveAttribute(
+      'href',
+      '/docs/discord/linking',
+    )
   })
 
   // The [locale] layout wraps children in a plain div, so a page without its

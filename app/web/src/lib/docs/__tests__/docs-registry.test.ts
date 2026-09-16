@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { routing } from '@/../i18n/routing'
-import { DOCS_NAV, docId, isDocSlug } from '@/lib/docs/nav'
+import { DOCS_NAV, docId, docNeighbours, isDocSlug, type DocSection } from '@/lib/docs/nav'
 import { DOC_PAGES, loadDoc } from '@/lib/docs/registry'
 import en from '@/../messages/en.json'
 import de from '@/../messages/de.json'
@@ -34,6 +34,40 @@ describe('the docs page map', () => {
   it('flattens a nested slug to a single id', () => {
     expect(docId('discord/commands')).toBe('discord-commands')
     expect(docId('discord')).toBe('discord')
+  })
+})
+
+describe('a page\'s neighbours', () => {
+  it('gives the first page no previous', () => {
+    expect(docNeighbours('discord')).toEqual({ prev: null, next: 'discord/commands' })
+  })
+
+  it('gives the last page no next', () => {
+    expect(docNeighbours('discord/troubleshooting')).toEqual({
+      prev: 'discord/privacy',
+      next: null,
+    })
+  })
+
+  it('gives a middle page both', () => {
+    expect(docNeighbours('discord/commands')).toEqual({ prev: 'discord', next: 'discord/linking' })
+  })
+
+  // Only one section is live today, so fake a second: when the API section
+  // ships, the last Discord page has to lead into it without a second list.
+  it('crosses a section boundary', () => {
+    const nav = [
+      { key: 'discord', status: 'live', pages: ['discord', 'discord/commands'] },
+      { key: 'api', status: 'live', pages: ['discord/linking'] },
+    ] as const satisfies readonly DocSection[]
+    expect(docNeighbours('discord/commands', nav)).toEqual({
+      prev: 'discord',
+      next: 'discord/linking',
+    })
+    expect(docNeighbours('discord/linking', nav)).toEqual({
+      prev: 'discord/commands',
+      next: null,
+    })
   })
 })
 

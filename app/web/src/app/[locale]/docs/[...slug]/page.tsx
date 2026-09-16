@@ -7,10 +7,11 @@ import { routing } from '@/../i18n/routing'
 import { getPathname } from '@/../i18n/navigation'
 import { SITE_URL as BASE_URL } from '@/lib/site'
 import { getCachedSiteSettings } from '@/lib/server/site-settings'
-import { DOCS_NAV, docId, isDocSlug } from '@/lib/docs/nav'
+import { DOCS_NAV, docId, docNeighbours, isDocSlug } from '@/lib/docs/nav'
 import { loadDoc } from '@/lib/docs/registry'
 import { DocsToc } from '@/components/docs/docs-toc'
 import { DocsMobileBar } from '@/components/docs/docs-mobile-bar'
+import { DocsPager } from '@/components/docs/docs-pager'
 import type { DocLocale, DocSlug, TocEntry } from '@/lib/docs/types'
 
 type Params = { params: Promise<{ locale: string; slug: string[] }> }
@@ -86,6 +87,9 @@ export function DocArticle({
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">{title}</h1>
           <div className="mt-6">
             <Body />
+          </div>
+          <div className="mt-12">
+            <DocsPager {...docNeighbours(slug)} />
           </div>
         </article>
         <div className="hidden min-[1180px]:block">

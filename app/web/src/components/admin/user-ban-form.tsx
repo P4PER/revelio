@@ -2,7 +2,7 @@
 import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { banUser, unbanUser, type UserActionResult } from '@/lib/actions/user-admin-actions'
+import { banUser, unbanUser, type BanUserResult, type UserActionResult } from '@/lib/actions/user-admin-actions'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -21,17 +21,23 @@ type Props = {
   disabled: boolean
 }
 
+const ERROR_KEYS: Record<string, 'selfError' | 'reasonRequiredError'> = {
+  self: 'selfError',
+  'reason-required': 'reasonRequiredError',
+}
+
 export function UserBanForm({ userId, banned, currentReason, currentExpires, disabled }: Props) {
   const t = useTranslations('admin.users')
   const [reason, setReason] = useState('')
   const [expires, setExpires] = useState('') // yyyy-mm-dd, '' means no expiry
   const [pending, start] = useTransition()
 
-  function handle(action: Promise<UserActionResult>) {
+  function handle(action: Promise<BanUserResult | UserActionResult>) {
     start(async () => {
       const r = await action
-      if (r.ok) toast.success(t('saved'))
-      else toast.error(t(r.error === 'self' ? 'selfError' : 'saveError'))
+      if (r.ok && 'warning' in r) toast.warning(t('banNotifyFailed'))
+      else if (r.ok) toast.success(t('saved'))
+      else toast.error(t(ERROR_KEYS[r.error] ?? 'saveError'))
     })
   }
 
@@ -59,7 +65,16 @@ export function UserBanForm({ userId, banned, currentReason, currentExpires, dis
     <div className="space-y-3">
       <div className="space-y-1.5">
         <Label htmlFor="ban-reason">{t('banReason')}</Label>
-        <Input id="ban-reason" value={reason} onChange={(e) => setReason(e.target.value)} disabled={disabled} />
+        <Input
+          id="ban-reason"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          disabled={disabled}
+          aria-describedby="ban-reason-hint"
+        />
+        <p id="ban-reason-hint" className="text-xs text-muted-foreground">
+          {t('banReasonHint')}
+        </p>
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="ban-expires">{t('banExpires')}</Label>
@@ -68,7 +83,7 @@ export function UserBanForm({ userId, banned, currentReason, currentExpires, dis
       <div className="flex items-center gap-3">
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button type="button" variant="destructive" disabled={disabled || pending}>{t('banAction')}</Button>
+            <Button type="button" variant="destructive" disabled={disabled || pending || !reason.trim()}>{t('banAction')}</Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>

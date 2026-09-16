@@ -921,6 +921,10 @@
       "objection": "Wenn Sie diese Entscheidung für falsch halten, können Sie über unser <contact>Kontaktformular</contact> widersprechen. Wir prüfen die Entscheidung dann erneut. Ihr Recht, den Rechtsweg zu beschreiten, bleibt unberührt."
     }
   },
+  "legal": {
+    "notConfigured": "Nicht konfiguriert",
+    "emailLabel": "E-Mail:"
+  },
   "privacy": {
     "metaTitle": "Datenschutzerklärung",
     "title": "Datenschutzerklärung",
@@ -984,8 +988,6 @@
   "terms": {
     "metaTitle": "Nutzungsbedingungen",
     "title": "Nutzungsbedingungen",
-    "notConfigured": "Nicht konfiguriert",
-    "operatorContactLabel": "E-Mail:",
     "effective": "Gültig ab {date, date, long}"
   },
   "termsBanner": {

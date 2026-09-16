@@ -953,6 +953,10 @@
       }
     }
   },
+  "legal": {
+    "notConfigured": "Not configured",
+    "emailLabel": "Email:"
+  },
   "privacy": {
     "metaTitle": "Privacy Policy",
     "title": "Privacy Policy",
@@ -1016,8 +1020,6 @@
   "terms": {
     "metaTitle": "Terms of Service",
     "title": "Terms of Service",
-    "notConfigured": "Not configured",
-    "operatorContactLabel": "Email:",
     "effective": "Effective from {date, date, long}"
   },
   "termsBanner": {

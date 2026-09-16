@@ -1,24 +1,37 @@
 import type { MDXComponents } from 'mdx/types'
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/../i18n/navigation'
 import { ContactEmail } from '@/components/legal/contact-email'
 
 type AnchorProps = { id: string }
 
-type OperatorDetailsProps = {
+type OperatorAddressProps = {
   name: string | null
   address: string | null
-  email: string | null
+}
+
+type OperatorContactProps = { email: string | null }
+
+type OperatorDetailsProps = OperatorAddressProps & OperatorContactProps
+
+type SiteSettingProps = { value: string | null }
+
+type WhenSetProps = {
+  value: string | null
+  children: ReactNode
 }
 
 /**
  * Component map for legal MDX (content/legal/). Next's MDX provider,
  * src/mdx-components.tsx, gives headings, paragraphs, lists and links the docs
- * type scale; these plain elements override it so ProseShell styles a legal
- * page exactly like /privacy and /imprint. Internal links still go through
- * next-intl's Link: a bare <a href="/privacy"> would drop a German reader onto
- * the English page.
+ * type scale; these plain elements override it so every legal page is styled
+ * by ProseShell alone. Internal links still go through next-intl's Link: a bare
+ * <a href="/privacy"> would drop a German reader onto the English page.
+ *
+ * Site settings reach a document as MDX props (`props.operatorName`, ...);
+ * the components below turn a missing value into the localized fallback, so
+ * no document spells "Not configured" itself.
  */
 export const LEGAL_COMPONENTS: MDXComponents = {
   h2: (props: ComponentPropsWithoutRef<'h2'>) => <h2 {...props} />,
@@ -34,7 +47,11 @@ export const LEGAL_COMPONENTS: MDXComponents = {
       <a {...props} href={href} target="_blank" rel="noopener noreferrer" />
     ),
   Anchor,
+  OperatorAddress,
+  OperatorContact,
   OperatorDetails,
+  SiteSetting,
+  WhenSet,
 }
 
 /**
@@ -46,16 +63,43 @@ export function Anchor({ id }: AnchorProps) {
   return <span id={id} data-terms-anchor="" className="block scroll-mt-20" />
 }
 
-/** Operator name, address and contact email, from site settings via MDX props. */
-export function OperatorDetails({ name, address, email }: OperatorDetailsProps) {
-  const t = useTranslations('terms')
+/** Operator name and postal address as one paragraph, a line each. */
+export function OperatorAddress({ name, address }: OperatorAddressProps) {
+  const t = useTranslations('legal')
   const nc = t('notConfigured')
+  return <p className="whitespace-pre-line">{`${name ?? nc}\n${address ?? nc}`}</p>
+}
+
+/** The labelled contact email as a mailto link. */
+export function OperatorContact({ email }: OperatorContactProps) {
+  const t = useTranslations('legal')
+  return (
+    <p>
+      {t('emailLabel')} <ContactEmail email={email} fallback={t('notConfigured')} />
+    </p>
+  )
+}
+
+/** Address and contact together, the block the terms and privacy policy open with. */
+export function OperatorDetails({ name, address, email }: OperatorDetailsProps) {
   return (
     <>
-      <p className="whitespace-pre-line">{`${name ?? nc}\n${address ?? nc}`}</p>
-      <p>
-        {t('operatorContactLabel')} <ContactEmail email={email} fallback={nc} />
-      </p>
+      <OperatorAddress name={name} address={address} />
+      <OperatorContact email={email} />
     </>
   )
+}
+
+/** A single site setting inline in running text, e.g. the hosting provider. */
+export function SiteSetting({ value }: SiteSettingProps) {
+  const t = useTranslations('legal')
+  return <>{value ?? t('notConfigured')}</>
+}
+
+/**
+ * Renders a passage only when an optional setting is filled in. MDX keeps
+ * markdown inside the element, so the passage can hold its own heading.
+ */
+export function WhenSet({ value, children }: WhenSetProps) {
+  return value ? <>{children}</> : null
 }

@@ -10,16 +10,26 @@ import { DocsNavTree } from '@/components/docs/docs-sidebar'
 import { EditPageLink, TocLinks } from '@/components/docs/docs-toc'
 import type { TocEntry } from '@/lib/docs/types'
 
-// Both are ghost buttons, so they keep the app's one hover treatment, and both
-// are h-11 rather than the primitive's h-9: below 860px these two are the only
-// way through the docs, and a finger needs the 44px.
+// Both are ghost buttons at the primitive's own size, so they keep the app's
+// one hover treatment and the one control height every other button uses. An
+// h-11 pill under the 53px header spent an eighth of a phone screen on chrome
+// before a word of the page; at h-9 each control is still far past the 24px
+// WCAG asks of a target, and a wide pill is a generous one to hit.
 //
-// The weight is deliberately uneven. Two outlined pills of equal weight read as
-// a form row and draw a second rule under the header's; the drawer is the
-// control a phone reader actually needs, so it carries the fill and the
-// contents list stays plain text.
-const NAV_TRIGGER = 'h-11 min-w-0 flex-1 justify-start gap-2 rounded-full bg-muted px-3.5'
-const TOC_TRIGGER = 'ml-auto h-11 shrink-0 gap-1.5 px-2.5 font-normal text-muted-foreground'
+// The weight is deliberately uneven. Two pills of equal weight read as a form
+// row and draw a second rule under the header's; the drawer is the control a
+// phone reader actually needs, so it carries the fill and the contents list
+// stays plain text.
+//
+// Neither is flex-1: stretched, the nav pill paints a slab of fill around a
+// one-word title. Each is as wide as its label, and the row's own overflow
+// decides the rest - the nav pill takes `shrink` and truncates, the contents
+// trigger keeps the primitive's shrink-0 and never loses its chevron. A fixed
+// max-width cannot do that: 58% clipped the chevron at 320px in German and
+// wasted space everywhere else. `shrink` is not a default here - the Button
+// primitive sets shrink-0 on every variant, so it has to be overridden.
+const NAV_TRIGGER = 'min-w-0 shrink justify-start gap-2 rounded-full bg-muted px-3'
+const TOC_TRIGGER = 'ml-auto shrink-0 gap-1.5 px-2 font-normal text-muted-foreground'
 
 /**
  * Closes an overlay when the click landed on a link, and only then. A blanket
@@ -60,7 +70,7 @@ export function DocsMobileBar({
 
   return (
     <div
-      className={`sticky top-0 z-30 -mx-6 -mt-8 mb-6 flex h-14 items-center gap-2 border-b border-border/60 bg-background/95 px-3 backdrop-blur min-[860px]:mx-0 min-[860px]:px-12 ${hiddenFrom}`}
+      className={`sticky top-0 z-30 -mx-6 -mt-8 mb-6 flex h-12 items-center gap-2 border-b border-border/60 bg-background/95 px-3 backdrop-blur min-[860px]:mx-0 min-[860px]:px-12 ${hiddenFrom}`}
     >
       <Sheet open={navOpen} onOpenChange={setNavOpen}>
         <SheetTrigger asChild>

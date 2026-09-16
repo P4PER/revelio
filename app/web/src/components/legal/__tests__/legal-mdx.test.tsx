@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi } from 'vitest'
 import en from '@/../messages/en.json'
 import de from '@/../messages/de.json'
+import { TIME_ZONE } from '@/../i18n/routing'
 
 // legal-mdx imports next-intl's navigation Link, which needs the Next router
 // that jsdom lacks. None of these tests renders a link through it.
@@ -37,11 +38,10 @@ describe('LastUpdated', () => {
     expect(paragraph).toHaveClass('mt-8', 'text-xs', 'text-muted-foreground/70')
   })
 
-  // No time zone is configured app-wide, so the server formats in its own. A
-  // day west of UTC must not print as the day before.
-  it('keeps the calendar day in a time zone west of UTC', () => {
+  // The date is UTC midnight; the app's zone must not print it as the day before.
+  it('keeps the calendar day in the app time zone', () => {
     const { container } = render(
-      <NextIntlClientProvider locale="de" messages={de} timeZone="America/Los_Angeles">
+      <NextIntlClientProvider locale="de" messages={de} timeZone={TIME_ZONE}>
         <LastUpdated date="2026-09-16" />
       </NextIntlClientProvider>,
     )

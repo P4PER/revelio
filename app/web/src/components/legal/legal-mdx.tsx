@@ -27,13 +27,6 @@ type WhenSetProps = {
   children: ReactNode
 }
 
-// Overrides the `long` style that `{date, date, long}` names with the same
-// fields, pinned to UTC. Spelled out because `dateStyle` cannot be mixed with
-// the fields of the built-in style it is merged into.
-const UTC_LONG_DATE = {
-  dateTime: { long: { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' } },
-} as const
-
 /**
  * Component map for legal MDX (content/legal/). Next's MDX provider,
  * src/mdx-components.tsx, gives headings, paragraphs, lists and links the docs
@@ -79,15 +72,14 @@ export function Anchor({ id }: AnchorProps) {
 /**
  * The date a document's text last changed, closing the document. It lives in
  * the MDX rather than the page so an edit to the text and its date land in the
- * same file. The day is UTC midnight and is formatted in UTC: no time zone is
- * configured app-wide, so a server west of UTC would otherwise print the day
- * before.
+ * same file. The day is read as UTC midnight, like every calendar day the app
+ * stores; see TIME_ZONE in i18n/routing.ts.
  */
 export function LastUpdated({ date }: LastUpdatedProps) {
   const t = useTranslations('legal')
   return (
     <p className="mt-8 text-xs text-muted-foreground/70">
-      {t('lastUpdated', { date: new Date(`${date}T00:00:00Z`) }, UTC_LONG_DATE)}
+      {t('lastUpdated', { date: new Date(`${date}T00:00:00Z`) })}
     </p>
   )
 }

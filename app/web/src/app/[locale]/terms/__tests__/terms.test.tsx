@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi } from 'vitest'
 import en from '@/../messages/en.json'
 import de from '@/../messages/de.json'
+import { TIME_ZONE } from '@/../i18n/routing'
 
 // next-intl's navigation Link needs the Next router, which jsdom lacks. A plain
 // anchor keeps what the test asserts: the href.
@@ -16,6 +17,7 @@ vi.mock('@/../i18n/navigation', () => ({
 import TermsEn from '@/../content/legal/terms.en.mdx'
 import TermsDe from '@/../content/legal/terms.de.mdx'
 import { TermsContent } from '../page'
+import { TERMS_VERSION } from '@/lib/terms'
 
 type Operator = Omit<React.ComponentProps<typeof TermsContent>, 'Document'>
 
@@ -28,6 +30,13 @@ const FULL: Operator = {
 const ANCHORS = [
   'scope', 'service', 'contract', 'account', 'acceptable-use', 'content', 'rights',
   'moderation', 'discord', 'liability', 'termination', 'changes', 'final',
+]
+
+// Spelled out rather than formatted with Intl, so the expectation does not
+// share the code path under test.
+const GERMAN_MONTHS = [
+  'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+  'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember',
 ]
 
 const LOCALES = {
@@ -146,5 +155,18 @@ describe('TermsContent', () => {
   it('shows the effective date', () => {
     renderTerms('en')
     expect(screen.getByText(/^Effective from \w+ \d{1,2}, \d{4}$/)).toBeInTheDocument()
+  })
+
+  // The effective date is UTC midnight; the app's zone must not print it as the
+  // day before, or the page would contradict TERMS_VERSION.
+  it('keeps the effective day in the app time zone', () => {
+    render(
+      <NextIntlClientProvider locale="de" messages={de} timeZone={TIME_ZONE}>
+        <TermsContent Document={TermsDe as MDXContent} {...FULL} />
+      </NextIntlClientProvider>,
+    )
+    const [year, month, day] = TERMS_VERSION.split('-').map(Number)
+    const expected = `Gültig ab ${day}. ${GERMAN_MONTHS[month - 1]} ${year}`
+    expect(screen.getByText(expected)).toBeInTheDocument()
   })
 })

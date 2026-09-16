@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { TIME_ZONE } from '../routing'
 
 const rootLocale = vi.fn<() => Promise<string>>()
 const notFound = vi.fn<() => never>(() => {
@@ -48,6 +49,14 @@ describe('i18n/request', () => {
     const config = await loadConfig({})
     expect((config.messages as Record<string, unknown>).nav).toBeDefined()
     expect(config.messages).toEqual((await import('../../messages/de.json')).default)
+  })
+
+  // Without a zone next-intl formats in the host's own, so a server west of UTC
+  // printed a stored calendar day (the terms effective date) as the day before.
+  it('formats every date in the app time zone', async () => {
+    rootLocale.mockResolvedValue('en')
+    const config = await loadConfig({})
+    expect(config.timeZone).toBe(TIME_ZONE)
   })
 
   it('prefers an explicit locale override without reading root params', async () => {

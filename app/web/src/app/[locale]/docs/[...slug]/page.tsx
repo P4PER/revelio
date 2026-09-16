@@ -72,7 +72,6 @@ export function DocArticle({
   const t = useTranslations('docs')
   const sectionKey = sectionKeyOf(slug)
   const title = t(`pages.${docId(slug)}.title`)
-  const neighbours = docNeighbours(slug)
 
   return (
     <>
@@ -89,13 +88,9 @@ export function DocArticle({
           <div className="mt-6">
             <Body />
           </div>
-          {/* The rule only when there is something under it: a lone page
-              would otherwise end on a border with nothing beneath. */}
-          {(neighbours.prev || neighbours.next) && (
-            <div className="mt-12 border-t border-border pt-6">
-              <DocsPager {...neighbours} />
-            </div>
-          )}
+          <div className="mt-12">
+            <DocsPager {...docNeighbours(slug)} />
+          </div>
         </article>
         <div className="hidden min-[1180px]:block">
           <DocsToc toc={toc} editUrl={editUrl} />

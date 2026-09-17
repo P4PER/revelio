@@ -49,11 +49,13 @@ COPY --from=build --chown=bot:nodejs /app/bot/dist/Poppins-SemiBold.ttf /app/bot
 # what it would cost.
 RUN mkdir -p /var/cache/fontconfig && chown bot:nodejs /var/cache/fontconfig
 
-# The deck sheet is drawn with sharp text and a bundled font, and both would
-# build clean and fail on the first /deck: require() catches a missing native
-# binary, and the comparison catches a missing font. fonts.conf leaves Poppins
-# the only family fontconfig knows, so an unmatched family has to resolve to it
-# - unless the font is not there, when both fall back to tofu and differ.
+# The deck sheet is drawn with sharp text and a bundled font, and either missing
+# would build clean and fail on the first /deck. The font is checked by its own
+# presence rather than by how it renders: a fontfile libvips cannot open is not
+# an error, it silently substitutes. The render then proves the native binary
+# loads, and that an unmatched family resolves to Poppins - which it can only do
+# while fonts.conf leaves Poppins the one family fontconfig knows.
+RUN test -s /app/Poppins-SemiBold.ttf && test -s /app/fonts.conf
 RUN node -e "const s=require('sharp');process.env.FONTCONFIG_FILE='/app/fonts.conf';\
 const d=f=>s({text:{text:'revelio',font:f,fontfile:'/app/Poppins-SemiBold.ttf',rgba:true}}).raw().toBuffer();\
 Promise.all([d('Poppins SemiBold 24'),d('Nonexistent SemiBold 24')])\

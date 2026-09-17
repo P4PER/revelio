@@ -142,7 +142,10 @@ async function cardOverlays(
   const thumbs = await mapLimit(distinct, MAX_IN_FLIGHT, (id) => fetchThumb(cardById.get(id)!, imageBase))
   const thumbById = new Map(distinct.map((id, i) => [id, thumbs[i]]))
 
-  return (await Promise.all(positioned.map(async (pc): Promise<OverlayOptions> => {
+  // Decoding is capped like fetching, and for the same reason: a 60-card deck
+  // decoding, rotating and re-encoding every thumb at once holds all of them in
+  // memory, and an OOM kill takes the gateway down rather than one reply.
+  return mapLimit(positioned, MAX_IN_FLIGHT, async (pc): Promise<OverlayOptions> => {
     const thumb = thumbById.get(pc.card.cardId)
     const image = thumb
       ? await cardImage(thumb, pc.w * S, pc.h * S, pc.card.orientation === 'horizontal')
@@ -154,7 +157,7 @@ async function cardOverlays(
       (pc.w - PLACEHOLDER_INSET) * S,
     )
     return centered(name, (pc.x + pc.w / 2) * S, (pc.y + pc.h / 2) * S)
-  })))
+  })
 }
 
 async function textOverlays(geom: SheetGeometry, title: string): Promise<OverlayOptions[]> {
@@ -190,7 +193,9 @@ async function textOverlays(geom: SheetGeometry, title: string): Promise<Overlay
 /**
  * The deck as a picture: the same sheet web's "Export PNG" downloads, drawn with
  * sharp because the bot has no Canvas. Grouping, geometry and colours come from
- * @revelio/core, so the two cannot drift.
+ * @revelio/core, so those cannot drift. Type is where the two do differ - the
+ * web paints in system-ui at three weights, this bundles one Poppins face - and
+ * only one weight is worth 160 KB in the image.
  *
  * Renders from the 300px thumbs rather than the full images the web export uses:
  * at 2x a thumb still covers a card box, and a chat column is no place to spend

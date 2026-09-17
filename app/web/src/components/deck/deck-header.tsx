@@ -1,5 +1,5 @@
 'use client'
-import { useLocale, useTranslations } from 'next-intl'
+import { useFormatter, useTranslations } from 'next-intl'
 import { Eye } from 'lucide-react'
 import type { DeckFormat } from '@revelio/core'
 import { Link } from '@/../i18n/navigation'
@@ -39,8 +39,8 @@ const SCRIM = {
 
 export function DeckHeader(props: DeckHeaderProps) {
   const t = useTranslations('decks')
-  const locale = useLocale()
-  const updated = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(props.updatedAt))
+  const format = useFormatter()
+  const updated = format.dateTime(new Date(props.updatedAt), { dateStyle: 'medium' })
 
   return (
     <div className="relative flex min-h-[180px] overflow-hidden rounded-xl border border-border bg-(--dark-background) sm:min-h-[230px]">

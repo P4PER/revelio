@@ -1,5 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
-import { screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import { NextIntlClientProvider } from 'next-intl'
+import en from '@/../messages/en.json'
 import { renderWithIntl } from '@/test/intl'
 import { DeckHeader } from '@/components/deck/deck-header'
 
@@ -46,5 +48,16 @@ describe('DeckHeader', () => {
       <DeckHeader {...base} starterCardId={null} starterArtCropVersion={null} />,
     )
     expect(container.querySelector('[data-slot="deck-art-fallback"]')).toBeInTheDocument()
+  })
+
+  // Formatted in the provider zone, not the host's: SSR and hydration must print
+  // the same day.
+  it('prints the updated date in the configured time zone', () => {
+    render(
+      <NextIntlClientProvider locale="en" messages={en} timeZone="Pacific/Kiritimati">
+        <DeckHeader {...base} updatedAt="2026-07-01T10:00:00.000Z" />
+      </NextIntlClientProvider>,
+    )
+    expect(screen.getByText(/Jul 2, 2026/)).toBeInTheDocument()
   })
 })

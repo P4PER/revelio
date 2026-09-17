@@ -1,6 +1,6 @@
 'use client'
 import { useState, useTransition } from 'react'
-import { useLocale, useTranslations } from 'next-intl'
+import { useFormatter, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Ellipsis, Pencil, SquarePen, Copy, Trash, Eye, EyeOff, Check, X, Star } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
@@ -36,15 +36,13 @@ import {
 // invoked inside a transition — no manual router.refresh() needed.
 export function DeckList({ decks }: { decks: DeckSummary[] }) {
   const t = useTranslations('decks')
-  const locale = useLocale()
+  const format = useFormatter()
   const [isPending, startTransition] = useTransition()
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [draftName, setDraftName] = useState('')
   const [renameError, setRenameError] = useState('')
   const [deckToDelete, setDeckToDelete] = useState<DeckSummary | null>(null)
-
-  const dateFormatter = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' })
 
   function startRename(deck: DeckSummary) {
     setRenamingId(deck.id)
@@ -273,7 +271,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
                   </span>
                 )
               })()}
-              <span>{t('list.updatedAt', { date: dateFormatter.format(new Date(deck.updatedAt)) })}</span>
+              <span>{t('list.updatedAt', { date: format.dateTime(new Date(deck.updatedAt), { dateStyle: 'medium' }) })}</span>
             </div>
           </div>
         )

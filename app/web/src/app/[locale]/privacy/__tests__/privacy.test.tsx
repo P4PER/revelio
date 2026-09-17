@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi } from 'vitest'
 import en from '@/../messages/en.json'
 import de from '@/../messages/de.json'
+import { FORMATS } from '@/../i18n/formats'
 
 // LEGAL_COMPONENTS imports next-intl's navigation Link, which needs the Next
 // router that jsdom lacks. A plain anchor keeps what a test would assert: the href.
@@ -34,7 +35,7 @@ const LOCALES = {
 function renderPrivacy(locale: 'en' | 'de', settings: Settings = FULL) {
   const { messages, Document } = LOCALES[locale]
   return render(
-    <NextIntlClientProvider locale={locale} messages={messages} timeZone="UTC">
+    <NextIntlClientProvider locale={locale} messages={messages} timeZone="UTC" formats={FORMATS}>
       <PrivacyContent Document={Document} {...settings} />
     </NextIntlClientProvider>,
   )

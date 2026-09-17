@@ -114,4 +114,15 @@ describe('DeckList', () => {
     expect(await screen.findByText(en.decks.list.renameError)).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Rename' })).toBeInTheDocument()
   })
+
+  // Formatted in the provider zone, not the host's: SSR and hydration must print
+  // the same day.
+  it('prints the updated date in the configured time zone', () => {
+    render(
+      <NextIntlClientProvider locale="en" messages={en} timeZone="Pacific/Kiritimati">
+        <DeckList decks={[{ ...decks[0], updatedAt: '2026-07-01T10:00:00.000Z' }]} />
+      </NextIntlClientProvider>,
+    )
+    expect(screen.getByText(/Jul 2, 2026/)).toBeInTheDocument()
+  })
 })

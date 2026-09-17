@@ -2,10 +2,11 @@ import type { ReactElement, ReactNode } from 'react'
 import { render } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import messages from '../../messages/en.json'
+import { FORMATS } from '../../i18n/formats'
 
 function Wrapper({ children }: { children: ReactNode }) {
   return (
-    <NextIntlClientProvider locale="en" timeZone="UTC" messages={messages}>
+    <NextIntlClientProvider locale="en" timeZone="UTC" messages={messages} formats={FORMATS}>
       {children}
     </NextIntlClientProvider>
   )

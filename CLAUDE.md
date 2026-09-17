@@ -118,7 +118,9 @@ Six npm workspaces under `app/`, with a strict dependency direction `core ← {s
 - **Replies must not be able to ping.** The client sets `allowedMentions: { parse: [] }`; commands echo user input back, so anything else lets `/card name:@everyone` mass-ping a guild.
 - **Meilisearch totals are estimates.** `estimatedTotalHits` over-counts, so a page inside the computed page count can still come back empty — treat that as out of range.
 - Commands are registered on every boot (Discord's `PUT` is a full replace), but a registration failure is logged and survived rather than fatal.
-- Card images use `thumbKey` (300px), never the full `imageKey`.
+- Card images in embeds use `thumbKey` (300px), never the full `imageKey`. The `/deck`
+  sheet is the exception and draws from `imageKey`: its card box is 264x370 device pixels,
+  which a 300px thumb covers with no headroom.
 - **Two image bases, and they are not interchangeable.** `IMAGE_BASE_URL` goes into embed
   URLs, which **Discord** fetches from the public internet, so it must be the public bucket
   host. `IMAGE_FETCH_BASE_URL` is what the `/deck` renderer fetches in-process and defaults

@@ -216,3 +216,29 @@ Three things outside the diff, all required:
 Phase 1 lands before Phase 2 on purpose. Phase 2 is what makes the images load, and
 loading them is what pushes memory over the edge; shipping it first would reproduce the
 production crash on a machine where it is harder to see.
+
+## Revision, 2026-09-17 (implementation)
+
+Two numbers above were measured against **thumb** sources and did not survive Phase 3,
+which switched the renderer to full card art. Re-measured on the implemented branch, at
+`MAX_SHEET_PIXELS` candidates, against the local RustFS:
+
+| Budget | Sheet | Peak RSS | PNG | Posted |
+| --- | --- | ---: | ---: | --- |
+| 12 Mpx (as specced) | 8.9 Mpx, 60 entries | 464 MB | 13.93 MB | WebP fallback |
+| 6 Mpx | 6.0 Mpx | 404 MB | 9.31 MB | WebP fallback |
+| 5 Mpx | 5.0 Mpx, 60 entries | 358 MB | 7.75 MB | PNG |
+| 5 Mpx | 5.0 Mpx, 200 entries | 405 MB | 8.14 MB | PNG |
+
+So full art costs roughly `215 MB + 28 MB per megapixel` of peak RSS and `1.6 MB per
+megapixel` of PNG, against the `200 + 14.5` and ~0.5 MB/Mpx this document derived from
+thumbs. At the specced 12 Mpx the sheet both breaks the memory estimate and exceeds
+Discord's attachment limit, so "`/deck` posts a PNG" would have been false for any deck
+past roughly 20 grouped entries. **`MAX_SHEET_PIXELS` shipped at 5 Mpx**, which keeps every
+deck size inside the 9 MB attachment guard and inside the 640Mi pod limit this document
+already asks for. The Deployment section is otherwise unchanged.
+
+Section headers cost as much sheet height as a row of cards, so entries map to megapixels
+far less generously than the tables above suggest: a 12-entry deck over six sections is
+already 5.9 Mpx at 2x. The clamp therefore bites on ordinary decks, not only on huge ones,
+and full art is what keeps those renders crisp at the reduced scale.

@@ -1,9 +1,10 @@
-import { SlashCommandBuilder, type ChatInputCommandInteraction } from 'discord.js'
+import { AttachmentBuilder, SlashCommandBuilder, type ChatInputCommandInteraction } from 'discord.js'
 import type { Deps } from '../../clients'
 import { getPublicDeck } from '../../data/decks'
 import { toRevelioLocale } from '../../i18n/locale'
 import { t } from '../../i18n/t'
-import { deckEmbed } from '../embeds/deck-embed'
+import { renderDeckImage } from '../../images/deck-image'
+import { DECK_IMAGE_NAME, deckEmbed, type DeckView } from '../embeds/deck-embed'
 
 export const data = new SlashCommandBuilder()
   .setName('deck')
@@ -44,7 +45,25 @@ export async function execute(
     return
   }
 
-  await interaction.editReply({
-    embeds: [deckEmbed(deck, { locale, siteBase: deps.env.SITE_BASE_URL, view: 'list' })],
-  })
+  const embedOf = (view: DeckView) =>
+    deckEmbed(deck, { locale, siteBase: deps.env.SITE_BASE_URL, view })
+
+  // A deck with no cards has no picture worth posting, and a render that fails
+  // must not cost the answer: both fall back to the list the embed can always
+  // draw from the data already in hand.
+  const wantsImage = interaction.options.getString('view') !== 'list' && deck.entries.length > 0
+  if (wantsImage) {
+    try {
+      const image = await renderDeckImage(deck, { imageBase: deps.env.IMAGE_BASE_URL, locale })
+      await interaction.editReply({
+        embeds: [embedOf('image')],
+        files: [new AttachmentBuilder(image, { name: DECK_IMAGE_NAME })],
+      })
+      return
+    } catch (err) {
+      console.error('deck image render failed:', err)
+    }
+  }
+
+  await interaction.editReply({ embeds: [embedOf('list')] })
 }

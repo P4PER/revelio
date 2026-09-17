@@ -1,6 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import * as dbModule from '@revelio/db'
 import { COMMANDS } from '../src/discord/commands/index'
+import { DECK_IMAGE_NAME } from '../src/discord/embeds/deck-embed'
+import { renderDeckImage } from '../src/images/deck-image'
+
+// Rendering is exercised by deck-image.test.ts; here it is a seam, so /deck's
+// two views and its fallback can be told apart without drawing anything.
+vi.mock('../src/images/deck-image', () => ({
+  renderDeckImage: vi.fn().mockResolvedValue(Buffer.from('webp')),
+}))
 
 // /card reaches Postgres for rulings. The fake deps carry no real db, so stub
 // the query itself; a card with no rulings is the common case anyway.
@@ -280,6 +288,51 @@ describe('/deck', () => {
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     const payload = interaction.editReply.mock.calls[0][0]
     expect(payload.embeds[0].toJSON().title).toBe('Charms Aggro')
+  })
+
+  // getString returns null for an option nobody passed, which is exactly what
+  // Discord sends when a user types /deck with no view.
+  it('defaults to the picture, uploaded as the embed attachment', async () => {
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    const interaction = fakeInteraction({ deck: 'abc123' })
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    const payload = interaction.editReply.mock.calls[0][0]
+    expect(payload.files[0].name).toBe(DECK_IMAGE_NAME)
+    expect(payload.embeds[0].toJSON().image?.url).toBe(`attachment://${DECK_IMAGE_NAME}`)
+    expect(payload.embeds[0].toJSON().fields?.some((f: { name: string }) => f.name.startsWith('Main deck'))).toBe(false)
+  })
+
+  it('sends the text list, and no file, for view:list', async () => {
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    const interaction = fakeInteraction({ deck: 'abc123', view: 'list' })
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    const payload = interaction.editReply.mock.calls[0][0]
+    expect(payload.files).toBeUndefined()
+    expect(payload.embeds[0].toJSON().fields?.some((f: { name: string }) => f.name.startsWith('Main deck'))).toBe(true)
+  })
+
+  // A deck the user can see is worth more than the picture of it.
+  it('falls back to the list when rendering throws', async () => {
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    vi.mocked(renderDeckImage).mockRejectedValueOnce(new Error('libvips said no'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const interaction = fakeInteraction({ deck: 'abc123' })
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    const payload = interaction.editReply.mock.calls[0][0]
+    expect(payload.files).toBeUndefined()
+    expect(payload.embeds[0].toJSON().fields?.some((f: { name: string }) => f.name.startsWith('Main deck'))).toBe(true)
+    expect(console.error).toHaveBeenCalled()
+  })
+
+  it('never renders an empty deck', async () => {
+    const empty = stubDeck()
+    empty.views = []
+    empty.deck.cards = []
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(empty as never)
+    const interaction = fakeInteraction({ deck: 'abc123' })
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(vi.mocked(renderDeckImage)).not.toHaveBeenCalled()
+    expect(interaction.editReply.mock.calls[0][0].files).toBeUndefined()
   })
 
   it('replies with a localized miss for a private or unknown deck', async () => {

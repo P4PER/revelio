@@ -110,8 +110,11 @@ function chromeSvg(geom: SheetGeometry, s: number): Buffer {
         ` height="${swatchSize * s}" fill="${section.color}"/>`,
     )
     for (const pc of section.cards) {
+      // Rounded exactly as the card overlay is, so the 1px stroke lands on the
+      // outermost pixel of the box the art covers. At a fractional scale the raw
+      // coordinates round the other way for some cards and the border shows.
       parts.push(
-        `<rect x="${pc.x * s + 0.5}" y="${pc.y * s + 0.5}" width="${pc.w * s - 1}" height="${pc.h * s - 1}"` +
+        `<rect x="${px(pc.x, s) + 0.5}" y="${px(pc.y, s) + 0.5}" width="${px(pc.w, s) - 1}" height="${px(pc.h, s) - 1}"` +
           ` fill="${DECK_SHEET_COLORS.panel}" stroke="${DECK_SHEET_COLORS.border}" stroke-width="1"/>`,
       )
     }

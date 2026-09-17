@@ -99,6 +99,40 @@ describe('renderDeckImage', () => {
     expect((await sharp(await renderDeckImage(deck, opts)).metadata()).format).toBe('png')
   })
 
+  it('keeps the placeholder frame under the card art at a fractional scale', async () => {
+    // The frame and the art are positioned by two different roundings of the
+    // same layout coordinate. Below 2x they stop agreeing, and the stroke the
+    // art is supposed to cover leaves a partial border line beside the card.
+    const body = await thumb()
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(body, { status: 200 })))
+    const geom = geomOf(deck, entries)
+    const s = sheetScale(geom)
+    expect(s).toBeLessThan(DECK_SHEET.scale)
+
+    const { data, info } = await sharp(await renderDeckImage(deck, opts))
+      .raw().toBuffer({ resolveWithObject: true })
+    // Bare panel, to a couple of units: a stroke leaking out reads as a blend of
+    // the border into it, and anything else here would be a layout bug of its own.
+    const notPanel = (x: number, y: number) => {
+      const i = (y * info.width + x) * info.channels
+      return ![0x1c, 0x18, 0x38].every((c, k) => Math.abs(data[i + k] - c) <= 4)
+    }
+
+    // The ring one pixel outside each card, minus the bottom edge - the quantity
+    // badge straddles that one by design.
+    const stray: string[] = []
+    for (const pc of geom.sections.flatMap((section) => section.cards)) {
+      if (pc.card.imageVersion == null) continue
+      const [left, top] = [Math.round(pc.x * s), Math.round(pc.y * s)]
+      const [right, bottom] = [left + Math.round(pc.w * s) - 1, top + Math.round(pc.h * s) - 1]
+      for (let x = left - 1; x <= right + 1; x++) if (notPanel(x, top - 1)) stray.push(`${pc.card.cardId} ${x},${top - 1}`)
+      for (let y = top; y <= bottom; y++) {
+        for (const x of [left - 1, right + 1]) if (notPanel(x, y)) stray.push(`${pc.card.cardId} ${x},${y}`)
+      }
+    }
+    expect(stray).toEqual([])
+  })
+
   it('never has more than eight card images in flight', async () => {
     const body = await thumb()
     let inFlight = 0

@@ -23,6 +23,12 @@ Tasks 2-4 of the first version are done and unaffected. Task 1 (`cardId` and
 `imageVersion` on `DeckEntryView`) is superseded by Task 5 below, which removes those
 fields again.
 
+Superseded on 2026-09-17 by
+`docs/superpowers/specs/2026-09-17-deck-image-delivery-design.md`: the "Thumbs, not full
+images, at 2x" and "Output WebP, quality 90" decisions below are both reversed there. The
+thumb reasoning ("no visible gain in a chat column") did not survive contact with the
+264x370 card box, and WebP was a second generation of loss on an already lossy source.
+
 ## Decisions
 
 - **One layout, two painters.** Grouping, section titles, card boxes and canvas size

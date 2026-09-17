@@ -23,7 +23,7 @@ function fakeDeps() {
       name: vi.fn().mockResolvedValue('Base Set'),
       all: vi.fn().mockResolvedValue([{ code: 'base', name: 'Base Set' }]),
     },
-    env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
+    env: { IMAGE_BASE_URL: 'https://img.test', IMAGE_FETCH_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
   }
 }
 

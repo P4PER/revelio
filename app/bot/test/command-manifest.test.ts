@@ -57,7 +57,7 @@ function deferOf(name: string) {
     meili: {},
     db: {},
     sets: { name: vi.fn(), all: vi.fn().mockResolvedValue([]) },
-    env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
+    env: { IMAGE_BASE_URL: 'https://img.test', IMAGE_FETCH_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
   }
   const done = COMMANDS.get(name)!.execute(interaction as never, deps as never)
     .catch(() => undefined)

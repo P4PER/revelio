@@ -56,3 +56,38 @@ describe('parseEnv', () => {
     expect(message).not.toContain('super-secret-token')
   })
 })
+
+describe('IMAGE_FETCH_BASE_URL', () => {
+  const withPublic = { ...complete, IMAGE_BASE_URL: 'https://img.test/images' }
+
+  it('falls back to IMAGE_BASE_URL when unset', () => {
+    expect(parseEnv(withPublic).IMAGE_FETCH_BASE_URL).toBe('https://img.test/images')
+  })
+
+  it('takes its own value when set', () => {
+    const env = parseEnv({ ...withPublic, IMAGE_FETCH_BASE_URL: 'http://rustfs.svc.cluster.local:9000/images' })
+    expect(env.IMAGE_FETCH_BASE_URL).toBe('http://rustfs.svc.cluster.local:9000/images')
+    expect(env.IMAGE_BASE_URL).toBe('https://img.test/images')
+  })
+
+  it('treats an empty value as unset, the way an env file writes it', () => {
+    expect(parseEnv({ ...withPublic, IMAGE_FETCH_BASE_URL: '' }).IMAGE_FETCH_BASE_URL).toBe('https://img.test/images')
+  })
+
+  it('rejects a value that is not a URL', () => {
+    // A bare host, as opposed to a bare host:port: new URL reads "rustfs:9000"
+    // as the scheme "rustfs", so zod's url() takes it and the bad base shows up
+    // as the render's missing-art warnings instead. Same as the four sibling
+    // URL fields, which do not check the protocol either.
+    let thrown: unknown
+    try { parseEnv({ ...withPublic, IMAGE_FETCH_BASE_URL: 'rustfs' }) } catch (err) { thrown = err }
+    expect((thrown as Error).message).toContain('IMAGE_FETCH_BASE_URL')
+  })
+
+  it('accepts a cluster-local service hostname', () => {
+    // Pinned on purpose: zod 4's url() is stricter about hostnames, and the
+    // production value is one of these. A bump should fail here, not at deploy.
+    const url = 'http://svc-app-rustfs-f2b3494b.proj-reveliocards-9f0c37db.svc.cluster.local:9000/images'
+    expect(parseEnv({ ...withPublic, IMAGE_FETCH_BASE_URL: url }).IMAGE_FETCH_BASE_URL).toBe(url)
+  })
+})

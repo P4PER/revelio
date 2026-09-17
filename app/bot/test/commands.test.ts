@@ -1,20 +1,21 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import * as dbModule from '@revelio/db'
 import { COMMANDS } from '../src/discord/commands/index'
-import { DECK_IMAGE_NAME } from '../src/discord/embeds/deck-embed'
 import { renderDeckImage } from '../src/images/deck-image'
 
 // Rendering is exercised by deck-image.test.ts; here it is a seam, so /deck's
 // two views and its fallback can be told apart without drawing anything.
-vi.mock('../src/images/deck-image', () => ({
-  renderDeckImage: vi.fn().mockResolvedValue(Buffer.from('webp')),
-}))
+vi.mock('../src/images/deck-image', () => ({ renderDeckImage: vi.fn() }))
 
 // /card reaches Postgres for rulings. The fake deps carry no real db, so stub
 // the query itself; a card with no rulings is the common case anyway.
 beforeEach(() => {
   vi.spyOn(dbModule, 'getCardRulings').mockResolvedValue(null)
   vi.spyOn(dbModule, 'getSubTypeLabels').mockResolvedValue({})
+  // Armed here rather than in the factory: afterEach's restoreAllMocks strips a
+  // factory implementation too, and a seam that resolves undefined would leave
+  // /deck falling back to the list without any test saying so.
+  vi.mocked(renderDeckImage).mockResolvedValue({ body: Buffer.from('png'), name: 'deck.png' })
 })
 afterEach(() => { vi.restoreAllMocks() })
 
@@ -63,7 +64,7 @@ function fakeDeps(hits: unknown[], total: number) {
     meili: fakeMeili(search),
     db: {},
     sets: { name: vi.fn().mockResolvedValue('Base Set') },
-    env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
+    env: { IMAGE_BASE_URL: 'https://img.test', IMAGE_FETCH_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
   }
 }
 
@@ -184,7 +185,7 @@ function fastPathDeps(search: unknown) {
     meili: fakeMeili(search as ReturnType<typeof vi.fn>),
     db: {},
     sets: { name: vi.fn().mockResolvedValue('Base Set') },
-    env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
+    env: { IMAGE_BASE_URL: 'https://img.test', IMAGE_FETCH_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
   }
 }
 
@@ -219,7 +220,7 @@ describe('/search set filter', () => {
       meili: fakeMeili(search),
       db: {},
       sets: { name: vi.fn(), all: vi.fn() },
-      env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
+      env: { IMAGE_BASE_URL: 'https://img.test', IMAGE_FETCH_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
     }
     const interaction = fakeInteraction({ query: 'broom', set: 'base' })
     await COMMANDS.get('search')!.execute(interaction as never, deps as never)
@@ -290,6 +291,21 @@ describe('/deck', () => {
     expect(payload.embeds[0].toJSON().title).toBe('Charms Aggro')
   })
 
+  // The bot performs this GET itself, so the sheet has to come from the host it
+  // can reach, not the public one Discord fetches embed images from.
+  it('renders the deck sheet from the fetch base, not the public one', async () => {
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    const deps = fakeDeps([], 0)
+    deps.env = {
+      ...deps.env,
+      IMAGE_BASE_URL: 'https://public.test/images',
+      IMAGE_FETCH_BASE_URL: 'http://internal.test:9000/images',
+    }
+    await COMMANDS.get('deck')!.execute(fakeInteraction({ deck: 'abc123' }) as never, deps as never)
+    const [, options] = vi.mocked(renderDeckImage).mock.calls.at(-1)!
+    expect(options.imageBase).toBe('http://internal.test:9000/images')
+  })
+
   // getString returns null for an option nobody passed, which is exactly what
   // Discord sends when a user types /deck with no view.
   it('defaults to the picture, uploaded as the embed attachment', async () => {
@@ -297,9 +313,21 @@ describe('/deck', () => {
     const interaction = fakeInteraction({ deck: 'abc123' })
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     const payload = interaction.editReply.mock.calls[0][0]
-    expect(payload.files[0].name).toBe(DECK_IMAGE_NAME)
-    expect(payload.embeds[0].toJSON().image?.url).toBe(`attachment://${DECK_IMAGE_NAME}`)
+    expect(payload.files[0].name).toBe('deck.png')
+    expect(payload.embeds[0].toJSON().image?.url).toBe('attachment://deck.png')
     expect(payload.embeds[0].toJSON().fields?.some((f: { name: string }) => f.name.startsWith('Main deck'))).toBe(false)
+  })
+
+  // The renderer falls back to WebP on an oversized sheet, and the embed can
+  // only reach the upload by name, so the two must not be able to disagree.
+  it('uploads and references the deck sheet under the name the renderer chose', async () => {
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    vi.mocked(renderDeckImage).mockResolvedValueOnce({ body: Buffer.from('webp'), name: 'deck.webp' })
+    const interaction = fakeInteraction({ deck: 'abc123' })
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    const payload = interaction.editReply.mock.calls[0][0]
+    expect(payload.files[0].name).toBe('deck.webp')
+    expect(payload.embeds[0].toJSON().image?.url).toBe('attachment://deck.webp')
   })
 
   it('sends the text list, and no file, for view:list', async () => {

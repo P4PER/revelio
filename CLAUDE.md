@@ -118,7 +118,23 @@ Six npm workspaces under `app/`, with a strict dependency direction `core ← {s
 - **Replies must not be able to ping.** The client sets `allowedMentions: { parse: [] }`; commands echo user input back, so anything else lets `/card name:@everyone` mass-ping a guild.
 - **Meilisearch totals are estimates.** `estimatedTotalHits` over-counts, so a page inside the computed page count can still come back empty — treat that as out of range.
 - Commands are registered on every boot (Discord's `PUT` is a full replace), but a registration failure is logged and survived rather than fatal.
-- Card images use `thumbKey` (300px), never the full `imageKey`.
+- Card images in embeds use `thumbKey` (300px), never the full `imageKey`. The `/deck`
+  sheet is the exception and picks per render, in `usesFullArt`: `imageKey` while the card
+  box is big enough that a 300px thumb would be painted at better than 1.5:1 - it is
+  264x370 at the full 2x scale, so every realistic deck - and `thumbKey` once the pixel
+  budget has shrunk the sheet past that. Full art for a 100-entry deck would be ~31 MB of
+  fetches to paint 154px boxes.
+- **The `/deck` attachment is named for the format it ended up in**, `deck.png` or, on the
+  oversized fallback, `deck.webp`. `renderDeckImage` returns the name with the bytes and
+  the embed's image view takes it: `media.discordapp.net` transcodes by file extension, so
+  WebP bytes under a `.png` name break the inline image for some clients.
+- **Two image bases, and they are not interchangeable.** `IMAGE_BASE_URL` goes into embed
+  URLs, which **Discord** fetches from the public internet, so it must be the public bucket
+  host. `IMAGE_FETCH_BASE_URL` is what the `/deck` renderer fetches in-process and defaults
+  to `IMAGE_BASE_URL`; set it when the public host is not reachable from where the bot runs,
+  which in a cluster is the normal case (the pod cannot hairpin to its own ingress). Putting
+  an internal hostname in `IMAGE_BASE_URL` silently breaks every `/card` image; putting the
+  public one in `IMAGE_FETCH_BASE_URL` silently turns every deck sheet into placeholder boxes.
 
 ## Migrations (read before touching the schema)
 

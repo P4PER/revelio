@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { DECK_IMAGE_NAME, deckEmbed } from '../src/discord/embeds/deck-embed'
+import { deckEmbed } from '../src/discord/embeds/deck-embed'
 import type { PublicDeck } from '../src/data/decks'
 
 const deck: PublicDeck = {
@@ -92,10 +92,17 @@ describe('deckEmbed', () => {
 })
 
 describe('deckEmbed image view', () => {
-  const image = { ...opts, view: 'image' } as const
+  const image = { ...opts, view: 'image', imageName: 'deck.png' } as const
 
   it('points the embed image at the uploaded attachment', () => {
-    expect(deckEmbed(deck, image).toJSON().image?.url).toBe(`attachment://${DECK_IMAGE_NAME}`)
+    expect(deckEmbed(deck, image).toJSON().image?.url).toBe('attachment://deck.png')
+  })
+
+  // The renderer names the file after the format it settled on, so the embed
+  // has to follow it rather than assume .png.
+  it('follows the name the renderer chose', () => {
+    expect(deckEmbed(deck, { ...image, imageName: 'deck.webp' }).toJSON().image?.url)
+      .toBe('attachment://deck.webp')
   })
 
   // The picture already shows every card, so a list next to it is noise and

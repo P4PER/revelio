@@ -4,8 +4,6 @@ import type { DeckEntryView, PublicDeck } from '../../data/decks'
 import { t } from '../../i18n/t'
 import { deckUrl } from '../../links'
 
-export type DeckView = 'image' | 'list'
-
 // The image view carries the attachment's file name because that is the only
 // handle an embed has on an upload, and the renderer picks it from the format it
 // settled on - see DeckImage in images/deck-image.ts.

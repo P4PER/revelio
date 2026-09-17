@@ -194,6 +194,11 @@ describe('renderDeckImage', () => {
     expect(dialled).toHaveLength(8)
     expect(Date.now() - started).toBeLessThan(5_000)
     expect([meta.width, meta.height]).toEqual(sheetSize())
+    // One line for the whole phase, not one per card left in the queue.
+    const lines = vi.mocked(console.warn).mock.calls.map((c) => c.join(' '))
+    expect(lines.filter((l) => l.includes('never requested'))).toEqual([
+      'deck image: fetch budget spent after 150ms, 3 cards never requested',
+    ])
   })
 
   it('never has more than eight card images in flight', async () => {

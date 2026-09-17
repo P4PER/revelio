@@ -66,6 +66,10 @@ const THUMB_WIDTH = 300
 // this it is painted near 1:1 and carries its own webp artefacts into the sheet,
 // which is what the full art is for.
 const MIN_THUMB_DOWNSCALE = 1.5
+// Why a card was never asked for, rather than why its request failed. One render
+// spends the budget once, so these collapse into a single log line instead of
+// repeating the same sentence for every card still in the queue.
+const BUDGET_SPENT = 'fetch budget spent'
 // Upper bound on the painted sheet, in device pixels. Two things scale with canvas
 // area and this bounds both: peak RSS, at roughly 215 MB plus 28 MB per megapixel,
 // and the encoded PNG, at roughly 1.6 MB per megapixel. At 5 Mpx a 60-entry deck
@@ -195,7 +199,7 @@ async function fetchCardImage(
 ): Promise<CardImageResult> {
   if (card.imageVersion == null) return { failure: null }
   const left = deadline - Date.now()
-  if (left <= 0) return { failure: 'fetch budget spent' }
+  if (left <= 0) return { failure: BUDGET_SPENT }
   const key = fullArt ? imageKey : thumbKey
   try {
     const res = await fetch(imageUrl(imageBase, key(card.cardId, card.imageVersion)), {
@@ -245,10 +249,15 @@ async function cardOverlays(
   // Warned once per distinct card, not once per copy: a card in two zones is one
   // broken image, and a broken host should read as a list of cards, not of boxes.
   const failed = new Set<string>()
+  let unrequested = 0
   for (const [id, result] of imageById) {
     if ('body' in result || result.failure === null) continue
     failed.add(id)
-    console.warn(`deck image: no art for ${id}: ${result.failure}`)
+    if (result.failure === BUDGET_SPENT) unrequested += 1
+    else console.warn(`deck image: no art for ${id}: ${result.failure}`)
+  }
+  if (unrequested > 0) {
+    console.warn(`deck image: ${BUDGET_SPENT} after ${budgetMs}ms, ${unrequested} cards never requested`)
   }
 
   // Decoding is capped like fetching, and for the same reason: a 60-card deck

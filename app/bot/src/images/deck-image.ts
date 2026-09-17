@@ -341,5 +341,12 @@ export async function renderDeckImage(deck: PublicDeck, opts: DeckImageOptions):
   // the content, and the embed references the upload by DECK_IMAGE_NAME, so a
   // second name would let the embed and the attachment disagree.
   console.warn(`deck image: ${png.length} byte PNG over the ${limit} byte limit, falling back to WebP`)
-  return sheet.clone().webp({ quality: 90 }).toBuffer()
+  const webp = await sheet.clone().webp({ quality: 90 }).toBuffer()
+  // The limit is checked again rather than assumed: q90 is normally a fifth of
+  // the PNG, but an attachment Discord rejects fails the whole interaction, and
+  // /deck answers a throw with the list embed it can always draw.
+  if (webp.length > limit) {
+    throw new Error(`deck image: ${webp.length} byte WebP still over the ${limit} byte limit`)
+  }
+  return webp
 }

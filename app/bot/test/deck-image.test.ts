@@ -72,11 +72,27 @@ describe('renderDeckImage', () => {
     const body = await thumb()
     vi.stubGlobal('fetch', vi.fn(async () => new Response(body, { status: 200 })))
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    // One byte, so the fallback runs on any deck rather than needing a huge one.
-    const meta = await sharp(await renderDeckImage(deck, { ...opts, maxAttachmentBytes: 1 })).metadata()
+    // Between the fixture's PNG (~89 KB) and its WebP (~49 KB), so the fallback
+    // runs on this deck rather than needing a huge one, and then fits.
+    const meta = await sharp(await renderDeckImage(deck, { ...opts, maxAttachmentBytes: 60_000 })).metadata()
     expect(meta.format).toBe('webp')
     expect([meta.width, meta.height]).toEqual(sheetSize())
     expect(warn.mock.calls.flat().join(' ')).toContain('falling back to WebP')
+  })
+
+  it('throws rather than hand back a WebP that is over the limit too', async () => {
+    const body = await thumb()
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(body, { status: 200 })))
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    // Discord fails the whole interaction on an oversized attachment, so /deck
+    // has to hear about this and fall back to the list embed.
+    let thrown: unknown
+    try {
+      await renderDeckImage(deck, { ...opts, maxAttachmentBytes: 1 })
+    } catch (err) {
+      thrown = err
+    }
+    expect((thrown as Error | undefined)?.message).toMatch(/WebP still over the 1 byte limit/)
   })
 
   it('requests default-language card images and never fetches a card without an image', async () => {

@@ -4,7 +4,7 @@ import { DECK_SHEET, computeSheetGeometry, layoutDeckSheet, type DeckCardView } 
 import { MAX_SHEET_PIXELS, renderDeckImage, sheetScale } from '../src/images/deck-image'
 import type { PublicDeck } from '../src/data/decks'
 
-afterEach(() => { vi.unstubAllGlobals() })
+afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks() })
 
 function view(cardId: string, zone: DeckCardView['zone'], types: string[], extra: Partial<DeckCardView> = {}): DeckCardView {
   return {
@@ -66,12 +66,16 @@ describe('renderDeckImage', () => {
   })
 
   it('still renders when every thumb fails to load', async () => {
+    // Deliberately broken: the warnings it now raises are asserted on in
+    // "renderDeckImage logging", not worth 12 lines of noise here.
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
     const meta = await sharp(await renderDeckImage(deck, opts)).metadata()
     expect([meta.width, meta.height]).toEqual(sheetSize())
   })
 
   it('treats a non-image response as a missing thumb', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
     vi.stubGlobal('fetch', vi.fn(async () => new Response('not found', { status: 404 })))
     expect((await sharp(await renderDeckImage(deck, opts)).metadata()).format).toBe('webp')
   })
@@ -127,4 +131,46 @@ describe('sheetScale', () => {
     const geom = geomOf(hugeDeck, hugeEntries)
     expect(meta.width! / meta.height!).toBeCloseTo(geom.width / geom.height, 2)
   }, 60_000)
+})
+
+describe('renderDeckImage logging', () => {
+  it('names the card and the reason when a thumb cannot be fetched', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('ECONNREFUSED') }))
+    await renderDeckImage(deck, opts)
+    const lines = warn.mock.calls.map((c) => c.join(' '))
+    expect(lines.some((l) => l.includes('harry') && l.includes('ECONNREFUSED'))).toBe(true)
+    // One summary line, so a fully broken host is one line plus one per card
+    // rather than one per box in the deck.
+    expect(lines.filter((l) => l.includes('card images missing'))).toEqual([
+      'deck image: 11 of 12 card images missing for deck abc123',
+    ])
+    warn.mockRestore()
+  })
+
+  it('names the card when a fetched body cannot be decoded', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('<html>nope</html>', { status: 200 })))
+    await renderDeckImage(deck, opts)
+    const lines = warn.mock.calls.map((c) => c.join(' '))
+    expect(lines.some((l) => l.includes('decode') && l.includes('harry'))).toBe(true)
+    warn.mockRestore()
+  })
+
+  it('never logs the image URL', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('nope') }))
+    await renderDeckImage(deck, opts)
+    expect(warn.mock.calls.flat().join(' ')).not.toContain('img.test')
+    warn.mockRestore()
+  })
+
+  it('stays silent when every image loads', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const body = await thumb()
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(body, { status: 200 })))
+    await renderDeckImage(deck, opts)
+    expect(warn.mock.calls.filter((c) => c.join(' ').includes('deck image:'))).toHaveLength(0)
+    warn.mockRestore()
+  })
 })

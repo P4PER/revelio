@@ -19,6 +19,11 @@ import { fitText, renderText, type RenderedText } from './text'
 
 export type DeckImageOptions = { imageBase: string; locale: string }
 
+// A card's picture, or why its box has none. `failure: null` is a card with no
+// stored image at all, which is normal and not worth a log line; a string is a
+// failure and is.
+type CardImageResult = { body: Buffer } | { failure: string | null }
+
 const FETCH_TIMEOUT_MS = 5000
 const MAX_IN_FLIGHT = 8
 // Padding either side of a placeholder's card name, as the web painter clamps it.
@@ -117,57 +122,72 @@ function centered(rendered: RenderedText, centerX: number, centerY: number): Ove
   }
 }
 
-async function fetchThumb(card: DeckSheetCard, imageBase: string): Promise<Buffer | null> {
-  if (card.imageVersion == null) return null
+async function fetchThumb(card: DeckSheetCard, imageBase: string): Promise<CardImageResult> {
+  if (card.imageVersion == null) return { failure: null }
   try {
     const res = await fetch(imageUrl(imageBase, thumbKey(card.cardId, card.imageVersion)), {
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     })
-    if (!res.ok) return null
-    return Buffer.from(await res.arrayBuffer())
-  } catch {
-    return null
+    if (!res.ok) return { failure: `HTTP ${res.status}` }
+    return { body: Buffer.from(await res.arrayBuffer()) }
+  } catch (err) {
+    return { failure: err instanceof Error ? err.message : String(err) }
   }
 }
 
 /**
- * The card image for one box, or null for anything that is not a decodable
- * image. Horizontal cards are stored portrait with the art turned a quarter
+ * The card image for one box, or the reason it is not a decodable image.
+ * Horizontal cards are stored portrait with the art turned a quarter
  * counter-clockwise, so a quarter turn back draws them upright - what
  * drawRotatedUpright does on the web.
  */
-async function cardImage(thumb: Buffer, w: number, h: number, upright: boolean): Promise<Buffer | null> {
+async function cardImage(thumb: Buffer, w: number, h: number, upright: boolean): Promise<CardImageResult> {
   try {
     const pipeline = sharp(thumb)
     if (upright) pipeline.rotate(90)
-    return await pipeline.resize(w, h, { fit: 'cover' }).png().toBuffer()
-  } catch {
-    return null
+    return { body: await pipeline.resize(w, h, { fit: 'cover' }).png().toBuffer() }
+  } catch (err) {
+    return { failure: err instanceof Error ? err.message : String(err) }
   }
 }
 
 // One overlay per card: its image, or the name centered in the empty box. A card
-// can appear in two zones, so images are fetched once per distinct card.
+// can appear in two zones, so images are fetched once per distinct card, and
+// `dropped` counts distinct cards rather than boxes for the same reason.
 async function cardOverlays(
   sections: PositionedSection[],
   imageBase: string,
   s: number,
-): Promise<OverlayOptions[]> {
+): Promise<{ overlays: OverlayOptions[]; dropped: number; distinct: number }> {
   const positioned = sections.flatMap((section) => section.cards)
   const distinct = [...new Set(positioned.map((pc) => pc.card.cardId))]
   const cardById = new Map(positioned.map((pc) => [pc.card.cardId, pc.card]))
   const thumbs = await mapLimit(distinct, MAX_IN_FLIGHT, (id) => fetchThumb(cardById.get(id)!, imageBase))
   const thumbById = new Map(distinct.map((id, i) => [id, thumbs[i]]))
 
+  // Warned once per distinct card, not once per copy: a card in two zones is one
+  // broken image, and a broken host should read as a list of cards, not of boxes.
+  const failed = new Set<string>()
+  for (const [id, result] of thumbById) {
+    if ('body' in result || result.failure === null) continue
+    failed.add(id)
+    console.warn(`deck image: no art for ${id}: ${result.failure}`)
+  }
+
   // Decoding is capped like fetching, and for the same reason: a 60-card deck
   // decoding, rotating and re-encoding every thumb at once holds all of them in
   // memory, and an OOM kill takes the gateway down rather than one reply.
-  return mapLimit(positioned, MAX_IN_FLIGHT, async (pc): Promise<OverlayOptions> => {
-    const thumb = thumbById.get(pc.card.cardId)
-    const image = thumb
-      ? await cardImage(thumb, px(pc.w, s), px(pc.h, s), pc.card.orientation === 'horizontal')
-      : null
-    if (image) return { input: image, left: px(pc.x, s), top: px(pc.y, s) }
+  const overlays = await mapLimit(positioned, MAX_IN_FLIGHT, async (pc): Promise<OverlayOptions> => {
+    const id = pc.card.cardId
+    const thumb = thumbById.get(id)!
+    const image = 'body' in thumb
+      ? await cardImage(thumb.body, px(pc.w, s), px(pc.h, s), pc.card.orientation === 'horizontal')
+      : thumb
+    if ('body' in image) return { input: image.body, left: px(pc.x, s), top: px(pc.y, s) }
+    if (image.failure !== null && !failed.has(id)) {
+      failed.add(id)
+      console.warn(`deck image: could not decode ${id}: ${image.failure}`)
+    }
     const name = await fitText(
       pc.card.name,
       { size: DECK_SHEET.fontSize.placeholder * s, color: DECK_SHEET_COLORS.parchment },
@@ -175,6 +195,7 @@ async function cardOverlays(
     )
     return centered(name, (pc.x + pc.w / 2) * s, (pc.y + pc.h / 2) * s)
   })
+  return { overlays, dropped: failed.size, distinct: distinct.length }
 }
 
 async function textOverlays(geom: SheetGeometry, title: string, s: number): Promise<OverlayOptions[]> {
@@ -229,8 +250,14 @@ export async function renderDeckImage(deck: PublicDeck, opts: DeckImageOptions):
     textOverlays(geom, layout.title, s),
   ])
 
+  if (cards.dropped > 0) {
+    // One line per render, so an unreachable image host is legible in the log
+    // instead of being one entry per card in the deck.
+    console.warn(`deck image: ${cards.dropped} of ${cards.distinct} card images missing for deck ${deck.id}`)
+  }
+
   return sharp(chromeSvg(geom, s))
-    .composite([...cards, { input: badgeSvg(geom, s) }, ...text])
+    .composite([...cards.overlays, { input: badgeSvg(geom, s) }, ...text])
     .webp({ quality: 90 })
     .toBuffer()
 }

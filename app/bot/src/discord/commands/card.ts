@@ -3,6 +3,7 @@ import {
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
 } from 'discord.js'
+import { getSubTypeLabels } from '@revelio/db'
 import type { Deps } from '../../clients'
 import { findCardById, findOneCard, resolveCardRulings, suggestCards } from '../../data/cards'
 import { toRevelioLocale } from '../../i18n/locale'
@@ -42,9 +43,10 @@ export async function execute(
     return
   }
 
-  const [setName, rulings] = await Promise.all([
+  const [setName, rulings, subTypeLabels] = await Promise.all([
     deps.sets.name(doc.setCode, locale),
     resolveCardRulings(deps.db, doc.id, locale),
+    getSubTypeLabels(deps.db, locale),
   ])
 
   await interaction.editReply({
@@ -52,6 +54,7 @@ export async function execute(
       locale,
       setName,
       rulings,
+      subTypeLabels,
       imageBase: deps.env.IMAGE_BASE_URL,
       siteBase: deps.env.SITE_BASE_URL,
     })],

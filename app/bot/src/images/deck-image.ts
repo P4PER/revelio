@@ -17,7 +17,13 @@ import type { PublicDeck } from '../data/decks'
 import { t } from '../i18n/t'
 import { fitText, renderText, type RenderedText } from './text'
 
-export type DeckImageOptions = { imageBase: string; locale: string }
+export type DeckImageOptions = {
+  imageBase: string
+  locale: string
+  // Test seam. Production never sets it; the default is Discord's practical
+  // ceiling for a non-boosted guild, with headroom under the real 10 MB.
+  maxAttachmentBytes?: number
+}
 
 // A card's picture, or why its box has none. `failure: null` is a card with no
 // stored image at all, which is normal and not worth a log line; a string is a
@@ -25,6 +31,11 @@ export type DeckImageOptions = { imageBase: string; locale: string }
 type CardImageResult = { body: Buffer } | { failure: string | null }
 
 const FETCH_TIMEOUT_MS = 5000
+// Discord rejects an attachment over 10 MB in a non-boosted guild, and the whole
+// interaction fails with it. The pixel budget already puts the worst PNG near
+// 6 MB, so this is a backstop rather than a working limit - but a failed upload
+// costs the reply, and a re-encode costs a second.
+const MAX_ATTACHMENT_BYTES = 9_000_000
 const MAX_IN_FLIGHT = 8
 // Padding either side of a placeholder's card name, as the web painter clamps it.
 const PLACEHOLDER_INSET = 16
@@ -256,8 +267,20 @@ export async function renderDeckImage(deck: PublicDeck, opts: DeckImageOptions):
     console.warn(`deck image: ${cards.dropped} of ${cards.distinct} card images missing for deck ${deck.id}`)
   }
 
-  return sharp(chromeSvg(geom, s))
-    .composite([...cards.overlays, { input: badgeSvg(geom, s) }, ...text])
-    .webp({ quality: 90 })
-    .toBuffer()
+  // clone() because a sharp pipeline cannot be consumed twice: without it the
+  // fallback would re-encode a finished pipeline and throw.
+  const sheet = sharp(chromeSvg(geom, s)).composite([...cards.overlays, { input: badgeSvg(geom, s) }, ...text])
+
+  // PNG so the file people pull out of Discord is lossless and ordinary. The
+  // card images it is drawn from are already lossy, so webp q90 was a second
+  // generation of loss on top of them for no gain.
+  const png = await sheet.clone().png({ compressionLevel: 9 }).toBuffer()
+  const limit = opts.maxAttachmentBytes ?? MAX_ATTACHMENT_BYTES
+  if (png.length <= limit) return png
+
+  // WebP bytes under a .png name, deliberately: Discord and every client sniff
+  // the content, and the embed references the upload by DECK_IMAGE_NAME, so a
+  // second name would let the embed and the attachment disagree.
+  console.warn(`deck image: ${png.length} byte PNG over the ${limit} byte limit, falling back to WebP`)
+  return sheet.clone().webp({ quality: 90 }).toBuffer()
 }

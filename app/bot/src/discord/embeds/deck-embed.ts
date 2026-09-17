@@ -10,7 +10,7 @@ export type DeckEmbedOptions = { locale: string; siteBase: string; view: DeckVie
 
 // The file name the command uploads the rendered deck under. The embed can only
 // reference an attachment by name, so both sides read it from here.
-export const DECK_IMAGE_NAME = 'deck.webp'
+export const DECK_IMAGE_NAME = 'deck.png'
 
 const FIELD_LIMIT = 1024
 const FALLBACK_COLOR = 0x2b2d31

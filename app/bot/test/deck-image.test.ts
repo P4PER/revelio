@@ -47,12 +47,23 @@ async function thumb(): Promise<Uint8Array> {
 }
 
 describe('renderDeckImage', () => {
-  it('renders a WebP at twice the shared sheet geometry', async () => {
+  it('renders a PNG at twice the shared sheet geometry', async () => {
     const body = await thumb()
     vi.stubGlobal('fetch', vi.fn(async () => new Response(body, { status: 200 })))
     const meta = await sharp(await renderDeckImage(deck, opts)).metadata()
+    expect(meta.format).toBe('png')
+    expect([meta.width, meta.height]).toEqual(sheetSize())
+  })
+
+  it('falls back to WebP rather than exceed the attachment limit', async () => {
+    const body = await thumb()
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(body, { status: 200 })))
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    // One byte, so the fallback runs on any deck rather than needing a huge one.
+    const meta = await sharp(await renderDeckImage(deck, { ...opts, maxAttachmentBytes: 1 })).metadata()
     expect(meta.format).toBe('webp')
     expect([meta.width, meta.height]).toEqual(sheetSize())
+    expect(warn.mock.calls.flat().join(' ')).toContain('falling back to WebP')
   })
 
   it('requests default-language thumbs and never fetches a card without an image', async () => {
@@ -77,7 +88,7 @@ describe('renderDeckImage', () => {
   it('treats a non-image response as a missing thumb', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     vi.stubGlobal('fetch', vi.fn(async () => new Response('not found', { status: 404 })))
-    expect((await sharp(await renderDeckImage(deck, opts)).metadata()).format).toBe('webp')
+    expect((await sharp(await renderDeckImage(deck, opts)).metadata()).format).toBe('png')
   })
 
   it('never has more than eight thumbs in flight', async () => {

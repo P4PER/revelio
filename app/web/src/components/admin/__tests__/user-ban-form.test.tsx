@@ -46,7 +46,10 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers()
-  process.env.TZ = ORIGINAL_TZ
+  // Assigning undefined to an env var stores the string "undefined", which Node
+  // reads as UTC; an unset TZ has to be deleted to get the host zone back.
+  if (ORIGINAL_TZ === undefined) delete process.env.TZ
+  else process.env.TZ = ORIGINAL_TZ
 })
 
 describe('UserBanForm', () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
@@ -17,6 +17,8 @@ vi.mock('sonner', () => ({ toast: { success: h.success, error: h.error, warning:
 
 const t = en.admin.users
 
+const ORIGINAL_TZ = process.env.TZ
+
 function renderForm(disabled: boolean) {
   return render(
     <NextIntlClientProvider locale="en" messages={en}>
@@ -29,9 +31,25 @@ function renderForm(disabled: boolean) {
 // <Label> it is wired to - not a textbox.
 const expiryTrigger = () => screen.getByRole('button', { name: t.banExpires })
 
+// Which day is "tomorrow" depends on the hour and the zone, so every test that
+// reads the calendar fixes both. Only Date is faked: userEvent needs real timers.
+function setClock(iso: string, timeZone: string) {
+  process.env.TZ = timeZone
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date(iso))
+}
+
 beforeEach(() => {
   Object.values(h).forEach((f) => f.mockReset())
   h.banUser.mockResolvedValue({ ok: true })
+})
+
+afterEach(() => {
+  vi.useRealTimers()
+  // Assigning undefined to an env var stores the string "undefined", which Node
+  // reads as UTC; an unset TZ has to be deleted to get the host zone back.
+  if (ORIGINAL_TZ === undefined) delete process.env.TZ
+  else process.env.TZ = ORIGINAL_TZ
 })
 
 describe('UserBanForm', () => {
@@ -61,40 +79,47 @@ describe('UserBanForm', () => {
   // A ban ending today or earlier is lifted at the next sign-in, and the server
   // rejects it, so the picker does not offer those days.
   it('offers no expiry day before tomorrow', async () => {
+    setClock('2026-09-16T12:00:00Z', 'Europe/Berlin')
     renderForm(false)
     await userEvent.click(expiryTrigger())
-    expect(await screen.findByRole('button', { name: /today/i })).toBeDisabled()
+    expect(await screen.findByRole('button', { name: /September 16th/ })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /September 17th/ })).toBeEnabled()
+  })
+
+  // East of UTC just after local midnight the UTC date is still yesterday, so
+  // the UTC tomorrow is the local today. Picking it is a valid ban that ends at
+  // the next UTC midnight, and banUser accepts it.
+  it('offers the local today east of UTC while the UTC date is still yesterday', async () => {
+    setClock('2026-09-16T23:16:00Z', 'Europe/Berlin') // 01:16 on Sep 17 in Berlin
+    renderForm(false)
+    await userEvent.click(expiryTrigger())
+    expect(await screen.findByRole('button', { name: /September 16th/ })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /Today, .*September 17th/ })).toBeEnabled()
   })
 
   // The server reads the picked day as UTC midnight. West of UTC in the evening
   // the local tomorrow has already started in UTC, so it must not be offered.
   it('takes tomorrow from the UTC date, not the local one', async () => {
-    const tz = process.env.TZ
-    process.env.TZ = 'America/New_York'
-    vi.useFakeTimers({ toFake: ['Date'] })
-    vi.setSystemTime(new Date('2026-09-17T01:00:00Z')) // 20:00 on Sep 16 in New York
-    try {
-      renderForm(false)
-      await userEvent.click(expiryTrigger())
-      expect(await screen.findByRole('button', { name: /September 17th/ })).toBeDisabled()
-      expect(screen.getByRole('button', { name: /September 18th/ })).toBeEnabled()
-    } finally {
-      vi.useRealTimers()
-      process.env.TZ = tz
-    }
+    setClock('2026-09-17T01:00:00Z', 'America/New_York') // 20:00 on Sep 16 in New York
+    renderForm(false)
+    await userEvent.click(expiryTrigger())
+    expect(await screen.findByRole('button', { name: /September 17th/ })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /September 18th/ })).toBeEnabled()
   })
 
-  // A ban cannot end in the past, so the year dropdown starts at the current
-  // year instead of the shared picker's 1990.
-  it('offers expiry years from now up to ten years ahead', async () => {
+  // A ban cannot end in the past, so the year dropdown starts at the year of the
+  // earliest expiry instead of the shared picker's 1990. Pinned to 00:30 on
+  // New Year's Eve in Berlin: locally tomorrow is already next year, but the
+  // UTC tomorrow is still December 31st, so this year stays on offer.
+  it('offers expiry years from the earliest expiry up to ten years ahead', async () => {
+    setClock('2026-12-30T23:30:00Z', 'Europe/Berlin')
     renderForm(false)
     await userEvent.click(expiryTrigger())
     const years = within(await screen.findByRole('combobox', { name: /year/i }))
       .getAllByRole('option')
       .map((o) => Number(o.textContent))
-    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).getFullYear()
-    expect(years[0]).toBe(tomorrow)
-    expect(years.at(-1)).toBe(tomorrow + 10)
+    expect(years[0]).toBe(2026)
+    expect(years.at(-1)).toBe(2036)
   })
 
   async function confirmBan() {

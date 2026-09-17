@@ -10,6 +10,14 @@ export function thumbKey(id: string, version: number, lang?: string, defaultLang
   return `cards/thumb/${id}${langSuffix(lang, defaultLang)}.${version}.webp`
 }
 
+// A horizontal card's thumb turned upright. Card faces are stored portrait, with
+// a landscape card turned a quarter counter-clockwise onto the canvas; the web
+// turns it back with CSS, but a Discord embed only takes a URL. Only horizontal
+// cards have one, and it shares the thumb's version so both bust together.
+export function landscapeThumbKey(id: string, version: number, lang?: string, defaultLang?: string): string {
+  return `cards/landscape-thumb/${id}${langSuffix(lang, defaultLang)}.${version}.webp`
+}
+
 // Deck-hero art crop: a pre-cropped, upright character image baked at ingest time.
 // Default-language only (no lang suffix) — the deck hero always shows the en art.
 export function artCropKey(id: string, version: number): string {

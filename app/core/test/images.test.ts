@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { imageKey, thumbKey, symbolKey, imageUrl, artCropKey, effectiveImageLang } from '../src/images.js'
+import { imageKey, thumbKey, landscapeThumbKey, symbolKey, imageUrl, artCropKey, effectiveImageLang } from '../src/images.js'
 
 describe('image keys and urls', () => {
   it('builds versioned object keys', () => {
@@ -21,6 +21,8 @@ describe('language-aware versioned keys', () => {
     expect(imageKey('x-1', 5, 'de', 'en')).toBe('cards/x-1.de.5.webp')
     expect(thumbKey('x-1', 5, 'en', 'en')).toBe('cards/thumb/x-1.5.webp')
     expect(thumbKey('x-1', 5, 'de', 'en')).toBe('cards/thumb/x-1.de.5.webp')
+    expect(landscapeThumbKey('x-1', 5, 'en', 'en')).toBe('cards/landscape-thumb/x-1.5.webp')
+    expect(landscapeThumbKey('x-1', 5, 'de', 'en')).toBe('cards/landscape-thumb/x-1.de.5.webp')
   })
 
   it('resolves the effective image language with fallback', () => {

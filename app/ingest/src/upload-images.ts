@@ -102,6 +102,15 @@ async function collectUploads(assetsDir: string): Promise<Upload[]> {
     if (v == null) continue
     uploads.push({ file: join(thumbDir, f), key: `cards/thumb/${c.id}.${v}.webp`, contentType: c.contentType })
   }
+  const landscapeDir = resolve(cardsDir, 'landscape-thumb')
+  for (const f of await readdirSafe(landscapeDir)) {
+    const c = classify(f)
+    if (!c) continue
+    // Versioned by the full image, like the thumb it was turned from.
+    const v = fileVersion(join(cardsDir, f))
+    if (v == null) continue
+    uploads.push({ file: join(landscapeDir, f), key: `cards/landscape-thumb/${c.id}.${v}.webp`, contentType: c.contentType })
+  }
   const artCropDir = resolve(cardsDir, 'art-crop')
   for (const f of await readdirSafe(artCropDir)) {
     const c = classify(f)

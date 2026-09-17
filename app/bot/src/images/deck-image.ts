@@ -24,6 +24,8 @@ export type DeckImageOptions = {
   // Test seam. Production never sets it; the default is Discord's practical
   // ceiling for a non-boosted guild, with headroom under the real 10 MB.
   maxAttachmentBytes?: number
+  // Test seam, so a test can spend the budget without waiting out FETCH_BUDGET_MS.
+  fetchBudgetMs?: number
 }
 
 // A card's picture, or why its box has none. `failure: null` is a card with no
@@ -34,6 +36,13 @@ type CardImageResult = { body: Buffer } | { failure: string | null }
 // Matches web's IMG_TIMEOUT_MS. The full card image is ~317 KB against a thumb's
 // ~23 KB, so the 5s that covered a thumb does not cover this.
 const FETCH_TIMEOUT_MS = 10_000
+// Wall clock for the whole fetch phase. A per-request timeout bounds one card,
+// not the render: at MAX_IN_FLIGHT a 200-card deck against a black-holed host
+// serialises 25 waves of FETCH_TIMEOUT_MS, so /deck would sit on a deferral for
+// four minutes before falling back to the list. That is the misconfiguration
+// IMAGE_FETCH_BASE_URL exists to make possible, so it is worth bounding: past
+// this, the cards still outstanding draw as placeholders.
+const FETCH_BUDGET_MS = 30_000
 // Discord rejects an attachment over 10 MB in a non-boosted guild, and the whole
 // interaction fails with it. The pixel budget already puts the worst PNG near
 // 6 MB, so this is a backstop rather than a working limit - but a failed upload
@@ -167,12 +176,22 @@ function centered(rendered: RenderedText, centerX: number, centerY: number): Ove
   }
 }
 
-async function fetchCardImage(card: DeckSheetCard, imageBase: string, fullArt: boolean): Promise<CardImageResult> {
+// `deadline` is an epoch millisecond, shared by every fetch in one render, and
+// clamping each request's own timeout to what is left of it is what holds the
+// phase to its budget rather than to the budget plus one more timeout.
+async function fetchCardImage(
+  card: DeckSheetCard,
+  imageBase: string,
+  fullArt: boolean,
+  deadline: number,
+): Promise<CardImageResult> {
   if (card.imageVersion == null) return { failure: null }
+  const left = deadline - Date.now()
+  if (left <= 0) return { failure: 'fetch budget spent' }
   const key = fullArt ? imageKey : thumbKey
   try {
     const res = await fetch(imageUrl(imageBase, key(card.cardId, card.imageVersion)), {
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      signal: AbortSignal.timeout(Math.min(FETCH_TIMEOUT_MS, left)),
     })
     if (!res.ok) return { failure: `HTTP ${res.status}` }
     return { body: Buffer.from(await res.arrayBuffer()) }
@@ -204,12 +223,15 @@ async function cardOverlays(
   sections: PositionedSection[],
   imageBase: string,
   s: number,
+  budgetMs: number,
 ): Promise<{ overlays: OverlayOptions[]; dropped: number; distinct: number }> {
   const positioned = sections.flatMap((section) => section.cards)
   const distinct = [...new Set(positioned.map((pc) => pc.card.cardId))]
   const cardById = new Map(positioned.map((pc) => [pc.card.cardId, pc.card]))
   const fullArt = usesFullArt(s)
-  const fetched = await mapLimit(distinct, MAX_IN_FLIGHT, (id) => fetchCardImage(cardById.get(id)!, imageBase, fullArt))
+  const deadline = Date.now() + budgetMs
+  const fetched = await mapLimit(distinct, MAX_IN_FLIGHT, (id) =>
+    fetchCardImage(cardById.get(id)!, imageBase, fullArt, deadline))
   const imageById = new Map(distinct.map((id, i) => [id, fetched[i]]))
 
   // Warned once per distinct card, not once per copy: a card in two zones is one
@@ -294,7 +316,7 @@ export async function renderDeckImage(deck: PublicDeck, opts: DeckImageOptions):
   const s = sheetScale(geom)
 
   const [cards, text] = await Promise.all([
-    cardOverlays(geom.sections, opts.imageBase, s),
+    cardOverlays(geom.sections, opts.imageBase, s, opts.fetchBudgetMs ?? FETCH_BUDGET_MS),
     textOverlays(geom, layout.title, s),
   ])
 

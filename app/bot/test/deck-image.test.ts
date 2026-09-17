@@ -149,6 +149,27 @@ describe('renderDeckImage', () => {
     expect(stray).toEqual([])
   })
 
+  it('abandons the fetch phase once its budget is spent', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const dialled: string[] = []
+    vi.stubGlobal('fetch', vi.fn((url: string, init: RequestInit) => {
+      dialled.push(String(url))
+      // Never answers, so only the budget can end it.
+      return new Promise((_resolve, reject) => {
+        init.signal!.addEventListener('abort', () => reject(init.signal!.reason))
+      })
+    }))
+
+    const started = Date.now()
+    const meta = await sharp(await renderDeckImage(deck, { ...opts, fetchBudgetMs: 150 })).metadata()
+    // The eight that were in flight when the budget ran out. The three behind
+    // them were never dialled, which is the whole point: without the budget
+    // every one of them would cost another FETCH_TIMEOUT_MS.
+    expect(dialled).toHaveLength(8)
+    expect(Date.now() - started).toBeLessThan(5_000)
+    expect([meta.width, meta.height]).toEqual(sheetSize())
+  })
+
   it('never has more than eight card images in flight', async () => {
     const body = await thumb()
     let inFlight = 0

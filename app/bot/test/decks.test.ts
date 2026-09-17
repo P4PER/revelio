@@ -31,10 +31,10 @@ describe('parseDeckRef', () => {
 })
 
 const views = [
-  { cardId: 'c1', zone: 'character', quantity: 1, name: 'Harry Potter', cost: null, lesson: null, types: ['character'], subTypes: ['wizard'], isLesson: false, isStartingCharacter: true, isOfficial: true, legality: 'legal' },
-  { cardId: 'c2', zone: 'main', quantity: 4, name: 'Alohomora', cost: 2, lesson: 'charms', types: ['spell'], subTypes: [], isLesson: false, isStartingCharacter: false, isOfficial: true, legality: 'legal' },
-  { cardId: 'c3', zone: 'main', quantity: 8, name: 'Charms Lesson', cost: 0, lesson: 'charms', types: ['lesson'], subTypes: [], isLesson: true, isStartingCharacter: false, isOfficial: true, legality: 'legal' },
-  { cardId: 'c4', zone: 'sideboard', quantity: 2, name: 'Nimbus 2000', cost: 4, lesson: 'quidditch', types: ['item'], subTypes: [], isLesson: false, isStartingCharacter: false, isOfficial: true, legality: 'legal' },
+  { cardId: 'c1', zone: 'character', quantity: 1, name: 'Harry Potter', imageVersion: 3, cost: null, lesson: null, types: ['character'], subTypes: ['wizard'], isLesson: false, isStartingCharacter: true, isOfficial: true, legality: 'legal' },
+  { cardId: 'c2', zone: 'main', quantity: 4, name: 'Alohomora', imageVersion: 5, cost: 2, lesson: 'charms', types: ['spell'], subTypes: [], isLesson: false, isStartingCharacter: false, isOfficial: true, legality: 'legal' },
+  { cardId: 'c3', zone: 'main', quantity: 8, name: 'Charms Lesson', imageVersion: null, cost: 0, lesson: 'charms', types: ['lesson'], subTypes: [], isLesson: true, isStartingCharacter: false, isOfficial: true, legality: 'legal' },
+  { cardId: 'c4', zone: 'sideboard', quantity: 2, name: 'Nimbus 2000', imageVersion: 1, cost: 4, lesson: 'quidditch', types: ['item'], subTypes: [], isLesson: false, isStartingCharacter: false, isOfficial: true, legality: 'legal' },
 ]
 
 export function stubDeck() {
@@ -87,6 +87,15 @@ describe('getPublicDeck', () => {
     vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
     // 12 main-deck cards is short of 60, so the shared evaluator says incomplete.
     expect((await getPublicDeck({} as never, 'abc123'))!.status).toBe('incomplete')
+  })
+
+  // The deck image draws one thumb per entry, and a thumb key needs both.
+  it('carries each entry\'s card id and image version into every zone', async () => {
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    const deck = (await getPublicDeck({} as never, 'abc123'))!
+    expect(deck.character).toMatchObject({ cardId: 'c1', imageVersion: 3 })
+    expect(deck.main.map((e) => [e.cardId, e.imageVersion])).toEqual([['c3', null], ['c2', 5]])
+    expect(deck.sideboard.map((e) => [e.cardId, e.imageVersion])).toEqual([['c4', 1]])
   })
 
   it('carries the owner username through', async () => {

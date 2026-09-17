@@ -54,7 +54,10 @@ export async function execute(
   const wantsImage = interaction.options.getString('view') !== 'list' && deck.entries.length > 0
   if (wantsImage) {
     try {
-      const image = await renderDeckImage(deck, { imageBase: deps.env.IMAGE_BASE_URL, locale })
+      // The bot fetches this one itself, so it takes the fetch base - not
+      // IMAGE_BASE_URL, which is the host Discord fetches embed images from and
+      // may well be unreachable from in here.
+      const image = await renderDeckImage(deck, { imageBase: deps.env.IMAGE_FETCH_BASE_URL, locale })
       await interaction.editReply({
         embeds: [embedOf('image')],
         files: [new AttachmentBuilder(image, { name: DECK_IMAGE_NAME })],

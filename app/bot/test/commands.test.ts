@@ -63,7 +63,7 @@ function fakeDeps(hits: unknown[], total: number) {
     meili: fakeMeili(search),
     db: {},
     sets: { name: vi.fn().mockResolvedValue('Base Set') },
-    env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
+    env: { IMAGE_BASE_URL: 'https://img.test', IMAGE_FETCH_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
   }
 }
 
@@ -184,7 +184,7 @@ function fastPathDeps(search: unknown) {
     meili: fakeMeili(search as ReturnType<typeof vi.fn>),
     db: {},
     sets: { name: vi.fn().mockResolvedValue('Base Set') },
-    env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
+    env: { IMAGE_BASE_URL: 'https://img.test', IMAGE_FETCH_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
   }
 }
 
@@ -219,7 +219,7 @@ describe('/search set filter', () => {
       meili: fakeMeili(search),
       db: {},
       sets: { name: vi.fn(), all: vi.fn() },
-      env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
+      env: { IMAGE_BASE_URL: 'https://img.test', IMAGE_FETCH_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
     }
     const interaction = fakeInteraction({ query: 'broom', set: 'base' })
     await COMMANDS.get('search')!.execute(interaction as never, deps as never)
@@ -288,6 +288,21 @@ describe('/deck', () => {
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     const payload = interaction.editReply.mock.calls[0][0]
     expect(payload.embeds[0].toJSON().title).toBe('Charms Aggro')
+  })
+
+  // The bot performs this GET itself, so the sheet has to come from the host it
+  // can reach, not the public one Discord fetches embed images from.
+  it('renders the deck sheet from the fetch base, not the public one', async () => {
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    const deps = fakeDeps([], 0)
+    deps.env = {
+      ...deps.env,
+      IMAGE_BASE_URL: 'https://public.test/images',
+      IMAGE_FETCH_BASE_URL: 'http://internal.test:9000/images',
+    }
+    await COMMANDS.get('deck')!.execute(fakeInteraction({ deck: 'abc123' }) as never, deps as never)
+    const [, options] = vi.mocked(renderDeckImage).mock.calls.at(-1)!
+    expect(options.imageBase).toBe('http://internal.test:9000/images')
   })
 
   // getString returns null for an option nobody passed, which is exactly what

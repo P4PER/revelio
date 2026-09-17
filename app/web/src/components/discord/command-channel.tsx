@@ -14,6 +14,8 @@ type SearchLine = { name: string; setCode: string; number: string }
  *   - the card footer is `{setName} - #{number}`
  *   - the search footer is `Page {page} of {pages} - view all on revelio.cards`
  *   - the card fields are the ones the command adds, in order
+ *   - the card art is the embed image (setImage), under the fields and above the
+ *     footer, not a corner thumbnail; a horizontal card would show landscape
  *
  * The colours below are Discord's own surface palette, deliberately hardcoded
  * rather than taken from the Revelio theme tokens: this depicts Discord's UI,
@@ -146,29 +148,25 @@ export function CommandChannel() {
         <CommandContext command="/card" />
         <BotMessage time="21:04">
           <Embed accent={LESSON_CHARMS}>
-            <div className="flex gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="mb-1 text-sm font-semibold" style={{ color: DISCORD_LINK }}>
-                  {t('sample.cardName')}
-                </p>
-                <p className="mb-2 text-[0.8rem]">{t('sample.cardText')}</p>
-                <div className="mb-2 grid grid-cols-3 gap-x-3 gap-y-1.5">
-                  <EmbedField name={t('sample.fieldType')} value={t('sample.fieldTypeValue')} />
-                  <EmbedField name={t('sample.fieldLesson')} value={t('sample.fieldLessonValue')} />
-                  <EmbedField name={t('sample.fieldCost')} value={t('sample.fieldCostValue')} />
-                </div>
-                <p className="text-[0.69rem]" style={{ color: DISCORD_MUTED }}>
-                  {t('sample.cardFooter')}
-                </p>
-              </div>
-              <Image
-                src={SAMPLE_CARD_THUMB}
-                alt={t('cardImageAlt', { name: t('sample.cardName') })}
-                width={300}
-                height={419}
-                className="h-auto w-[4.4rem] shrink-0 self-start rounded"
-              />
+            <p className="mb-1 text-sm font-semibold" style={{ color: DISCORD_LINK }}>
+              {t('sample.cardName')}
+            </p>
+            <p className="mb-2 text-[0.8rem]">{t('sample.cardText')}</p>
+            <div className="mb-2 grid grid-cols-3 gap-x-3 gap-y-1.5">
+              <EmbedField name={t('sample.fieldType')} value={t('sample.fieldTypeValue')} />
+              <EmbedField name={t('sample.fieldLesson')} value={t('sample.fieldLessonValue')} />
+              <EmbedField name={t('sample.fieldCost')} value={t('sample.fieldCostValue')} />
             </div>
+            <Image
+              src={SAMPLE_CARD_THUMB}
+              alt={t('cardImageAlt', { name: t('sample.cardName') })}
+              width={300}
+              height={419}
+              className="mb-2 h-auto w-40 rounded"
+            />
+            <p className="text-[0.69rem]" style={{ color: DISCORD_MUTED }}>
+              {t('sample.cardFooter')}
+            </p>
           </Embed>
         </BotMessage>
 

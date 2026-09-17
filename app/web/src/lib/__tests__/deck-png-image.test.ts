@@ -14,6 +14,18 @@ function stubBitmap() {
   vi.stubGlobal('createImageBitmap', vi.fn(async () => ({ width: 745, height: 1040 })))
 }
 
+// A hand-rolled response rather than `new Response(new Blob(...))`: under jsdom
+// the Blob comes from a different realm than undici's Response, and reading it
+// back throws on Node 22 while passing on 25 - a version-dependent test, not a
+// version-dependent module.
+function okResponse(): Response {
+  return { ok: true, status: 200, blob: async () => ({ size: 1, type: 'image/webp' }) } as unknown as Response
+}
+
+function errorResponse(): Response {
+  return { ok: false, status: 404, blob: async () => { throw new Error('no body') } } as unknown as Response
+}
+
 afterEach(() => { vi.unstubAllGlobals() })
 
 describe('loadCardImage', () => {
@@ -26,7 +38,7 @@ describe('loadCardImage', () => {
    * images are immutable for a year). Going past the cache is what avoids it.
    */
   it('fetches past the HTTP cache so a plain page view cannot poison the export', async () => {
-    const fetchMock = vi.fn(async () => new Response(new Blob([new Uint8Array([1])]), { status: 200 }))
+    const fetchMock = vi.fn(async () => okResponse())
     vi.stubGlobal('fetch', fetchMock)
     stubBitmap()
 
@@ -46,7 +58,7 @@ describe('loadCardImage', () => {
   })
 
   it('resolves null on a non-ok response', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('nope', { status: 404 })))
+    vi.stubGlobal('fetch', vi.fn(async () => errorResponse()))
     stubBitmap()
     expect(await loadCardImage(card)).toBeNull()
   })

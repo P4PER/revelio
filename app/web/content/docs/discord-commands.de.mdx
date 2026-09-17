@@ -27,13 +27,19 @@ sich kombinieren: Lektion und Set zusammen schränken auf beides ein.
 
 ## Deck nachschlagen
 
-Zeigt ein öffentliches Deck per Link oder ID: Charakter, Hauptdeck, Sideboard,
-Format und Legalität. So lassen sich nur öffentliche Decks nachschlagen - deine
-eigenen privaten Decks listet `/mydecks` auf.
+Zeigt ein öffentliches Deck per Link oder ID als Bild seiner Karten - dasselbe
+Deck-Blatt, das im Deck-Builder unter "PNG exportieren" herauskommt, nach
+Kartentyp gruppiert und mit der Anzahl auf jeder Karte. Das Embed darüber nennt
+Charakter, Format und Legalität. Mit `view:list` kommt stattdessen eine
+Textliste, die sich auf einer langsamen Verbindung besser liest und kopieren
+lässt. So lassen sich nur öffentliche Decks nachschlagen - deine eigenen
+privaten Decks listet `/mydecks` auf.
 
 <CommandTable name="deck" />
 
 <CommandExample>/deck deck:https://revelio.cards/decks/abc123</CommandExample>
+
+<CommandExample>/deck deck:abc123 view:list</CommandExample>
 
 ## Deine eigenen Daten
 

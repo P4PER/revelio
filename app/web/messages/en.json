@@ -823,7 +823,7 @@
         "description": "The same search as the site, paged, with a link back to the full results."
       },
       "deck": {
-        "description": "Any public decklist by link or id: character, main deck, sideboard, legality."
+        "description": "Any public deck by link or id, as a picture of its cards or as a text list."
       },
       "collection": {
         "description": "How far along you are, overall or in one set."

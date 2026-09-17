@@ -775,7 +775,7 @@
         "description": "Dieselbe Suche wie auf der Website, seitenweise, mit Link zu den vollständigen Ergebnissen."
       },
       "deck": {
-        "description": "Jedes öffentliche Deck per Link oder ID: Startcharakter, Hauptdeck, Sideboard, Legalität."
+        "description": "Jedes öffentliche Deck per Link oder ID - als Bild seiner Karten oder als Textliste."
       },
       "collection": {
         "description": "Wie weit du bist, insgesamt oder in einem Set."

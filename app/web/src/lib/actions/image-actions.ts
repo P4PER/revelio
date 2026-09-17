@@ -1,7 +1,7 @@
 'use server'
 import sharp from 'sharp'
 import { revalidatePath } from 'next/cache'
-import { imageKey, thumbKey } from '@revelio/core'
+import { imageKey, thumbKey, landscapeThumbKey, type CardDetailDTO } from '@revelio/core'
 import { requireRole } from '@/lib/server/session'
 import { getDb } from '@/lib/server/db'
 import { getCardById, getCardIndexData, setLocalizationImage } from '@revelio/db'
@@ -11,9 +11,19 @@ import { reindexCard } from '@revelio/search'
 import { routing } from '@/../i18n/routing'
 
 export type ImageResult = { ok: true; warning?: string } | { ok: false; error: string }
+type ImageCard = Pick<CardDetailDTO, 'id' | 'defaultLanguage' | 'orientation'>
 
 const MAX_BYTES = 5 * 1024 * 1024
 const IMMUTABLE_CACHE = 'public, max-age=31536000, immutable'
+
+// Every object stored for one image version. A horizontal card also has a
+// landscape copy of its thumb, which the Discord bot shows instead of the
+// sideways portrait file.
+function storedKeys(card: ImageCard, lang: string, version: number): string[] {
+  const keys = [imageKey(card.id, version, lang, card.defaultLanguage), thumbKey(card.id, version, lang, card.defaultLanguage)]
+  if (card.orientation === 'horizontal') keys.push(landscapeThumbKey(card.id, version, lang, card.defaultLanguage))
+  return keys
+}
 
 async function reindex(cardId: string): Promise<string | undefined> {
   try {
@@ -48,12 +58,17 @@ export async function uploadCardImage(formData: FormData): Promise<ImageResult> 
   const s3 = getS3()
   const prev = card.localizations[lang]?.imageVersion ?? null
   if (prev != null) {
-    await deleteObject(s3, imageKey(cardId, prev, lang, card.defaultLanguage))
-    await deleteObject(s3, thumbKey(cardId, prev, lang, card.defaultLanguage))
+    for (const key of storedKeys(card, lang, prev)) await deleteObject(s3, key)
   }
   const version = Math.floor(Date.now() / 1000)
   await putObject(s3, imageKey(cardId, version, lang, card.defaultLanguage), full, 'image/webp', IMMUTABLE_CACHE)
   await putObject(s3, thumbKey(cardId, version, lang, card.defaultLanguage), thumb, 'image/webp', IMMUTABLE_CACHE)
+  if (card.orientation === 'horizontal') {
+    // Card faces are stored portrait with a landscape card turned a quarter
+    // counter-clockwise, so a quarter clockwise stands it upright.
+    const landscape = await sharp(thumb).rotate(90).webp({ quality: 80 }).toBuffer()
+    await putObject(s3, landscapeThumbKey(cardId, version, lang, card.defaultLanguage), landscape, 'image/webp', IMMUTABLE_CACHE)
+  }
   await setLocalizationImage(db, cardId, lang, version)
 
   const warning = await reindex(cardId)
@@ -74,8 +89,7 @@ export async function removeCardImage(cardId: string, lang: string): Promise<Ima
   const s3 = getS3()
   const prev = card.localizations[lang]?.imageVersion ?? null
   if (prev != null) {
-    await deleteObject(s3, imageKey(cardId, prev, lang, card.defaultLanguage))
-    await deleteObject(s3, thumbKey(cardId, prev, lang, card.defaultLanguage))
+    for (const key of storedKeys(card, lang, prev)) await deleteObject(s3, key)
   }
   await setLocalizationImage(db, cardId, lang, null)
 

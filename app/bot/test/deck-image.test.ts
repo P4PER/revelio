@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import sharp from 'sharp'
 import { DECK_SHEET, computeSheetGeometry, layoutDeckSheet, type DeckCardView } from '@revelio/core'
-import { MAX_SHEET_PIXELS, renderDeckImage, sheetScale } from '../src/images/deck-image'
+import { MAX_SHEET_PIXELS, renderDeckImage, sheetScale, usesFullArt } from '../src/images/deck-image'
 import type { PublicDeck } from '../src/data/decks'
 
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks() })
@@ -53,6 +53,12 @@ async function thumb(): Promise<Uint8Array> {
   }).webp().toBuffer())
 }
 
+// 200 distinct main-deck cards: far past the budget, so the clamp has to bite.
+const hugeEntries: DeckCardView[] = Array.from({ length: 200 }, (_, i) =>
+  view(`creature${i}`, 'main', ['creature']),
+)
+const hugeDeck: PublicDeck = { ...deck, entries: hugeEntries, mainCount: 400 }
+
 describe('renderDeckImage', () => {
   it('renders a PNG at the shared sheet geometry', async () => {
     const body = await thumb()
@@ -83,6 +89,16 @@ describe('renderDeckImage', () => {
     expect(urls.some((url) => url.includes('/cards/thumb/'))).toBe(false)
     expect(urls.some((url) => url.includes('noimg'))).toBe(false)
   })
+
+  it('drops to thumbs once the budget has shrunk the boxes', async () => {
+    const body = await thumb()
+    const fetchMock = vi.fn(async (_url: string) => new Response(body, { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+    await renderDeckImage(hugeDeck, opts)
+    const urls = fetchMock.mock.calls.map(([url]) => String(url))
+    expect(urls).toHaveLength(200)
+    expect(urls.every((url) => url.includes('/cards/thumb/'))).toBe(true)
+  }, 60_000)
 
   it('still renders when every card image fails to load', async () => {
     // Deliberately broken: the warnings it now raises are asserted on in
@@ -150,12 +166,6 @@ describe('renderDeckImage', () => {
   })
 })
 
-// 200 distinct main-deck cards: far past the budget, so the clamp has to bite.
-const hugeEntries: DeckCardView[] = Array.from({ length: 200 }, (_, i) =>
-  view(`creature${i}`, 'main', ['creature']),
-)
-const hugeDeck: PublicDeck = { ...deck, entries: hugeEntries, mainCount: 400 }
-
 describe('sheetScale', () => {
   it('paints a small deck at the full shared scale', () => {
     // Three cards in two sections: well inside the budget, so nothing clamps.
@@ -174,6 +184,15 @@ describe('sheetScale', () => {
     const scale = sheetScale(geom)
     expect(scale).toBeLessThan(DECK_SHEET.scale)
     expect(geom.width * scale * (geom.height * scale)).toBeLessThanOrEqual(MAX_SHEET_PIXELS)
+  })
+
+  it('draws the fixture and anything smaller from the full card art', () => {
+    expect(usesFullArt(sheetScale(geomOf(deck, entries)))).toBe(true)
+    expect(usesFullArt(DECK_SHEET.scale)).toBe(true)
+  })
+
+  it('draws an oversized deck from the thumbs instead', () => {
+    expect(usesFullArt(sheetScale(geomOf(hugeDeck, hugeEntries)))).toBe(false)
   })
 
   it('renders an oversized deck inside the budget', async () => {

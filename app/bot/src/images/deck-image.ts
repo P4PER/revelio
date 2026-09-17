@@ -8,6 +8,7 @@ import {
   imageUrl,
   layoutDeckSheet,
   mapLimit,
+  thumbKey,
   type DeckSheetCard,
   type DeckSheetLabels,
   type PositionedSection,
@@ -41,6 +42,13 @@ const MAX_ATTACHMENT_BYTES = 9_000_000
 const MAX_IN_FLIGHT = 8
 // Padding either side of a placeholder's card name, as the web painter clamps it.
 const PLACEHOLDER_INSET = 16
+// Width of a stored thumb, baked by card-data/accio_images.py and web's upload
+// action; the full image beside it is 745 wide.
+const THUMB_WIDTH = 300
+// How far a thumb must be able to shrink before it is worth drawing from. Below
+// this it is painted near 1:1 and carries its own webp artefacts into the sheet,
+// which is what the full art is for.
+const MIN_THUMB_DOWNSCALE = 1.5
 // Upper bound on the painted sheet, in device pixels. Two things scale with canvas
 // area and this bounds both: peak RSS, at roughly 215 MB plus 28 MB per megapixel,
 // and the encoded PNG, at roughly 1.6 MB per megapixel. At 5 Mpx a 60-entry deck
@@ -64,6 +72,21 @@ export const MAX_SHEET_PIXELS = 5_000_000
 export function sheetScale(geom: SheetGeometry): number {
   const budget = Math.sqrt(MAX_SHEET_PIXELS / (geom.width * geom.height))
   return Math.min(DECK_SHEET.scale, budget)
+}
+
+/**
+ * Whether this sheet is worth drawing from the full card images rather than the
+ * thumbs. One decision per render, not per card: every box is the same card at
+ * the same scale, and DECK_SHEET.cardWidth * s is the short side of all of them,
+ * portrait or turned.
+ *
+ * At the full 2x that side is 264px against a thumb's 300 - a 1.14:1 repaint of
+ * an already lossy source, which is what the full art buys off. Once the pixel
+ * budget pulls the scale down the thumb has real headroom instead, and a
+ * 100-entry deck would otherwise pull ~31 MB of art to paint 154px boxes.
+ */
+export function usesFullArt(s: number): boolean {
+  return DECK_SHEET.cardWidth * s * MIN_THUMB_DOWNSCALE > THUMB_WIDTH
 }
 
 // A layout coordinate in device pixels. sharp rejects a fractional composite
@@ -144,10 +167,11 @@ function centered(rendered: RenderedText, centerX: number, centerY: number): Ove
   }
 }
 
-async function fetchCardImage(card: DeckSheetCard, imageBase: string): Promise<CardImageResult> {
+async function fetchCardImage(card: DeckSheetCard, imageBase: string, fullArt: boolean): Promise<CardImageResult> {
   if (card.imageVersion == null) return { failure: null }
+  const key = fullArt ? imageKey : thumbKey
   try {
-    const res = await fetch(imageUrl(imageBase, imageKey(card.cardId, card.imageVersion)), {
+    const res = await fetch(imageUrl(imageBase, key(card.cardId, card.imageVersion)), {
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     })
     if (!res.ok) return { failure: `HTTP ${res.status}` }
@@ -184,7 +208,8 @@ async function cardOverlays(
   const positioned = sections.flatMap((section) => section.cards)
   const distinct = [...new Set(positioned.map((pc) => pc.card.cardId))]
   const cardById = new Map(positioned.map((pc) => [pc.card.cardId, pc.card]))
-  const fetched = await mapLimit(distinct, MAX_IN_FLIGHT, (id) => fetchCardImage(cardById.get(id)!, imageBase))
+  const fullArt = usesFullArt(s)
+  const fetched = await mapLimit(distinct, MAX_IN_FLIGHT, (id) => fetchCardImage(cardById.get(id)!, imageBase, fullArt))
   const imageById = new Map(distinct.map((id, i) => [id, fetched[i]]))
 
   // Warned once per distinct card, not once per copy: a card in two zones is one
@@ -257,11 +282,11 @@ async function textOverlays(geom: SheetGeometry, title: string, s: number): Prom
  * web paints in system-ui at three weights, this bundles one Poppins face - and
  * only one weight is worth 160 KB in the image.
  *
- * Renders from the full card images, like the web export: the card box is
- * 264x370 device pixels at 2x, so a 300px thumb is a 1:1 render of an already
- * lossy source. An image that cannot be fetched or decoded leaves the
- * placeholder box with the card name, so a missing image never costs the whole
- * reply.
+ * The source is picked per sheet by usesFullArt: full card images while the
+ * boxes are big enough for a thumb to show its own compression, the thumbs once
+ * the pixel budget has shrunk them. An image that cannot be fetched or decoded
+ * leaves the placeholder box with the card name, so a missing image never costs
+ * the whole reply.
  */
 export async function renderDeckImage(deck: PublicDeck, opts: DeckImageOptions): Promise<Buffer> {
   const layout = layoutDeckSheet(deck, deck.entries, labelsFor(opts.locale))

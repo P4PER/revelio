@@ -3,6 +3,7 @@ import {
   DECK_SHEET_COLORS,
   computeSheetGeometry,
   imageKey,
+  mapLimit,
   imageUrl,
   layoutDeckSheet,
   type DeckFormat,
@@ -31,6 +32,9 @@ const BADGE_FONT = `700 ${fontSize.badge}px system-ui, sans-serif`
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''
 const IMG_TIMEOUT_MS = 10_000
+// Matches the bot's renderer: enough to keep the connection busy, few enough
+// that each request's timeout measures that request.
+const MAX_IN_FLIGHT = 8
 
 function truncateToWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
   if (ctx.measureText(text).width <= maxWidth) return text
@@ -166,13 +170,16 @@ export async function renderDeckPng(
 
   // Preload each distinct card image once (a card can appear in both main and
   // sideboard); a failed/absent image becomes a placeholder (loadCardImage
-  // resolves null, never rejects).
+  // resolves null, never rejects). Capped rather than all at once: these are
+  // full-resolution images fetched past the cache, and a deck's worth of them
+  // in parallel shares one connection, so each request's timeout would be
+  // measuring the whole queue.
   const uniqueCards = new Map<string, DeckSheetCard>()
   for (const s of geom.sections) for (const pc of s.cards) uniqueCards.set(pc.card.cardId, pc.card)
   const images = new Map<string, ImageBitmap | null>()
-  await Promise.all(
-    [...uniqueCards.values()].map(async (card) => { images.set(card.cardId, await loadCardImage(card)) }),
-  )
+  await mapLimit([...uniqueCards.values()], MAX_IN_FLIGHT, async (card) => {
+    images.set(card.cardId, await loadCardImage(card))
+  })
 
   // Clamp the device scale so a tall deck never exceeds the browser's max canvas
   // dimension, which would make toBlob() silently return a blank image.

@@ -1,6 +1,6 @@
 import { EmbedBuilder } from 'discord.js'
 import type { SearchDocument } from '@revelio/search'
-import { attrLabel, imageUrl, landscapeThumbKey, thumbKey, LESSONS } from '@revelio/core'
+import { attrLabel, humanize, imageUrl, landscapeThumbKey, thumbKey, LESSONS } from '@revelio/core'
 import type { CardRuling } from '../../data/cards'
 import { t } from '../../i18n/t'
 import { cardUrl } from '../../links'
@@ -11,6 +11,8 @@ export type CardEmbedOptions = {
   imageBase: string
   siteBase: string
   rulings: CardRuling[]
+  // Editor-curated sub-type translations for `locale`, keyed by code.
+  subTypeLabels: Record<string, string>
 }
 
 // Discord rejects the entire response if an embed breaks a limit, so clamp
@@ -52,10 +54,10 @@ export function cardEmbed(doc: SearchDocument, opts: CardEmbedOptions): EmbedBui
   }
 
   // Sub-types are not curated in attributes.ts (they self-extend from card data),
-  // so they are appended raw after the localized types.
+  // so they resolve like the card page: a translation from the DB, else the humanized code.
   const typeLabel = [
     ...doc.types.map((code) => attrLabel('types', code, locale)),
-    ...doc.subTypes,
+    ...doc.subTypes.map((code) => opts.subTypeLabels[code] ?? humanize(code)),
   ].join(', ')
   if (typeLabel) {
     embed.addFields({ name: t(locale, 'card.field.type'), value: typeLabel, inline: true })

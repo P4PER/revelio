@@ -32,6 +32,7 @@ const opts = {
   imageBase: 'https://img.revelio.cards',
   siteBase: 'https://revelio.cards',
   rulings: [],
+  subTypeLabels: {},
 }
 
 describe('cardEmbed', () => {
@@ -66,8 +67,16 @@ describe('cardEmbed', () => {
     const en = cardEmbed(doc, opts).toJSON()
     expect(en.fields?.find((f) => f.name === 'Lesson')?.value).toBe('Quidditch')
     const de = cardEmbed(doc, { ...opts, locale: 'de', setName: 'Basis-Set' }).toJSON()
-    // Curated types are localized; raw sub-types are appended as-is.
-    expect(de.fields?.find((f) => f.name === 'Typ')?.value).toBe('Gegenstand, broom')
+    // Curated types are localized; an untranslated sub-type is humanized.
+    expect(de.fields?.find((f) => f.name === 'Typ')?.value).toBe('Gegenstand, Broom')
+  })
+
+  it('prefers a translated sub-type label and humanizes the rest', () => {
+    const json = cardEmbed(
+      { ...doc, types: ['character'], subTypes: ['wizard', 'death_eater'] },
+      { ...opts, subTypeLabels: { wizard: 'Wizard' } },
+    ).toJSON()
+    expect(json.fields?.find((f) => f.name === 'Type')?.value).toBe('Character, Wizard, Death Eater')
   })
 
   it('puts the set name and card number in the footer', () => {

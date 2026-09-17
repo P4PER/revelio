@@ -119,6 +119,13 @@ Six npm workspaces under `app/`, with a strict dependency direction `core ← {s
 - **Meilisearch totals are estimates.** `estimatedTotalHits` over-counts, so a page inside the computed page count can still come back empty — treat that as out of range.
 - Commands are registered on every boot (Discord's `PUT` is a full replace), but a registration failure is logged and survived rather than fatal.
 - Card images use `thumbKey` (300px), never the full `imageKey`.
+- **Two image bases, and they are not interchangeable.** `IMAGE_BASE_URL` goes into embed
+  URLs, which **Discord** fetches from the public internet, so it must be the public bucket
+  host. `IMAGE_FETCH_BASE_URL` is what the `/deck` renderer fetches in-process and defaults
+  to `IMAGE_BASE_URL`; set it when the public host is not reachable from where the bot runs,
+  which in a cluster is the normal case (the pod cannot hairpin to its own ingress). Putting
+  an internal hostname in `IMAGE_BASE_URL` silently breaks every `/card` image; putting the
+  public one in `IMAGE_FETCH_BASE_URL` silently turns every deck sheet into placeholder boxes.
 
 ## Migrations (read before touching the schema)
 

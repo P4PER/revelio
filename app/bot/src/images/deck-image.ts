@@ -4,10 +4,10 @@ import {
   DECK_SHEET_COLORS,
   OTHER_GROUP,
   computeSheetGeometry,
+  imageKey,
   imageUrl,
   layoutDeckSheet,
   mapLimit,
-  thumbKey,
   type DeckSheetCard,
   type DeckSheetLabels,
   type PositionedSection,
@@ -30,7 +30,9 @@ export type DeckImageOptions = {
 // failure and is.
 type CardImageResult = { body: Buffer } | { failure: string | null }
 
-const FETCH_TIMEOUT_MS = 5000
+// Matches web's IMG_TIMEOUT_MS. The full card image is ~317 KB against a thumb's
+// ~23 KB, so the 5s that covered a thumb does not cover this.
+const FETCH_TIMEOUT_MS = 10_000
 // Discord rejects an attachment over 10 MB in a non-boosted guild, and the whole
 // interaction fails with it. The pixel budget already puts the worst PNG near
 // 6 MB, so this is a backstop rather than a working limit - but a failed upload
@@ -39,14 +41,20 @@ const MAX_ATTACHMENT_BYTES = 9_000_000
 const MAX_IN_FLIGHT = 8
 // Padding either side of a placeholder's card name, as the web painter clamps it.
 const PLACEHOLDER_INSET = 16
-// Upper bound on the painted sheet, in device pixels. Peak RSS measured on this
-// renderer is about 200 MB plus 14.5 MB per megapixel of canvas, so 12 Mpx caps a
-// render near 375 MB - see the spec's table. Past the budget the whole sheet scales
-// down rather than clipping, which keeps a 200-card deck a readable picture instead
-// of an OOM. Deliberately not a DECK_SHEET field: the web painter's cap
-// (MAX_CANVAS_DIM in web/src/lib/deck-png.ts) is a browser limit at a different
-// number, and one constant cannot mean both.
-export const MAX_SHEET_PIXELS = 12_000_000
+// Upper bound on the painted sheet, in device pixels. Two things scale with canvas
+// area and this bounds both: peak RSS, at roughly 215 MB plus 28 MB per megapixel,
+// and the encoded PNG, at roughly 1.6 MB per megapixel. At 5 Mpx a 60-entry deck
+// measures 358 MB / 7.8 MB and a 200-entry one 405 MB / 8.2 MB, so every deck fits
+// MAX_ATTACHMENT_BYTES and a 640Mi pod. Past the budget the whole sheet scales down
+// rather than clipping, which keeps a 200-card deck a readable picture instead of
+// an OOM.
+//
+// The spec's 12 Mpx was derived from thumb sources. Full card art costs about twice
+// the memory and four times the PNG bytes per megapixel, measured on this branch,
+// which is what put the budget here instead. Deliberately not a DECK_SHEET field:
+// the web painter's cap (MAX_CANVAS_DIM in web/src/lib/deck-png.ts) is a browser
+// limit at a different number, and one constant cannot mean both.
+export const MAX_SHEET_PIXELS = 5_000_000
 
 /**
  * Device pixels per layout pixel for this sheet. DECK_SHEET.scale unless the
@@ -133,10 +141,10 @@ function centered(rendered: RenderedText, centerX: number, centerY: number): Ove
   }
 }
 
-async function fetchThumb(card: DeckSheetCard, imageBase: string): Promise<CardImageResult> {
+async function fetchCardImage(card: DeckSheetCard, imageBase: string): Promise<CardImageResult> {
   if (card.imageVersion == null) return { failure: null }
   try {
-    const res = await fetch(imageUrl(imageBase, thumbKey(card.cardId, card.imageVersion)), {
+    const res = await fetch(imageUrl(imageBase, imageKey(card.cardId, card.imageVersion)), {
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     })
     if (!res.ok) return { failure: `HTTP ${res.status}` }
@@ -152,9 +160,9 @@ async function fetchThumb(card: DeckSheetCard, imageBase: string): Promise<CardI
  * counter-clockwise, so a quarter turn back draws them upright - what
  * drawRotatedUpright does on the web.
  */
-async function cardImage(thumb: Buffer, w: number, h: number, upright: boolean): Promise<CardImageResult> {
+async function cardImage(source: Buffer, w: number, h: number, upright: boolean): Promise<CardImageResult> {
   try {
-    const pipeline = sharp(thumb)
+    const pipeline = sharp(source)
     if (upright) pipeline.rotate(90)
     return { body: await pipeline.resize(w, h, { fit: 'cover' }).png().toBuffer() }
   } catch (err) {
@@ -173,27 +181,27 @@ async function cardOverlays(
   const positioned = sections.flatMap((section) => section.cards)
   const distinct = [...new Set(positioned.map((pc) => pc.card.cardId))]
   const cardById = new Map(positioned.map((pc) => [pc.card.cardId, pc.card]))
-  const thumbs = await mapLimit(distinct, MAX_IN_FLIGHT, (id) => fetchThumb(cardById.get(id)!, imageBase))
-  const thumbById = new Map(distinct.map((id, i) => [id, thumbs[i]]))
+  const fetched = await mapLimit(distinct, MAX_IN_FLIGHT, (id) => fetchCardImage(cardById.get(id)!, imageBase))
+  const imageById = new Map(distinct.map((id, i) => [id, fetched[i]]))
 
   // Warned once per distinct card, not once per copy: a card in two zones is one
   // broken image, and a broken host should read as a list of cards, not of boxes.
   const failed = new Set<string>()
-  for (const [id, result] of thumbById) {
+  for (const [id, result] of imageById) {
     if ('body' in result || result.failure === null) continue
     failed.add(id)
     console.warn(`deck image: no art for ${id}: ${result.failure}`)
   }
 
   // Decoding is capped like fetching, and for the same reason: a 60-card deck
-  // decoding, rotating and re-encoding every thumb at once holds all of them in
+  // decoding, rotating and re-encoding every image at once holds all of them in
   // memory, and an OOM kill takes the gateway down rather than one reply.
   const overlays = await mapLimit(positioned, MAX_IN_FLIGHT, async (pc): Promise<OverlayOptions> => {
     const id = pc.card.cardId
-    const thumb = thumbById.get(id)!
-    const image = 'body' in thumb
-      ? await cardImage(thumb.body, px(pc.w, s), px(pc.h, s), pc.card.orientation === 'horizontal')
-      : thumb
+    const source = imageById.get(id)!
+    const image = 'body' in source
+      ? await cardImage(source.body, px(pc.w, s), px(pc.h, s), pc.card.orientation === 'horizontal')
+      : source
     if ('body' in image) return { input: image.body, left: px(pc.x, s), top: px(pc.y, s) }
     if (image.failure !== null && !failed.has(id)) {
       failed.add(id)
@@ -246,10 +254,11 @@ async function textOverlays(geom: SheetGeometry, title: string, s: number): Prom
  * web paints in system-ui at three weights, this bundles one Poppins face - and
  * only one weight is worth 160 KB in the image.
  *
- * Renders from the 300px thumbs rather than the full images the web export uses:
- * at 2x a thumb still covers a card box, and a chat column is no place to spend
- * the bytes. A thumb that cannot be fetched or decoded leaves the placeholder
- * box with the card name, so a missing image never costs the whole reply.
+ * Renders from the full card images, like the web export: the card box is
+ * 264x370 device pixels at 2x, so a 300px thumb is a 1:1 render of an already
+ * lossy source. An image that cannot be fetched or decoded leaves the
+ * placeholder box with the card name, so a missing image never costs the whole
+ * reply.
  */
 export async function renderDeckImage(deck: PublicDeck, opts: DeckImageOptions): Promise<Buffer> {
   const layout = layoutDeckSheet(deck, deck.entries, labelsFor(opts.locale))

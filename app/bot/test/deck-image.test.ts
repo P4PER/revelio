@@ -31,15 +31,22 @@ const deck: PublicDeck = {
 
 const opts = { imageBase: 'https://img.test', locale: 'en' }
 
-function sheetSize() {
+function geomOf(d: PublicDeck, e: DeckCardView[]) {
   const labels = {
     formatLabel: { classic: '', revival: '' }, character: '', mainDeck: '', sideboard: '', group: () => '',
   }
-  const geom = computeSheetGeometry(layoutDeckSheet(deck, entries, labels))
-  return [geom.width * DECK_SHEET.scale, geom.height * DECK_SHEET.scale]
+  return computeSheetGeometry(layoutDeckSheet(d, e, labels))
 }
 
-// A real 300x420 WebP, like the stored thumbs, so resize and rotate both run.
+function sheetSize() {
+  const geom = geomOf(deck, entries)
+  const s = sheetScale(geom)
+  return [Math.floor(geom.width * s), Math.floor(geom.height * s)]
+}
+
+// A real WebP, so resize and rotate both run. Smaller than a stored card image
+// (744x1039) on purpose: the renderer downsamples either way, and the tests would
+// pay for the difference on every one of the 200 cards in the oversized deck.
 async function thumb(): Promise<Uint8Array> {
   return new Uint8Array(await sharp({
     create: { width: 300, height: 420, channels: 3, background: '#6E66C9' },
@@ -47,7 +54,7 @@ async function thumb(): Promise<Uint8Array> {
 }
 
 describe('renderDeckImage', () => {
-  it('renders a PNG at twice the shared sheet geometry', async () => {
+  it('renders a PNG at the shared sheet geometry', async () => {
     const body = await thumb()
     vi.stubGlobal('fetch', vi.fn(async () => new Response(body, { status: 200 })))
     const meta = await sharp(await renderDeckImage(deck, opts)).metadata()
@@ -66,17 +73,18 @@ describe('renderDeckImage', () => {
     expect(warn.mock.calls.flat().join(' ')).toContain('falling back to WebP')
   })
 
-  it('requests default-language thumbs and never fetches a card without an image', async () => {
+  it('requests default-language card images and never fetches a card without an image', async () => {
     const body = await thumb()
     const fetchMock = vi.fn(async (_url: string) => new Response(body, { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)
     await renderDeckImage(deck, opts)
     const urls = fetchMock.mock.calls.map(([url]) => String(url))
-    expect(urls).toContain('https://img.test/cards/thumb/harry.1.webp')
+    expect(urls).toContain('https://img.test/cards/harry.1.webp')
+    expect(urls.some((url) => url.includes('/cards/thumb/'))).toBe(false)
     expect(urls.some((url) => url.includes('noimg'))).toBe(false)
   })
 
-  it('still renders when every thumb fails to load', async () => {
+  it('still renders when every card image fails to load', async () => {
     // Deliberately broken: the warnings it now raises are asserted on in
     // "renderDeckImage logging", not worth 12 lines of noise here.
     vi.spyOn(console, 'warn').mockImplementation(() => {})
@@ -85,13 +93,13 @@ describe('renderDeckImage', () => {
     expect([meta.width, meta.height]).toEqual(sheetSize())
   })
 
-  it('treats a non-image response as a missing thumb', async () => {
+  it('treats a non-image response as a missing card image', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     vi.stubGlobal('fetch', vi.fn(async () => new Response('not found', { status: 404 })))
     expect((await sharp(await renderDeckImage(deck, opts)).metadata()).format).toBe('png')
   })
 
-  it('never has more than eight thumbs in flight', async () => {
+  it('never has more than eight card images in flight', async () => {
     const body = await thumb()
     let inFlight = 0
     let peak = 0
@@ -114,16 +122,17 @@ const hugeEntries: DeckCardView[] = Array.from({ length: 200 }, (_, i) =>
 )
 const hugeDeck: PublicDeck = { ...deck, entries: hugeEntries, mainCount: 400 }
 
-function geomOf(d: PublicDeck, e: DeckCardView[]) {
-  const labels = {
-    formatLabel: { classic: '', revival: '' }, character: '', mainDeck: '', sideboard: '', group: () => '',
-  }
-  return computeSheetGeometry(layoutDeckSheet(d, e, labels))
-}
-
 describe('sheetScale', () => {
-  it('paints a normal deck at the full shared scale', () => {
-    expect(sheetScale(geomOf(deck, entries))).toBe(DECK_SHEET.scale)
+  it('paints a small deck at the full shared scale', () => {
+    // Three cards in two sections: well inside the budget, so nothing clamps.
+    const small = [entries[0], entries[1], entries[2]]
+    expect(sheetScale(geomOf({ ...deck, entries: small }, small))).toBe(DECK_SHEET.scale)
+  })
+
+  // The shared fixture is a dozen entries over six sections, which is already
+  // past the budget - section headers cost as much height as the cards do.
+  it('scales the shared fixture down', () => {
+    expect(sheetScale(geomOf(deck, entries))).toBeLessThan(DECK_SHEET.scale)
   })
 
   it('scales an oversized sheet down to the pixel budget', () => {

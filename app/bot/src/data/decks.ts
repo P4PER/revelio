@@ -1,5 +1,11 @@
 import { getDeckForViewer, type DB } from '@revelio/db'
-import { evaluateDeck, type DeckCardMeta, type DeckFormat, type DeckStatus } from '@revelio/core'
+import {
+  evaluateDeck,
+  type DeckCardMeta,
+  type DeckCardView,
+  type DeckFormat,
+  type DeckStatus,
+} from '@revelio/core'
 
 export type DeckEntryView = {
   name: string
@@ -16,13 +22,18 @@ export type PublicDeck = {
   character: DeckEntryView | null
   main: DeckEntryView[]
   sideboard: DeckEntryView[]
+  // Every view in sheet order - character, then main, then sideboard, each zone
+  // by cost then name - for the shared deck sheet layout the image is drawn from.
+  entries: DeckCardView[]
   mainCount: number
   sideboardCount: number
   topLesson: string | null
   status: DeckStatus
 }
 
-function byCostThenName(a: DeckEntryView, b: DeckEntryView): number {
+type Sortable = Pick<DeckCardView, 'cost' | 'name'>
+
+function byCostThenName(a: Sortable, b: Sortable): number {
   const ac = a.cost ?? Number.MAX_SAFE_INTEGER
   const bc = b.cost ?? Number.MAX_SAFE_INTEGER
   return ac !== bc ? ac - bc : a.name.localeCompare(b.name)
@@ -49,9 +60,13 @@ export async function getPublicDeck(db: DB, ref: string): Promise<PublicDeck | n
   const toEntry = (v: (typeof views)[number]): DeckEntryView => ({
     name: v.name, quantity: v.quantity, cost: v.cost, lesson: v.lesson,
   })
-  const main = views.filter((v) => v.zone === 'main').map(toEntry).sort(byCostThenName)
-  const sideboard = views.filter((v) => v.zone === 'sideboard').map(toEntry).sort(byCostThenName)
+  const zone = (name: string) => views.filter((v) => v.zone === name).sort(byCostThenName)
+  const mainViews = zone('main')
+  const sideboardViews = zone('sideboard')
   const character = views.find((v) => v.zone === 'character')
+  const entries = [...(character ? [character] : []), ...mainViews, ...sideboardViews]
+  const main = mainViews.map(toEntry)
+  const sideboard = sideboardViews.map(toEntry)
 
   const copies = (list: DeckEntryView[]) => list.reduce((n, c) => n + c.quantity, 0)
 
@@ -93,6 +108,7 @@ export async function getPublicDeck(db: DB, ref: string): Promise<PublicDeck | n
     character: character ? toEntry(character) : null,
     main,
     sideboard,
+    entries,
     mainCount: copies(main),
     sideboardCount: copies(sideboard),
     topLesson,

@@ -25,13 +25,18 @@ both.
 
 ## Deck lookup
 
-Shows a public decklist by link or id: its character, main deck, sideboard,
-format and legality. Only public decks can be looked up this way - your own
-private decks are listed by `/mydecks`.
+Shows a public deck by link or id, as a picture of its cards - the same deck
+sheet the builder's "Export PNG" downloads, grouped by card type with a copy
+count on each card. The embed above it carries the character, format and
+legality. `view:list` answers with a text list instead, which is easier to read
+on a slow connection and can be copied. Only public decks can be looked up this
+way - your own private decks are listed by `/mydecks`.
 
 <CommandTable name="deck" />
 
 <CommandExample>/deck deck:https://revelio.cards/decks/abc123</CommandExample>
+
+<CommandExample>/deck deck:abc123 view:list</CommandExample>
 
 ## Your own data
 

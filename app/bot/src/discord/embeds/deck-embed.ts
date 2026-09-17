@@ -4,7 +4,13 @@ import type { DeckEntryView, PublicDeck } from '../../data/decks'
 import { t } from '../../i18n/t'
 import { deckUrl } from '../../links'
 
-export type DeckEmbedOptions = { locale: string; siteBase: string }
+export type DeckView = 'image' | 'list'
+
+export type DeckEmbedOptions = { locale: string; siteBase: string; view: DeckView }
+
+// The file name the command uploads the rendered deck under. The embed can only
+// reference an attachment by name, so both sides read it from here.
+export const DECK_IMAGE_NAME = 'deck.webp'
 
 const FIELD_LIMIT = 1024
 const FALLBACK_COLOR = 0x2b2d31
@@ -59,6 +65,10 @@ export function deckEmbed(deck: PublicDeck, opts: DeckEmbedOptions): EmbedBuilde
     { name: t(locale, 'deck.field.format'), value: t(locale, `deck.format.${deck.format}`), inline: true },
     { name: t(locale, 'deck.field.legality'), value: t(locale, `deck.status.${deck.status}`), inline: true },
   )
+  if (opts.view === 'image') {
+    // The picture shows every card, so the text lists would only repeat it.
+    return embed.setImage(`attachment://${DECK_IMAGE_NAME}`)
+  }
   if (deck.main.length) {
     embed.addFields({
       name: t(locale, 'deck.field.main', { count: deck.mainCount }),

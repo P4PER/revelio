@@ -105,6 +105,23 @@ describe('CommandTable', () => {
     expect(screen.getByText('query')).toBeInTheDocument()
   })
 
+  // A fixed choice list has no attribute scope to resolve through attrLabel, so
+  // its labels come from the catalog instead - and it is still a choice.
+  it('lists the values of a fixed choice option', () => {
+    renderTable('deck')
+    const row = screen.getByText('view').closest('tr')!
+    expect(within(row).getByText('Choice')).toBeInTheDocument()
+    expect(within(row).getAllByRole('listitem').map((li) => li.textContent))
+      .toEqual(['Image', 'List'])
+  })
+
+  it('translates the values of a fixed choice option', () => {
+    renderTable('deck', 'de', de)
+    const row = screen.getByText('view').closest('tr')!
+    expect(within(row).getAllByRole('listitem').map((li) => li.textContent))
+      .toEqual(['Bild', 'Liste'])
+  })
+
   it('translates the choice values it lists', () => {
     renderTable('search', 'de', de)
     const lessonRow = screen.getByText('lesson').closest('tr')!

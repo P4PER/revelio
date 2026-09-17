@@ -1,0 +1,94 @@
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import sharp from 'sharp'
+import { DECK_SHEET, computeSheetGeometry, layoutDeckSheet, type DeckCardView } from '@revelio/core'
+import { renderDeckImage } from '../src/images/deck-image'
+import type { PublicDeck } from '../src/data/decks'
+
+afterEach(() => { vi.unstubAllGlobals() })
+
+function view(cardId: string, zone: DeckCardView['zone'], types: string[], extra: Partial<DeckCardView> = {}): DeckCardView {
+  return {
+    cardId, zone, quantity: 2, types, name: `Card ${cardId}`, cost: 1, damage: null,
+    setCode: 'base', number: '1', lesson: null, isOfficial: true, legality: 'legal',
+    isLesson: types.includes('lesson'), isStartingCharacter: zone === 'character',
+    imageVersion: 1, artCropVersion: null, orientation: null, ...extra,
+  }
+}
+
+const entries: DeckCardView[] = [
+  view('harry', 'character', ['character'], { quantity: 1, orientation: 'horizontal' }),
+  ...Array.from({ length: 8 }, (_, i) => view(`creature${i}`, 'main', ['creature'])),
+  view('lesson', 'main', ['lesson'], { quantity: 20 }),
+  view('noimg', 'main', ['spell'], { imageVersion: null, name: 'Fred & <George>' }),
+  view('side', 'sideboard', ['item']),
+]
+
+const deck: PublicDeck = {
+  id: 'abc123', name: 'Charms Aggro', format: 'classic', ownerUsername: 'seeker',
+  character: null, main: [], sideboard: [], entries,
+  mainCount: 38, sideboardCount: 2, topLesson: null, status: 'incomplete',
+}
+
+const opts = { imageBase: 'https://img.test', locale: 'en' }
+
+function sheetSize() {
+  const labels = {
+    formatLabel: { classic: '', revival: '' }, character: '', mainDeck: '', sideboard: '', group: () => '',
+  }
+  const geom = computeSheetGeometry(layoutDeckSheet(deck, entries, labels))
+  return [geom.width * DECK_SHEET.scale, geom.height * DECK_SHEET.scale]
+}
+
+// A real 300x420 WebP, like the stored thumbs, so resize and rotate both run.
+async function thumb(): Promise<Uint8Array> {
+  return new Uint8Array(await sharp({
+    create: { width: 300, height: 420, channels: 3, background: '#6E66C9' },
+  }).webp().toBuffer())
+}
+
+describe('renderDeckImage', () => {
+  it('renders a WebP at twice the shared sheet geometry', async () => {
+    const body = await thumb()
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(body, { status: 200 })))
+    const meta = await sharp(await renderDeckImage(deck, opts)).metadata()
+    expect(meta.format).toBe('webp')
+    expect([meta.width, meta.height]).toEqual(sheetSize())
+  })
+
+  it('requests default-language thumbs and never fetches a card without an image', async () => {
+    const body = await thumb()
+    const fetchMock = vi.fn(async (_url: string) => new Response(body, { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+    await renderDeckImage(deck, opts)
+    const urls = fetchMock.mock.calls.map(([url]) => String(url))
+    expect(urls).toContain('https://img.test/cards/thumb/harry.1.webp')
+    expect(urls.some((url) => url.includes('noimg'))).toBe(false)
+  })
+
+  it('still renders when every thumb fails to load', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
+    const meta = await sharp(await renderDeckImage(deck, opts)).metadata()
+    expect([meta.width, meta.height]).toEqual(sheetSize())
+  })
+
+  it('treats a non-image response as a missing thumb', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('not found', { status: 404 })))
+    expect((await sharp(await renderDeckImage(deck, opts)).metadata()).format).toBe('webp')
+  })
+
+  it('never has more than eight thumbs in flight', async () => {
+    const body = await thumb()
+    let inFlight = 0
+    let peak = 0
+    vi.stubGlobal('fetch', vi.fn(async () => {
+      inFlight++
+      peak = Math.max(peak, inFlight)
+      await new Promise((resolve) => setTimeout(resolve, 5))
+      inFlight--
+      return new Response(body, { status: 200 })
+    }))
+    await renderDeckImage(deck, opts)
+    expect(peak).toBeLessThanOrEqual(8)
+    expect(peak).toBeGreaterThan(1)
+  })
+})

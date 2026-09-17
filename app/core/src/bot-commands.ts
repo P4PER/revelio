@@ -14,6 +14,13 @@ export type CommandOptionSpec = {
   required: boolean
   autocomplete: boolean
   choices?: 'lessons' | 'types'
+  /**
+   * A fixed list of values that belongs to the command rather than to the card
+   * domain, such as how /deck answers. Kept apart from `choices` because there
+   * is no attribute scope to resolve: the values are listed here, and their
+   * labels come from the docs catalog under `choices.<option>.<value>`.
+   */
+  values?: readonly string[]
   min?: number
 }
 
@@ -61,7 +68,10 @@ export const BOT_COMMANDS: readonly BotCommandSpec[] = [
     name: 'deck',
     ephemeral: false,
     linkRequired: false,
-    options: [{ name: 'deck', type: 'string', required: true, autocomplete: false }],
+    options: [
+      { name: 'deck', type: 'string', required: true, autocomplete: false },
+      { name: 'view', type: 'string', required: false, autocomplete: false, values: ['image', 'list'] },
+    ],
   },
   {
     name: 'collection',

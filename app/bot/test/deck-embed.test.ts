@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { deckEmbed } from '../src/discord/embeds/deck-embed'
+import { DECK_IMAGE_NAME, deckEmbed } from '../src/discord/embeds/deck-embed'
 import type { PublicDeck } from '../src/data/decks'
 
 const deck: PublicDeck = {
@@ -7,19 +7,19 @@ const deck: PublicDeck = {
   name: 'Charms Aggro',
   format: 'classic',
   ownerUsername: 'seeker',
-  character: { name: 'Harry Potter', quantity: 1, cost: null, lesson: null },
+  character: { cardId: 'c1', name: 'Harry Potter', quantity: 1, cost: null, lesson: null, imageVersion: 1 },
   main: [
-    { name: 'Charms Lesson', quantity: 8, cost: 0, lesson: 'charms' },
-    { name: 'Alohomora', quantity: 4, cost: 2, lesson: 'charms' },
+    { cardId: 'c3', name: 'Charms Lesson', quantity: 8, cost: 0, lesson: 'charms', imageVersion: 1 },
+    { cardId: 'c2', name: 'Alohomora', quantity: 4, cost: 2, lesson: 'charms', imageVersion: 1 },
   ],
-  sideboard: [{ name: 'Nimbus 2000', quantity: 2, cost: 4, lesson: 'quidditch' }],
+  sideboard: [{ cardId: 'c4', name: 'Nimbus 2000', quantity: 2, cost: 4, lesson: 'quidditch', imageVersion: 1 }],
   mainCount: 12,
   sideboardCount: 2,
   topLesson: 'charms',
   status: 'incomplete',
 }
 
-const opts = { locale: 'en', siteBase: 'https://revelio.cards' }
+const opts = { locale: 'en', siteBase: 'https://revelio.cards', view: 'list' } as const
 
 describe('deckEmbed', () => {
   it('titles with the deck name and links to the deck page', () => {
@@ -65,7 +65,7 @@ describe('deckEmbed', () => {
     // too. Counting distinct entries there leaves two numbers in one field that
     // the reader cannot reconcile.
     const many = Array.from({ length: 200 }, (_, i) => ({
-      name: `Card number ${i}`, quantity: 2, cost: i, lesson: 'charms',
+      cardId: `c${i}`, name: `Card number ${i}`, quantity: 2, cost: i, lesson: 'charms', imageVersion: null,
     }))
     const json = deckEmbed({ ...deck, main: many, mainCount: 400 }, opts).toJSON()
     const value = json.fields?.find((f) => f.name.startsWith('Main deck'))!.value
@@ -75,7 +75,7 @@ describe('deckEmbed', () => {
 
   it('truncates a long card list with a remainder line, inside the 1024 limit', () => {
     const many = Array.from({ length: 200 }, (_, i) => ({
-      name: `Card number ${i}`, quantity: 1, cost: i, lesson: 'charms',
+      cardId: `c${i}`, name: `Card number ${i}`, quantity: 1, cost: i, lesson: 'charms', imageVersion: null,
     }))
     const json = deckEmbed({ ...deck, main: many, mainCount: 200 }, opts).toJSON()
     const field = json.fields?.find((f) => f.name.startsWith('Main deck'))
@@ -83,5 +83,32 @@ describe('deckEmbed', () => {
     expect(field.value.length).toBeLessThanOrEqual(1024)
     expect(field.value).toContain('and')
     expect(field.value).toContain('more')
+  })
+
+  it('sets no image on the list view', () => {
+    expect(deckEmbed(deck, opts).toJSON().image).toBeUndefined()
+  })
+})
+
+describe('deckEmbed image view', () => {
+  const image = { ...opts, view: 'image' } as const
+
+  it('points the embed image at the uploaded attachment', () => {
+    expect(deckEmbed(deck, image).toJSON().image?.url).toBe(`attachment://${DECK_IMAGE_NAME}`)
+  })
+
+  // The picture already shows every card, so a list next to it is noise and
+  // would push the image below a wall of text.
+  it('leaves the card lists out', () => {
+    const names = deckEmbed(deck, image).toJSON().fields?.map((f) => f.name) ?? []
+    expect(names.some((n) => n.startsWith('Main deck') || n.startsWith('Sideboard'))).toBe(false)
+  })
+
+  it('keeps the shared header', () => {
+    const json = deckEmbed(deck, image).toJSON()
+    expect(json.title).toBe('Charms Aggro')
+    expect(json.url).toBe('https://revelio.cards/decks/abc123')
+    expect(json.footer?.text).toBe('by seeker')
+    expect(json.fields?.map((f) => f.name)).toEqual(['Starting character', 'Format', 'Legality'])
   })
 })

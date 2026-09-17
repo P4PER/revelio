@@ -45,6 +45,6 @@ export async function execute(
   }
 
   await interaction.editReply({
-    embeds: [deckEmbed(deck, { locale, siteBase: deps.env.SITE_BASE_URL })],
+    embeds: [deckEmbed(deck, { locale, siteBase: deps.env.SITE_BASE_URL, view: 'list' })],
   })
 }

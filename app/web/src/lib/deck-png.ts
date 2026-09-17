@@ -45,29 +45,44 @@ function truncateToWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth: 
   return `${text.slice(0, lo)}…`
 }
 
-// Loads the full-resolution card image cross-origin so it can be drawn onto the
-// canvas and read back via toBlob (the image host sends CORS scoped to the site
-// origin). Full art (745px) rather than the 300px thumbnail keeps the exported
-// cards crisp on the 2×-scaled canvas. Resolves to null — never rejects — on a
-// missing version, load error, or timeout, so one bad image never aborts export.
-function loadCardImage(card: DeckSheetCard): Promise<HTMLImageElement | null> {
-  if (card.imageVersion == null || !IMAGE_BASE) return Promise.resolve(null)
+/**
+ * Loads the full-resolution card image for the canvas. Full art (745px) rather
+ * than the 300px thumbnail keeps the exported cards crisp on the 2x-scaled
+ * canvas. Resolves to null - never rejects - on a missing version, a fetch
+ * error, a bad response or a timeout, so one bad image never aborts the export.
+ *
+ * Fetched rather than loaded through an <img crossOrigin>, and fetched past the
+ * HTTP cache. The image host answers with Access-Control-Allow-Origin only when
+ * the request carries an Origin header, and a plain <img> on a card page sends
+ * none - so the copy that page leaves in the cache has no CORS header at all.
+ * Reusing it for a cross-origin read fails, and the export silently draws a
+ * placeholder for every card the user happens to have looked at. Card images
+ * are immutable for a year, so that entry does not simply age out.
+ *
+ * An ImageBitmap decoded from a blob this document fetched does not taint the
+ * canvas, which is what toBlob() needs at the end.
+ */
+export async function loadCardImage(card: DeckSheetCard): Promise<ImageBitmap | null> {
+  if (card.imageVersion == null || !IMAGE_BASE) return null
   const url = imageUrl(IMAGE_BASE, imageKey(card.cardId, card.imageVersion))
-  return new Promise((resolve) => {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    const timer = setTimeout(() => resolve(null), IMG_TIMEOUT_MS)
-    img.onload = () => { clearTimeout(timer); resolve(img) }
-    img.onerror = () => { clearTimeout(timer); resolve(null) }
-    img.src = url
-  })
+  try {
+    const res = await fetch(url, {
+      mode: 'cors',
+      cache: 'reload',
+      signal: AbortSignal.timeout(IMG_TIMEOUT_MS),
+    })
+    if (!res.ok) return null
+    return await createImageBitmap(await res.blob())
+  } catch {
+    return null
+  }
 }
 
 // Draws `img` into the cell with object-fit: cover, clipped to the cell box.
-function drawCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
-  const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight)
-  const dw = img.naturalWidth * scale
-  const dh = img.naturalHeight * scale
+function drawCover(ctx: CanvasRenderingContext2D, img: ImageBitmap, x: number, y: number, w: number, h: number) {
+  const scale = Math.max(w / img.width, h / img.height)
+  const dw = img.width * scale
+  const dh = img.height * scale
   ctx.save()
   ctx.beginPath()
   ctx.rect(x, y, w, h)
@@ -79,7 +94,7 @@ function drawCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: numb
 // Horizontal cards are stored portrait with the landscape art rotated 90°.
 // Draw them upright (landscape), rotating the portrait source 90° to cover the
 // target box w×h — mirrors CardImage's `upright` behavior.
-function drawRotatedUpright(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
+function drawRotatedUpright(ctx: CanvasRenderingContext2D, img: ImageBitmap, x: number, y: number, w: number, h: number) {
   const cx = x + w / 2
   const cy = y + h / 2
   ctx.save()
@@ -89,9 +104,9 @@ function drawRotatedUpright(ctx: CanvasRenderingContext2D, img: HTMLImageElement
   ctx.translate(cx, cy)
   ctx.rotate(Math.PI / 2)
   // after a 90° turn the box axes swap: local x must cover h, local y cover w
-  const scale = Math.max(h / img.naturalWidth, w / img.naturalHeight)
-  const dw = img.naturalWidth * scale
-  const dh = img.naturalHeight * scale
+  const scale = Math.max(h / img.width, w / img.height)
+  const dw = img.width * scale
+  const dh = img.height * scale
   ctx.drawImage(img, -dw / 2, -dh / 2, dw, dh)
   ctx.restore()
 }
@@ -154,7 +169,7 @@ export async function renderDeckPng(
   // resolves null, never rejects).
   const uniqueCards = new Map<string, DeckSheetCard>()
   for (const s of geom.sections) for (const pc of s.cards) uniqueCards.set(pc.card.cardId, pc.card)
-  const images = new Map<string, HTMLImageElement | null>()
+  const images = new Map<string, ImageBitmap | null>()
   await Promise.all(
     [...uniqueCards.values()].map(async (card) => { images.set(card.cardId, await loadCardImage(card)) }),
   )

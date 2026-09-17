@@ -123,6 +123,18 @@ services:
     environment:
       RUSTFS_ACCESS_KEY: rustfsadmin
       RUSTFS_SECRET_KEY: rustfsadmin
+      # The deck PNG export reads the canvas back with toBlob(), which needs the
+      # card images fetched with CORS - without this header every card in the
+      # exported sheet is a name-only placeholder. Unset is the whole reason the
+      # export looks broken on a fresh local stack.
+      #
+      # "*" rather than the dev origin: the app is reached on several (localhost
+      # and 127.0.0.1, port 3000 for dev and 3100 for the e2e run). The images
+      # are public-read anyway - see the bucket policy in
+      # ingest/src/upload-images.ts. Note RustFS sends the header only when the
+      # request carries an Origin, which is why the export fetches rather than
+      # loading an <img crossOrigin> (see web/src/lib/deck-png.ts).
+      RUSTFS_CORS_ALLOWED_ORIGINS: "*"
     ports:
       - "127.0.0.1:9000:9000" # S3 API
       - "127.0.0.1:9001:9001" # console, at /rustfs/console/ (bare / answers S3)

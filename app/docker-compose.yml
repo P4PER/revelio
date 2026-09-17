@@ -68,6 +68,8 @@ services:
         condition: service_healthy
       meilisearch:
         condition: service_healthy
+      rustfs:
+        condition: service_healthy
     # The bot owns its env, like web does. One file serves both a host run and
     # this container; `environment` below wins over it, so the localhost values
     # in .env.local stay correct for `npm run dev -w @revelio/bot`.
@@ -78,7 +80,13 @@ services:
       DATABASE_URL: postgres://revelio:revelio@postgres:5432/revelio
       MEILI_HOST: http://meilisearch:7700
       MEILI_SEARCH_KEY: masterKey
+      # Discord fetches embed images from this one, so localhost is as good as
+      # anything here: it is unreachable from Discord either way in local dev.
       IMAGE_BASE_URL: http://localhost:9000/images
+      # The /deck renderer fetches in-process, from inside this container, where
+      # localhost is the container itself. rustfs is the service name, the same
+      # way DATABASE_URL and MEILI_HOST above use theirs.
+      IMAGE_FETCH_BASE_URL: http://rustfs:9000/images
       SITE_BASE_URL: http://localhost:3000
     # No restart policy: this is the local dev stack, and bot/.env.local is
     # optional, so `unless-stopped` would crash-loop on a fresh clone instead

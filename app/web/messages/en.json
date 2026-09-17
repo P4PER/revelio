@@ -920,7 +920,14 @@
       },
       "deck": {
         "options": {
-          "deck": "A deck link or its id. Only public decks can be looked up this way; your own private decks are listed by /mydecks."
+          "deck": "A deck link or its id. Only public decks can be looked up this way; your own private decks are listed by /mydecks.",
+          "view": "How the deck is shown. A picture of its cards by default, or a text list you can read and copy."
+        },
+        "choices": {
+          "view": {
+            "image": "Image",
+            "list": "List"
+          }
         }
       },
       "collection": {

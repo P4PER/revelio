@@ -872,7 +872,14 @@
       },
       "deck": {
         "options": {
-          "deck": "Ein Deck-Link oder dessen ID. So lassen sich nur öffentliche Decks nachschlagen; deine privaten Decks listet /mydecks auf."
+          "deck": "Ein Deck-Link oder dessen ID. So lassen sich nur öffentliche Decks nachschlagen; deine privaten Decks listet /mydecks auf.",
+          "view": "Wie das Deck gezeigt wird. Standardmäßig als Bild seiner Karten, oder als Textliste zum Lesen und Kopieren."
+        },
+        "choices": {
+          "view": {
+            "image": "Bild",
+            "list": "Liste"
+          }
         }
       },
       "collection": {

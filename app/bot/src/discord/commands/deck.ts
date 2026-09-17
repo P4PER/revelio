@@ -15,6 +15,18 @@ export const data = new SlashCommandBuilder()
       .setDescriptionLocalizations({ de: t('de', 'command.deck.option.deck') })
       .setRequired(true),
   )
+  .addStringOption((o) =>
+    o.setName('view')
+      .setDescription(t('en', 'command.deck.option.view'))
+      .setDescriptionLocalizations({ de: t('de', 'command.deck.option.view') })
+      .addChoices(
+        ...(['image', 'list'] as const).map((value) => ({
+          name: t('en', `command.deck.view.${value}`),
+          name_localizations: { de: t('de', `command.deck.view.${value}`) },
+          value,
+        })),
+      ),
+  )
 
 export async function execute(
   interaction: ChatInputCommandInteraction,

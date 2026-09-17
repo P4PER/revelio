@@ -78,7 +78,9 @@ describe('BOT_COMMANDS matches what the bot registers with Discord', () => {
           type: OPTION_TYPE[option.type],
           required: option.required,
           autocomplete: option.autocomplete,
-          choices: option.choices ? SCOPE_VALUES[option.choices] : null,
+          choices: option.choices
+            ? SCOPE_VALUES[option.choices]
+            : option.values ? [...option.values] : null,
         })),
       )
     })

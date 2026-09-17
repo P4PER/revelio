@@ -11,19 +11,24 @@ const CELL = 'border-b border-border/60 px-4 py-2.5 align-top text-muted-foregro
 const HEAD =
   'border-b border-border px-4 py-2 text-left text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground'
 
-// The manifest names a scope rather than listing values, so a new lesson or
+// A scoped option names a scope rather than listing values, so a new lesson or
 // card type reaches the docs without anyone editing them. ATTRIBUTES is keyed
 // by the same scope names attrLabel takes, so widening the manifest's `choices`
 // union in core needs no edit here and cannot silently render an empty list.
+// A fixed `values` list has no scope, so its labels come from the catalog.
 function choiceValues(
-  scope: CommandOptionSpec['choices'],
+  option: CommandOptionSpec,
   locale: string,
+  label: (value: string) => string,
 ): { code: string; label: string }[] {
-  if (!scope) return []
-  return ATTRIBUTES[scope].map((attribute) => ({
-    code: attribute.code,
-    label: attrLabel(scope, attribute.code, locale),
-  }))
+  const scope = option.choices
+  if (scope) {
+    return ATTRIBUTES[scope].map((attribute) => ({
+      code: attribute.code,
+      label: attrLabel(scope, attribute.code, locale),
+    }))
+  }
+  return (option.values ?? []).map((value) => ({ code: value, label: label(value) }))
 }
 
 /**
@@ -75,14 +80,16 @@ export function CommandTable({ name }: { name: BotCommandName }) {
             </thead>
             <tbody>
               {command.options.map((option) => {
-                const choices = choiceValues(option.choices, locale)
+                const choices = choiceValues(option, locale, (value) =>
+                  t(`commands.${command.name}.choices.${option.name}.${value}`),
+                )
                 return (
                   <tr key={option.name}>
                     <td className={`${CELL} font-mono font-medium text-foreground`}>
                       {option.name}
                     </td>
                     <td className={CELL}>
-                      {option.choices
+                      {option.choices || option.values
                         ? t('commandTable.typeChoice')
                         : option.type === 'integer'
                           ? t('commandTable.typeInteger')

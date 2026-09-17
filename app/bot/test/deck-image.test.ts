@@ -59,12 +59,24 @@ const hugeEntries: DeckCardView[] = Array.from({ length: 200 }, (_, i) =>
 )
 const hugeDeck: PublicDeck = { ...deck, entries: hugeEntries, mainCount: 400 }
 
+// Stubs fetch with a card image and hands back the list of URLs it is asked for.
+function recordingFetch(body: Uint8Array): string[] {
+  const urls: string[] = []
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+    urls.push(String(url))
+    return new Response(body, { status: 200 })
+  }))
+  return urls
+}
+
 describe('renderDeckImage', () => {
   it('renders a PNG at the shared sheet geometry', async () => {
     const body = await thumb()
     vi.stubGlobal('fetch', vi.fn(async () => new Response(body, { status: 200 })))
-    const meta = await sharp(await renderDeckImage(deck, opts)).metadata()
+    const image = await renderDeckImage(deck, opts)
+    const meta = await sharp(image.body).metadata()
     expect(meta.format).toBe('png')
+    expect(image.name).toBe('deck.png')
     expect([meta.width, meta.height]).toEqual(sheetSize())
   })
 
@@ -74,8 +86,12 @@ describe('renderDeckImage', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     // Between the fixture's PNG (~89 KB) and its WebP (~49 KB), so the fallback
     // runs on this deck rather than needing a huge one, and then fits.
-    const meta = await sharp(await renderDeckImage(deck, { ...opts, maxAttachmentBytes: 60_000 })).metadata()
+    const image = await renderDeckImage(deck, { ...opts, maxAttachmentBytes: 60_000 })
+    const meta = await sharp(image.body).metadata()
     expect(meta.format).toBe('webp')
+    // Named for what it is: media.discordapp.net transcodes by extension, so a
+    // WebP under a .png name can come back broken in the embed.
+    expect(image.name).toBe('deck.webp')
     expect([meta.width, meta.height]).toEqual(sheetSize())
     expect(warn.mock.calls.flat().join(' ')).toContain('falling back to WebP')
   })
@@ -96,22 +112,16 @@ describe('renderDeckImage', () => {
   })
 
   it('requests default-language card images and never fetches a card without an image', async () => {
-    const body = await thumb()
-    const fetchMock = vi.fn(async (_url: string) => new Response(body, { status: 200 }))
-    vi.stubGlobal('fetch', fetchMock)
+    const urls = recordingFetch(await thumb())
     await renderDeckImage(deck, opts)
-    const urls = fetchMock.mock.calls.map(([url]) => String(url))
     expect(urls).toContain('https://img.test/cards/harry.1.webp')
     expect(urls.some((url) => url.includes('/cards/thumb/'))).toBe(false)
     expect(urls.some((url) => url.includes('noimg'))).toBe(false)
   })
 
   it('drops to thumbs once the budget has shrunk the boxes', async () => {
-    const body = await thumb()
-    const fetchMock = vi.fn(async (_url: string) => new Response(body, { status: 200 }))
-    vi.stubGlobal('fetch', fetchMock)
+    const urls = recordingFetch(await thumb())
     await renderDeckImage(hugeDeck, opts)
-    const urls = fetchMock.mock.calls.map(([url]) => String(url))
     expect(urls).toHaveLength(200)
     expect(urls.every((url) => url.includes('/cards/thumb/'))).toBe(true)
   }, 60_000)
@@ -121,14 +131,14 @@ describe('renderDeckImage', () => {
     // "renderDeckImage logging", not worth 12 lines of noise here.
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
-    const meta = await sharp(await renderDeckImage(deck, opts)).metadata()
+    const meta = await sharp((await renderDeckImage(deck, opts)).body).metadata()
     expect([meta.width, meta.height]).toEqual(sheetSize())
   })
 
   it('treats a non-image response as a missing card image', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     vi.stubGlobal('fetch', vi.fn(async () => new Response('not found', { status: 404 })))
-    expect((await sharp(await renderDeckImage(deck, opts)).metadata()).format).toBe('png')
+    expect((await sharp((await renderDeckImage(deck, opts)).body).metadata()).format).toBe('png')
   })
 
   it('keeps the placeholder frame under the card art at a fractional scale', async () => {
@@ -141,7 +151,7 @@ describe('renderDeckImage', () => {
     const s = sheetScale(geom)
     expect(s).toBeLessThan(DECK_SHEET.scale)
 
-    const { data, info } = await sharp(await renderDeckImage(deck, opts))
+    const { data, info } = await sharp((await renderDeckImage(deck, opts)).body)
       .raw().toBuffer({ resolveWithObject: true })
     // Bare panel, to a couple of units: a stroke leaking out reads as a blend of
     // the border into it, and anything else here would be a layout bug of its own.
@@ -177,7 +187,7 @@ describe('renderDeckImage', () => {
     }))
 
     const started = Date.now()
-    const meta = await sharp(await renderDeckImage(deck, { ...opts, fetchBudgetMs: 150 })).metadata()
+    const meta = await sharp((await renderDeckImage(deck, { ...opts, fetchBudgetMs: 150 })).body).metadata()
     // The eight that were in flight when the budget ran out. The three behind
     // them were never dialled, which is the whole point: without the budget
     // every one of them would cost another FETCH_TIMEOUT_MS.
@@ -235,7 +245,7 @@ describe('sheetScale', () => {
   it('renders an oversized deck inside the budget', async () => {
     const body = await thumb()
     vi.stubGlobal('fetch', vi.fn(async () => new Response(body, { status: 200 })))
-    const meta = await sharp(await renderDeckImage(hugeDeck, opts)).metadata()
+    const meta = await sharp((await renderDeckImage(hugeDeck, opts)).body).metadata()
     expect(meta.width! * meta.height!).toBeLessThanOrEqual(MAX_SHEET_PIXELS)
     // Still the sheet's aspect ratio, not a clipped or letterboxed one.
     const geom = geomOf(hugeDeck, hugeEntries)

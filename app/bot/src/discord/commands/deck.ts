@@ -4,7 +4,7 @@ import { getPublicDeck } from '../../data/decks'
 import { toRevelioLocale } from '../../i18n/locale'
 import { t } from '../../i18n/t'
 import { renderDeckImage } from '../../images/deck-image'
-import { DECK_IMAGE_NAME, deckEmbed, type DeckView } from '../embeds/deck-embed'
+import { deckEmbed } from '../embeds/deck-embed'
 
 export const data = new SlashCommandBuilder()
   .setName('deck')
@@ -45,8 +45,7 @@ export async function execute(
     return
   }
 
-  const embedOf = (view: DeckView) =>
-    deckEmbed(deck, { locale, siteBase: deps.env.SITE_BASE_URL, view })
+  const siteBase = deps.env.SITE_BASE_URL
 
   // A deck with no cards has no picture worth posting, and a render that fails
   // must not cost the answer: both fall back to the list the embed can always
@@ -59,8 +58,8 @@ export async function execute(
       // may well be unreachable from in here.
       const image = await renderDeckImage(deck, { imageBase: deps.env.IMAGE_FETCH_BASE_URL, locale })
       await interaction.editReply({
-        embeds: [embedOf('image')],
-        files: [new AttachmentBuilder(image, { name: DECK_IMAGE_NAME })],
+        embeds: [deckEmbed(deck, { locale, siteBase, view: 'image', imageName: image.name })],
+        files: [new AttachmentBuilder(image.body, { name: image.name })],
       })
       return
     } catch (err) {
@@ -68,5 +67,5 @@ export async function execute(
     }
   }
 
-  await interaction.editReply({ embeds: [embedOf('list')] })
+  await interaction.editReply({ embeds: [deckEmbed(deck, { locale, siteBase, view: 'list' })] })
 }

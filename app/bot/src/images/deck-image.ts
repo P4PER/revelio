@@ -28,6 +28,14 @@ export type DeckImageOptions = {
   fetchBudgetMs?: number
 }
 
+// The rendered sheet and the file name it has to be uploaded under. Discord
+// sniffs the content, but media.discordapp.net keys its transcoding off the
+// extension, so a WebP served as .png can come back broken in the embed even
+// though the attachment downloads fine. The embed can only reference an
+// attachment by name, so the name travels with the bytes rather than being
+// assumed by either side.
+export type DeckImage = { body: Buffer; name: string }
+
 // A card's picture, or why its box has none. `failure: null` is a card with no
 // stored image at all, which is normal and not worth a log line; a string is a
 // failure and is.
@@ -310,7 +318,7 @@ async function textOverlays(geom: SheetGeometry, title: string, s: number): Prom
  * leaves the placeholder box with the card name, so a missing image never costs
  * the whole reply.
  */
-export async function renderDeckImage(deck: PublicDeck, opts: DeckImageOptions): Promise<Buffer> {
+export async function renderDeckImage(deck: PublicDeck, opts: DeckImageOptions): Promise<DeckImage> {
   const layout = layoutDeckSheet(deck, deck.entries, labelsFor(opts.locale))
   const geom = computeSheetGeometry(layout)
   const s = sheetScale(geom)
@@ -335,11 +343,8 @@ export async function renderDeckImage(deck: PublicDeck, opts: DeckImageOptions):
   // generation of loss on top of them for no gain.
   const png = await sheet.clone().png({ compressionLevel: 9 }).toBuffer()
   const limit = opts.maxAttachmentBytes ?? MAX_ATTACHMENT_BYTES
-  if (png.length <= limit) return png
+  if (png.length <= limit) return { body: png, name: 'deck.png' }
 
-  // WebP bytes under a .png name, deliberately: Discord and every client sniff
-  // the content, and the embed references the upload by DECK_IMAGE_NAME, so a
-  // second name would let the embed and the attachment disagree.
   console.warn(`deck image: ${png.length} byte PNG over the ${limit} byte limit, falling back to WebP`)
   const webp = await sheet.clone().webp({ quality: 90 }).toBuffer()
   // The limit is checked again rather than assumed: q90 is normally a fifth of
@@ -348,5 +353,5 @@ export async function renderDeckImage(deck: PublicDeck, opts: DeckImageOptions):
   if (webp.length > limit) {
     throw new Error(`deck image: ${webp.length} byte WebP still over the ${limit} byte limit`)
   }
-  return webp
+  return { body: webp, name: 'deck.webp' }
 }

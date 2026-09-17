@@ -28,7 +28,8 @@ python3 accio_images.py --download   # cards + set symbols -> assets/, rewrite d
 `accio_images.py`:
 - `--link` (no download): sets `image.url` to the remote accio URL (hotlink, instant).
 - `--download`: converts each card to `assets/cards/<id>.webp` (q100) + `thumb/<id>.webp`
-  (300px, q85) via Pillow — in parallel (`--workers N`, default 8) — downloads set symbols to
+  (300px, q85) via Pillow, plus `landscape-thumb/<id>.webp` (the thumb turned upright) for
+  horizontal cards — in parallel (`--workers N`, default 8) — downloads set symbols to
   `assets/symbols/<code>.webp` (lossless), and rewrites `image.url` /
   `sets.symbol` to local paths. Re-runnable (skips existing); reports
   `downloaded / skipped / failed`.

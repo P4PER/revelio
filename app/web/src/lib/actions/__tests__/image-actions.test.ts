@@ -20,9 +20,11 @@ vi.mock('@revelio/search', () => ({ reindexCard: m.reindexCard }))
 vi.mock('@/lib/server/reindex', () => ({ getWriteClient: m.getWriteClient }))
 vi.mock('@/lib/server/s3', () => ({ getS3: () => ({}), putObject: m.put, deleteObject: m.del }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
-vi.mock('sharp', () => ({
-  default: () => ({ webp: () => ({ resize: () => ({ toBuffer: async () => Buffer.from('x') }), toBuffer: async () => Buffer.from('x') }) }),
-}))
+vi.mock('sharp', () => {
+  const encoded = { resize: () => encoded, toBuffer: async () => Buffer.from('x') }
+  const pipeline = { webp: () => encoded, rotate: () => pipeline }
+  return { default: () => pipeline }
+})
 
 import { uploadCardImage, removeCardImage } from '../image-actions'
 
@@ -68,6 +70,18 @@ describe('uploadCardImage', () => {
     expect(m.del).not.toHaveBeenCalled()
     expect(m.setLocalizationImage).toHaveBeenCalledWith({}, 'x-1', 'de', expect.any(Number))
   })
+
+  it('also writes a landscape thumb for a horizontal card, and deletes the old one', async () => {
+    m.getCardById.mockResolvedValueOnce({
+      id: 'x-1', defaultLanguage: 'en', orientation: 'horizontal', localizations: { de: { imageVersion: 111 } },
+    })
+    const res = await uploadCardImage(form(new File(['x'], 'art.png', { type: 'image/png' })))
+    expect(res).toEqual({ ok: true })
+    const keys = m.put.mock.calls.map((c) => c[1])
+    expect(keys).toHaveLength(3)
+    expect(keys.some((k) => /^cards\/landscape-thumb\/x-1\.de\.\d+\.webp$/.test(k))).toBe(true)
+    expect(m.del.mock.calls.map((c) => c[1])).toContain('cards/landscape-thumb/x-1.de.111.webp')
+  })
 })
 
 describe('removeCardImage', () => {
@@ -80,5 +94,15 @@ describe('removeCardImage', () => {
     expect(delKeys).toContain('cards/x-1.de.111.webp')
     expect(delKeys).toContain('cards/thumb/x-1.de.111.webp')
     expect(m.setLocalizationImage).toHaveBeenCalledWith({}, 'x-1', 'de', null)
+  })
+
+  it('deletes the landscape thumb of a horizontal card', async () => {
+    m.getCardById.mockResolvedValueOnce({
+      id: 'x-1', defaultLanguage: 'en', orientation: 'horizontal', localizations: { de: { imageVersion: 111 } },
+    })
+    await removeCardImage('x-1', 'de')
+    expect(m.del.mock.calls.map((c) => c[1])).toEqual([
+      'cards/x-1.de.111.webp', 'cards/thumb/x-1.de.111.webp', 'cards/landscape-thumb/x-1.de.111.webp',
+    ])
   })
 })

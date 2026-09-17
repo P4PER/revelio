@@ -23,6 +23,7 @@ card-data/
     search-index.<lang>.json#   folded name/text/flavor for fast search
   assets/                   # GENERATED (git-ignored) – downloaded images
     cards/<id>.webp         #   card image, q100 (+ thumb/<id>.webp, 300px q85)
+    cards/landscape-thumb/  #   horizontal cards' thumbs turned upright (Discord embeds)
     symbols/<code>.webp     #   set symbols (WebP lossless, alpha kept)
 ```
 

@@ -230,6 +230,33 @@ def generate_art_crops(cards):
     return (made, skipped)
 
 
+def generate_landscape_thumbs(cards):
+    """Bake landscape-thumb/<id>.webp for horizontal cards: the thumb turned 90 CW.
+    Card faces are stored portrait; the web turns a horizontal one back with CSS,
+    but a Discord embed only takes an image URL. Rebuilds a copy older than its
+    thumb, since ingest versions both by the full image's mtime. Returns (made, skipped)."""
+    try:
+        from PIL import Image
+    except ImportError:
+        return (0, 0)
+    out_dir = os.path.join(ASSETS, "cards", "landscape-thumb")
+    os.makedirs(out_dir, exist_ok=True)
+    made = skipped = 0
+    for c in cards:
+        if c.get("orientation") != "horizontal":
+            continue
+        src = os.path.join(ASSETS, "cards", "thumb", f"{c['id']}.webp")
+        dst = os.path.join(out_dir, f"{c['id']}.webp")
+        if not os.path.exists(src):
+            continue
+        if os.path.exists(dst) and os.path.getmtime(dst) >= os.path.getmtime(src):
+            skipped += 1
+            continue
+        Image.open(src).transpose(Image.ROTATE_270).save(dst, "WEBP", quality=WEBP_THUMB_Q, method=WEBP_METHOD)
+        made += 1
+    return (made, skipped)
+
+
 def main():
     cards = json.load(open(os.path.join(DIST, "cards.json"), encoding="utf-8"))
     n = download_mode(cards) if DOWNLOAD else link_mode(cards)
@@ -237,6 +264,8 @@ def main():
         download_symbols()
         made, skipped = generate_art_crops(cards)
         print(f"art crops: {made} made, {skipped} skipped")
+        made, skipped = generate_landscape_thumbs(cards)
+        print(f"landscape thumbs: {made} made, {skipped} skipped")
     json.dump(cards, open(os.path.join(DIST, "cards.json"), "w", encoding="utf-8"), indent=2, ensure_ascii=False)
     # refresh per-language slim files' image url (en image is the shared art)
     langs = sorted({l for c in cards for l in c["languages"]})

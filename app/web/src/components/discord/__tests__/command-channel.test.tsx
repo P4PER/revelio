@@ -21,6 +21,17 @@ describe('CommandChannel', () => {
     expect(screen.getByText('Adventures at Hogwarts - #32')).toBeInTheDocument()
   })
 
+  // card-embed.ts uses setImage, which Discord draws full width under the
+  // fields and above the footer, not as a thumbnail beside the text.
+  it('places the card art under the fields and above the footer', () => {
+    renderChannel('en', en)
+    const art = screen.getByAltText('Alohomora card')
+    const field = screen.getByText(en.discord.sample.fieldCost)
+    const footer = screen.getByText('Adventures at Hogwarts - #32')
+    expect(field.compareDocumentPosition(art) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(art.compareDocumentPosition(footer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
   it('shows the sample search embed with its card lines', () => {
     renderChannel('en', en)
     expect(screen.getByText('42 cards')).toBeInTheDocument()

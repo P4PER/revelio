@@ -7,12 +7,13 @@ const deck: PublicDeck = {
   name: 'Charms Aggro',
   format: 'classic',
   ownerUsername: 'seeker',
-  character: { cardId: 'c1', name: 'Harry Potter', quantity: 1, cost: null, lesson: null, imageVersion: 1 },
+  character: { name: 'Harry Potter', quantity: 1, cost: null, lesson: null },
   main: [
-    { cardId: 'c3', name: 'Charms Lesson', quantity: 8, cost: 0, lesson: 'charms', imageVersion: 1 },
-    { cardId: 'c2', name: 'Alohomora', quantity: 4, cost: 2, lesson: 'charms', imageVersion: 1 },
+    { name: 'Charms Lesson', quantity: 8, cost: 0, lesson: 'charms' },
+    { name: 'Alohomora', quantity: 4, cost: 2, lesson: 'charms' },
   ],
-  sideboard: [{ cardId: 'c4', name: 'Nimbus 2000', quantity: 2, cost: 4, lesson: 'quidditch', imageVersion: 1 }],
+  sideboard: [{ name: 'Nimbus 2000', quantity: 2, cost: 4, lesson: 'quidditch' }],
+  entries: [],
   mainCount: 12,
   sideboardCount: 2,
   topLesson: 'charms',
@@ -65,7 +66,7 @@ describe('deckEmbed', () => {
     // too. Counting distinct entries there leaves two numbers in one field that
     // the reader cannot reconcile.
     const many = Array.from({ length: 200 }, (_, i) => ({
-      cardId: `c${i}`, name: `Card number ${i}`, quantity: 2, cost: i, lesson: 'charms', imageVersion: null,
+      name: `Card number ${i}`, quantity: 2, cost: i, lesson: 'charms',
     }))
     const json = deckEmbed({ ...deck, main: many, mainCount: 400 }, opts).toJSON()
     const value = json.fields?.find((f) => f.name.startsWith('Main deck'))!.value
@@ -75,7 +76,7 @@ describe('deckEmbed', () => {
 
   it('truncates a long card list with a remainder line, inside the 1024 limit', () => {
     const many = Array.from({ length: 200 }, (_, i) => ({
-      cardId: `c${i}`, name: `Card number ${i}`, quantity: 1, cost: i, lesson: 'charms', imageVersion: null,
+      name: `Card number ${i}`, quantity: 1, cost: i, lesson: 'charms',
     }))
     const json = deckEmbed({ ...deck, main: many, mainCount: 200 }, opts).toJSON()
     const field = json.fields?.find((f) => f.name.startsWith('Main deck'))

@@ -89,6 +89,22 @@ describe('getPublicDeck', () => {
     expect((await getPublicDeck({} as never, 'abc123'))!.status).toBe('incomplete')
   })
 
+  // The deck image lays these out through the shared deck sheet, which keeps
+  // the order it is given, so the order has to be settled here.
+  it('lists every view as sheet entries, character first, each zone by cost then name', async () => {
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    const deck = (await getPublicDeck({} as never, 'abc123'))!
+    expect(deck.entries.map((e) => e.cardId)).toEqual(['c1', 'c3', 'c2', 'c4'])
+    expect(deck.entries[0]).toMatchObject({ zone: 'character', name: 'Harry Potter' })
+  })
+
+  it('orders the sheet entries the same whatever order the rows arrive in', async () => {
+    const stub = stubDeck()
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue({ ...stub, views: [...stub.views].reverse() } as never)
+    const deck = (await getPublicDeck({} as never, 'abc123'))!
+    expect(deck.entries.map((e) => e.cardId)).toEqual(['c1', 'c3', 'c2', 'c4'])
+  })
+
   it('carries the owner username through', async () => {
     vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
     expect((await getPublicDeck({} as never, 'abc123'))!.ownerUsername).toBe('seeker')

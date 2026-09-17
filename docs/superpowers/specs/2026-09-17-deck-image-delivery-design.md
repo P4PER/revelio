@@ -242,3 +242,35 @@ Section headers cost as much sheet height as a row of cards, so entries map to m
 far less generously than the tables above suggest: a 12-entry deck over six sections is
 already 5.9 Mpx at 2x. The clamp therefore bites on ordinary decks, not only on huge ones,
 and full art is what keeps those renders crisp at the reduced scale.
+
+## Revision, 2026-09-18 (code review)
+
+The sentence above is true up to a point and the review found where it stops. Full art
+buys headroom over the thumb, and the clamp spends that headroom: measured against the
+real geometry, the card box is 264x370 at 2x but 232x326 at 40 distinct entries, 154x216
+at 100 and 110x154 at 200. Past roughly 58 entries a 300px thumb covers the box better
+than 1.5:1 and the full image is 14x the bytes for a render nobody can tell apart - a
+100-entry deck was pulling ~31 MB of art to paint 154px boxes.
+
+`usesFullArt(s)` now decides once per sheet, on `DECK_SHEET.cardWidth * s` against the
+thumb's 300px width. Every realistic deck still renders at 2x, so it still gets the full
+art; only a sheet the budget has already shrunk drops to thumbs. Three other things the
+same review changed:
+
+- The fetch phase shares one deadline (`FETCH_BUDGET_MS`, 30s) and each request's timeout
+  is clamped to what is left of it. `FETCH_TIMEOUT_MS` alone bounds one card, so a
+  200-card deck against an unreachable `IMAGE_FETCH_BASE_URL` serialised 25 waves of it
+  and sat on the deferral for four minutes before falling back to the list.
+- The WebP fallback is measured against `MAX_ATTACHMENT_BYTES` too, and throws if it is
+  still over. `/deck` answers a throw with the list embed; an oversized attachment fails
+  the whole interaction.
+- The attachment is named `deck.png` or `deck.webp` for what it actually is. Discord's
+  client sniffs the content, but `media.discordapp.net` transcodes by extension, so the
+  fallback's inline image could come back broken. `renderDeckImage` returns the name with
+  the bytes, which keeps the embed and the upload from disagreeing - the reason the
+  single `DECK_IMAGE_NAME` constant existed.
+
+One finding was measured and rejected: encoding the composite once to raw and feeding both
+encoders from it, rather than `clone()`-ing the pipeline. On a 100-entry deck it saves
+170ms and 22 MB on the fallback path and costs 22ms and 9 MB on the path that always runs.
+The budget is set so the fallback should never fire, so that trade is the wrong way round.

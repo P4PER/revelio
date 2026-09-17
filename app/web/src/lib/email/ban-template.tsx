@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import { createTranslator } from 'next-intl'
 import { render } from '@react-email/render'
 import { Heading, Link, Text } from '@react-email/components'
+import { FORMATS } from '@/../i18n/formats'
 import { getPathname } from '@/../i18n/navigation'
 import { TIME_ZONE } from '@/../i18n/time-zone'
 import { EmailLayout, emailHeading, emailText } from './layout'
@@ -22,7 +23,13 @@ const link: CSSProperties = { color: '#3B3194', textDecoration: 'underline' }
 // createTranslator, not getTranslations: server actions have no request locale
 // here, same as renderOtpEmail and renderContactEmail.
 function banTranslator(locale: EmailLocale) {
-  return createTranslator({ locale, messages: EMAIL_MESSAGES[locale], namespace: 'email.ban', timeZone: TIME_ZONE })
+  return createTranslator({
+    locale,
+    messages: EMAIL_MESSAGES[locale],
+    namespace: 'email.ban',
+    timeZone: TIME_ZONE,
+    formats: FORMATS,
+  })
 }
 
 function BanEmail({ reason, expiresAt, contactEmail, locale }: Required<BanEmailInput>) {

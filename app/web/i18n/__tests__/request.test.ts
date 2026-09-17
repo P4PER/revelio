@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { FORMATS } from '../formats'
 import { TIME_ZONE } from '../time-zone'
 
 const rootLocale = vi.fn<() => Promise<string>>()
@@ -57,6 +58,13 @@ describe('i18n/request', () => {
     rootLocale.mockResolvedValue('en')
     const config = await loadConfig({})
     expect(config.timeZone).toBe(TIME_ZONE)
+  })
+
+  // Calendar days carry their own zone; the provider only has to hand it on.
+  it('registers the app date formats', async () => {
+    rootLocale.mockResolvedValue('en')
+    const config = await loadConfig({})
+    expect(config.formats).toBe(FORMATS)
   })
 
   it('prefers an explicit locale override without reading root params', async () => {

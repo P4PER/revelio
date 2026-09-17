@@ -4,7 +4,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi } from 'vitest'
 import en from '@/../messages/en.json'
 import de from '@/../messages/de.json'
-import { TIME_ZONE } from '@/../i18n/time-zone'
+import { FORMATS } from '@/../i18n/formats'
 
 // next-intl's navigation Link needs the Next router, which jsdom lacks. A plain
 // anchor keeps what the test asserts: the href.
@@ -47,7 +47,7 @@ const LOCALES = {
 function renderTerms(locale: 'en' | 'de', operator: Operator = FULL) {
   const { messages, Document } = LOCALES[locale]
   return render(
-    <NextIntlClientProvider locale={locale} messages={messages} timeZone="UTC">
+    <NextIntlClientProvider locale={locale} messages={messages} timeZone="UTC" formats={FORMATS}>
       <TermsContent Document={Document} {...operator} />
     </NextIntlClientProvider>,
   )
@@ -157,11 +157,11 @@ describe('TermsContent', () => {
     expect(screen.getByText(/^Effective from \w+ \d{1,2}, \d{4}$/)).toBeInTheDocument()
   })
 
-  // The effective date is UTC midnight; the app's zone must not print it as the
-  // day before, or the page would contradict TERMS_VERSION.
-  it('keeps the effective day in the app time zone', () => {
+  // The effective date is UTC midnight; a zone behind UTC must not print it as
+  // the day before, or the page would contradict TERMS_VERSION.
+  it('keeps the effective day in a zone behind UTC', () => {
     render(
-      <NextIntlClientProvider locale="de" messages={de} timeZone={TIME_ZONE}>
+      <NextIntlClientProvider locale="de" messages={de} timeZone="America/Los_Angeles" formats={FORMATS}>
         <TermsContent Document={TermsDe as MDXContent} {...FULL} />
       </NextIntlClientProvider>,
     )

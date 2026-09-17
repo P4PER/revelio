@@ -914,7 +914,7 @@
     "ban": {
       "subject": "Ihr Revelio-Konto wurde gesperrt",
       "heading": "Ihr Konto wurde gesperrt",
-      "measureTemporary": "Wir haben Ihr Revelio-Konto bis zum {date, date, long} gesperrt. Während der Sperre können Sie sich nicht anmelden, und der Revelio-Discord-Bot kann Ihre Sammlung und Decks nicht anzeigen.",
+      "measureTemporary": "Wir haben Ihr Revelio-Konto bis zum {date, date, calendarDay} gesperrt. Während der Sperre können Sie sich nicht anmelden, und der Revelio-Discord-Bot kann Ihre Sammlung und Decks nicht anzeigen.",
       "measurePermanent": "Wir haben Ihr Revelio-Konto dauerhaft gesperrt. Sie können sich nicht anmelden, und der Revelio-Discord-Bot kann Ihre Sammlung und Decks nicht anzeigen.",
       "reasonLabel": "Grund",
       "grounds": "Diese Entscheidung stützt sich auf unsere <terms>Nutzungsbedingungen</terms>, insbesondere Abschnitt 5 (Zulässige Nutzung) und Abschnitt 8 (Meldungen und Moderation). Sie wurde von einer Person nach Prüfung Ihres Kontos getroffen; automatisierte Mittel wurden nicht eingesetzt.",
@@ -924,7 +924,7 @@
   "legal": {
     "notConfigured": "Nicht konfiguriert",
     "emailLabel": "E-Mail:",
-    "lastUpdated": "Zuletzt aktualisiert: {date, date, long}"
+    "lastUpdated": "Zuletzt aktualisiert: {date, date, calendarDay}"
   },
   "privacy": {
     "metaTitle": "Datenschutzerklärung",
@@ -933,7 +933,7 @@
   "terms": {
     "metaTitle": "Nutzungsbedingungen",
     "title": "Nutzungsbedingungen",
-    "effective": "Gültig ab {date, date, long}"
+    "effective": "Gültig ab {date, date, calendarDay}"
   },
   "termsBanner": {
     "label": "Nutzungsbedingungen",

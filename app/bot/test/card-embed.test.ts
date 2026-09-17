@@ -41,14 +41,20 @@ describe('cardEmbed', () => {
     expect(json.url).toBe('https://revelio.cards/card/base-12')
   })
 
-  it('uses the 300px thumbnail, not the full image', () => {
+  it('shows the 300px thumb as the large image, not the full image', () => {
     const json = cardEmbed(doc, opts).toJSON()
-    expect(json.thumbnail?.url).toBe('https://img.revelio.cards/cards/thumb/base-12.3.webp')
+    expect(json.image?.url).toBe('https://img.revelio.cards/cards/thumb/base-12.3.webp')
+    expect(json.thumbnail).toBeUndefined()
   })
 
-  it('omits the thumbnail when the card has no image', () => {
+  it('shows a horizontal card upright through its landscape thumb', () => {
+    const json = cardEmbed({ ...doc, orientation: 'horizontal', imageLang: 'de' }, opts).toJSON()
+    expect(json.image?.url).toBe('https://img.revelio.cards/cards/landscape-thumb/base-12.de.3.webp')
+  })
+
+  it('omits the image when the card has no image', () => {
     const json = cardEmbed({ ...doc, imageLang: null, imageVersion: null }, opts).toJSON()
-    expect(json.thumbnail).toBeUndefined()
+    expect(json.image).toBeUndefined()
   })
 
   it('tints the embed with the lesson colour', () => {

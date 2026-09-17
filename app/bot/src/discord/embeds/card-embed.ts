@@ -1,6 +1,6 @@
 import { EmbedBuilder } from 'discord.js'
 import type { SearchDocument } from '@revelio/search'
-import { attrLabel, imageUrl, thumbKey, LESSONS } from '@revelio/core'
+import { attrLabel, imageUrl, landscapeThumbKey, thumbKey, LESSONS } from '@revelio/core'
 import type { CardRuling } from '../../data/cards'
 import { t } from '../../i18n/t'
 import { cardUrl } from '../../links'
@@ -44,9 +44,11 @@ export function cardEmbed(doc: SearchDocument, opts: CardEmbedOptions): EmbedBui
     .join('\n\n')
   if (body) embed.setDescription(clamp(body, DESCRIPTION_LIMIT))
 
+  // A full-width image rather than the corner thumbnail. Card faces are stored
+  // portrait, so a horizontal card uses its pre-baked landscape thumb to read upright.
   if (doc.imageLang && doc.imageVersion != null) {
-    const key = thumbKey(doc.id, doc.imageVersion, doc.imageLang, doc.defaultLanguage)
-    embed.setThumbnail(imageUrl(opts.imageBase, key))
+    const keyOf = doc.orientation === 'horizontal' ? landscapeThumbKey : thumbKey
+    embed.setImage(imageUrl(opts.imageBase, keyOf(doc.id, doc.imageVersion, doc.imageLang, doc.defaultLanguage)))
   }
 
   // Sub-types are not curated in attributes.ts (they self-extend from card data),

@@ -2,11 +2,10 @@
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Copy, Download, FileBraces, FileText, Image as ImageIcon, Upload } from 'lucide-react'
-import { toJson, toText } from '@revelio/core'
+import { OTHER_GROUP, toJson, toText } from '@revelio/core'
 import type { DeckDTO } from '@revelio/core'
 import type { BuilderState } from '@/lib/deck-model'
 import { renderDeckPng } from '@/lib/deck-png'
-import { OTHER_GROUP } from '@/lib/deck-groups'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {

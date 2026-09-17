@@ -1,12 +1,12 @@
 'use client'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { imageUrl, thumbKey } from '@revelio/core'
+import { groupMainEntries, imageUrl, thumbKey } from '@revelio/core'
 import type { DeckCardView } from '@revelio/core'
 import { CardRotate } from '@/components/card/card-rotate'
 import { CardDetailSheet } from '@/components/card/card-detail-sheet'
 import { CardInfoButton } from '@/components/card/card-info-button'
-import { groupColor, groupLabel, groupMainEntries } from '@/lib/deck-groups'
+import { groupColor, groupLabel } from '@/lib/deck-groups'
 import { MAIN_TARGET } from '@/lib/deck-legality'
 
 function GalleryTile({

@@ -1,36 +1,36 @@
 import { it, expect } from 'vitest'
-import type { DeckCardView } from '@revelio/core'
-import { layoutDeckSheet, computeSheetGeometry, type DeckPngCard } from '../deck-png'
+import type { DeckCardView } from '../src/domain.js'
+import { layoutDeckSheet, computeSheetGeometry, type DeckSheetCard } from '../src/deck-sheet.js'
 
 const harry: DeckCardView = {
   cardId: 'bs-harry', zone: 'character', quantity: 1, types: ['character'],
-  name: 'Harry Potter', cost: null, setCode: 'BS', number: '1', lesson: null,
+  name: 'Harry Potter', cost: null, damage: null, setCode: 'BS', number: '1', lesson: null,
   isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: true,
-  imageVersion: 100, orientation: 'horizontal',
+  imageVersion: 100, orientation: 'horizontal', artCropVersion: null,
 }
 const accio: DeckCardView = {
   cardId: 'bs-accio', zone: 'main', quantity: 4, types: ['spell'],
-  name: 'Accio', cost: 1, setCode: 'BS', number: '2', lesson: 'charms',
+  name: 'Accio', cost: 1, damage: null, setCode: 'BS', number: '2', lesson: 'charms',
   isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: false,
-  imageVersion: 101, orientation: null,
+  imageVersion: 101, orientation: null, artCropVersion: null,
 }
 const charmsLesson: DeckCardView = {
   cardId: 'bs-charms-class', zone: 'main', quantity: 6, types: ['lesson'],
-  name: 'Charms Class', cost: null, setCode: 'BS', number: '3', lesson: 'charms',
+  name: 'Charms Class', cost: null, damage: null, setCode: 'BS', number: '3', lesson: 'charms',
   isOfficial: true, legality: 'legal', isLesson: true, isStartingCharacter: false,
-  imageVersion: 102, orientation: null,
+  imageVersion: 102, orientation: null, artCropVersion: null,
 }
 const item: DeckCardView = {
   cardId: 'bs-nimbus', zone: 'main', quantity: 2, types: ['item'],
-  name: 'Nimbus Two Thousand', cost: 2, setCode: 'BS', number: '4', lesson: null,
+  name: 'Nimbus Two Thousand', cost: 2, damage: null, setCode: 'BS', number: '4', lesson: null,
   isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: false,
-  imageVersion: null, orientation: null,
+  imageVersion: null, orientation: null, artCropVersion: null,
 }
 const sideCard: DeckCardView = {
   cardId: 'bs-dobby', zone: 'sideboard', quantity: 1, types: ['item'],
-  name: 'Dobby', cost: 1, setCode: 'BS', number: '5', lesson: null,
+  name: 'Dobby', cost: 1, damage: null, setCode: 'BS', number: '5', lesson: null,
   isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: false,
-  imageVersion: 103, orientation: null,
+  imageVersion: 103, orientation: null, artCropVersion: null,
 }
 
 const labels = {
@@ -81,10 +81,10 @@ it('omits Main deck / Sideboard sections entirely when those zones are empty', (
   expect(sections.map((s) => s.title)).toEqual(['Character'])
 })
 
-const cell = (cardId: string): DeckPngCard => ({
+const cell = (cardId: string): DeckSheetCard => ({
   cardId, quantity: 1, name: cardId, setCode: 'BS', imageVersion: 1, orientation: null,
 })
-const hcell = (cardId: string): DeckPngCard => ({
+const hcell = (cardId: string): DeckSheetCard => ({
   cardId, quantity: 1, name: cardId, setCode: 'BS', imageVersion: 1, orientation: 'horizontal',
 })
 

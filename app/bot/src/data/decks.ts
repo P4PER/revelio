@@ -2,13 +2,10 @@ import { getDeckForViewer, type DB } from '@revelio/db'
 import { evaluateDeck, type DeckCardMeta, type DeckFormat, type DeckStatus } from '@revelio/core'
 
 export type DeckEntryView = {
-  cardId: string
   name: string
   quantity: number
   cost: number | null
   lesson: string | null
-  // Default-language thumb version, null when the card has no image.
-  imageVersion: number | null
 }
 
 export type PublicDeck = {
@@ -50,8 +47,7 @@ export async function getPublicDeck(db: DB, ref: string): Promise<PublicDeck | n
   const { deck, views, ownerUsername } = res
 
   const toEntry = (v: (typeof views)[number]): DeckEntryView => ({
-    cardId: v.cardId, name: v.name, quantity: v.quantity, cost: v.cost, lesson: v.lesson,
-    imageVersion: v.imageVersion,
+    name: v.name, quantity: v.quantity, cost: v.cost, lesson: v.lesson,
   })
   const main = views.filter((v) => v.zone === 'main').map(toEntry).sort(byCostThenName)
   const sideboard = views.filter((v) => v.zone === 'sideboard').map(toEntry).sort(byCostThenName)

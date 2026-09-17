@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import sharp from 'sharp'
 import { DECK_SHEET, computeSheetGeometry, layoutDeckSheet, type DeckCardView } from '@revelio/core'
-import { renderDeckImage } from '../src/images/deck-image'
+import { MAX_SHEET_PIXELS, renderDeckImage, sheetScale } from '../src/images/deck-image'
 import type { PublicDeck } from '../src/data/decks'
 
 afterEach(() => { vi.unstubAllGlobals() })
@@ -91,4 +91,40 @@ describe('renderDeckImage', () => {
     expect(peak).toBeLessThanOrEqual(8)
     expect(peak).toBeGreaterThan(1)
   })
+})
+
+// 200 distinct main-deck cards: far past the budget, so the clamp has to bite.
+const hugeEntries: DeckCardView[] = Array.from({ length: 200 }, (_, i) =>
+  view(`creature${i}`, 'main', ['creature']),
+)
+const hugeDeck: PublicDeck = { ...deck, entries: hugeEntries, mainCount: 400 }
+
+function geomOf(d: PublicDeck, e: DeckCardView[]) {
+  const labels = {
+    formatLabel: { classic: '', revival: '' }, character: '', mainDeck: '', sideboard: '', group: () => '',
+  }
+  return computeSheetGeometry(layoutDeckSheet(d, e, labels))
+}
+
+describe('sheetScale', () => {
+  it('paints a normal deck at the full shared scale', () => {
+    expect(sheetScale(geomOf(deck, entries))).toBe(DECK_SHEET.scale)
+  })
+
+  it('scales an oversized sheet down to the pixel budget', () => {
+    const geom = geomOf(hugeDeck, hugeEntries)
+    const scale = sheetScale(geom)
+    expect(scale).toBeLessThan(DECK_SHEET.scale)
+    expect(geom.width * scale * (geom.height * scale)).toBeLessThanOrEqual(MAX_SHEET_PIXELS)
+  })
+
+  it('renders an oversized deck inside the budget', async () => {
+    const body = await thumb()
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(body, { status: 200 })))
+    const meta = await sharp(await renderDeckImage(hugeDeck, opts)).metadata()
+    expect(meta.width! * meta.height!).toBeLessThanOrEqual(MAX_SHEET_PIXELS)
+    // Still the sheet's aspect ratio, not a clipped or letterboxed one.
+    const geom = geomOf(hugeDeck, hugeEntries)
+    expect(meta.width! / meta.height!).toBeCloseTo(geom.width / geom.height, 2)
+  }, 60_000)
 })

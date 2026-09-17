@@ -19,11 +19,41 @@ import { fitText, renderText, type RenderedText } from './text'
 
 export type DeckImageOptions = { imageBase: string; locale: string }
 
-const S = DECK_SHEET.scale
 const FETCH_TIMEOUT_MS = 5000
 const MAX_IN_FLIGHT = 8
 // Padding either side of a placeholder's card name, as the web painter clamps it.
 const PLACEHOLDER_INSET = 16
+// Upper bound on the painted sheet, in device pixels. Peak RSS measured on this
+// renderer is about 200 MB plus 14.5 MB per megapixel of canvas, so 12 Mpx caps a
+// render near 375 MB - see the spec's table. Past the budget the whole sheet scales
+// down rather than clipping, which keeps a 200-card deck a readable picture instead
+// of an OOM. Deliberately not a DECK_SHEET field: the web painter's cap
+// (MAX_CANVAS_DIM in web/src/lib/deck-png.ts) is a browser limit at a different
+// number, and one constant cannot mean both.
+export const MAX_SHEET_PIXELS = 12_000_000
+
+/**
+ * Device pixels per layout pixel for this sheet. DECK_SHEET.scale unless the
+ * geometry would exceed MAX_SHEET_PIXELS, in which case both axes shrink by the
+ * same factor so the picture keeps its proportions.
+ */
+export function sheetScale(geom: SheetGeometry): number {
+  const budget = Math.sqrt(MAX_SHEET_PIXELS / (geom.width * geom.height))
+  return Math.min(DECK_SHEET.scale, budget)
+}
+
+// A layout coordinate in device pixels. sharp rejects a fractional composite
+// offset or resize dimension, and below the full 2x scale these stop being whole
+// numbers on their own.
+function px(value: number, s: number): number {
+  return Math.round(value * s)
+}
+
+// The canvas rounds down so the sheet cannot creep back over MAX_SHEET_PIXELS;
+// the lost fraction of a pixel comes out of the padding, never out of a card.
+function canvasSize(geom: SheetGeometry, s: number): { w: number; h: number } {
+  return { w: Math.floor(geom.width * s), h: Math.floor(geom.height * s) }
+}
 
 function labelsFor(locale: string): DeckSheetLabels {
   return {
@@ -41,24 +71,23 @@ function labelsFor(locale: string): DeckSheetLabels {
 // Everything that is a shape rather than a glyph or a photo, in one SVG: the
 // midnight sheet, the card-coloured panel, a placeholder box per card and the
 // section swatches. One overlay instead of several hundred.
-function chromeSvg(geom: SheetGeometry): Buffer {
+function chromeSvg(geom: SheetGeometry, s: number): Buffer {
   const { padding, frame, sectionHeaderHeight, swatchSize } = DECK_SHEET
-  const w = geom.width * S
-  const h = geom.height * S
+  const { w, h } = canvasSize(geom, s)
   const parts = [
     `<rect width="${w}" height="${h}" fill="${DECK_SHEET_COLORS.background}"/>`,
-    `<rect x="${frame * S}" y="${frame * S}" width="${w - frame * 2 * S}" height="${h - frame * 2 * S}"` +
-      ` fill="${DECK_SHEET_COLORS.panel}" stroke="${DECK_SHEET_COLORS.border}" stroke-width="${S}"/>`,
+    `<rect x="${frame * s}" y="${frame * s}" width="${w - frame * 2 * s}" height="${h - frame * 2 * s}"` +
+      ` fill="${DECK_SHEET_COLORS.panel}" stroke="${DECK_SHEET_COLORS.border}" stroke-width="${s}"/>`,
   ]
   for (const section of geom.sections) {
-    const centerY = (section.headerY + sectionHeaderHeight / 2) * S
+    const centerY = (section.headerY + sectionHeaderHeight / 2) * s
     parts.push(
-      `<rect x="${padding * S}" y="${centerY - (swatchSize / 2) * S}" width="${(swatchSize / 3) * S}"` +
-        ` height="${swatchSize * S}" fill="${section.color}"/>`,
+      `<rect x="${padding * s}" y="${centerY - (swatchSize / 2) * s}" width="${(swatchSize / 3) * s}"` +
+        ` height="${swatchSize * s}" fill="${section.color}"/>`,
     )
     for (const pc of section.cards) {
       parts.push(
-        `<rect x="${pc.x * S + 0.5}" y="${pc.y * S + 0.5}" width="${pc.w * S - 1}" height="${pc.h * S - 1}"` +
+        `<rect x="${pc.x * s + 0.5}" y="${pc.y * s + 0.5}" width="${pc.w * s - 1}" height="${pc.h * s - 1}"` +
           ` fill="${DECK_SHEET_COLORS.panel}" stroke="${DECK_SHEET_COLORS.border}" stroke-width="1"/>`,
       )
     }
@@ -67,13 +96,12 @@ function chromeSvg(geom: SheetGeometry): Buffer {
 }
 
 // The gold disc a quantity sits in, straddling each card's bottom edge.
-function badgeSvg(geom: SheetGeometry): Buffer {
-  const w = geom.width * S
-  const h = geom.height * S
+function badgeSvg(geom: SheetGeometry, s: number): Buffer {
+  const { w, h } = canvasSize(geom, s)
   const circles = geom.sections.flatMap((section) =>
     section.cards.map((pc) =>
-      `<circle cx="${(pc.x + pc.w / 2) * S}" cy="${(pc.y + pc.h) * S}" r="${DECK_SHEET.badgeRadius * S}"` +
-        ` fill="${DECK_SHEET_COLORS.gold}" stroke="${DECK_SHEET_COLORS.background}" stroke-width="${2 * S}"/>`,
+      `<circle cx="${(pc.x + pc.w / 2) * s}" cy="${(pc.y + pc.h) * s}" r="${DECK_SHEET.badgeRadius * s}"` +
+        ` fill="${DECK_SHEET_COLORS.gold}" stroke="${DECK_SHEET_COLORS.background}" stroke-width="${2 * s}"/>`,
     ),
   )
   return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${circles.join('')}</svg>`)
@@ -123,6 +151,7 @@ async function cardImage(thumb: Buffer, w: number, h: number, upright: boolean):
 async function cardOverlays(
   sections: PositionedSection[],
   imageBase: string,
+  s: number,
 ): Promise<OverlayOptions[]> {
   const positioned = sections.flatMap((section) => section.cards)
   const distinct = [...new Set(positioned.map((pc) => pc.card.cardId))]
@@ -136,43 +165,43 @@ async function cardOverlays(
   return mapLimit(positioned, MAX_IN_FLIGHT, async (pc): Promise<OverlayOptions> => {
     const thumb = thumbById.get(pc.card.cardId)
     const image = thumb
-      ? await cardImage(thumb, pc.w * S, pc.h * S, pc.card.orientation === 'horizontal')
+      ? await cardImage(thumb, px(pc.w, s), px(pc.h, s), pc.card.orientation === 'horizontal')
       : null
-    if (image) return { input: image, left: pc.x * S, top: pc.y * S }
+    if (image) return { input: image, left: px(pc.x, s), top: px(pc.y, s) }
     const name = await fitText(
       pc.card.name,
-      { size: DECK_SHEET.fontSize.placeholder * S, color: DECK_SHEET_COLORS.parchment },
-      (pc.w - PLACEHOLDER_INSET) * S,
+      { size: DECK_SHEET.fontSize.placeholder * s, color: DECK_SHEET_COLORS.parchment },
+      (pc.w - PLACEHOLDER_INSET) * s,
     )
-    return centered(name, (pc.x + pc.w / 2) * S, (pc.y + pc.h / 2) * S)
+    return centered(name, (pc.x + pc.w / 2) * s, (pc.y + pc.h / 2) * s)
   })
 }
 
-async function textOverlays(geom: SheetGeometry, title: string): Promise<OverlayOptions[]> {
+async function textOverlays(geom: SheetGeometry, title: string, s: number): Promise<OverlayOptions[]> {
   const { padding, titleBaseline, sectionHeaderHeight, swatchSize, fontSize } = DECK_SHEET
-  const contentWidth = (geom.width - padding * 2) * S
+  const contentWidth = (geom.width - padding * 2) * s
 
-  const heading = await fitText(title, { size: fontSize.title * S, color: DECK_SHEET_COLORS.gold }, contentWidth)
+  const heading = await fitText(title, { size: fontSize.title * s, color: DECK_SHEET_COLORS.gold }, contentWidth)
   // The Canvas painter draws the title on a baseline; center the box on where
   // that baseline puts the x-height instead, which lands in the same place.
   const overlays: OverlayOptions[] = [
-    { input: heading.input, left: padding * S, top: Math.round((padding + titleBaseline) * S - heading.height * 0.8) },
+    { input: heading.input, left: px(padding, s), top: Math.round((padding + titleBaseline) * s - heading.height * 0.8) },
   ]
 
   for (const section of geom.sections) {
     const label = await fitText(
       section.title,
-      { size: fontSize.section * S, color: DECK_SHEET_COLORS.parchment },
-      contentWidth - 14 * S,
+      { size: fontSize.section * s, color: DECK_SHEET_COLORS.parchment },
+      contentWidth - 14 * s,
     )
-    const centerY = (section.headerY + sectionHeaderHeight / 2) * S
-    overlays.push({ input: label.input, left: (padding + swatchSize) * S, top: Math.round(centerY - label.height / 2) })
+    const centerY = (section.headerY + sectionHeaderHeight / 2) * s
+    overlays.push({ input: label.input, left: px(padding + swatchSize, s), top: Math.round(centerY - label.height / 2) })
 
     for (const pc of section.cards) {
       const quantity = await renderText(String(pc.card.quantity), {
-        size: fontSize.badge * S, color: DECK_SHEET_COLORS.badgeText,
+        size: fontSize.badge * s, color: DECK_SHEET_COLORS.badgeText,
       })
-      overlays.push(centered(quantity, (pc.x + pc.w / 2) * S, (pc.y + pc.h) * S))
+      overlays.push(centered(quantity, (pc.x + pc.w / 2) * s, (pc.y + pc.h) * s))
     }
   }
   return overlays
@@ -193,14 +222,15 @@ async function textOverlays(geom: SheetGeometry, title: string): Promise<Overlay
 export async function renderDeckImage(deck: PublicDeck, opts: DeckImageOptions): Promise<Buffer> {
   const layout = layoutDeckSheet(deck, deck.entries, labelsFor(opts.locale))
   const geom = computeSheetGeometry(layout)
+  const s = sheetScale(geom)
 
   const [cards, text] = await Promise.all([
-    cardOverlays(geom.sections, opts.imageBase),
-    textOverlays(geom, layout.title),
+    cardOverlays(geom.sections, opts.imageBase, s),
+    textOverlays(geom, layout.title, s),
   ])
 
-  return sharp(chromeSvg(geom))
-    .composite([...cards, { input: badgeSvg(geom) }, ...text])
+  return sharp(chromeSvg(geom, s))
+    .composite([...cards, { input: badgeSvg(geom, s) }, ...text])
     .webp({ quality: 90 })
     .toBuffer()
 }

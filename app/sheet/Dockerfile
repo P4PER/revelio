@@ -13,22 +13,21 @@ COPY bot/package.json ./bot/package.json
 COPY sheet/package.json ./sheet/package.json
 RUN npm ci
 
-# --- build: bundle the gateway into a single file ---
+# --- build: bundle the service into a single file ---
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json package-lock.json tsconfig.base.json ./
 COPY core ./core
-COPY db ./db
-COPY search ./search
-COPY bot ./bot
-RUN npm run build -w @revelio/bot
+COPY sheet ./sheet
+RUN npm run build -w @revelio/sheet
 
-# A bundle inlines every imported module, so a module-level "am I the entry script?"
-# guard sees the bundle as itself and can exit before main() runs. The 'bot failed to
-# start:' prefix is printed only by main()'s catch handler, so requiring it here fails
-# the build if that ever regresses. Empty env, no network: the run dies at env parsing.
-RUN env -i node bot/dist/bot.mjs 2>&1 | grep -q 'bot failed to start:'
+# A bundle inlines every imported module, so a module-level "am I the entry
+# script?" guard sees the bundle as itself and can exit before main() runs. The
+# 'sheet failed to start:' prefix is printed only by main()'s catch handler, so
+# requiring it here fails the build if that ever regresses. Empty env, no
+# network: the run dies at env parsing.
+RUN env -i node sheet/dist/sheet.mjs 2>&1 | grep -q 'sheet failed to start:'
 
 # sharp is the one dependency the bundle cannot inline (native .node + libvips).
 # Install it alone, at the exact version the workspace resolved, so the runtime
@@ -40,18 +39,18 @@ RUN npm install --prefix /sharp --omit=dev --no-package-lock \
 FROM node:22-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
-RUN addgroup -g 1001 -S nodejs && adduser -S bot -u 1001
-COPY --from=build --chown=bot:nodejs /sharp/node_modules ./node_modules
-COPY --from=build --chown=bot:nodejs /app/bot/dist/bot.mjs ./bot.mjs
-COPY --from=build --chown=bot:nodejs /app/bot/dist/Poppins-SemiBold.ttf /app/bot/dist/fonts.conf ./
+RUN addgroup -g 1001 -S nodejs && adduser -S sheet -u 1001
+COPY --from=build --chown=sheet:nodejs /sharp/node_modules ./node_modules
+COPY --from=build --chown=sheet:nodejs /app/sheet/dist/sheet.mjs ./sheet.mjs
+COPY --from=build --chown=sheet:nodejs /app/sheet/dist/Poppins-SemiBold.ttf /app/sheet/dist/fonts.conf ./
 
 # fontconfig writes a cache on its first text render and warns on every boot
 # without somewhere to put it. One font makes the cache tiny; the warning is
 # what it would cost.
-RUN mkdir -p /var/cache/fontconfig && chown bot:nodejs /var/cache/fontconfig
+RUN mkdir -p /var/cache/fontconfig && chown sheet:nodejs /var/cache/fontconfig
 
-# The deck sheet is drawn with sharp text and a bundled font, and either missing
-# would build clean and fail on the first /deck. The font is checked by its own
+# The sheet is drawn with sharp text and a bundled font, and either missing
+# would build clean and fail on the first render. The font is checked by its own
 # presence rather than by how it renders: a fontfile libvips cannot open is not
 # an error, it silently substitutes. The render then proves the native binary
 # loads, and that an unmatched family resolves to Poppins - which it can only do
@@ -62,5 +61,6 @@ const d=f=>s({text:{text:'revelio',font:f,fontfile:'/app/Poppins-SemiBold.ttf',r
 Promise.all([d('Poppins SemiBold 24'),d('Nonexistent SemiBold 24')])\
 .then(([a,b])=>{if(!a.equals(b))throw new Error('bundled Poppins did not render')})"
 
-USER bot
-CMD ["node", "bot.mjs"]
+USER sheet
+EXPOSE 8080
+CMD ["node", "sheet.mjs"]

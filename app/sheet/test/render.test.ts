@@ -5,7 +5,7 @@ import {
   type DeckSheetEntry, type DeckSheetRequest,
 } from '@revelio/core'
 import {
-  MAX_SHEET_PIXELS, pixelBudget, renderSheet, sheetScale, usesFullArt,
+  MAX_SHEET_PIXELS, pixelBudget, renderSheet, resolveBudget, sheetScale, usesFullArt,
 } from '../src/render'
 
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks() })
@@ -60,6 +60,17 @@ async function noisyArt(): Promise<Uint8Array> {
   }).webp().toBuffer())
 }
 
+// A fetch that never answers but honours its signal exactly as the real one
+// does - including the already-aborted case, which real fetch rejects up front
+// and an addEventListener-only stub would hang on forever.
+function hangingFetch() {
+  vi.stubGlobal('fetch', vi.fn((_url: string, init: RequestInit) => new Promise<Response>((_resolve, reject) => {
+    const signal = init.signal!
+    if (signal.aborted) { reject(signal.reason); return }
+    signal.addEventListener('abort', () => reject(signal.reason))
+  })))
+}
+
 function recordingFetch(body: Uint8Array): string[] {
   const urls: string[] = []
   vi.stubGlobal('fetch', vi.fn(async (url: string) => {
@@ -82,6 +93,26 @@ describe('pixelBudget', () => {
 
   it('never exceeds the cap however large the ceiling', () => {
     expect(pixelBudget(50_000_000)).toBe(MAX_SHEET_PIXELS)
+  })
+})
+
+describe('resolveBudget', () => {
+  it('is the derived budget when no override is given', () => {
+    expect(resolveBudget(undefined, undefined)).toBe(MAX_SHEET_PIXELS)
+    expect(Math.round(resolveBudget(9_000_000, undefined))).toBe(5_625_000)
+  })
+
+  // The cap pairs with the pod's memory limit, so it has to hold against the
+  // override too - otherwise an in-process caller (Phase 4's cache wrapper, a
+  // batch path) can paint past what 768Mi is sized for without touching the
+  // constant.
+  it('clamps an override to the cap', () => {
+    expect(resolveBudget(undefined, 100_000_000)).toBe(MAX_SHEET_PIXELS)
+    expect(resolveBudget(9_000_000, 100_000_000)).toBe(MAX_SHEET_PIXELS)
+  })
+
+  it('lets an override below the cap through', () => {
+    expect(resolveBudget(undefined, 1_250_000)).toBe(1_250_000)
   })
 })
 
@@ -173,9 +204,7 @@ describe('renderSheet', () => {
     // Honours the abort signal, as a real fetch does: the renderer caps each
     // request with AbortSignal.timeout, and a stub that ignored it would hang
     // for FETCH_TIMEOUT_MS instead of ending with the budget.
-    vi.stubGlobal('fetch', vi.fn((_url: string, init: RequestInit) => new Promise<Response>(
-      (_resolve, reject) => init.signal!.addEventListener('abort', () => reject(init.signal!.reason)),
-    )))
+    hangingFetch()
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     await renderSheet(req, { ...opts, fetchBudgetMs: 50 })
     const logged = warn.mock.calls.flat().join(' ')
@@ -192,6 +221,34 @@ describe('renderSheet', () => {
     const nasty = { ...req, entries: [entry('x', 'main', ['spell'], { name: '</text><script>&' })] }
     const out = await renderSheet(nasty, opts)
     expect((await sharp(out.body).metadata()).format).toBe('png')
+  })
+
+  // Spec section 9: a render that outlives its deadline, or whose caller has
+  // gone, is abandoned rather than finished into a closed socket. The composite
+  // and the two encoders are the expensive half, so the one check that matters
+  // sits between the fetch phase and them.
+  it('abandons the render rather than encode for a caller that has gone', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(await art(), { status: 200 })))
+    const ac = new AbortController()
+    ac.abort(new Error('client went away'))
+    let thrown: unknown
+    try { await renderSheet(req, { ...opts, signal: ac.signal }) } catch (err) { thrown = err }
+    expect((thrown as Error | undefined)?.message).toBe('client went away')
+  })
+
+  // Without the signal reaching fetchCardImage this would sit out the whole
+  // 30s fetch budget instead of unwinding, which is the behaviour that lets a
+  // burst waste the pod's only render slot on sockets nobody is reading.
+  it('unwinds the fetch phase as soon as the signal aborts', async () => {
+    hangingFetch()
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const ac = new AbortController()
+    setTimeout(() => ac.abort(new Error('request deadline')), 50)
+    const started = Date.now()
+    let thrown: unknown
+    try { await renderSheet(req, { ...opts, signal: ac.signal }) } catch (err) { thrown = err }
+    expect((thrown as Error | undefined)?.message).toBe('request deadline')
+    expect(Date.now() - started).toBeLessThan(3_000)
   })
 
   it('renders a German sheet from core labels alone', async () => {

@@ -11,6 +11,10 @@ export const MAX_BODY_BYTES = 262_144
 // waiting is a short burst absorbed; past that the answer is 503, which every
 // caller already handles as "no picture this time".
 export const MAX_QUEUED = 4
+// The service's own ceiling on one render, from spec section 9. It sits inside
+// the bot's 75s abort and outside web's 30s one, and it bounds the queue: with
+// five admitted, the last one's wait is what this multiplied out would be.
+export const REQUEST_DEADLINE_MS = 60_000
 
 function authorized(req: IncomingMessage, token: string): boolean {
   const header = req.headers.authorization ?? ''
@@ -86,8 +90,24 @@ export function createSheetServer(env: SheetEnv): Server {
     admitted += 1
     try {
       await enqueue(async () => {
+        // The wait in the queue is unbounded from here, so the caller may well
+        // have given up before its turn came. Painting now would spend the one
+        // render slot on a socket nobody is reading while the next caller gets
+        // a 503.
+        if (res.closed) return
+
+        const abandon = new AbortController()
+        const hangUp = () => abandon.abort(new Error('caller went away'))
+        res.once('close', hangUp)
+        const deadline = setTimeout(
+          () => abandon.abort(new Error(`render passed the ${REQUEST_DEADLINE_MS}ms deadline`)),
+          REQUEST_DEADLINE_MS,
+        )
         try {
-          const out = await renderSheet(parsed.data, { imageBase: env.IMAGE_BASE_URL })
+          const out = await renderSheet(parsed.data, {
+            imageBase: env.IMAGE_BASE_URL,
+            signal: abandon.signal,
+          })
           res.writeHead(200, {
             'content-type': out.contentType,
             'content-length': String(out.body.length),
@@ -100,7 +120,12 @@ export function createSheetServer(env: SheetEnv): Server {
           res.end(out.body)
         } catch (err) {
           console.error('sheet: render failed:', err instanceof Error ? err.message : err)
-          send(res, 500, 'render failed')
+          // An abandoned render has no socket left to answer on, and writing to
+          // a closed response throws rather than reporting anything.
+          if (!res.closed) send(res, 500, 'render failed')
+        } finally {
+          clearTimeout(deadline)
+          res.off('close', hangUp)
         }
       })
     } finally {

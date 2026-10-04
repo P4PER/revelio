@@ -28,6 +28,11 @@ export type SheetRenderOptions = {
   // sits right at that figure and does overshoot; no synthetic fixture comes
   // close, so the fallback is unreachable from the two inputs alone.
   pixelBudget?: number
+  // Abandons the render: the caller's socket closed, or the service's request
+  // deadline passed. Spec section 9 - a render that outlives its deadline is
+  // abandoned rather than finished into a closed socket, because the single
+  // render slot is the thing a burst would otherwise waste.
+  signal?: AbortSignal
 }
 
 // The rendered sheet and everything the caller needs to say what it got. The
@@ -97,6 +102,17 @@ export const PNG_BYTES_PER_MEGAPIXEL = 1_600_000
 export function pixelBudget(maxBytes?: number): number {
   if (maxBytes === undefined) return MAX_SHEET_PIXELS
   return Math.min(MAX_SHEET_PIXELS, (maxBytes / PNG_BYTES_PER_MEGAPIXEL) * 1_000_000)
+}
+
+/**
+ * The pixel budget a render actually gets: the derived one, or an explicit
+ * override, but never past MAX_SHEET_PIXELS either way. The cap is one half of
+ * a pair with the pod's memory limit, so it is enforced here rather than inside
+ * pixelBudget alone - an override that could step over it would move the cap
+ * without touching the constant.
+ */
+export function resolveBudget(maxBytes: number | undefined, override: number | undefined): number {
+  return Math.min(MAX_SHEET_PIXELS, override ?? pixelBudget(maxBytes))
 }
 
 /**
@@ -196,14 +212,18 @@ async function fetchCardImage(
   imageBase: string,
   fullArt: boolean,
   deadline: number,
+  signal: AbortSignal | undefined,
 ): Promise<CardImageResult> {
   if (card.imageVersion == null) return { failure: null }
   const left = deadline - Date.now()
   if (left <= 0) return { failure: BUDGET_SPENT }
   const key = fullArt ? imageKey : thumbKey
   try {
+    // The per-card timeout and the render's own abandonment are both reasons to
+    // stop dialling, so the request carries whichever fires first.
+    const timeout = AbortSignal.timeout(Math.min(FETCH_TIMEOUT_MS, left))
     const res = await fetch(imageUrl(imageBase, key(card.cardId, card.imageVersion)), {
-      signal: AbortSignal.timeout(Math.min(FETCH_TIMEOUT_MS, left)),
+      signal: signal ? AbortSignal.any([timeout, signal]) : timeout,
     })
     if (!res.ok) return { failure: `HTTP ${res.status}` }
     return { body: Buffer.from(await res.arrayBuffer()) }
@@ -236,6 +256,7 @@ async function cardOverlays(
   imageBase: string,
   s: number,
   budgetMs: number,
+  signal: AbortSignal | undefined,
 ): Promise<{ overlays: OverlayOptions[]; dropped: number; distinct: number }> {
   const positioned = sections.flatMap((section) => section.cards)
   const distinct = [...new Set(positioned.map((pc) => pc.card.cardId))]
@@ -243,7 +264,11 @@ async function cardOverlays(
   const fullArt = usesFullArt(s)
   const deadline = Date.now() + budgetMs
   const fetched = await mapLimit(distinct, MAX_IN_FLIGHT, (id) =>
-    fetchCardImage(cardById.get(id)!, imageBase, fullArt, deadline))
+    fetchCardImage(cardById.get(id)!, imageBase, fullArt, deadline, signal))
+  // Checked before the failures are logged and before anything is decoded: an
+  // abandoned render should cost neither a screenful of warnings about images
+  // nobody will see nor the decode of every card in the deck.
+  signal?.throwIfAborted()
   const imageById = new Map(distinct.map((id, i) => [id, fetched[i]]))
 
   // Warned once per distinct card, not once per copy: a card in two zones is one
@@ -329,13 +354,17 @@ async function textOverlays(geom: SheetGeometry, title: string, s: number): Prom
 export async function renderSheet(req: DeckSheetRequest, opts: SheetRenderOptions): Promise<SheetRender> {
   const layout = layoutDeckSheet(req.deck, req.entries, sheetLabels(req.locale))
   const geom = computeSheetGeometry(layout)
-  const s = sheetScale(geom, opts.pixelBudget ?? pixelBudget(req.maxBytes))
+  const s = sheetScale(geom, resolveBudget(req.maxBytes, opts.pixelBudget))
   const { w, h } = canvasSize(geom, s)
 
   const [cards, text] = await Promise.all([
-    cardOverlays(geom.sections, opts.imageBase, s, opts.fetchBudgetMs ?? FETCH_BUDGET_MS),
+    cardOverlays(geom.sections, opts.imageBase, s, opts.fetchBudgetMs ?? FETCH_BUDGET_MS, opts.signal),
     textOverlays(geom, layout.title, s),
   ])
+  // The composite and the two encoders are the expensive half and cannot be
+  // interrupted once started, so this is the last point where abandoning is
+  // still cheap.
+  opts.signal?.throwIfAborted()
 
   // clone() because a sharp pipeline cannot be consumed twice: without it the
   // fallback would re-encode a finished pipeline and throw. Encoding the

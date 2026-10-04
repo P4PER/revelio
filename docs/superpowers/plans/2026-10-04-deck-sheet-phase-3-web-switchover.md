@@ -671,6 +671,12 @@ In `web/src/components/deck/deck-export-menu.tsx`, drop the `renderDeckPng` impo
   }
 ```
 
+**No catalog key is removed.** The menu stops reading `panel.main`, `panel.sideboard`,
+`panel.characterBadge`, `group.*` and `format.*`, but it was never their only reader:
+`deck-panel.tsx`, `deck-gallery.tsx`, `lib/deck-groups.ts`, `deck-header.tsx`,
+`deck-format-switch.tsx`, `deck-list.tsx` and `deck-card-browser.tsx` all still do. The sheet's
+copy of them lives in `@revelio/core` now; web's copy belongs to web's own UI.
+
 Add the locale hook beside the translations hook:
 
 ```tsx

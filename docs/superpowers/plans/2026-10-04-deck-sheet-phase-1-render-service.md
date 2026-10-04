@@ -30,6 +30,8 @@
 
 The service resolves its own labels from a locale, so the request carries no translations. web's and the bot's catalogs hold identical copy for these keys today (verified), so this is a consolidation with no copy decisions.
 
+**This adds a catalog; it does not move one.** web keeps every key, because its own UI - not the sheet - is what mostly reads them (`deck-panel.tsx`, `deck-gallery.tsx`, `lib/deck-groups.ts`, `deck-format-switch.tsx` and six more). The bot's three `deck.sheet.*` keys and its ten `deck.group.*` keys *do* fall out of use, but only once its painter goes, so Phase 2 deletes them. Nothing is removed in this task.
+
 **Files:**
 - Modify: `core/src/messages/en.json`, `core/src/messages/de.json` (add three scopes)
 - Modify: `core/src/labels.ts:4` (extend `LabelScope`)
@@ -207,17 +209,34 @@ import { groupMainEntries, OTHER_GROUP } from './deck-groups'
 
 (`OTHER_GROUP` joins the existing `groupMainEntries` import.)
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [ ] **Step 5: Confirm no other catalog lost a key**
+
+The sheet's copy now lives in three places, and only one of them is the sheet's. Check that the
+other two still carry what their own UI reads:
+
+```bash
+grep -rn "panel.characterBadge\|panel.main\|panel.sideboard" web/src --include='*.tsx' | grep -v export-menu
+grep -rn "group\." web/src/lib/deck-groups.ts
+grep -rn "deck.format." bot/src/discord | head
+```
+
+Expected: `deck-panel.tsx` and `deck-gallery.tsx` for the panel labels, `lib/deck-groups.ts` for
+the group labels, and `mydecks.ts` + `deck-embed.ts` for the bot's format labels. Those are
+their own consumers, not the sheet's, so every one of those keys stays where it is. The bot's
+`deck.sheet.*` and `deck.group.*` keys are the only ones that become dead, and only after its
+painter is deleted - Phase 2 Task 5 removes them.
+
+- [ ] **Step 6: Run the tests to verify they pass**
 
 Run: `npm test -w @revelio/core`
 Expected: PASS, including the existing `deck-sheet`, `labels` and `deck-groups` suites.
 
-- [ ] **Step 6: Typecheck and lint**
+- [ ] **Step 7: Typecheck and lint**
 
 Run: `npm run typecheck -w @revelio/core && npm run lint`
 Expected: clean.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add core/src/messages/en.json core/src/messages/de.json core/src/labels.ts core/src/deck-sheet.ts core/test/deck-sheet.test.ts core/test/labels.test.ts

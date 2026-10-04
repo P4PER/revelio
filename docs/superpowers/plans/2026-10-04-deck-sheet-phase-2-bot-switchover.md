@@ -528,6 +528,7 @@ git commit -m "feat(bot): post the deck sheet the render service draws"
 **Files:**
 - Delete: `bot/src/images/deck-image.ts`, `bot/src/images/text.ts`, `bot/src/images/Poppins-SemiBold.ttf`, `bot/src/images/fonts.conf` (the whole `bot/src/images/` directory), `bot/test/deck-image.test.ts`, `bot/test/text.test.ts`
 - Modify: `bot/package.json` (drop `sharp`), `bot/build.mjs` (drop the asset copy and the `external`), `bot/Dockerfile` (drop the sharp install, the font copy, the fontconfig cache dir and the font proof)
+- Modify: `bot/src/i18n/en.json`, `bot/src/i18n/de.json` (drop the 13 keys only the painter read)
 
 **Interfaces:** removes `renderDeckImage`, `DeckImage`, `MAX_SHEET_PIXELS`, `sheetScale`, `usesFullArt`, `renderText`, `fitText` from the bot. Nothing in the bot consumes them after Task 4.
 
@@ -537,7 +538,27 @@ git commit -m "feat(bot): post the deck sheet the render service draws"
 git rm -r bot/src/images bot/test/deck-image.test.ts bot/test/text.test.ts
 ```
 
-- [ ] **Step 2: Drop sharp from the manifest**
+- [ ] **Step 2: Delete the 13 catalog keys the painter was the only reader of**
+
+`labelsFor` in the deleted `deck-image.ts` was the only consumer of these, in both locales:
+
+- `deck.sheet.character`, `deck.sheet.main`, `deck.sheet.sideboard`
+- `deck.group.creature`, `.spell`, `.item`, `.adventure`, `.location`, `.event`, `.match`, `.character`, `.lesson`, `.other`
+
+Remove all 13 from **both** `bot/src/i18n/en.json` and `bot/src/i18n/de.json` - the sheet now
+resolves them from core's catalog, and `catalog-parity.test.ts` fails if only one locale is
+edited. **Keep `deck.format.classic` and `deck.format.revival`**: `mydecks.ts:49` and
+`deck-embed.ts:65` read those, and they have nothing to do with the sheet.
+
+Confirm nothing else referenced them:
+
+```bash
+grep -rn "deck.sheet\.\|deck.group\." bot/src
+```
+
+Expected: no hits at all (the catalogs included).
+
+- [ ] **Step 3: Drop sharp from the manifest**
 
 In `bot/package.json`, remove the `"sharp": "^0.35.3"` line from `dependencies`, then:
 
@@ -548,13 +569,13 @@ npm install
 Expected: `package-lock.json` changes. sharp stays in the tree because `@revelio/sheet`
 depends on it; what changes is that the bot no longer does.
 
-- [ ] **Step 3: Simplify the bundler**
+- [ ] **Step 4: Simplify the bundler**
 
 In `bot/build.mjs`, delete the `external: ['sharp']` line and its comment, and delete the
 asset copy block (the `mkdir`/`copyFile` loop) and the `copyFile, mkdir` import. The banner
 comment stays - `discord.js` is still CJS, which is the whole reason it exists.
 
-- [ ] **Step 4: Strip the Dockerfile**
+- [ ] **Step 5: Strip the Dockerfile**
 
 In `bot/Dockerfile`, delete:
 
@@ -569,7 +590,7 @@ Keep the entry-guard grep (`RUN env -i node bot/dist/bot.mjs 2>&1 | grep -q 'bot
 it guards a bundling trap, not sharp. The runtime stage then copies the bundle and nothing
 else, so it needs no `node_modules` at all.
 
-- [ ] **Step 5: Verify the whole suite and the image**
+- [ ] **Step 6: Verify the whole suite and the image**
 
 Run:
 
@@ -584,17 +605,17 @@ Expected: tests and typecheck green; `bot/dist` holds `bot.mjs` alone (no `.ttf`
 `fonts.conf`); the image builds and measures roughly **165 MB against the 195 MB it was** -
 that 30 MB is sharp and libvips leaving. Record both numbers for the PR.
 
-- [ ] **Step 6: Prove the bundle still boots**
+- [ ] **Step 7: Prove the bundle still boots**
 
 Run: `docker run --rm --env-file /dev/null revelio-bot:local || true`
 Expected: it exits non-zero printing `bot failed to start: Invalid bot environment:` and the
 missing variable names - including `SHEET_SERVICE_URL` and `SHEET_TOKEN`. A different error,
 or a silent exit, means the bundle is broken rather than the env.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add bot/package.json bot/build.mjs bot/Dockerfile package-lock.json
+git add bot/package.json bot/build.mjs bot/Dockerfile bot/src/i18n/en.json bot/src/i18n/de.json package-lock.json
 git commit -m "refactor(bot): drop sharp and the bundled font with the painter"
 ```
 

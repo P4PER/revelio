@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import type { DeckCardView } from '../src/domain.js'
-import { layoutDeckSheet, computeSheetGeometry, type DeckSheetCard } from '../src/deck-sheet.js'
+import { DECK_SHEET, layoutDeckSheet, computeSheetGeometry, type DeckSheetCard } from '../src/deck-sheet.js'
 import { OTHER_GROUP, SHEET_LOCALES, sheetLabels } from '../src/index.js'
+import { DeckSheetRequest, MAX_SHEET_ENTRIES, pickSheetEntries, type DeckSheetEntry } from '../src/index.js'
 
 const harry: DeckCardView = {
   cardId: 'bs-harry', zone: 'character', quantity: 1, types: ['character'],
@@ -184,5 +185,50 @@ describe('sheetLabels', () => {
 
   it('lists the locales the sheet contract accepts', () => {
     expect([...SHEET_LOCALES]).toEqual(['en', 'de'])
+  })
+})
+
+const entry = {
+  cardId: 'harry', zone: 'main' as const, quantity: 2, name: 'Harry Potter',
+  setCode: 'base', types: ['character'], imageVersion: 3, orientation: null,
+}
+const body = { locale: 'en', deck: { name: 'Charms Aggro', format: 'classic' }, entries: [entry] }
+
+describe('DeckSheetRequest', () => {
+  it('accepts a minimal sheet request', () => {
+    const parsed = DeckSheetRequest.parse(body)
+    expect(parsed.entries[0].cardId).toBe('harry')
+    expect(parsed.maxBytes).toBeUndefined()
+  })
+
+  it('rejects a locale the sheet has no labels for', () => {
+    expect(DeckSheetRequest.safeParse({ ...body, locale: 'fr' }).success).toBe(false)
+  })
+
+  it('rejects an empty deck and one past the entry cap', () => {
+    expect(DeckSheetRequest.safeParse({ ...body, entries: [] }).success).toBe(false)
+    const tooMany = Array.from({ length: MAX_SHEET_ENTRIES + 1 }, (_, i) => ({ ...entry, cardId: `c${i}` }))
+    expect(DeckSheetRequest.safeParse({ ...body, entries: tooMany }).success).toBe(false)
+  })
+
+  it('strips fields that do not reach a pixel', () => {
+    // DeckCardView carries cost/damage/legality; none of them is painted, and
+    // every extra field would widen the cache key for nothing.
+    const parsed = DeckSheetRequest.parse({ ...body, entries: [{ ...entry, cost: 4, legality: 'legal' }] })
+    expect(parsed.entries[0]).not.toHaveProperty('cost')
+    expect(parsed.entries[0]).not.toHaveProperty('legality')
+  })
+
+  it('pickSheetEntries keeps exactly the painted fields', () => {
+    const view = { ...entry, cost: 4, damage: null, lesson: null, isOfficial: true, legality: 'legal' }
+    expect(pickSheetEntries([view])).toEqual([entry])
+  })
+
+  // layoutDeckSheet takes DeckSheetEntry[]; a parsed request must be usable as
+  // one without a cast, or the contract and the layout have drifted apart.
+  it('parses into the type the layout takes', () => {
+    const parsed = DeckSheetRequest.parse(body)
+    const entries: DeckSheetEntry[] = parsed.entries
+    expect(computeSheetGeometry(layoutDeckSheet(parsed.deck, entries, sheetLabels('en'))).width).toBe(DECK_SHEET.width)
   })
 })

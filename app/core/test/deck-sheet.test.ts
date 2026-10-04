@@ -1,6 +1,7 @@
-import { it, expect } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import type { DeckCardView } from '../src/domain.js'
 import { layoutDeckSheet, computeSheetGeometry, type DeckSheetCard } from '../src/deck-sheet.js'
+import { OTHER_GROUP, SHEET_LOCALES, sheetLabels } from '../src/index.js'
 
 const harry: DeckCardView = {
   cardId: 'bs-harry', zone: 'character', quantity: 1, types: ['character'],
@@ -155,4 +156,33 @@ it('advances past a header-only section (Main deck heading with no cards)', () =
   // header-only: gridTop 114, gridH 0, y = 114+0+16 = 130 → next headerY 130
   expect(geom.sections[1].headerY).toBe(130)
   expect(geom.sections[1].cards[0]).toEqual({ card: cell('a'), x: 36, y: 160, w: 132, h: 185 }) // 130+30
+})
+
+describe('sheetLabels', () => {
+  it('resolves every label the sheet layout asks for', () => {
+    const en = sheetLabels('en')
+    expect(en.formatLabel).toEqual({ classic: 'Classic', revival: 'Revival' })
+    expect(en.character).toBe('Character')
+    expect(en.mainDeck).toBe('Main deck')
+    expect(en.sideboard).toBe('Sideboard')
+    expect(en.group('creature')).toBe('Creatures')
+    expect(en.group('lesson')).toBe('Lessons')
+    expect(en.group(OTHER_GROUP)).toBe('Other')
+  })
+
+  it('resolves German too', () => {
+    const de = sheetLabels('de')
+    expect(de.mainDeck).toBe('Hauptdeck')
+    expect(de.group('creature')).toBe('Kreaturen')
+    expect(de.group(OTHER_GROUP)).toBe('Sonstige')
+  })
+
+  // An unknown locale must not render a sheet full of raw keys.
+  it('falls back to English for an unknown locale', () => {
+    expect(sheetLabels('fr').mainDeck).toBe('Main deck')
+  })
+
+  it('lists the locales the sheet contract accepts', () => {
+    expect([...SHEET_LOCALES]).toEqual(['en', 'de'])
+  })
 })

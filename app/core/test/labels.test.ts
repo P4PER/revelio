@@ -40,4 +40,14 @@ describe('attrLabel', () => {
       }
     }
   })
+
+  // Both catalogs must carry every sheet key, or a German sheet silently falls
+  // back to English mid-picture.
+  it('holds the same sheet keys in both locales', async () => {
+    const en = (await import('../src/messages/en.json')).default as Record<string, Record<string, string>>
+    const de = (await import('../src/messages/de.json')).default as Record<string, Record<string, string>>
+    for (const scope of ['formats', 'deckSheet', 'deckGroups']) {
+      expect(Object.keys(de[scope]).sort()).toEqual(Object.keys(en[scope]).sort())
+    }
+  })
 })

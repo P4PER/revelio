@@ -1,5 +1,6 @@
 import type { DeckFormat } from './deck'
-import { groupMainEntries } from './deck-groups'
+import { attrLabel } from './labels'
+import { groupMainEntries, OTHER_GROUP } from './deck-groups'
 import type { DeckCardView } from './domain'
 
 // The deck sheet: the picture of a deck that the web builder exports as a PNG and
@@ -89,6 +90,10 @@ export const DECK_SHEET = {
   fontSize: { title: 28, section: 16, placeholder: 14, badge: 15 },
 } as const
 
+// The locales the sheet renders. The request contract validates against this,
+// so an unknown locale is a 400 rather than a picture full of English.
+export const SHEET_LOCALES = ['en', 'de'] as const
+
 const CONTENT_W = DECK_SHEET.width - DECK_SHEET.padding * 2
 
 // Swatch color: gold for the Lessons resource base, neutral otherwise - matching
@@ -113,6 +118,28 @@ function cardBox(card: DeckSheetCard): { w: number; h: number } {
   return card.orientation === 'horizontal'
     ? { w: DECK_SHEET.cardHeight, h: DECK_SHEET.cardWidth }
     : { w: DECK_SHEET.cardWidth, h: DECK_SHEET.cardHeight }
+}
+
+/**
+ * The sheet's labels for one locale, resolved from core's own catalog. The
+ * render service calls this instead of taking labels in its request: the sheet
+ * is cached on its input, and translations in that input would mean a label
+ * change in one caller's catalog silently renders a different picture.
+ *
+ * Record<DeckFormat, string> is what makes a new format a type error here
+ * rather than a missing title at render time.
+ */
+export function sheetLabels(locale: string): DeckSheetLabels {
+  return {
+    formatLabel: {
+      classic: attrLabel('formats', 'classic', locale),
+      revival: attrLabel('formats', 'revival', locale),
+    },
+    character: attrLabel('deckSheet', 'character', locale),
+    mainDeck: attrLabel('deckSheet', 'mainDeck', locale),
+    sideboard: attrLabel('deckSheet', 'sideboard', locale),
+    group: (key) => attrLabel('deckGroups', key === OTHER_GROUP ? 'other' : key, locale),
+  }
 }
 
 // Groups a deck into sheet sections. Reuses the deck view's type-based main-zone

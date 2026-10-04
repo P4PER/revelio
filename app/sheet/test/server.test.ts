@@ -38,7 +38,7 @@ afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())))
 
 describe('the render service', () => {
   it('answers a health check without a token', async () => {
-    const res = await fetch(`${base}/healthz`)
+    const res = await fetch(`${base}/health`)
     expect(res.status).toBe(200)
   })
 

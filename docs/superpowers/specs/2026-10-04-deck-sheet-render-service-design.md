@@ -210,7 +210,7 @@ A seventh npm workspace, `@revelio/sheet` at `app/sheet/`, depending on `@reveli
   the font files copied beside the bundle because `text.ts` resolves them against
   `import.meta.url`, the font-render proof in the build stage, and a `RUN` of the bundle with
   an empty env to catch an entry guard firing inside a bundle.
-- `GET /healthz` returns 200 and the painter's version. The font proof stays in the image
+- `GET /health` returns 200 and the painter's version. The font proof stays in the image
   build, where it fails the build rather than the first request.
 
 Nothing else moves. `core/src/deck-sheet.ts` and `deck-groups.ts` stay exactly where they are

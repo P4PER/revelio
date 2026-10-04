@@ -109,7 +109,7 @@ export function createSheetServer(env: SheetEnv): Server {
   }
 
   return createServer((req, res) => {
-    if (req.method === 'GET' && req.url === '/healthz') {
+    if (req.method === 'GET' && req.url === '/health') {
       send(res, 200, 'ok')
       return
     }

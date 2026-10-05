@@ -164,6 +164,27 @@ describe('the render queue', () => {
     log.mockRestore()
   })
 
+  // The deadline fires the same abort signal as a hang-up, but here the caller is
+  // still connected and receives a 500. That is a failure it saw, not an
+  // abandonment, and counting it as one would skew the evidence the same way.
+  it('logs a render that passed its deadline as failed, not abandoned', async () => {
+    gate.reset()
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      const res = post()
+      await vi.waitFor(() => expect(gate.release.length).toBe(1))
+      vi.advanceTimersByTime(REQUEST_DEADLINE_MS)
+      expect((await res).status).toBe(500)
+    } finally {
+      vi.useRealTimers()
+    }
+    const lines = log.mock.calls.map((c) => String(c[0])).filter((l) => l.startsWith('sheet: render '))
+    expect(lines).toHaveLength(1)
+    expect(lines[0]).toMatch(/^sheet: render outcome=failed .*deadline/)
+    log.mockRestore()
+  })
+
   it('states a request deadline that bounds one render', () => {
     expect(REQUEST_DEADLINE_MS).toBe(60_000)
   })

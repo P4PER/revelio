@@ -230,9 +230,11 @@ export function createSheetServer(env: SheetEnv): Server {
           // console.log like every other outcome, so all four land in one stream
           // and one query. JSON.stringify quotes the message so its spaces
           // cannot break the key=value split; it names no URL (render.ts).
+          // Decided by the socket, not by the abort signal: the deadline fires
+          // that signal too, but its caller is still here and gets a 500.
           const reason = err instanceof Error ? err.message : String(err)
           logRender({
-            outcome: abandon.signal.aborted ? 'abandoned' : 'failed',
+            outcome: res.closed ? 'abandoned' : 'failed',
             digest, entries, queueMs, reason: JSON.stringify(reason),
           })
           // An abandoned render has no socket left to answer on, and writing to

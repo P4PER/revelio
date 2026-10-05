@@ -66,7 +66,10 @@ Either way, confirm the change actually landed rather than trusting the success 
 `web` ships Next's `output: standalone`. **`bot` and `ingest` ship a single esbuild bundle each**, not a `node_modules` tree: a bare `npm ci` at the workspaces root hoists every dependency of all six workspaces into one folder, so the runtime image used to carry `next`, `lucide-react`, `sharp` and the whole toolchain for services that import none of it (916 MB / 909 MB, against 165 MB / 164 MB bundled). `bot/build.mjs` and `ingest/build.mjs` produce the bundles (each is the workspace's `npm run build`); the runtime stage copies only the `.mjs` and runs it with plain `node`. Three consequences:
 
 - **The ESM bundles need the `createRequire` banner** declared in those two build scripts, which carry the full reason in a comment. `discord.js` and parts of the ingest tree are CJS, and esbuild's ESM output otherwise stubs `require` with a shim that throws `Dynamic require of "node:events" is not supported` at import time. It builds clean and fails at boot, so each Dockerfile runs the bundle once in the build stage and greps for the expected env-guard message.
-- **`bot` has one external dependency: `sharp`** (195 MB, from 165 MB). A native module cannot be inlined, so `bot/build.mjs` marks it `external` and the Dockerfile installs sharp alone into the runtime image, at the version the workspace resolved. The deck sheet `/deck` posts is drawn with it. The same build step copies `Poppins-SemiBold.ttf` and `fonts.conf` next to `bot.mjs`, because `bot/src/images/text.ts` resolves both against `import.meta.url` — Alpine ships no fonts, and without a fontconfig config the first text render in a process scans every system font directory. A runtime-stage `RUN` renders one line and compares it against an unmatched font family, so a missing binary or font fails the image build rather than the first `/deck`.
+- **`bot` has no external dependencies left**: the bundle is the whole runtime. It used to
+  carry `sharp` (195 MB against 165 MB), a bundled Poppins face, a `fonts.conf` and a
+  build-stage render that proved the font resolved - all for the one command that drew a
+  picture. `@revelio/sheet` draws it now, and that image carries them instead.
 - **A module imported into a bundle must have no top-level side effect**, in particular no `process.argv[1] === fileURLToPath(import.meta.url)` entry guard: inside a bundle both sides are the bundle itself, so the guard fires and can exit before `main()` runs. CLI entrypoints get their own file (`bot/src/discord/register-cli.ts`), and `bot/test/register.test.ts` enforces it.
 
 The `ingest` image carries the `db/drizzle` SQL separately at `/app/drizzle` with `MIGRATIONS_DIR` pointing at it — drizzle's migrator reads those files at runtime, and the bundle's own `import.meta.url` would resolve `../drizzle` to `/drizzle`.
@@ -125,7 +128,19 @@ Seven npm workspaces under `app/`, with a strict dependency direction `core ← 
 - **Replies must not be able to ping.** The client sets `allowedMentions: { parse: [] }`; commands echo user input back, so anything else lets `/card name:@everyone` mass-ping a guild.
 - **Meilisearch totals are estimates.** `estimatedTotalHits` over-counts, so a page inside the computed page count can still come back empty — treat that as out of range.
 - Commands are registered on every boot (Discord's `PUT` is a full replace), but a registration failure is logged and survived rather than fatal.
-- Card images use `thumbKey` (300px), never the full `imageKey`.
+- **The bot draws nothing.** `/deck` asks `@revelio/sheet` for the sheet
+  (`bot/src/data/sheet.ts`) and uploads what comes back; any non-200, timeout or unreachable
+  service falls through to the list embed, which the command can always draw from data in
+  hand. The byte ceiling it sends (9 MB) is what the service derives its pixel budget from.
+- **The attachment is named for the format it came back as**, `deck.png` or `deck.webp`:
+  `media.discordapp.net` transcodes by file extension, so WebP bytes under a `.png` name
+  break the inline image for some clients. `requestDeckSheet` returns the name with the
+  bytes and the embed's image view takes it.
+- **One image base.** `IMAGE_BASE_URL` goes into embed URLs, which **Discord** fetches from
+  the public internet, so it must be the public bucket host. Nothing in this process fetches
+  a card image itself any more, so there is no second base and nothing to confuse it with -
+  the render service has its own `IMAGE_BASE_URL`, pointed at the store's internal address.
+- Card images in embeds use `thumbKey` (300px), never the full `imageKey`.
 
 ## Migrations (read before touching the schema)
 

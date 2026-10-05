@@ -6,10 +6,10 @@ import type { DeckCardView } from './domain'
 
 // The deck sheet: the picture of a deck that the web builder exports as a PNG and
 // the Discord bot posts for /deck. This module is the shared, pure half - grouping,
-// geometry and colours. Each side paints it with what its runtime has: the browser
-// with a Canvas (web/src/lib/deck-png.ts), the bot with sharp
-// (bot/src/images/deck-image.ts). Geometry is in CSS pixels; painters multiply by
-// DECK_SHEET.scale.
+// geometry and colours - and the request contract the render service takes. The
+// bot owns no painter any more: it asks @revelio/sheet (sheet/src/render.ts), which
+// is the one process that paints a deck. Geometry is in CSS pixels; the painter
+// multiplies by DECK_SHEET.scale.
 
 export type DeckSheetEntry = Pick<
   DeckCardView,

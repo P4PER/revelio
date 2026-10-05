@@ -1,7 +1,7 @@
 'use server'
 import { headers } from 'next/headers'
 import { makeContactSchema } from '@/lib/schemas/contact'
-import { consumeContactRateLimit } from '@/lib/server/rate-limit'
+import { clientIp, consumeContactRateLimit } from '@/lib/server/rate-limit'
 import { renderContactEmail } from '@/lib/email/contact-template'
 import { sendMail } from '@/lib/email/mailer'
 import { getCachedSiteSettings } from '@/lib/server/site-settings'
@@ -17,22 +17,6 @@ const MIN_SUBMIT_MS = 3000
 // The server discards validation messages (the client already showed them), so the
 // identity resolver is fine here.
 const schema = makeContactSchema((k) => k)
-
-function clientIp(h: Headers): string {
-  // The leftmost x-forwarded-for entry is CLIENT-CONTROLLED (a bot can send its own
-  // header and rotate it to dodge the per-IP limit), so we never trust it. Behind our
-  // single reverse proxy the trustworthy value is x-real-ip (the proxy overwrites any
-  // client-supplied one); failing that, the LAST x-forwarded-for entry is the hop our
-  // proxy appended. Fall back to a constant so unknown-IP traffic still shares a bucket.
-  const realIp = h.get('x-real-ip')?.trim()
-  if (realIp) return realIp
-  const fwd = h.get('x-forwarded-for')
-  if (fwd) {
-    const parts = fwd.split(',')
-    return parts[parts.length - 1].trim()
-  }
-  return 'unknown'
-}
 
 export async function sendContactMessage(input: unknown): Promise<ContactResult> {
   const raw = (input ?? {}) as Record<string, unknown>

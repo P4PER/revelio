@@ -185,8 +185,8 @@ export const DECK_SHEET_COLORS = {
 } as const
 
 export const DECK_SHEET = {
-  // Device pixels per layout pixel. The browser clamps it further for very tall
-  // decks (see deck-png.ts); the bot renders at this scale as is.
+  // Device pixels per layout pixel. The render service lowers it for a sheet
+  // that would pass its pixel budget (sheetScale in sheet/src/render.ts).
   scale: 2,
   width: 980,
   padding: 36,

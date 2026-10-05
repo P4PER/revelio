@@ -47,9 +47,9 @@ export async function renderText(text: string, style: TextStyle): Promise<Render
 }
 
 /**
- * Like renderText, but cut with an ellipsis to fit `maxWidth` - the sharp twin of
- * truncateToWidth in web/src/lib/deck-png.ts. A binary search over the length,
- * so an overlong name costs a handful of renders, not one per character.
+ * Like renderText, but cut with an ellipsis to fit `maxWidth`. A binary search
+ * over the length, so an overlong name costs a handful of renders, not one per
+ * character.
  */
 export async function fitText(text: string, style: TextStyle, maxWidth: number): Promise<FittedText> {
   const full = await renderText(text, style)

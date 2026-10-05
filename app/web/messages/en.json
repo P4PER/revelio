@@ -352,7 +352,8 @@
       "download": "Download",
       "copied": "Copied to clipboard.",
       "copyError": "Could not copy to clipboard.",
-      "pngError": "Could not generate the PNG."
+      "pngError": "Could not generate the PNG.",
+      "pngPending": "Generating the PNG…"
     },
     "overview": {
       "edit": "Edit",

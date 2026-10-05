@@ -236,8 +236,14 @@ function cardBox(card: DeckSheetCard): { w: number; h: number } {
  * Narrows card views to the fields the sheet paints. Both callers hold
  * DeckCardView lists with a dozen fields the picture never uses; sending them
  * would widen the request, and with it the cache key, for nothing.
+ *
+ * Returns the request's own entry type rather than DeckSheetEntry: that one
+ * inherits `orientation?` from DeckCardView, and the `?? null` below is exactly
+ * what settles it - a caller assigning the result straight into a
+ * DeckSheetRequest would otherwise not typecheck against a field this function
+ * has already made non-optional.
  */
-export function pickSheetEntries(views: DeckSheetEntry[]): DeckSheetEntry[] {
+export function pickSheetEntries(views: DeckSheetEntry[]): DeckSheetRequest['entries'] {
   return views.map((v) => ({
     cardId: v.cardId, zone: v.zone, quantity: v.quantity, name: v.name,
     setCode: v.setCode, types: v.types, imageVersion: v.imageVersion ?? null,

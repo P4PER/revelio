@@ -13,6 +13,7 @@ vi.mock('@/lib/email/contact-template', () => ({ renderContactEmail: m.renderCon
 vi.mock('@/lib/server/site-settings', () => ({ getCachedSiteSettings: m.getCachedSiteSettings }))
 // Only the budget is faked; clientIp stays the real resolver the action counts against.
 vi.mock('@/lib/server/rate-limit', async (importOriginal) => ({
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   ...(await importOriginal<typeof import('@/lib/server/rate-limit')>()),
   consumeContactRateLimit: m.consumeContactRateLimit,
 }))

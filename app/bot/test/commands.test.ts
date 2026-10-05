@@ -232,11 +232,11 @@ describe('/search set filter', () => {
       db: {},
       sets: { name: vi.fn(), all: vi.fn() },
       env: {
-      IMAGE_BASE_URL: 'https://img.test',
-      SITE_BASE_URL: 'https://revelio.cards',
-      SHEET_SERVICE_URL: 'http://sheet:8080',
-      SHEET_TOKEN: 'a-token-at-least-16-chars',
-    },
+        IMAGE_BASE_URL: 'https://img.test',
+        SITE_BASE_URL: 'https://revelio.cards',
+        SHEET_SERVICE_URL: 'http://sheet:8080',
+        SHEET_TOKEN: 'a-token-at-least-16-chars',
+      },
     }
     const interaction = fakeInteraction({ query: 'broom', set: 'base' })
     await COMMANDS.get('search')!.execute(interaction as never, deps as never)
@@ -341,6 +341,23 @@ describe('/deck', () => {
     expect(payload.embeds[0].toJSON().image).toBeUndefined()
     expect(payload.embeds[0].toJSON().fields?.some((f: { name: string }) => f.name.startsWith('Main deck'))).toBe(true)
     expect(console.error).toHaveBeenCalled()
+  })
+
+  // The picture's editReply lives inside the try for this reason: Discord can
+  // reject the upload itself (an attachment it will not take), and that must
+  // cost the picture rather than the answer. Hoisting it out of the try - which
+  // reads like a simplification, since a return follows - would turn "no
+  // picture" into "/deck failed".
+  it('falls back to the list when Discord rejects the upload', async () => {
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const interaction = fakeInteraction({ deck: 'abc123' })
+    interaction.editReply.mockRejectedValueOnce(new Error('Request entity too large'))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(interaction.editReply).toHaveBeenCalledTimes(2)
+    const payload = interaction.editReply.mock.calls[1][0]
+    expect(payload.files).toBeUndefined()
+    expect(payload.embeds[0].toJSON().fields?.some((f: { name: string }) => f.name.startsWith('Main deck'))).toBe(true)
   })
 
   it('never asks for a sheet of an empty deck', async () => {

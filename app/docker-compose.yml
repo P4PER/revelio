@@ -68,6 +68,10 @@ services:
         condition: service_healthy
       meilisearch:
         condition: service_healthy
+      # No condition: the sheet service has no healthcheck, and /deck falls back
+      # to the list embed when it cannot be reached anyway.
+      sheet:
+        condition: service_started
     # The bot owns its env, like web does. One file serves both a host run and
     # this container; `environment` below wins over it, so the localhost values
     # in .env.local stay correct for `npm run dev -w @revelio/bot`.
@@ -80,6 +84,10 @@ services:
       MEILI_SEARCH_KEY: masterKey
       IMAGE_BASE_URL: http://localhost:9000/images
       SITE_BASE_URL: http://localhost:3000
+      # The container cannot reach the host's published port, so this is the
+      # service name rather than the localhost value in bot/.env.local.
+      SHEET_SERVICE_URL: http://sheet:8080
+      SHEET_TOKEN: local-dev-sheet-token
     # No restart policy: this is the local dev stack, and bot/.env.local is
     # optional, so `unless-stopped` would crash-loop on a fresh clone instead
     # of showing the env error once. Matches ingest/migrate.

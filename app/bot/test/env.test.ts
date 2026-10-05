@@ -9,6 +9,8 @@ const complete = {
   MEILI_SEARCH_KEY: 'key',
   IMAGE_BASE_URL: 'http://localhost:9000/images',
   SITE_BASE_URL: 'https://revelio.cards',
+  SHEET_SERVICE_URL: 'http://sheet:8080',
+  SHEET_TOKEN: 'a-token-at-least-16-chars',
 }
 
 describe('parseEnv', () => {
@@ -54,5 +56,22 @@ describe('parseEnv', () => {
       message = (err as Error).message
     }
     expect(message).not.toContain('super-secret-token')
+  })
+})
+
+describe('the render service', () => {
+  it('requires a URL and a token', () => {
+    for (const key of ['SHEET_SERVICE_URL', 'SHEET_TOKEN'] as const) {
+      const { [key]: _dropped, ...rest } = complete
+      let thrown: unknown
+      try { parseEnv(rest) } catch (err) { thrown = err }
+      expect((thrown as Error | undefined)?.message).toContain(key)
+    }
+  })
+
+  it('rejects a service URL that is not a URL', () => {
+    let thrown: unknown
+    try { parseEnv({ ...complete, SHEET_SERVICE_URL: 'sheet:8080' }) } catch (err) { thrown = err }
+    expect((thrown as Error).message).toContain('SHEET_SERVICE_URL')
   })
 })

@@ -352,7 +352,8 @@
       "download": "Herunterladen",
       "copied": "In die Zwischenablage kopiert.",
       "copyError": "Kopieren in die Zwischenablage fehlgeschlagen.",
-      "pngError": "PNG konnte nicht erstellt werden."
+      "pngError": "PNG konnte nicht erstellt werden.",
+      "pngPending": "PNG wird erstellt…"
     },
     "overview": {
       "edit": "Bearbeiten",

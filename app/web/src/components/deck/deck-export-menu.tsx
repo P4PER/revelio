@@ -1,11 +1,10 @@
 'use client'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Copy, Download, FileBraces, FileText, Image as ImageIcon, Upload } from 'lucide-react'
-import { OTHER_GROUP, toJson, toText } from '@revelio/core'
+import { toJson, toText } from '@revelio/core'
 import type { DeckDTO } from '@revelio/core'
 import type { BuilderState } from '@/lib/deck-model'
-import { renderDeckPng } from '@/lib/deck-png'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -34,8 +33,8 @@ function download(filename: string, content: string, mimeType: string) {
 
 // Export menu for the deck builder's command bar. Text/JSON each build their
 // serialized form from the current (unsaved) builder state via @revelio/core's
-// pure toText/toJson — no server round-trip needed. PNG renders a deck sheet
-// client-side onto a canvas (see deck-png.ts) and downloads the resulting blob.
+// pure toText/toJson — no server round-trip needed. PNG is drawn server-side by
+// @revelio/sheet, through /api/deck-sheet, and downloaded as the blob it returns.
 export function DeckExportMenu({
   state,
   align = 'end',
@@ -50,6 +49,7 @@ export function DeckExportMenu({
   compactLabel?: boolean
 }) {
   const t = useTranslations('decks')
+  const locale = useLocale()
 
   function buildText(): string {
     const name = state.name.trim() || t('namePlaceholder')
@@ -78,24 +78,39 @@ export function DeckExportMenu({
     }
   }
 
+  // The sheet is drawn by @revelio/sheet, through this app's own route handler:
+  // only card ids, zones and quantities go up, and the route resolves the names
+  // and image versions the picture is painted from. The builder's unsaved state
+  // works the same as a saved deck - the request carries the deck, not an id.
   async function exportPng() {
+    const pending = toast.loading(t('export.pngPending'))
     try {
-      const name = state.name.trim() || t('namePlaceholder')
-      const blob = await renderDeckPng({ name, format: state.format }, state.entries, {
-        formatLabel: { classic: t('format.classic'), revival: t('format.revival') },
-        character: t('panel.characterBadge'),
-        mainDeck: t('panel.main'),
-        sideboard: t('panel.sideboard'),
-        group: (key) => t(`group.${key === OTHER_GROUP ? 'other' : key}`),
+      const res = await fetch('/api/deck-sheet', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name: state.name.trim() || t('namePlaceholder'),
+          format: state.format,
+          locale,
+          cards: state.entries.map((e) => ({ cardId: e.cardId, zone: e.zone, quantity: e.quantity })),
+        }),
       })
+      if (!res.ok) throw new Error(`sheet route answered ${res.status}`)
+      const blob = await res.blob()
+      // The service answers WebP instead of PNG only when a byte ceiling forced
+      // it to, which this path never sends - but name the file for what it is
+      // rather than for what was asked for.
+      const ext = blob.type === 'image/webp' ? 'webp' : 'png'
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${slugify(state.name)}.png`
+      a.download = `${slugify(state.name)}.${ext}`
       a.click()
       URL.revokeObjectURL(url)
     } catch {
       toast.error(t('export.pngError'))
+    } finally {
+      toast.dismiss(pending)
     }
   }
 

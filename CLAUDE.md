@@ -110,8 +110,9 @@ Seven npm workspaces under `app/`, with a strict dependency direction `core ← 
 - **The deck sheet is not painted here.** "Export PNG" posts the deck (card ids, zones and
   quantities) to `/api/deck-sheet`, which resolves the painted fields with `getCardViews`,
   calls `@revelio/sheet` through `lib/server/sheet.ts` and streams the image back. The client
-  sends no names and no image versions on purpose: the sheet paints names, and a
-  client-supplied one would have the service draw arbitrary text served from this origin. The
+  sends the deck's title but no card names and no image versions, on purpose: the sheet
+  paints card names, and a client-supplied one would have the service draw arbitrary text
+  served from this origin. The
   route needs no session - a public deck's overview offers the export to anyone - and carries
   a per-IP budget instead (`SHEET_RATE` in `lib/server/rate-limit.ts`).
 - **UI**: shadcn + Radix + Tailwind v4. Shared primitives in `src/components/ui/`.

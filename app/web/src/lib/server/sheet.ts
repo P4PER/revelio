@@ -1,7 +1,10 @@
 import 'server-only'
 import type { DeckSheetRequest } from '@revelio/core'
 
-export type RenderedSheet = { body: Buffer; contentType: string }
+// The body is handed on unread: the route passes it straight to the browser, so
+// a sheet at the pixel cap (~20 MB) is never held in memory on its way through.
+// contentLength is the service's own header, when it sent one.
+export type RenderedSheet = { body: ReadableStream<Uint8Array>; contentType: string; contentLength: string | null }
 
 // The export is a deliberate click, not a page render, so it can wait - but not
 // forever: past this the user gets the error toast instead of a spinner that
@@ -13,6 +16,13 @@ const SHEET_TIMEOUT_MS = 30_000
 // the type they came with, so anything else - a misconfigured URL answering an
 // HTML page, say - is refused here rather than passed through.
 const SHEET_TYPES = new Set(['image/png', 'image/webp'])
+
+/** Why an answer cannot be passed on, for the log line. */
+function refusal(res: Response, contentType: string): string {
+  if (!res.ok) return String(res.status)
+  if (!SHEET_TYPES.has(contentType)) return contentType || 'no content type'
+  return 'an empty body'
+}
 
 /**
  * The deck sheet as drawn by @revelio/sheet. Server-only: the token must never
@@ -35,8 +45,13 @@ export async function renderDeckSheet(req: DeckSheetRequest): Promise<RenderedSh
     cache: 'no-store',
     redirect: 'error',
   })
-  if (!res.ok) throw new Error(`sheet service answered ${res.status}`)
   const contentType = (res.headers.get('content-type') ?? '').split(';')[0].trim().toLowerCase()
-  if (!SHEET_TYPES.has(contentType)) throw new Error(`sheet service answered ${contentType || 'no content type'}`)
-  return { body: Buffer.from(await res.arrayBuffer()), contentType }
+  const body = res.ok && SHEET_TYPES.has(contentType) ? res.body : null
+  if (!body) {
+    // Nobody will read it, so release the connection rather than leave the
+    // body pending until the timeout.
+    await res.body?.cancel().catch(() => {})
+    throw new Error(`sheet service answered ${refusal(res, contentType)}`)
+  }
+  return { body, contentType, contentLength: res.headers.get('content-length') }
 }

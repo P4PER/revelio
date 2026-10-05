@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { getTranslations } from 'next-intl/server'
 import {
-  DeckFormat, DeckSheetRequest, DeckZone, MAX_SHEET_ENTRIES, SHEET_FIELD_LIMITS, SHEET_LOCALES,
+  DeckFormat, DeckSheetEntryInput, DeckSheetRequest, DeckZone, MAX_SHEET_ENTRIES, SHEET_FIELD_LIMITS, SHEET_LOCALES,
   pickSheetEntries, type DeckSheetEntry,
 } from '@revelio/core'
 import { getCardViews } from '@revelio/db'
@@ -10,7 +10,7 @@ import { clientIp, consumeSheetRateLimit } from '@/lib/server/rate-limit'
 import { renderDeckSheet } from '@/lib/server/sheet'
 
 // sharp lives on the other side of an HTTP call, but the handler still reads
-// Postgres and streams a Buffer, so it is not an edge route.
+// Postgres and passes a Node stream through, so it is not an edge route.
 export const runtime = 'nodejs'
 
 /**
@@ -30,9 +30,10 @@ const SheetBody = z.object({
   format: DeckFormat,
   locale: z.enum(SHEET_LOCALES),
   cards: z.array(z.object({
-    cardId: z.string().min(1).max(120),
+    // The service's own checks, so junk is refused before the database is asked.
+    cardId: DeckSheetEntryInput.shape.cardId,
     zone: DeckZone,
-    quantity: z.number().int().min(1).max(999),
+    quantity: DeckSheetEntryInput.shape.quantity,
   })).min(1).max(MAX_SHEET_ENTRIES),
 })
 
@@ -40,12 +41,31 @@ const SheetBody = z.object({
 // refuse before sending one.
 const PaintedDeckName = DeckSheetRequest.shape.deck.shape.name
 
+// What one entry may count; a merged quantity is capped here rather than turned
+// into a request the service refuses.
+const MAX_QUANTITY = DeckSheetEntryInput.shape.quantity.maxValue ?? 999
+
 // A legal body is at most ~70 KB: MAX_SHEET_ENTRIES entries of an id, a zone and
 // a quantity, plus the title. The route needs no session, and req.json() would
 // otherwise buffer and parse whatever an anonymous caller sends - nothing in
 // front of a route handler bounds it (proxy.ts, the one place Next caps a body,
 // excludes /api).
 const MAX_BODY_BYTES = 128 * 1024
+
+/**
+ * One entry per card and zone. The builder never sends a card twice in a zone,
+ * but a hand-made body would otherwise paint it twice and count it twice in its
+ * section.
+ */
+function mergeCards<T extends { cardId: string; zone: string; quantity: number }>(cards: T[]): T[] {
+  const byKey = new Map<string, T>()
+  for (const c of cards) {
+    const key = `${c.zone}:${c.cardId}`
+    const prev = byKey.get(key)
+    byKey.set(key, prev ? { ...prev, quantity: Math.min(MAX_QUANTITY, prev.quantity + c.quantity) } : c)
+  }
+  return [...byKey.values()]
+}
 
 /** The body as text, or null once it is past `limit` - declared or as read. */
 async function readBoundedText(req: Request, limit: number): Promise<string | null> {
@@ -75,7 +95,8 @@ export async function POST(req: Request): Promise<Response> {
   try { payload = JSON.parse(text) } catch { /* answered as a 400 below */ }
   const parsed = SheetBody.safeParse(payload)
   if (!parsed.success) return new Response('bad request', { status: 400 })
-  const { format, locale, cards } = parsed.data
+  const { format, locale } = parsed.data
+  const cards = mergeCards(parsed.data.cards)
 
   // Clamped to what the service carries, and, when nothing paintable is left
   // (a name of control characters, say), the same untitled name the builder
@@ -101,20 +122,19 @@ export async function POST(req: Request): Promise<Response> {
       deck: { name, format },
       entries: pickSheetEntries(views),
     })
-    return new Response(new Uint8Array(sheet.body), {
-      status: 200,
-      headers: {
-        'content-type': sheet.contentType,
-        'content-length': String(sheet.body.length),
-        // The sheet is a download, not a page asset, and a private deck's
-        // picture must not sit in a shared cache.
-        'cache-control': 'private, no-store',
-      },
+    const headers = new Headers({
+      'content-type': sheet.contentType,
+      // The sheet is a download, not a page asset, and a private deck's
+      // picture must not sit in a shared cache.
+      'cache-control': 'private, no-store',
     })
+    if (sheet.contentLength) headers.set('content-length', sheet.contentLength)
+    return new Response(sheet.body, { status: 200, headers })
   } catch (err) {
     // The service being down, full or slow is not this app's fault and not the
     // user's: the menu shows its error toast and the other exports still work.
     console.error('deck sheet render failed:', err instanceof Error ? err.message : err)
-    return new Response('sheet service unavailable', { status: 502 })
+    // The log line says which: a status from the service, or the fetch failing.
+    return new Response('sheet render failed', { status: 502 })
   }
 }

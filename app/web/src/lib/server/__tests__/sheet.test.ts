@@ -20,13 +20,16 @@ afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals() })
 describe('renderDeckSheet', () => {
   it('posts the request to the service and returns the bytes with their type', async () => {
     const fetchMock = vi.fn(async () => new Response('png-bytes', {
-      status: 200, headers: { 'content-type': 'image/png' },
+      status: 200, headers: { 'content-type': 'image/png', 'content-length': '9' },
     }))
     vi.stubGlobal('fetch', fetchMock)
 
     const out = await renderDeckSheet(req)
     expect(out.contentType).toBe('image/png')
-    expect(out.body.toString()).toBe('png-bytes')
+    expect(out.contentLength).toBe('9')
+    // Handed on unread: the route passes the stream through rather than
+    // holding a 20 MB sheet in memory twice.
+    expect(await new Response(out.body).text()).toBe('png-bytes')
 
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toBe('http://sheet:8080/render')

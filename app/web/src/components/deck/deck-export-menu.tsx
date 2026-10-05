@@ -174,7 +174,9 @@ export function DeckExportMenu({
           </Button>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => exportPng()}>
+        {/* The service draws a deck, not a title card: it refuses an empty one,
+            so offering the item would only ever answer with the error toast. */}
+        <DropdownMenuItem disabled={state.entries.length === 0} onSelect={() => exportPng()}>
           <ImageIcon />
           {t('export.png')}
         </DropdownMenuItem>

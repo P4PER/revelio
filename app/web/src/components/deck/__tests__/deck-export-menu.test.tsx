@@ -29,10 +29,10 @@ const originalCreate = URL.createObjectURL
 const originalRevoke = URL.revokeObjectURL
 const downloads: string[] = []
 
-function renderMenu() {
+function renderMenu(deck: BuilderState = state) {
   return render(
     <NextIntlClientProvider locale="en" messages={messages}>
-      <DeckExportMenu state={state} />
+      <DeckExportMenu state={deck} />
     </NextIntlClientProvider>,
   )
 }
@@ -85,5 +85,17 @@ describe('DeckExportMenu PNG export', () => {
     renderMenu()
     await clickPng()
     await waitFor(() => expect(toastError).toHaveBeenCalledWith(messages.decks.export.pngError))
+  })
+
+  it('disables PNG for a deck with no cards, which the service cannot draw', async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    renderMenu({ ...state, entries: [] })
+    await userEvent.click(screen.getByRole('button', { name: messages.decks.export.button }))
+    const item = await screen.findByRole('menuitem', { name: messages.decks.export.png })
+    expect(item).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(item)
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(toastError).not.toHaveBeenCalled()
   })
 })

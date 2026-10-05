@@ -78,8 +78,11 @@ export const SHEET_FIELD_LIMITS = {
   types: 8,
   typeLength: 30,
   // Bounded so the serialized digits are bounded: an unbounded integer is 21
-  // characters of JSON at its longest, against six for anything real.
-  imageVersion: 1_000_000,
+  // characters of JSON at its longest. Ten digits, because this is an image
+  // file's mtime in unix seconds (ingest's fileVersion), which passed 1e9 in
+  // 2001 and reaches 1e10 in 2286 - a cap of 1e6 rejected every card in the
+  // dataset, and with it every sheet.
+  imageVersion: 9_999_999_999,
   orientation: 20,
   // Worst-case bytes on the wire per JS string unit of free text, which is what
   // the render service sizes its body cap from. Six, not three: UTF-8 costs at

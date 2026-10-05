@@ -1,4 +1,4 @@
-import { describe, it, expect, afterAll, beforeAll } from 'vitest'
+import { describe, it, expect, afterAll, beforeAll, vi } from 'vitest'
 import type { AddressInfo } from 'node:net'
 import sharp from 'sharp'
 import { createServer } from 'node:http'
@@ -14,8 +14,7 @@ const body: DeckSheetRequest = {
   deck: { name: 'Charms Aggro', format: 'classic' },
   entries: [{
     // No image version: every card draws as a placeholder, so these tests make no
-    // outbound request and still exercise a real render. Phase 4's cache tests
-    // override it where a fetch is the point.
+    // outbound request and still exercise a real render.
     cardId: 'harry', zone: 'main', quantity: 2, name: 'Harry Potter',
     setCode: 'base', types: ['character'], imageVersion: null, orientation: null,
   }],
@@ -50,6 +49,43 @@ describe('the render service', () => {
     expect(Number(res.headers.get('x-sheet-pixels'))).toBeGreaterThan(0)
     expect(res.headers.get('x-sheet-scale')).toBeTruthy()
     expect((await sharp(Buffer.from(await res.arrayBuffer())).metadata()).format).toBe('png')
+  })
+
+  it('reports the render phases in Server-Timing', async () => {
+    const res = await post(body)
+    const timing = res.headers.get('server-timing') ?? ''
+    expect(timing).toMatch(/queue;dur=\d+/)
+    expect(timing).toMatch(/fetch;dur=\d+/)
+    expect(timing).toMatch(/encode;dur=\d+/)
+  })
+
+  it('logs one line per render, with no deck content in it', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    await post(body)
+    const lines = log.mock.calls.map((c) => String(c[0])).filter((l) => l.startsWith('sheet: render '))
+    expect(lines).toHaveLength(1)
+    expect(lines[0]).toMatch(/outcome=rendered digest=[0-9a-f]{16} entries=1 /)
+    expect(lines[0]).toMatch(/fetchMs=\d+ encodeMs=\d+ bytes=\d+ type=png$/)
+    // The deck title and the card name are user input.
+    expect(lines[0]).not.toContain('Charms Aggro')
+    expect(lines[0]).not.toContain('Harry Potter')
+    log.mockRestore()
+  })
+
+  // The digest is what lets repeat requests be counted from the logs, which is
+  // the evidence spec section 5 waits for before building a sheet cache.
+  it('gives the same request the same digest and a different deck another', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    await post(body)
+    await post(body)
+    await post({ ...body, deck: { ...body.deck, name: 'Other' } })
+    const digests = log.mock.calls
+      .map((c) => /digest=([0-9a-f]+)/.exec(String(c[0]))?.[1])
+      .filter(Boolean)
+    expect(digests).toHaveLength(3)
+    expect(digests[0]).toBe(digests[1])
+    expect(digests[2]).not.toBe(digests[0])
+    log.mockRestore()
   })
 
   it('rejects a missing or wrong token without rendering', async () => {

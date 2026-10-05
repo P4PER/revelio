@@ -1,8 +1,10 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
-import { timingSafeEqual } from 'node:crypto'
+import { createHash, timingSafeEqual } from 'node:crypto'
 import { DeckSheetRequest, MAX_SHEET_ENTRIES, SHEET_FIELD_LIMITS } from '@revelio/core'
 import type { SheetEnv } from './env'
 import { renderSheet } from './render'
+
+type RenderLog = Record<string, string | number | boolean>
 
 // The fixed half of a serialized entry: every key name, the zone, the quantity,
 // the bounded imageVersion and the punctuation around them, plus the comma that
@@ -50,6 +52,22 @@ export const REQUEST_DEADLINE_MS = 60_000
 // 12 Mpx render peaks at inside a 768Mi pod; 64 measured ~140 MB, a real share
 // of the headroom for callers that send one request at a time.
 export const MAX_CONNECTIONS = 16
+
+// Counts repeats in the logs, which is the evidence for or against a sheet
+// cache (spec section 5). Zod's parse output lists keys in schema order, so the
+// same request from either caller stringifies the same way. Truncated: it only
+// has to tell requests apart, not stand in for one.
+function requestDigest(req: DeckSheetRequest): string {
+  return createHash('sha256').update(JSON.stringify(req)).digest('hex').slice(0, 16)
+}
+
+// key=value, one line, so a log query can filter and aggregate on any field
+// without parsing prose. Counts, timings and the digest only: never a name, a
+// title or a URL (spec section 10).
+function logRender(fields: RenderLog): void {
+  const parts = Object.entries(fields).map(([k, v]) => `${k}=${v}`)
+  console.log(`sheet: render ${parts.join(' ')}`)
+}
 
 function authorized(req: IncomingMessage, token: string): boolean {
   const header = req.headers.authorization ?? ''
@@ -144,22 +162,32 @@ export function createSheetServer(env: SheetEnv): Server {
       send(res, 400, parsed.error.issues.map((i) => i.path.join('.')).join(', '))
       return
     }
+    const digest = requestDigest(parsed.data)
+    const entries = parsed.data.entries.length
 
     // One in flight plus MAX_QUEUED waiting is the whole admission; the next
     // request is shed, which every caller already handles as "no picture this
     // time".
     if (admitted > MAX_QUEUED) {
+      logRender({ outcome: 'shed', digest, entries, queued: admitted })
       send(res, 503, 'render queue full')
       return
     }
     admitted += 1
+    const admittedAt = performance.now()
     try {
       await enqueue(async () => {
+        const queueMs = Math.round(performance.now() - admittedAt)
         // The wait in the queue is unbounded from here, so the caller may well
         // have given up before its turn came. Painting now would spend the one
         // render slot on a socket nobody is reading while the next caller gets
         // a 503.
-        if (res.closed) return
+        // Logged all the same: a caller that gave up in the queue is a queue
+        // too long for its callers, and that is evidence too.
+        if (res.closed) {
+          logRender({ outcome: 'abandoned', digest, entries, queueMs, reason: JSON.stringify('caller went away before its turn') })
+          return
+        }
 
         const abandon = new AbortController()
         const hangUp = () => abandon.abort(new Error('caller went away'))
@@ -173,6 +201,13 @@ export function createSheetServer(env: SheetEnv): Server {
             imageBase: env.IMAGE_BASE_URL,
             signal: abandon.signal,
           })
+          logRender({
+            outcome: 'rendered', digest, entries, distinct: out.distinct,
+            mpx: (out.pixels / 1e6).toFixed(2), scale: out.scale.toFixed(3),
+            art: out.fullArt ? 'full' : 'thumb', dropped: out.dropped,
+            queueMs, fetchMs: out.fetchMs, encodeMs: out.encodeMs,
+            bytes: out.body.length, type: out.contentType === 'image/png' ? 'png' : 'webp',
+          })
           res.writeHead(200, {
             'content-type': out.contentType,
             'content-length': String(out.body.length),
@@ -181,10 +216,18 @@ export function createSheetServer(env: SheetEnv): Server {
             'x-sheet-scale': out.scale.toFixed(3),
             'x-sheet-dropped': String(out.dropped),
             'x-sheet-full-art': String(out.fullArt),
+            'server-timing': `queue;dur=${queueMs}, fetch;dur=${out.fetchMs}, encode;dur=${out.encodeMs}`,
           })
           res.end(out.body)
         } catch (err) {
-          console.error('sheet: render failed:', err instanceof Error ? err.message : err)
+          // console.log like every other outcome, so all four land in one stream
+          // and one query. JSON.stringify quotes the message so its spaces
+          // cannot break the key=value split; it names no URL (render.ts).
+          const reason = err instanceof Error ? err.message : String(err)
+          logRender({
+            outcome: abandon.signal.aborted ? 'abandoned' : 'failed',
+            digest, entries, queueMs, reason: JSON.stringify(reason),
+          })
           // An abandoned render has no socket left to answer on, and writing to
           // a closed response throws rather than reporting anything.
           if (!res.closed) send(res, 500, 'render failed')

@@ -119,6 +119,24 @@ describe('the render queue', () => {
     expect(completed).toBe(MAX_QUEUED + 1)
   })
 
+  // A shed request is the clearest sign the service is short of capacity, so it
+  // has to show up in the same line as everything else.
+  it('logs a shed request', async () => {
+    gate.reset()
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const flight = Array.from({ length: MAX_QUEUED + 1 }, post)
+    await vi.waitFor(() => expect(gate.release.length).toBe(1))
+    const shed = await post()
+    expect(shed.status).toBe(503)
+    expect(log.mock.calls.map((c) => String(c[0])).some((l) => /^sheet: render outcome=shed /.test(l))).toBe(true)
+    for (let i = 0; i <= MAX_QUEUED; i++) {
+      await vi.waitFor(() => expect(gate.release.length).toBe(1))
+      gate.openAll()
+    }
+    expect((await Promise.all(flight)).every((r) => r.status === 200)).toBe(true)
+    log.mockRestore()
+  })
+
   it('states a request deadline that bounds one render', () => {
     expect(REQUEST_DEADLINE_MS).toBe(60_000)
   })

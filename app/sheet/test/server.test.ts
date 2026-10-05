@@ -1,9 +1,9 @@
 import { describe, it, expect, afterAll, beforeAll } from 'vitest'
 import type { AddressInfo } from 'node:net'
 import sharp from 'sharp'
-import type { DeckSheetRequest } from '@revelio/core'
 import { createServer } from 'node:http'
-import { createSheetServer, listen } from '../src/server'
+import { DeckSheetRequest, MAX_SHEET_ENTRIES, SHEET_FIELD_LIMITS } from '@revelio/core'
+import { createSheetServer, listen, MAX_BODY_BYTES } from '../src/server'
 
 const env = { PORT: 0, IMAGE_BASE_URL: 'https://img.test', SHEET_TOKEN: 'a-token-at-least-16-chars' }
 const server = createSheetServer(env)
@@ -91,6 +91,30 @@ describe('the render service', () => {
     } catch (err) { thrown = err }
     expect((thrown as NodeJS.ErrnoException | undefined)?.code).toBe('EADDRINUSE')
     await new Promise<void>((resolve) => occupied.close(() => resolve()))
+  })
+
+  // MAX_SHEET_ENTRIES protects render memory; the body cap only bounds how much
+  // is buffered before admission. One is derived from the other precisely so
+  // they cannot disagree - a request the contract accepts that the server then
+  // answers 413 is a caller with no way to tell "deck too big" from "malformed".
+  it('reads the largest body the contract accepts', () => {
+    // Built from the contract's own ceilings, never from numbers copied out of
+    // it: a payload with the sizes hardcoded would keep passing after someone
+    // widened a field, which is the exact drift this is here to catch.
+    const L = SHEET_FIELD_LIMITS
+    const worst = {
+      locale: 'de' as const, maxBytes: 50_000_000,
+      deck: { name: 'd'.repeat(L.name), format: 'classic' as const },
+      entries: Array.from({ length: MAX_SHEET_ENTRIES }, (_, i) => ({
+        cardId: `c${'x'.repeat(L.cardId - 5)}${String(i).padStart(4, '0')}`,
+        zone: 'sideboard' as const, quantity: 999, name: 'n'.repeat(L.name),
+        setCode: 's'.repeat(L.setCode),
+        types: Array.from({ length: L.types }, () => 't'.repeat(L.typeLength)),
+        imageVersion: 999_999, orientation: 'horizontal',
+      })),
+    }
+    expect(DeckSheetRequest.safeParse(worst).success).toBe(true)
+    expect(Buffer.byteLength(JSON.stringify(worst))).toBeLessThanOrEqual(MAX_BODY_BYTES)
   })
 
   it('sheds load rather than render two sheets at once', async () => {

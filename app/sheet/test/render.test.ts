@@ -251,6 +251,25 @@ describe('renderSheet', () => {
     expect(Date.now() - started).toBeLessThan(3_000)
   })
 
+  // Defence in depth behind the contract's cardId allowlist: building a URL is
+  // not validating one, because new URL resolves '..' rather than rejecting it.
+  // A key that escapes draws a placeholder like any other unusable image - one
+  // bad id must not cost the whole picture.
+  it('never fetches an image key that escapes the configured base', async () => {
+    const urls = recordingFetch(await art())
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    // Hand-made rather than parsed: this is the defence that still stands if
+    // the allowlist is ever widened.
+    const escaping = { ...req, entries: [entry('../../../secret', 'main', ['spell'])] }
+    const out = await renderSheet(escaping, opts)
+    expect((await sharp(out.body).metadata()).format).toBe('png')
+    expect(urls).toEqual([])
+    const logged = warn.mock.calls.flat().join(' ')
+    expect(logged).toContain('outside the configured image base')
+    // The reason names the card, never the base URL.
+    expect(logged).not.toContain('img.test')
+  })
+
   it('renders a German sheet from core labels alone', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(await art(), { status: 200 })))
     const out = await renderSheet({ ...req, locale: 'de' }, opts)

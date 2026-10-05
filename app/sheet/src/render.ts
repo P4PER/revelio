@@ -207,6 +207,33 @@ function centered(rendered: RenderedText, centerX: number, centerY: number): Ove
 // `deadline` is an epoch millisecond, shared by every fetch in one render, and
 // clamping each request's own timeout to what is left of it is what holds the
 // phase to its budget rather than to the budget plus one more timeout.
+/**
+ * The art URL for one card, or null when the key would land outside the
+ * configured base. Building a URL is not validating one: new URL resolves a
+ * '..' segment rather than rejecting it, so the check is canonicalize-then-
+ * compare, the same shape as a realpath prefix check on a filesystem.
+ *
+ * The contract's cardId allowlist is what makes this unreachable today; this is
+ * what still holds if that allowlist is ever widened.
+ */
+function containedImageUrl(imageBase: string, key: string): string | null {
+  const url = imageUrl(imageBase, key)
+  try {
+    const base = new URL(`${imageBase.replace(/\/$/, '')}/`)
+    const resolved = new URL(url)
+    // Exact match, not a prefix test: a prefix test passes trivially when the
+    // base has no path of its own, and "did the parser have to change this?" is
+    // the question that actually distinguishes a well-formed key. A '..'
+    // segment, a '//host' authority or a stray backslash all move the pathname;
+    // nothing a real key contains does.
+    if (resolved.origin !== base.origin) return null
+    if (resolved.pathname !== `${base.pathname}${key}`) return null
+    return url
+  } catch {
+    return null
+  }
+}
+
 async function fetchCardImage(
   card: DeckSheetCard,
   imageBase: string,
@@ -218,11 +245,15 @@ async function fetchCardImage(
   const left = deadline - Date.now()
   if (left <= 0) return { failure: BUDGET_SPENT }
   const key = fullArt ? imageKey : thumbKey
+  // The reason names the card, never the resolved URL: the image base can be an
+  // internal hostname and this ends up in a log line.
+  const url = containedImageUrl(imageBase, key(card.cardId, card.imageVersion))
+  if (url === null) return { failure: 'key resolves outside the configured image base' }
   try {
     // The per-card timeout and the render's own abandonment are both reasons to
     // stop dialling, so the request carries whichever fires first.
     const timeout = AbortSignal.timeout(Math.min(FETCH_TIMEOUT_MS, left))
-    const res = await fetch(imageUrl(imageBase, key(card.cardId, card.imageVersion)), {
+    const res = await fetch(url, {
       signal: signal ? AbortSignal.any([timeout, signal]) : timeout,
     })
     if (!res.ok) return { failure: `HTTP ${res.status}` }

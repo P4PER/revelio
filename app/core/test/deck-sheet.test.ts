@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import type { DeckCardView } from '../src/domain.js'
 import { DECK_SHEET, layoutDeckSheet, computeSheetGeometry, type DeckSheetCard } from '../src/deck-sheet.js'
 import { OTHER_GROUP, SHEET_LOCALES, sheetLabels } from '../src/index.js'
-import { DeckSheetRequest, MAX_SHEET_ENTRIES, pickSheetEntries, type DeckSheetEntry } from '../src/index.js'
+import { DeckSheetRequest, MAX_SHEET_ENTRIES, SHEET_FIELD_LIMITS, pickSheetEntries, type DeckSheetEntry } from '../src/index.js'
 
 const harry: DeckCardView = {
   cardId: 'bs-harry', zone: 'character', quantity: 1, types: ['character'],
@@ -241,6 +241,41 @@ describe('DeckSheetRequest', () => {
   it('rejects a name that is nothing but whitespace', () => {
     expect(DeckSheetRequest.safeParse({ ...body, deck: { ...body.deck, name: '   ' } }).success).toBe(false)
     expect(DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, name: '\n\t ' }] }).success).toBe(false)
+  })
+
+  // The id is interpolated into the art URL's path, so it is an allowlist and
+  // not a length limit. The charset and the ceiling come from the dataset: 2196
+  // cards across en and de, longest id 49, every one of them [a-z0-9-].
+  it('accepts the card ids the dataset uses and rejects anything else', () => {
+    for (const cardId of ['bs-1-dean-thomas', 'bs-3a-draco-malfoy', 'c1', 'x'.repeat(SHEET_FIELD_LIMITS.cardId)]) {
+      expect(DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, cardId }] }).success, cardId).toBe(true)
+    }
+    for (const cardId of ['../../../secret', 'a/b', 'BS-1', 'a b', '-leading', 'a.b', '', 'x'.repeat(SHEET_FIELD_LIMITS.cardId + 1)]) {
+      expect(DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, cardId }] }).success, cardId).toBe(false)
+    }
+  })
+
+  // Every ceiling here is measured against the dataset plus headroom, not a
+  // round number: the maxima used to sit 2x to 67x past anything real, which is
+  // what let a legal request outgrow the service's body cap.
+  it('caps the painted fields where the data actually sits', () => {
+    const ok = (over: Record<string, unknown>) =>
+      DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, ...over }] }).success
+    expect(ok({ name: 'x'.repeat(120) })).toBe(true)
+    expect(ok({ name: 'x'.repeat(121) })).toBe(false)
+    expect(ok({ setCode: 'x'.repeat(10) })).toBe(true)
+    expect(ok({ setCode: 'x'.repeat(11) })).toBe(false)
+    expect(ok({ types: ['a', 'b', 'c', 'd'] })).toBe(true)
+    expect(ok({ types: ['a', 'b', 'c', 'd', 'e'] })).toBe(false)
+    expect(ok({ types: ['x'.repeat(21)] })).toBe(false)
+  })
+
+  // web's own deck writer caps the name at 120 (lib/actions/deck-actions.ts).
+  // Two independent limits on one value is how they drift apart.
+  it('caps the deck name where web caps it', () => {
+    const name = (n: number) => DeckSheetRequest.safeParse({ ...body, deck: { ...body.deck, name: 'x'.repeat(n) } }).success
+    expect(name(120)).toBe(true)
+    expect(name(121)).toBe(false)
   })
 
   // layoutDeckSheet takes DeckSheetEntry[]; a parsed request must be usable as

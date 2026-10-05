@@ -44,13 +44,34 @@ const paintedText = (max: number) =>
 // The painted half of a card. Deliberately narrower than DeckCardView: cost,
 // damage, legality and the rest never reach a pixel, and every field that is
 // in the request is a field in the cache key.
+/**
+ * The painted fields' ceilings, each the dataset's own maximum plus headroom,
+ * measured over 2196 cards in en and de: id 49, name 51, setCode 5, two types
+ * of 9. They used to sit 2x to 67x past that, which is how a request this
+ * contract accepts grew past the body the render service will read.
+ *
+ * Named rather than inlined because the service sizes its body cap from them.
+ * Widening one here widens that cap by the same arithmetic, so the two limits
+ * cannot drift into disagreeing.
+ */
+export const SHEET_FIELD_LIMITS = {
+  cardId: 80,
+  name: 120,
+  setCode: 10,
+  types: 4,
+  typeLength: 20,
+} as const
+
 export const DeckSheetEntryInput = z.object({
-  cardId: z.string().min(1).max(120),
+  // An allowlist, not a length limit: this is interpolated into the art URL's
+  // path, so '../' in an id would otherwise send the render service at an
+  // arbitrary path on the image host. Every id in the dataset is [a-z0-9-].
+  cardId: z.string().regex(/^[a-z0-9][a-z0-9-]*$/).max(SHEET_FIELD_LIMITS.cardId),
   zone: DeckZone,
   quantity: z.number().int().min(1).max(999),
-  name: paintedText(300),
-  setCode: z.string().max(60),
-  types: z.array(z.string().max(60)).max(20),
+  name: paintedText(SHEET_FIELD_LIMITS.name),
+  setCode: z.string().max(SHEET_FIELD_LIMITS.setCode),
+  types: z.array(z.string().max(SHEET_FIELD_LIMITS.typeLength)).max(SHEET_FIELD_LIMITS.types),
   imageVersion: z.number().int().nonnegative().nullable(),
   orientation: z.string().max(20).nullable(),
 })
@@ -63,7 +84,10 @@ export const DeckSheetRequest = z.object({
   // Discord's attachment limit; a browser download sends none. The service
   // derives a pixel budget from it rather than owning a second cap.
   maxBytes: z.number().int().min(100_000).max(50_000_000).optional(),
-  deck: z.object({ name: paintedText(300), format: DeckFormat }),
+  // 120 because that is where web's own deck writer caps it
+  // (web/src/lib/actions/deck-actions.ts). Two independent limits on one value
+  // is how the two drift apart.
+  deck: z.object({ name: paintedText(SHEET_FIELD_LIMITS.name), format: DeckFormat }),
   entries: z.array(DeckSheetEntryInput).min(1).max(MAX_SHEET_ENTRIES),
 })
 

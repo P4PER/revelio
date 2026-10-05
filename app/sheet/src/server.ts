@@ -1,12 +1,29 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import { timingSafeEqual } from 'node:crypto'
-import { DeckSheetRequest } from '@revelio/core'
+import { DeckSheetRequest, MAX_SHEET_ENTRIES, SHEET_FIELD_LIMITS } from '@revelio/core'
 import type { SheetEnv } from './env'
 import { renderSheet } from './render'
 
-// Enough for 400 entries of a few hundred bytes each, with room to spare, and
-// small enough that a hostile body is read in one go and dropped.
-export const MAX_BODY_BYTES = 262_144
+// The fixed half of a serialized entry: every key name, the zone, quantity,
+// imageVersion and orientation, and the punctuation around them. Measured at
+// ~143 bytes; the rest is headroom for the contract gaining a field.
+const JSON_ENTRY_OVERHEAD = 190
+// The variable half comes from the contract's own ceilings, so widening one
+// there widens this by the same arithmetic. Each type costs its quotes and
+// comma on top of its characters.
+const MAX_ENTRY_BYTES =
+  SHEET_FIELD_LIMITS.cardId +
+  SHEET_FIELD_LIMITS.name +
+  SHEET_FIELD_LIMITS.setCode +
+  SHEET_FIELD_LIMITS.types * (SHEET_FIELD_LIMITS.typeLength + 3) +
+  JSON_ENTRY_OVERHEAD
+// Derived rather than chosen, so the two caps cannot disagree. MAX_SHEET_ENTRIES
+// is the real limit - geometry grows with the entry count, and that is what the
+// pod's memory is sized against - while this one only bounds how much is
+// buffered before admission control. A hand-picked value here is how a request
+// the contract accepts ends up answered 413. sheet/test/server.test.ts holds
+// the two together.
+export const MAX_BODY_BYTES = MAX_SHEET_ENTRIES * MAX_ENTRY_BYTES + 4_096
 // One render at a time, because the pod's memory limit is sized for one. Four
 // waiting is a short burst absorbed; past that the answer is 503, which every
 // caller already handles as "no picture this time".
@@ -51,6 +68,20 @@ async function readBody(req: IncomingMessage): Promise<string | null> {
 function send(res: ServerResponse, status: number, body: string): void {
   res.writeHead(status, { 'content-type': 'text/plain; charset=utf-8' })
   res.end(body)
+}
+
+/**
+ * Answers a request whose body was abandoned part-read, and closes the
+ * connection with it. Keep-alive is the trap here: the unread remainder of the
+ * body is still arriving on a socket the client will happily take back from its
+ * pool, so the next request on it reads the leftovers as its request line and
+ * hangs until the socket times out. `Connection: close` is what tells the client
+ * not to reuse it; destroying the request stops the upload once the answer is
+ * out.
+ */
+function sendAndClose(req: IncomingMessage, res: ServerResponse, status: number, body: string): void {
+  res.writeHead(status, { 'content-type': 'text/plain; charset=utf-8', connection: 'close' })
+  res.end(body, () => req.destroy())
 }
 
 /**
@@ -169,7 +200,10 @@ export function createSheetServer(env: SheetEnv): Server {
     }
     void readBody(req).then((body) => {
       if (body === null) {
-        send(res, 413, 'body too large')
+        // Not reachable with a request the contract accepts - see MAX_BODY_BYTES
+        // - so this means a body that is not one, and says so rather than
+        // leaving a caller to guess that its deck was too big.
+        sendAndClose(req, res, 413, 'body larger than any valid sheet request')
         return undefined
       }
       return render(res, body)

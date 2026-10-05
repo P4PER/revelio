@@ -224,6 +224,25 @@ describe('DeckSheetRequest', () => {
     expect(pickSheetEntries([view])).toEqual([entry])
   })
 
+  // A deck name is user input and reaches Pango, which honours newlines: enough
+  // of them grow the title layer past the canvas and sharp rejects the whole
+  // composite, so that deck's sheet 500s forever. Collapsing beats rejecting -
+  // the user gets their picture, and Phase 4 gets one cache key for one name.
+  it('collapses whitespace and control characters in every painted string', () => {
+    const parsed = DeckSheetRequest.parse({
+      ...body,
+      deck: { ...body.deck, name: 'Line one\nLine two\tand\u0000more' },
+      entries: [{ ...entry, name: '  Harry   Potter  ' }],
+    })
+    expect(parsed.deck.name).toBe('Line one Line two and more')
+    expect(parsed.entries[0].name).toBe('Harry Potter')
+  })
+
+  it('rejects a name that is nothing but whitespace', () => {
+    expect(DeckSheetRequest.safeParse({ ...body, deck: { ...body.deck, name: '   ' } }).success).toBe(false)
+    expect(DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, name: '\n\t ' }] }).success).toBe(false)
+  })
+
   // layoutDeckSheet takes DeckSheetEntry[]; a parsed request must be usable as
   // one without a cast, or the contract and the layout have drifted apart.
   it('parses into the type the layout takes', () => {

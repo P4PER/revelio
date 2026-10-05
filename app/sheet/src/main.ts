@@ -1,5 +1,5 @@
 import { parseEnv } from './env'
-import { createSheetServer } from './server'
+import { createSheetServer, listen } from './server'
 
 // No `process.argv[1] === fileURLToPath(import.meta.url)` guard: inside an
 // esbuild bundle both sides are the bundle itself, so a guard here would fire
@@ -7,7 +7,7 @@ import { createSheetServer } from './server'
 async function main(): Promise<void> {
   const env = parseEnv()
   const server = createSheetServer(env)
-  await new Promise<void>((resolve) => server.listen(env.PORT, resolve))
+  await listen(server, env.PORT)
   console.log(`sheet: listening on ${env.PORT}`)
 
   for (const signal of ['SIGINT', 'SIGTERM'] as const) {

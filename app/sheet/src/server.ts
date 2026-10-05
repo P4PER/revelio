@@ -12,8 +12,13 @@ export const MAX_BODY_BYTES = 262_144
 // caller already handles as "no picture this time".
 export const MAX_QUEUED = 4
 // The service's own ceiling on one render, from spec section 9. It sits inside
-// the bot's 75s abort and outside web's 30s one, and it bounds the queue: with
-// five admitted, the last one's wait is what this multiplied out would be.
+// the bot's 75s abort and outside web's 30s one.
+//
+// It bounds the fetch phase and the checkpoints around it, not the composite or
+// the encoders - sharp cannot be interrupted once those start (see render.ts).
+// So this is the point past which no NEW work is begun for a render, not a hard
+// wall-clock bound on one, and the queue's worst-case wait is correspondingly
+// soft. MAX_SHEET_PIXELS is what actually bounds the uninterruptible half.
 export const REQUEST_DEADLINE_MS = 60_000
 
 function authorized(req: IncomingMessage, token: string): boolean {
@@ -46,6 +51,22 @@ async function readBody(req: IncomingMessage): Promise<string | null> {
 function send(res: ServerResponse, status: number, body: string): void {
   res.writeHead(status, { 'content-type': 'text/plain; charset=utf-8' })
   res.end(body)
+}
+
+/**
+ * Starts listening, and reports a failure to start by rejecting. net.Server
+ * emits 'error' rather than calling back, and an 'error' with no listener is
+ * rethrown as an uncaught exception - so without this a taken port kills the
+ * process with a raw stack instead of main()'s 'sheet failed to start:', which
+ * is the prefix sheet/Dockerfile greps for as the start-up contract.
+ */
+export function listen(server: Server, port: number, host?: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    server.once('error', reject)
+    const started = () => { server.off('error', reject); resolve() }
+    if (host === undefined) server.listen(port, started)
+    else server.listen(port, host, started)
+  })
 }
 
 export function createSheetServer(env: SheetEnv): Server {

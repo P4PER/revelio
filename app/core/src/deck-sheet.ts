@@ -25,6 +25,22 @@ export const SHEET_LOCALES = ['en', 'de'] as const
 // deck (a 60-card main plus a sideboard is well under 100 distinct entries).
 export const MAX_SHEET_ENTRIES = 400
 
+/**
+ * A string the sheet paints. Every run of whitespace or control characters
+ * collapses to one space, because the painter feeds these to Pango, which
+ * honours newlines: enough of them grow the title layer past the canvas and
+ * sharp rejects the composite, so one pasted name would 500 that deck's sheet
+ * forever. Collapsing rather than rejecting keeps the picture, and it gives the
+ * render cache one key for one name.
+ *
+ * `max` applies to the raw input and `min(1)` to the collapsed result, so a
+ * name that is nothing but whitespace is a 400 rather than a blank title.
+ */
+const paintedText = (max: number) =>
+  z.string().max(max)
+    .transform((v) => v.replace(/[\s\p{Cc}\p{Cf}]+/gu, ' ').trim())
+    .pipe(z.string().min(1))
+
 // The painted half of a card. Deliberately narrower than DeckCardView: cost,
 // damage, legality and the rest never reach a pixel, and every field that is
 // in the request is a field in the cache key.
@@ -32,7 +48,7 @@ export const DeckSheetEntryInput = z.object({
   cardId: z.string().min(1).max(120),
   zone: DeckZone,
   quantity: z.number().int().min(1).max(999),
-  name: z.string().min(1).max(300),
+  name: paintedText(300),
   setCode: z.string().max(60),
   types: z.array(z.string().max(60)).max(20),
   imageVersion: z.number().int().nonnegative().nullable(),
@@ -47,7 +63,7 @@ export const DeckSheetRequest = z.object({
   // Discord's attachment limit; a browser download sends none. The service
   // derives a pixel budget from it rather than owning a second cap.
   maxBytes: z.number().int().min(100_000).max(50_000_000).optional(),
-  deck: z.object({ name: z.string().min(1).max(300), format: DeckFormat }),
+  deck: z.object({ name: paintedText(300), format: DeckFormat }),
   entries: z.array(DeckSheetEntryInput).min(1).max(MAX_SHEET_ENTRIES),
 })
 

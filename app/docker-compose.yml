@@ -85,6 +85,25 @@ services:
     # of showing the env error once. Matches ingest/migrate.
     restart: "no"
 
+  sheet:
+    image: revelio-sheet:local
+    build:
+      context: .
+      dockerfile: sheet/Dockerfile
+    # No profile: unlike the bot, this needs no real credentials, so a bare
+    # `docker compose up` can bring it up with the rest of the stack.
+    depends_on:
+      rustfs:
+        condition: service_healthy
+    environment:
+      # Card art is fetched in-process, so this is the container-internal host -
+      # localhost:9000 inside this container is this container.
+      IMAGE_BASE_URL: http://rustfs:9000/images
+      SHEET_TOKEN: local-dev-sheet-token
+    ports:
+      - "127.0.0.1:8080:8080"   # so a host-run web and bot can reach it
+    restart: "no"
+
   migrate:
     image: revelio-ingest:local
     build:

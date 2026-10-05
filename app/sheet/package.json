@@ -1,0 +1,17 @@
+{
+  "name": "@revelio/sheet",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "dev": "node --env-file-if-exists=.env.local --import tsx src/main.ts",
+    "build": "node build.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json"
+  },
+  "dependencies": {
+    "@revelio/core": "*",
+    "sharp": "^0.35.3",
+    "zod": "^3.23.0"
+  }
+}

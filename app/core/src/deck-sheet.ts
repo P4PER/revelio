@@ -1,5 +1,7 @@
-import type { DeckFormat } from './deck'
-import { groupMainEntries } from './deck-groups'
+import { z } from 'zod'
+import { DeckFormat, DeckZone } from './deck'
+import { attrLabel } from './labels'
+import { groupMainEntries, OTHER_GROUP } from './deck-groups'
 import type { DeckCardView } from './domain'
 
 // The deck sheet: the picture of a deck that the web builder exports as a PNG and
@@ -13,6 +15,59 @@ export type DeckSheetEntry = Pick<
   DeckCardView,
   'cardId' | 'zone' | 'quantity' | 'name' | 'setCode' | 'types' | 'imageVersion' | 'orientation'
 >
+
+// The locales the sheet renders. The request contract validates against this,
+// so an unknown locale is a 400 rather than a picture full of English.
+export const SHEET_LOCALES = ['en', 'de'] as const
+
+// Upper bound on entries in one sheet. Geometry grows with the entry count, so
+// an uncapped payload is a memory-exhaustion input; 400 is far past any legal
+// deck (a 60-card main plus a sideboard is well under 100 distinct entries).
+export const MAX_SHEET_ENTRIES = 400
+
+/**
+ * A string the sheet paints. Every run of whitespace or control characters
+ * collapses to one space, because the painter feeds these to Pango, which
+ * honours newlines: enough of them grow the title layer past the canvas and
+ * sharp rejects the composite, so one pasted name would 500 that deck's sheet
+ * forever. Collapsing rather than rejecting keeps the picture, and it gives the
+ * render cache one key for one name.
+ *
+ * `max` applies to the raw input and `min(1)` to the collapsed result, so a
+ * name that is nothing but whitespace is a 400 rather than a blank title.
+ */
+const paintedText = (max: number) =>
+  z.string().max(max)
+    .transform((v) => v.replace(/[\s\p{Cc}\p{Cf}]+/gu, ' ').trim())
+    .pipe(z.string().min(1))
+
+// The painted half of a card. Deliberately narrower than DeckCardView: cost,
+// damage, legality and the rest never reach a pixel, and every field that is
+// in the request is a field in the cache key.
+export const DeckSheetEntryInput = z.object({
+  cardId: z.string().min(1).max(120),
+  zone: DeckZone,
+  quantity: z.number().int().min(1).max(999),
+  name: paintedText(300),
+  setCode: z.string().max(60),
+  types: z.array(z.string().max(60)).max(20),
+  imageVersion: z.number().int().nonnegative().nullable(),
+  orientation: z.string().max(20).nullable(),
+})
+
+// What the render service takes. The body is the sheet's whole input, which is
+// what lets the service key its cache on a hash of it.
+export const DeckSheetRequest = z.object({
+  locale: z.enum(SHEET_LOCALES),
+  // The caller's own ceiling on the encoded image, in bytes. /deck sends
+  // Discord's attachment limit; a browser download sends none. The service
+  // derives a pixel budget from it rather than owning a second cap.
+  maxBytes: z.number().int().min(100_000).max(50_000_000).optional(),
+  deck: z.object({ name: paintedText(300), format: DeckFormat }),
+  entries: z.array(DeckSheetEntryInput).min(1).max(MAX_SHEET_ENTRIES),
+})
+
+export type DeckSheetRequest = z.infer<typeof DeckSheetRequest>
 
 export type DeckSheetCard = {
   cardId: string
@@ -113,6 +168,41 @@ function cardBox(card: DeckSheetCard): { w: number; h: number } {
   return card.orientation === 'horizontal'
     ? { w: DECK_SHEET.cardHeight, h: DECK_SHEET.cardWidth }
     : { w: DECK_SHEET.cardWidth, h: DECK_SHEET.cardHeight }
+}
+
+/**
+ * Narrows card views to the fields the sheet paints. Both callers hold
+ * DeckCardView lists with a dozen fields the picture never uses; sending them
+ * would widen the request, and with it the cache key, for nothing.
+ */
+export function pickSheetEntries(views: DeckSheetEntry[]): DeckSheetEntry[] {
+  return views.map((v) => ({
+    cardId: v.cardId, zone: v.zone, quantity: v.quantity, name: v.name,
+    setCode: v.setCode, types: v.types, imageVersion: v.imageVersion ?? null,
+    orientation: v.orientation ?? null,
+  }))
+}
+
+/**
+ * The sheet's labels for one locale, resolved from core's own catalog. The
+ * render service calls this instead of taking labels in its request: the sheet
+ * is cached on its input, and translations in that input would mean a label
+ * change in one caller's catalog silently renders a different picture.
+ *
+ * Record<DeckFormat, string> is what makes a new format a type error here
+ * rather than a missing title at render time.
+ */
+export function sheetLabels(locale: string): DeckSheetLabels {
+  return {
+    formatLabel: {
+      classic: attrLabel('formats', 'classic', locale),
+      revival: attrLabel('formats', 'revival', locale),
+    },
+    character: attrLabel('deckSheet', 'character', locale),
+    mainDeck: attrLabel('deckSheet', 'mainDeck', locale),
+    sideboard: attrLabel('deckSheet', 'sideboard', locale),
+    group: (key) => attrLabel('deckGroups', key === OTHER_GROUP ? 'other' : key, locale),
+  }
 }
 
 // Groups a deck into sheet sections. Reuses the deck view's type-based main-zone

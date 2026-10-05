@@ -75,14 +75,21 @@ The `ingest` image carries the `db/drizzle` SQL separately at `/app/drizzle` wit
 
 ## Architecture
 
-Six npm workspaces under `app/`, with a strict dependency direction `core ← {search, db} ← {ingest, web, bot}`:
+Seven npm workspaces under `app/`, with a strict dependency direction `core ← {search, db} ← {ingest, web, bot}` and `core ← sheet`:
 
 - **`@revelio/core`** (`core/`) — framework-agnostic domain layer: Zod schemas (`schemas.ts`), the card domain model (`domain.ts`), attribute definitions (`attributes.ts`), image key helpers (`images.ts`), the deck sheet layout (`deck-sheet.ts`, `deck-groups.ts`) that web's PNG export and the bot's `/deck` image are both painted from. No I/O. Every other workspace imports from here.
 - **`@revelio/search`** (`search/`) — Meilisearch client + document shape + query builder. `createMeiliClient(host, key)` is the single client factory; `documents.ts` defines the indexed card document; `search.ts` builds queries/filters. A read that ranks by **relevance** (non-empty query, no explicit sort) goes out as a **federated multi-search** — a `name`-only query weighted 10 against the unrestricted one — so every name match ranks above every text/flavor match. `rankingRules` cannot express that: Meilisearch's `words` rule is applied above them, so a flavor-text hit on the whole query would otherwise outrank a name hit on part of it. This needs Meilisearch **>= 1.10** and is a query-time change only — `CARD_INDEX_SETTINGS` is untouched, so it needs no reindex.
 - **`@revelio/db`** (`db/`) — Drizzle ORM over Postgres. `schema.ts` (card data) + `auth-schema.ts` (Better Auth tables), `client.ts`, and migration runners (`migrate.ts` / `migrate-cli.ts`). Queries live one module per domain under `src/queries/` (`sets`, `cards`, `decks`, `collection`, `users`, ...); `src/index.ts` is the only barrel and re-exports from the leaf modules, so nothing outside the package imports a query module directly. Migrations are checked-in SQL under `db/drizzle/`.
 - **`@revelio/ingest`** (`ingest/`) — one-shot job (`src/main.ts`, run with `tsx`) that runs migrations, seeds Postgres from `card-data`, indexes Meilisearch, and uploads card images to S3/RustFS. The `load-*.ts` files each own one data source; `build-documents.ts` + `index-cards.ts` produce the search index; `upload-images.ts` handles S3.
-- **`@revelio/web`** (`web/`) — Next.js 16 (App Router, React 19) app. The only workspace users reach in a browser, and the only one with an ESLint config of its own (`web/eslint.config.mjs`, Next- and React-specific); the other five are covered by `app/eslint.config.mjs`.
+- **`@revelio/web`** (`web/`) — Next.js 16 (App Router, React 19) app. The only workspace users reach in a browser, and the only one with an ESLint config of its own (`web/eslint.config.mjs`, Next- and React-specific); the other six are covered by `app/eslint.config.mjs`.
 - **`@revelio/bot`** (`bot/`) — discord.js gateway bot serving `/card`, `/search`, `/deck`, `/collection` and `/mydecks` in Discord. It reads Meilisearch and Postgres directly on the private network; there is no HTTP API between it and `web`, and it must never import from `web`. Read-only: it uses `MEILI_SEARCH_KEY` and never `MEILI_WRITE_KEY`.
+- **`@revelio/sheet`** (`sheet/`) — the deck sheet render service: the only process that
+  paints the picture of a deck, for both web's PNG export and the bot's `/deck`. HTTP
+  (`POST /render`) over a bearer token, no public ingress, and it depends on `core` **only** —
+  no database, no Meilisearch, no S3. The request body is the sheet's whole input
+  (`DeckSheetRequest`), so the service owns no layout and no visibility rules. One pixel cap
+  (`MAX_SHEET_PIXELS = 12_000_000`, ~551 MB peak, a 768Mi pod) and a byte ceiling the caller
+  states; one render at a time, 503 past a queue of four.
 
 ### Web app specifics
 

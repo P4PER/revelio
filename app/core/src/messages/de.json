@@ -33,5 +33,26 @@
     "restricted": "Eingeschränkt",
     "banned": "Verboten",
     "unknown": "Unbekannt"
+  },
+  "formats": {
+    "classic": "Classic",
+    "revival": "Revival"
+  },
+  "deckSheet": {
+    "character": "Charakter",
+    "mainDeck": "Hauptdeck",
+    "sideboard": "Sideboard"
+  },
+  "deckGroups": {
+    "creature": "Kreaturen",
+    "spell": "Zauber",
+    "item": "Gegenstände",
+    "adventure": "Abenteuer",
+    "location": "Orte",
+    "event": "Ereignisse",
+    "match": "Spiele",
+    "character": "Charaktere",
+    "lesson": "Lektionen",
+    "other": "Sonstige"
   }
 }

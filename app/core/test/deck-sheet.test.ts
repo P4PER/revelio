@@ -1,6 +1,8 @@
-import { it, expect } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import type { DeckCardView } from '../src/domain.js'
-import { layoutDeckSheet, computeSheetGeometry, type DeckSheetCard } from '../src/deck-sheet.js'
+import { DECK_SHEET, layoutDeckSheet, computeSheetGeometry, type DeckSheetCard } from '../src/deck-sheet.js'
+import { OTHER_GROUP, SHEET_LOCALES, sheetLabels } from '../src/index.js'
+import { DeckSheetRequest, MAX_SHEET_ENTRIES, pickSheetEntries, type DeckSheetEntry } from '../src/index.js'
 
 const harry: DeckCardView = {
   cardId: 'bs-harry', zone: 'character', quantity: 1, types: ['character'],
@@ -155,4 +157,97 @@ it('advances past a header-only section (Main deck heading with no cards)', () =
   // header-only: gridTop 114, gridH 0, y = 114+0+16 = 130 → next headerY 130
   expect(geom.sections[1].headerY).toBe(130)
   expect(geom.sections[1].cards[0]).toEqual({ card: cell('a'), x: 36, y: 160, w: 132, h: 185 }) // 130+30
+})
+
+describe('sheetLabels', () => {
+  it('resolves every label the sheet layout asks for', () => {
+    const en = sheetLabels('en')
+    expect(en.formatLabel).toEqual({ classic: 'Classic', revival: 'Revival' })
+    expect(en.character).toBe('Character')
+    expect(en.mainDeck).toBe('Main deck')
+    expect(en.sideboard).toBe('Sideboard')
+    expect(en.group('creature')).toBe('Creatures')
+    expect(en.group('lesson')).toBe('Lessons')
+    expect(en.group(OTHER_GROUP)).toBe('Other')
+  })
+
+  it('resolves German too', () => {
+    const de = sheetLabels('de')
+    expect(de.mainDeck).toBe('Hauptdeck')
+    expect(de.group('creature')).toBe('Kreaturen')
+    expect(de.group(OTHER_GROUP)).toBe('Sonstige')
+  })
+
+  // An unknown locale must not render a sheet full of raw keys.
+  it('falls back to English for an unknown locale', () => {
+    expect(sheetLabels('fr').mainDeck).toBe('Main deck')
+  })
+
+  it('lists the locales the sheet contract accepts', () => {
+    expect([...SHEET_LOCALES]).toEqual(['en', 'de'])
+  })
+})
+
+const entry = {
+  cardId: 'harry', zone: 'main' as const, quantity: 2, name: 'Harry Potter',
+  setCode: 'base', types: ['character'], imageVersion: 3, orientation: null,
+}
+const body = { locale: 'en', deck: { name: 'Charms Aggro', format: 'classic' }, entries: [entry] }
+
+describe('DeckSheetRequest', () => {
+  it('accepts a minimal sheet request', () => {
+    const parsed = DeckSheetRequest.parse(body)
+    expect(parsed.entries[0].cardId).toBe('harry')
+    expect(parsed.maxBytes).toBeUndefined()
+  })
+
+  it('rejects a locale the sheet has no labels for', () => {
+    expect(DeckSheetRequest.safeParse({ ...body, locale: 'fr' }).success).toBe(false)
+  })
+
+  it('rejects an empty deck and one past the entry cap', () => {
+    expect(DeckSheetRequest.safeParse({ ...body, entries: [] }).success).toBe(false)
+    const tooMany = Array.from({ length: MAX_SHEET_ENTRIES + 1 }, (_, i) => ({ ...entry, cardId: `c${i}` }))
+    expect(DeckSheetRequest.safeParse({ ...body, entries: tooMany }).success).toBe(false)
+  })
+
+  it('strips fields that do not reach a pixel', () => {
+    // DeckCardView carries cost/damage/legality; none of them is painted, and
+    // every extra field would widen the cache key for nothing.
+    const parsed = DeckSheetRequest.parse({ ...body, entries: [{ ...entry, cost: 4, legality: 'legal' }] })
+    expect(parsed.entries[0]).not.toHaveProperty('cost')
+    expect(parsed.entries[0]).not.toHaveProperty('legality')
+  })
+
+  it('pickSheetEntries keeps exactly the painted fields', () => {
+    const view = { ...entry, cost: 4, damage: null, lesson: null, isOfficial: true, legality: 'legal' }
+    expect(pickSheetEntries([view])).toEqual([entry])
+  })
+
+  // A deck name is user input and reaches Pango, which honours newlines: enough
+  // of them grow the title layer past the canvas and sharp rejects the whole
+  // composite, so that deck's sheet 500s forever. Collapsing beats rejecting -
+  // the user gets their picture, and Phase 4 gets one cache key for one name.
+  it('collapses whitespace and control characters in every painted string', () => {
+    const parsed = DeckSheetRequest.parse({
+      ...body,
+      deck: { ...body.deck, name: 'Line one\nLine two\tand\u0000more' },
+      entries: [{ ...entry, name: '  Harry   Potter  ' }],
+    })
+    expect(parsed.deck.name).toBe('Line one Line two and more')
+    expect(parsed.entries[0].name).toBe('Harry Potter')
+  })
+
+  it('rejects a name that is nothing but whitespace', () => {
+    expect(DeckSheetRequest.safeParse({ ...body, deck: { ...body.deck, name: '   ' } }).success).toBe(false)
+    expect(DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, name: '\n\t ' }] }).success).toBe(false)
+  })
+
+  // layoutDeckSheet takes DeckSheetEntry[]; a parsed request must be usable as
+  // one without a cast, or the contract and the layout have drifted apart.
+  it('parses into the type the layout takes', () => {
+    const parsed = DeckSheetRequest.parse(body)
+    const entries: DeckSheetEntry[] = parsed.entries
+    expect(computeSheetGeometry(layoutDeckSheet(parsed.deck, entries, sheetLabels('en'))).width).toBe(DECK_SHEET.width)
+  })
 })

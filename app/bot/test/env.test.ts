@@ -74,4 +74,18 @@ describe('the render service', () => {
     try { parseEnv({ ...complete, SHEET_SERVICE_URL: 'sheet:8080' }) } catch (err) { thrown = err }
     expect((thrown as Error).message).toContain('SHEET_SERVICE_URL')
   })
+
+  // zod marks a failed .url() dirty rather than aborted, so the refinement runs
+  // anyway - on a value new URL() cannot parse. The TypeError that throws out of
+  // safeParse walks past the handler below, and the operator who left the
+  // variable blank gets `TypeError: Invalid URL` with no variable named and none
+  // of their other env problems reported.
+  it('still reports a value new URL() cannot parse as an env problem', () => {
+    for (const value of ['', 'nonsense', '8080', 'http://']) {
+      let thrown: unknown
+      try { parseEnv({ ...complete, SHEET_SERVICE_URL: value }) } catch (err) { thrown = err }
+      expect((thrown as Error | undefined)?.message).toContain('Invalid bot environment')
+      expect((thrown as Error | undefined)?.message).toContain('SHEET_SERVICE_URL')
+    }
+  })
 })

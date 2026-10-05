@@ -1,5 +1,13 @@
 import { z } from 'zod'
 
+// zod marks a failed .url() dirty rather than aborted, so a refinement below
+// still runs on a value new URL() cannot parse - and an unguarded `new URL(v)`
+// throws a TypeError straight out of safeParse, past the reporting in parseEnv.
+// Declared above the schema because the schema reads it at module init.
+const parseUrl = (v: string): URL | null => {
+  try { return new URL(v) } catch { return null }
+}
+
 const Env = z.object({
   DISCORD_TOKEN: z.string().min(1),
   DISCORD_CLIENT_ID: z.string().min(1),
@@ -27,7 +35,7 @@ const Env = z.object({
   // and fetch then rejects it on every /deck, costing the picture with nothing
   // failing at boot to say why. Same check the service puts on its own base.
   SHEET_SERVICE_URL: z.string().url()
-    .refine((v) => /^https?:$/.test(new URL(v).protocol), { message: 'must be an http(s) URL' }),
+    .refine((v) => /^https?:$/.test(parseUrl(v)?.protocol ?? ''), { message: 'must be an http(s) URL' }),
   SHEET_TOKEN: z.string().min(16),
 })
 

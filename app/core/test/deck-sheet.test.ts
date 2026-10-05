@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import type { DeckCardView } from '../src/domain.js'
 import { DECK_SHEET, layoutDeckSheet, computeSheetGeometry, type DeckSheetCard } from '../src/deck-sheet.js'
 import { OTHER_GROUP, SHEET_LOCALES, sheetLabels } from '../src/index.js'
-import { DeckSheetRequest, MAX_SHEET_ENTRIES, pickSheetEntries, type DeckSheetEntry } from '../src/index.js'
+import { DeckSheetRequest, MAX_SHEET_ENTRIES, SHEET_FIELD_LIMITS, pickSheetEntries, type DeckSheetEntry } from '../src/index.js'
 
 const harry: DeckCardView = {
   cardId: 'bs-harry', zone: 'character', quantity: 1, types: ['character'],
@@ -241,6 +241,132 @@ describe('DeckSheetRequest', () => {
   it('rejects a name that is nothing but whitespace', () => {
     expect(DeckSheetRequest.safeParse({ ...body, deck: { ...body.deck, name: '   ' } }).success).toBe(false)
     expect(DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, name: '\n\t ' }] }).success).toBe(false)
+  })
+
+  // The id is interpolated into the art URL's path, so it is an allowlist and
+  // not a length limit. The charset and the ceiling come from the dataset: 2196
+  // cards across en and de, longest id 49, every one of them [a-z0-9-].
+  it('accepts the card ids the dataset uses and rejects anything else', () => {
+    for (const cardId of ['bs-1-dean-thomas', 'bs-3a-draco-malfoy', 'c1', 'x'.repeat(SHEET_FIELD_LIMITS.cardId)]) {
+      expect(DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, cardId }] }).success, cardId).toBe(true)
+    }
+    for (const cardId of ['../../../secret', 'a/b', 'BS-1', 'a b', '-leading', 'a.b', '', 'x'.repeat(SHEET_FIELD_LIMITS.cardId + 1)]) {
+      expect(DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, cardId }] }).success, cardId).toBe(false)
+    }
+  })
+
+  // Every ceiling here is measured against the dataset plus headroom, not a
+  // round number: the maxima used to sit 2x to 67x past anything real, which is
+  // what let a legal request outgrow the service's body cap.
+  it('caps the painted fields where the data actually sits', () => {
+    const L = SHEET_FIELD_LIMITS
+    const ok = (over: Record<string, unknown>) =>
+      DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, ...over }] }).success
+    expect(ok({ name: 'x'.repeat(L.nameInput) })).toBe(true)
+    expect(ok({ name: 'x'.repeat(L.nameInput + 1) })).toBe(false)
+    expect(ok({ types: Array.from({ length: L.types }, () => 'spell') })).toBe(true)
+    expect(ok({ types: Array.from({ length: L.types + 1 }, () => 'spell') })).toBe(false)
+    expect(ok({ types: ['x'.repeat(L.typeLength + 1)] })).toBe(false)
+  })
+
+  // A name longer than the sheet paints is not an error: fitText already
+  // ellipsizes to the card box, so rejecting one would turn a cosmetic overflow
+  // into "this deck has no picture, ever". Nothing upstream enforces a length -
+  // duplicateDeckAction appends " (copy)" straight past web's own writer schema,
+  // and a localized card name is saved with no max at all - so the contract
+  // truncates what it cannot paint and only rejects what it cannot carry.
+  it('truncates a name past the painted length instead of rejecting it', () => {
+    const long = `${'x'.repeat(119)}y${'z'.repeat(60)}`
+    const parsed = DeckSheetRequest.parse({
+      ...body,
+      deck: { ...body.deck, name: long },
+      entries: [{ ...entry, name: long }],
+    })
+    expect(parsed.deck.name).toBe(`${'x'.repeat(119)}y`)
+    expect(parsed.entries[0].name).toHaveLength(SHEET_FIELD_LIMITS.name)
+  })
+
+  // The real case: duplicating a 120-character deck gives a 127-character copy,
+  // and duplicating that one grows it again.
+  it('renders a deck whose name grew past the limit through duplication', () => {
+    let name = 'x'.repeat(SHEET_FIELD_LIMITS.name)
+    for (let i = 0; i < 6; i++) name = `${name} (copy)`
+    expect(DeckSheetRequest.safeParse({ ...body, deck: { ...body.deck, name } }).success).toBe(true)
+  })
+
+  // Past the carry limit it is a payload problem, not a typography one.
+  it('rejects a name past what the request may carry', () => {
+    const name = 'x'.repeat(SHEET_FIELD_LIMITS.nameInput + 1)
+    expect(DeckSheetRequest.safeParse({ ...body, deck: { ...body.deck, name } }).success).toBe(false)
+  })
+
+  // setCode and types are domain codes, not prose: an allowlist keeps them one
+  // byte per character, which is what lets the body cap be derived honestly.
+  // The charsets come from the producers, not from today's values -
+  // transform_hpjson.py's slug() hyphenates an unmapped set name, and slugify
+  // in attributes.ts emits digits.
+  it('accepts every code its producers can emit', () => {
+    const L = SHEET_FIELD_LIMITS
+    const ok = (over: Record<string, unknown>) =>
+      DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, ...over }] }).success
+    // slug(setName).upper() for a set missing from SET_CODES.
+    for (const setCode of ['BS', 'PROMO', 'LOST-MAGIC-2', 'CHAMBER-OF-SECRETS-EXPANSION']) {
+      expect(ok({ setCode }), setCode).toBe(true)
+    }
+    expect(ok({ setCode: 'A'.repeat(L.setCode + 1) })).toBe(false)
+    expect(ok({ setCode: 'has space' })).toBe(false)
+    // slugify output, digits included.
+    expect(ok({ types: ['creature', 'level_2'] })).toBe(true)
+    expect(ok({ types: ['Creature'] })).toBe(false)
+    // Bounded so their serialized length is bounded.
+    expect(ok({ imageVersion: L.imageVersion })).toBe(true)
+    expect(ok({ imageVersion: L.imageVersion + 1 })).toBe(false)
+    expect(ok({ orientation: 'horizontal' })).toBe(true)
+    expect(ok({ orientation: null })).toBe(true)
+    expect(ok({ orientation: '../x' })).toBe(false)
+  })
+
+  // The service sizes its body cap on the premise that only the two names can
+  // carry a multi-byte character; every other field is allowlisted to ASCII and
+  // costs one byte per unit. Loosening any of these charsets silently breaks
+  // that arithmetic, so the premise is asserted rather than left in a comment.
+  it('keeps every field but the names to one byte per character', () => {
+    const wide = '\uD800'
+    const ok = (over: Record<string, unknown>) =>
+      DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, ...over }] }).success
+    expect(ok({ cardId: `a${wide}` })).toBe(false)
+    expect(ok({ setCode: `A${wide}` })).toBe(false)
+    expect(ok({ types: [`a${wide}`] })).toBe(false)
+    expect(ok({ orientation: `a${wide}` })).toBe(false)
+    // The names may: that is exactly what jsonBytesPerChar pays for.
+    expect(ok({ name: `a${wide}` })).toBe(true)
+  })
+
+  // Pango is fed these, but a zero-width joiner cannot grow a layout - and
+  // stripping it turns one family emoji into three people.
+  it('keeps the joiners that make one grapheme out of several', () => {
+    const parsed = DeckSheetRequest.parse({
+      ...body, deck: { ...body.deck, name: 'Team \u{1F468}\u200D\u{1F469}\u200D\u{1F467} Deck' },
+    })
+    expect(parsed.deck.name).toBe('Team \u{1F468}\u200D\u{1F469}\u200D\u{1F467} Deck')
+  })
+
+  // Slicing by string unit can cut a surrogate pair in half, and a lone
+  // surrogate is tofu on the sheet and a second cache key for one name.
+  it('never truncates into the middle of a character', () => {
+    const name = `${'x'.repeat(SHEET_FIELD_LIMITS.name - 1)}\u{1F600}trailing`
+    const parsed = DeckSheetRequest.parse({ ...body, deck: { ...body.deck, name } })
+    // With the u flag a valid pair is one code point outside this range, so
+    // this matches only an unpaired surrogate.
+    expect(/[\uD800-\uDFFF]/u.test(parsed.deck.name)).toBe(false)
+    expect(parsed.deck.name).toBe('x'.repeat(SHEET_FIELD_LIMITS.name - 1))
+  })
+
+  // trim ran before the slice, so the slice could put the space back.
+  it('leaves no trailing space behind the truncation', () => {
+    const name = `${'x'.repeat(SHEET_FIELD_LIMITS.name - 1)}   ${'y'.repeat(50)}`
+    const parsed = DeckSheetRequest.parse({ ...body, deck: { ...body.deck, name } })
+    expect(parsed.deck.name).toBe('x'.repeat(SHEET_FIELD_LIMITS.name - 1))
   })
 
   // layoutDeckSheet takes DeckSheetEntry[]; a parsed request must be usable as

@@ -1,12 +1,36 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import { timingSafeEqual } from 'node:crypto'
-import { DeckSheetRequest } from '@revelio/core'
+import { DeckSheetRequest, MAX_SHEET_ENTRIES, SHEET_FIELD_LIMITS } from '@revelio/core'
 import type { SheetEnv } from './env'
 import { renderSheet } from './render'
 
-// Enough for 400 entries of a few hundred bytes each, with room to spare, and
-// small enough that a hostile body is read in one go and dropped.
-export const MAX_BODY_BYTES = 262_144
+// The fixed half of a serialized entry: every key name, the zone, the quantity,
+// the bounded imageVersion and the punctuation around them, plus the comma that
+// joins it to the next. Measured at 122 against the contract's own maxima, not
+// against realistic values - sizing the fixed half from one and the variable
+// half from the other is how this was wrong before. The rest is headroom for
+// the contract gaining a field.
+const JSON_ENTRY_OVERHEAD = 180
+// The variable half comes from the contract's own ceilings, so widening one
+// there widens this by the same arithmetic.
+//
+// Counted in BYTES, not characters: zod bounds a string in JS string units and
+// this cap is compared against the encoded body, so a German name costs more
+// per character than an English one and an unpaired surrogate costs six. Only
+// the names pay that factor - every other field is allowlisted to ASCII, which
+// is half of why they are allowlisted at all. Each type also costs its quotes
+// and comma.
+const MAX_ENTRY_BYTES =
+  SHEET_FIELD_LIMITS.cardId +
+  SHEET_FIELD_LIMITS.nameInput * SHEET_FIELD_LIMITS.jsonBytesPerChar +
+  SHEET_FIELD_LIMITS.setCode +
+  SHEET_FIELD_LIMITS.types * (SHEET_FIELD_LIMITS.typeLength + 3) +
+  SHEET_FIELD_LIMITS.orientation +
+  JSON_ENTRY_OVERHEAD
+// The deck name, the locale, the format, maxBytes and the envelope punctuation.
+const JSON_ENVELOPE_BYTES =
+  SHEET_FIELD_LIMITS.nameInput * SHEET_FIELD_LIMITS.jsonBytesPerChar + 4_096
+export const MAX_BODY_BYTES = MAX_SHEET_ENTRIES * MAX_ENTRY_BYTES + JSON_ENVELOPE_BYTES
 // One render at a time, because the pod's memory limit is sized for one. Four
 // waiting is a short burst absorbed; past that the answer is 503, which every
 // caller already handles as "no picture this time".
@@ -20,6 +44,12 @@ export const MAX_QUEUED = 4
 // wall-clock bound on one, and the queue's worst-case wait is correspondingly
 // soft. MAX_SHEET_PIXELS is what actually bounds the uninterruptible half.
 export const REQUEST_DEADLINE_MS = 60_000
+// Sockets accepted at once, and so the ceiling on bodies buffered ahead of
+// admission: MAX_CONNECTIONS x MAX_BODY_BYTES, which readBody holds as chunks,
+// a concat and a string at once. 16 keeps that near 35 MB against the ~551 MB a
+// 12 Mpx render peaks at inside a 768Mi pod; 64 measured ~140 MB, a real share
+// of the headroom for callers that send one request at a time.
+export const MAX_CONNECTIONS = 16
 
 function authorized(req: IncomingMessage, token: string): boolean {
   const header = req.headers.authorization ?? ''
@@ -51,6 +81,20 @@ async function readBody(req: IncomingMessage): Promise<string | null> {
 function send(res: ServerResponse, status: number, body: string): void {
   res.writeHead(status, { 'content-type': 'text/plain; charset=utf-8' })
   res.end(body)
+}
+
+/**
+ * Answers a request whose body was abandoned part-read, and closes the
+ * connection with it. Keep-alive is the trap here: the unread remainder of the
+ * body is still arriving on a socket the client will happily take back from its
+ * pool, so the next request on it reads the leftovers as its request line and
+ * hangs until the socket times out. `Connection: close` is what tells the client
+ * not to reuse it; destroying the request stops the upload once the answer is
+ * out.
+ */
+function sendAndClose(req: IncomingMessage, res: ServerResponse, status: number, body: string): void {
+  res.writeHead(status, { 'content-type': 'text/plain; charset=utf-8', connection: 'close' })
+  res.end(body, () => req.destroy())
 }
 
 /**
@@ -154,7 +198,7 @@ export function createSheetServer(env: SheetEnv): Server {
     }
   }
 
-  return createServer((req, res) => {
+  const server = createServer((req, res) => {
     if (req.method === 'GET' && req.url === '/health') {
       send(res, 200, 'ok')
       return
@@ -169,7 +213,13 @@ export function createSheetServer(env: SheetEnv): Server {
     }
     void readBody(req).then((body) => {
       if (body === null) {
-        send(res, 413, 'body too large')
+        // Not reachable with a request the contract accepts - see MAX_BODY_BYTES
+        // - so this means a body that is not one, and says so rather than
+        // leaving a caller to guess that its deck was too big.
+        // Not "larger than any valid request": JSON allows arbitrary whitespace
+        // between tokens, so a body whose parsed form the contract accepts can
+        // exceed any byte cap. The cap covers every well-formed one.
+        sendAndClose(req, res, 413, 'body too large')
         return undefined
       }
       return render(res, body)
@@ -178,4 +228,9 @@ export function createSheetServer(env: SheetEnv): Server {
       if (!res.headersSent) send(res, 500, 'request failed')
     })
   })
+
+  // A body is buffered before it reaches the queue, so the queue bounds renders
+  // but never bytes. This is what bounds the bytes - see MAX_CONNECTIONS.
+  server.maxConnections = MAX_CONNECTIONS
+  return server
 }

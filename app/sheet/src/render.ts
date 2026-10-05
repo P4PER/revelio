@@ -204,6 +204,40 @@ function centered(rendered: RenderedText, centerX: number, centerY: number): Ove
   }
 }
 
+/**
+ * The art URL for one card, or null when the key would land outside the
+ * configured base. Building a URL is not validating one: new URL resolves a
+ * '..' segment rather than rejecting it, so the check is canonicalize-then-
+ * compare, the same shape as a realpath prefix check on a filesystem.
+ *
+ * The contract's cardId allowlist is what makes this unreachable today; this is
+ * what still holds if that allowlist is ever widened.
+ */
+function containedImageUrl(imageBase: string, key: string): string | null {
+  // Before any parsing: the WHATWG parser leaves %2e alone, so an encoded
+  // traversal keeps the pathname identical to the one built here and sails
+  // through the comparison below - while the object store on the other end may
+  // decode it and serve the escaped path. No key the image helpers produce
+  // contains a percent, so refusing one costs nothing.
+  if (key.includes('%')) return null
+  const url = imageUrl(imageBase, key)
+  try {
+    const base = new URL(`${imageBase.replace(/\/$/, '')}/`)
+    const resolved = new URL(url)
+    // Exact match, not a prefix test: a prefix test passes trivially when the
+    // base has no path of its own, and "did the parser have to change this?" is
+    // the question that actually distinguishes a well-formed key. A '..'
+    // segment or a stray backslash moves the pathname; nothing a real key
+    // contains does. The origin is compared separately because a key starting
+    // '//' would otherwise be read as an authority.
+    if (resolved.origin !== base.origin) return null
+    if (resolved.pathname !== `${base.pathname}${key}`) return null
+    return url
+  } catch {
+    return null
+  }
+}
+
 // `deadline` is an epoch millisecond, shared by every fetch in one render, and
 // clamping each request's own timeout to what is left of it is what holds the
 // phase to its budget rather than to the budget plus one more timeout.
@@ -218,11 +252,15 @@ async function fetchCardImage(
   const left = deadline - Date.now()
   if (left <= 0) return { failure: BUDGET_SPENT }
   const key = fullArt ? imageKey : thumbKey
+  // The reason names the card, never the resolved URL: the image base can be an
+  // internal hostname and this ends up in a log line.
+  const url = containedImageUrl(imageBase, key(card.cardId, card.imageVersion))
+  if (url === null) return { failure: 'key resolves outside the configured image base' }
   try {
     // The per-card timeout and the render's own abandonment are both reasons to
     // stop dialling, so the request carries whichever fires first.
     const timeout = AbortSignal.timeout(Math.min(FETCH_TIMEOUT_MS, left))
-    const res = await fetch(imageUrl(imageBase, key(card.cardId, card.imageVersion)), {
+    const res = await fetch(url, {
       signal: signal ? AbortSignal.any([timeout, signal]) : timeout,
     })
     if (!res.ok) return { failure: `HTTP ${res.status}` }
@@ -377,7 +415,15 @@ export async function renderSheet(req: DeckSheetRequest, opts: SheetRenderOption
   // PNG so the file people pull out of Discord, or out of their downloads, is
   // lossless and ordinary. The card images it is drawn from are already lossy,
   // so webp q90 was a second generation of loss on top of them for no gain.
-  const png = await sheet.clone().png({ compressionLevel: 9 }).toBuffer()
+  //
+  // compressionLevel is zlib effort, not quality - PNG is lossless at every
+  // level, so this trades encode time against bytes and nothing else. 6 is
+  // sharp's own default and where the curve flattens: measured on a 8.9 Mpx
+  // sheet built from 60 real card images, level 9 costs 522ms for 13.209 MB
+  // against level 6's 281ms for 13.330 MB. Paying 241ms of the render budget
+  // for 0.9% of the file is the wrong way round, and the byte ceiling is
+  // measured after encoding anyway, so the fallback still catches an overshoot.
+  const png = await sheet.clone().png({ compressionLevel: 6 }).toBuffer()
   if (req.maxBytes === undefined || png.length <= req.maxBytes) {
     return { body: png, contentType: 'image/png', ...common }
   }

@@ -11,10 +11,14 @@ const Env = z.object({
   // The scheme check is not redundant: zod's url() accepts any scheme, so a
   // value like "rustfs:9000" - a hostname someone forgot to prefix - passes it
   // and then fails on the first fetch instead of at boot.
-  IMAGE_BASE_URL: z.string().url().refine(
-    (v) => /^https?:$/.test(new URL(v).protocol),
-    { message: 'must be an http(s) URL' },
-  ),
+  IMAGE_BASE_URL: z.string().url()
+    .refine((v) => /^https?:$/.test(new URL(v).protocol), { message: 'must be an http(s) URL' })
+    // A query or fragment on the base would survive into every art URL, where
+    // the key is appended after it - so every card would resolve to the same
+    // wrong path and the sheet would come back all placeholders, with nothing
+    // failing at boot to say why.
+    .refine((v) => { const u = new URL(v); return u.search === '' && u.hash === '' },
+      { message: 'must have no query or fragment' }),
   // Shared bearer token. The service has no public ingress; this is depth
   // behind that, and it is what keeps any pod on the network from spending the
   // render queue.

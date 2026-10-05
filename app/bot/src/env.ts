@@ -30,12 +30,19 @@ const Env = z.object({
   // The deck sheet render service. The bot draws no pictures itself: /deck posts
   // what this answers with, and falls back to the list embed when it does not.
   //
-  // The scheme check is not redundant: zod's url() accepts any scheme, so a
-  // value like "sheet:8080" - a hostname someone forgot to prefix - passes it,
-  // and fetch then rejects it on every /deck, costing the picture with nothing
-  // failing at boot to say why. Same check the service puts on its own base.
+  // Both checks are the ones the service puts on its own base, for the same
+  // reason: a value that is wrong in either way costs every /deck its picture
+  // and fails nothing at boot to say why.
+  //
+  // The scheme, because zod's url() accepts any scheme - "sheet:8080", a
+  // hostname someone forgot to prefix, passes it and fetch rejects it later.
+  // The query and fragment, because /render is appended to this: a base of
+  // http://sheet:8080/?token=x gives http://sheet:8080/?token=x/render, which
+  // resolves nowhere.
   SHEET_SERVICE_URL: z.string().url()
-    .refine((v) => /^https?:$/.test(parseUrl(v)?.protocol ?? ''), { message: 'must be an http(s) URL' }),
+    .refine((v) => /^https?:$/.test(parseUrl(v)?.protocol ?? ''), { message: 'must be an http(s) URL' })
+    .refine((v) => { const u = parseUrl(v); return u !== null && u.search === '' && u.hash === '' },
+      { message: 'must have no query or fragment' }),
   SHEET_TOKEN: z.string().min(16),
 })
 

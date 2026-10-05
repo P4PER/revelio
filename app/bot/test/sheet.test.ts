@@ -111,6 +111,35 @@ describe('requestDeckSheet', () => {
     expect((thrown as Error | undefined)?.message).toContain('too large')
   })
 
+  // Headers.get joins duplicates with ', ' and a chunked answer carries no
+  // length at all, so a declared size is a cheap early exit and never the
+  // guarantee: the read itself is what has to be bounded.
+  it('refuses a body that overruns the ceiling without declaring it', async () => {
+    for (const headers of [
+      { 'content-type': 'image/png' },
+      { 'content-type': 'image/png', 'content-length': 'not-a-number' },
+    ]) {
+      const oversized = new Uint8Array(9_000_001)
+      vi.stubGlobal('fetch', vi.fn(async () => new Response(oversized, { status: 200, headers })))
+      let thrown: unknown
+      try { await requestDeckSheet(deck, 'en', env) } catch (err) { thrown = err }
+      expect((thrown as Error | undefined)?.message).toContain('too large')
+    }
+  })
+
+  // A proxy in front of the service may re-chunk the response, and a client that
+  // demanded a declared length would answer every deck with the list embed.
+  it('accepts a sheet whose length is not declared', async () => {
+    const stream = new ReadableStream({
+      start(controller) { controller.enqueue(new Uint8Array([137, 80, 78, 71])); controller.close() },
+    })
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(stream, {
+      status: 200, headers: { 'content-type': 'image/png' },
+    })))
+    const out = await requestDeckSheet(deck, 'en', env)
+    expect(out.body.length).toBe(4)
+  })
+
   it('does not follow a redirect', async () => {
     const fetchMock = stubFetch('png', { status: 200, headers: { 'content-type': 'image/png' } })
     await requestDeckSheet(deck, 'en', env)

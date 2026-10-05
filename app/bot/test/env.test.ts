@@ -75,6 +75,18 @@ describe('the render service', () => {
     expect((thrown as Error).message).toContain('SHEET_SERVICE_URL')
   })
 
+  // The bot appends /render to this, so a query or fragment lands in the middle
+  // of the URL: http://sheet:8080/?t=x/render resolves nowhere and every /deck
+  // falls back to the list, with nothing failing at boot to say why. The service
+  // refuses one on its own base for the same reason.
+  it('rejects a service URL carrying a query or fragment', () => {
+    for (const value of ['http://sheet:8080/?token=x', 'http://sheet:8080/#frag']) {
+      let thrown: unknown
+      try { parseEnv({ ...complete, SHEET_SERVICE_URL: value }) } catch (err) { thrown = err }
+      expect((thrown as Error | undefined)?.message).toContain('SHEET_SERVICE_URL')
+    }
+  })
+
   // zod marks a failed .url() dirty rather than aborted, so the refinement runs
   // anyway - on a value new URL() cannot parse. The TypeError that throws out of
   // safeParse walks past the handler below, and the operator who left the

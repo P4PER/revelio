@@ -26,6 +26,33 @@ function sheetLocale(locale: string): DeckSheetRequest['locale'] {
 }
 
 /**
+ * The response body, read a chunk at a time and abandoned past `limit`.
+ *
+ * content-length is an early exit, not the bound: it is absent on a chunked
+ * answer - which a proxy in front of the service can produce at any time, and
+ * demanding one would cost every deck its picture - and Headers.get joins
+ * duplicates with ', ', which Number() reads as NaN. Both compare false against
+ * a ceiling, so a check on the header alone would let arrayBuffer() pull an
+ * unbounded body into the gateway's heap, on a pod this phase takes to 256Mi.
+ */
+async function readBounded(res: Response, limit: number): Promise<Buffer> {
+  const declared = Number(res.headers.get('content-length'))
+  if (Number.isFinite(declared) && declared > limit) throw new Error(`sheet service answered a body too large: ${declared}`)
+  if (!res.body) throw new Error('sheet service answered an empty body')
+  const chunks: Uint8Array[] = []
+  let total = 0
+  for await (const chunk of res.body as unknown as AsyncIterable<Uint8Array>) {
+    total += chunk.byteLength
+    // Throwing out of the loop is what cancels the stream: an abrupt exit calls
+    // the async iterator's return(), which cancels unless preventCancel was set.
+    // Cancelling by hand here instead fails - the iterator holds the lock.
+    if (total > limit) throw new Error(`sheet service answered a body too large: over ${limit}`)
+    chunks.push(chunk)
+  }
+  return Buffer.concat(chunks)
+}
+
+/**
  * The deck sheet for one deck, drawn by @revelio/sheet. Throws on anything but a
  * 200 - an unreachable service, a 503 from a full render queue, a failed render
  * - because /deck answers a throw with the list embed it can always draw from
@@ -54,9 +81,7 @@ export async function requestDeckSheet(deck: PublicDeck, locale: string, env: Bo
   // list embed instead.
   const type = (res.headers.get('content-type') ?? '').toLowerCase()
   if (!type.startsWith('image/')) throw new Error(`sheet service answered a non-image body: ${type || 'no content type'}`)
-  // Checked before the body is read, because arrayBuffer() buffers all of it
-  // into the gateway's heap and the abort above bounds duration, not bytes.
-  const declared = Number(res.headers.get('content-length') ?? '0')
-  if (declared > MAX_ATTACHMENT_BYTES) throw new Error(`sheet service answered a body too large: ${declared}`)
-  return { body: Buffer.from(await res.arrayBuffer()), name: type.startsWith('image/webp') ? 'deck.webp' : 'deck.png' }
+  // Bounded while it is read: the abort above bounds duration, not bytes.
+  const bytes = await readBounded(res, MAX_ATTACHMENT_BYTES)
+  return { body: bytes, name: type.startsWith('image/webp') ? 'deck.webp' : 'deck.png' }
 }

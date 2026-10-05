@@ -259,23 +259,61 @@ describe('DeckSheetRequest', () => {
   // round number: the maxima used to sit 2x to 67x past anything real, which is
   // what let a legal request outgrow the service's body cap.
   it('caps the painted fields where the data actually sits', () => {
+    const L = SHEET_FIELD_LIMITS
     const ok = (over: Record<string, unknown>) =>
       DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, ...over }] }).success
-    expect(ok({ name: 'x'.repeat(120) })).toBe(true)
-    expect(ok({ name: 'x'.repeat(121) })).toBe(false)
-    expect(ok({ setCode: 'x'.repeat(10) })).toBe(true)
-    expect(ok({ setCode: 'x'.repeat(11) })).toBe(false)
-    expect(ok({ types: ['a', 'b', 'c', 'd'] })).toBe(true)
-    expect(ok({ types: ['a', 'b', 'c', 'd', 'e'] })).toBe(false)
-    expect(ok({ types: ['x'.repeat(21)] })).toBe(false)
+    expect(ok({ name: 'x'.repeat(L.nameInput) })).toBe(true)
+    expect(ok({ name: 'x'.repeat(L.nameInput + 1) })).toBe(false)
+    expect(ok({ types: Array.from({ length: L.types }, () => 'spell') })).toBe(true)
+    expect(ok({ types: Array.from({ length: L.types + 1 }, () => 'spell') })).toBe(false)
+    expect(ok({ types: ['x'.repeat(L.typeLength + 1)] })).toBe(false)
   })
 
-  // web's own deck writer caps the name at 120 (lib/actions/deck-actions.ts).
-  // Two independent limits on one value is how they drift apart.
-  it('caps the deck name where web caps it', () => {
-    const name = (n: number) => DeckSheetRequest.safeParse({ ...body, deck: { ...body.deck, name: 'x'.repeat(n) } }).success
-    expect(name(120)).toBe(true)
-    expect(name(121)).toBe(false)
+  // A name longer than the sheet paints is not an error: fitText already
+  // ellipsizes to the card box, so rejecting one would turn a cosmetic overflow
+  // into "this deck has no picture, ever". Nothing upstream enforces a length -
+  // duplicateDeckAction appends " (copy)" straight past web's own writer schema,
+  // and a localized card name is saved with no max at all - so the contract
+  // truncates what it cannot paint and only rejects what it cannot carry.
+  it('truncates a name past the painted length instead of rejecting it', () => {
+    const long = `${'x'.repeat(119)}y${'z'.repeat(60)}`
+    const parsed = DeckSheetRequest.parse({
+      ...body,
+      deck: { ...body.deck, name: long },
+      entries: [{ ...entry, name: long }],
+    })
+    expect(parsed.deck.name).toBe(`${'x'.repeat(119)}y`)
+    expect(parsed.entries[0].name).toHaveLength(SHEET_FIELD_LIMITS.name)
+  })
+
+  // The real case: duplicating a 120-character deck gives a 127-character copy,
+  // and duplicating that one grows it again.
+  it('renders a deck whose name grew past the limit through duplication', () => {
+    let name = 'x'.repeat(SHEET_FIELD_LIMITS.name)
+    for (let i = 0; i < 6; i++) name = `${name} (copy)`
+    expect(DeckSheetRequest.safeParse({ ...body, deck: { ...body.deck, name } }).success).toBe(true)
+  })
+
+  // Past the carry limit it is a payload problem, not a typography one.
+  it('rejects a name past what the request may carry', () => {
+    const name = 'x'.repeat(SHEET_FIELD_LIMITS.nameInput + 1)
+    expect(DeckSheetRequest.safeParse({ ...body, deck: { ...body.deck, name } }).success).toBe(false)
+  })
+
+  // setCode and types are domain codes, not prose: an allowlist keeps them one
+  // byte per character, which is what lets the body cap be derived honestly.
+  // build_dataset.py derives a code for an unknown set name by stripping
+  // non-alphanumerics, so 'Lost Magic 2' gives LOSTMAGIC2 and a longer name
+  // gives more - hence the headroom.
+  it('allowlists the domain codes and leaves room for a generated set code', () => {
+    const ok = (over: Record<string, unknown>) =>
+      DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, ...over }] }).success
+    expect(ok({ setCode: 'LOSTMAGIC2' })).toBe(true)
+    expect(ok({ setCode: 'A'.repeat(SHEET_FIELD_LIMITS.setCode) })).toBe(true)
+    expect(ok({ setCode: 'A'.repeat(SHEET_FIELD_LIMITS.setCode + 1) })).toBe(false)
+    expect(ok({ setCode: 'BS-1' })).toBe(false)
+    expect(ok({ types: ['creature', 'lesson'] })).toBe(true)
+    expect(ok({ types: ['Creature'] })).toBe(false)
   })
 
   // layoutDeckSheet takes DeckSheetEntry[]; a parsed request must be usable as

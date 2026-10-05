@@ -408,7 +408,15 @@ export async function renderSheet(req: DeckSheetRequest, opts: SheetRenderOption
   // PNG so the file people pull out of Discord, or out of their downloads, is
   // lossless and ordinary. The card images it is drawn from are already lossy,
   // so webp q90 was a second generation of loss on top of them for no gain.
-  const png = await sheet.clone().png({ compressionLevel: 9 }).toBuffer()
+  //
+  // compressionLevel is zlib effort, not quality - PNG is lossless at every
+  // level, so this trades encode time against bytes and nothing else. 6 is
+  // sharp's own default and where the curve flattens: measured on a 8.9 Mpx
+  // sheet built from 60 real card images, level 9 costs 522ms for 13.209 MB
+  // against level 6's 281ms for 13.330 MB. Paying 241ms of the render budget
+  // for 0.9% of the file is the wrong way round, and the byte ceiling is
+  // measured after encoding anyway, so the fallback still catches an overshoot.
+  const png = await sheet.clone().png({ compressionLevel: 6 }).toBuffer()
   if (req.maxBytes === undefined || png.length <= req.maxBytes) {
     return { body: png, contentType: 'image/png', ...common }
   }

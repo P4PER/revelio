@@ -9,21 +9,22 @@ import { renderSheet } from './render'
 // ~143 bytes; the rest is headroom for the contract gaining a field.
 const JSON_ENTRY_OVERHEAD = 190
 // The variable half comes from the contract's own ceilings, so widening one
-// there widens this by the same arithmetic. Each type costs its quotes and
-// comma on top of its characters.
+// there widens this by the same arithmetic.
+//
+// Counted in BYTES, not characters: zod bounds a string in JS string units and
+// this cap is compared against the UTF-8 body, so a German deck costs more per
+// character than an English one. Only the names pay the factor - cardId,
+// setCode and types are allowlisted to ASCII, which is half of why they are
+// allowlisted at all. Each type also costs its quotes and comma.
 const MAX_ENTRY_BYTES =
   SHEET_FIELD_LIMITS.cardId +
-  SHEET_FIELD_LIMITS.name +
+  SHEET_FIELD_LIMITS.nameInput * SHEET_FIELD_LIMITS.bytesPerChar +
   SHEET_FIELD_LIMITS.setCode +
   SHEET_FIELD_LIMITS.types * (SHEET_FIELD_LIMITS.typeLength + 3) +
   JSON_ENTRY_OVERHEAD
-// Derived rather than chosen, so the two caps cannot disagree. MAX_SHEET_ENTRIES
-// is the real limit - geometry grows with the entry count, and that is what the
-// pod's memory is sized against - while this one only bounds how much is
-// buffered before admission control. A hand-picked value here is how a request
-// the contract accepts ends up answered 413. sheet/test/server.test.ts holds
-// the two together.
-export const MAX_BODY_BYTES = MAX_SHEET_ENTRIES * MAX_ENTRY_BYTES + 4_096
+// The deck name, the locale, the format, maxBytes and the envelope punctuation.
+const JSON_ENVELOPE_BYTES = SHEET_FIELD_LIMITS.nameInput * SHEET_FIELD_LIMITS.bytesPerChar + 4_096
+export const MAX_BODY_BYTES = MAX_SHEET_ENTRIES * MAX_ENTRY_BYTES + JSON_ENVELOPE_BYTES
 // One render at a time, because the pod's memory limit is sized for one. Four
 // waiting is a short burst absorbed; past that the answer is 503, which every
 // caller already handles as "no picture this time".

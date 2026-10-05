@@ -67,7 +67,9 @@ describe('the render service', () => {
   })
 
   it('rejects an oversized body before parsing it', async () => {
-    const huge = { ...body, deck: { ...body.deck, name: 'x'.repeat(300_000) } }
+    // Past MAX_BODY_BYTES, which no request the contract accepts can reach - so
+    // this is a body that is not one, and it is refused without being parsed.
+    const huge = { ...body, deck: { ...body.deck, name: 'x'.repeat(MAX_BODY_BYTES + 1) } }
     expect((await post(huge)).status).toBe(413)
   })
 
@@ -109,6 +111,31 @@ describe('the render service', () => {
         cardId: `c${'x'.repeat(L.cardId - 5)}${String(i).padStart(4, '0')}`,
         zone: 'sideboard' as const, quantity: 999, name: 'n'.repeat(L.name),
         setCode: 's'.repeat(L.setCode),
+        types: Array.from({ length: L.types }, () => 't'.repeat(L.typeLength)),
+        imageVersion: 999_999, orientation: 'horizontal',
+      })),
+    }
+    expect(DeckSheetRequest.safeParse(worst).success).toBe(true)
+    expect(Buffer.byteLength(JSON.stringify(worst))).toBeLessThanOrEqual(MAX_BODY_BYTES)
+  })
+
+  // The cap is counted in bytes and the contract in string units, so an ASCII
+  // payload proves nothing about a German one. Every BMP character costs up to
+  // three UTF-8 bytes, which is the whole reason the derivation carries a
+  // bytes-per-character factor.
+  it('reads that body when every painted character is multi-byte', () => {
+    const L = SHEET_FIELD_LIMITS
+    // U+FFFD is three bytes in UTF-8 and one JS string unit, so it is the worst
+    // a name can be without reaching for surrogate pairs (which cost four bytes
+    // across two units, and so less per unit).
+    const wide = '\uFFFD'.repeat(L.nameInput)
+    const worst = {
+      locale: 'de' as const, maxBytes: 50_000_000,
+      deck: { name: wide, format: 'classic' as const },
+      entries: Array.from({ length: MAX_SHEET_ENTRIES }, (_, i) => ({
+        cardId: `c${'x'.repeat(L.cardId - 5)}${String(i).padStart(4, '0')}`,
+        zone: 'sideboard' as const, quantity: 999, name: wide,
+        setCode: 'S'.repeat(L.setCode),
         types: Array.from({ length: L.types }, () => 't'.repeat(L.typeLength)),
         imageVersion: 999_999, orientation: 'horizontal',
       })),

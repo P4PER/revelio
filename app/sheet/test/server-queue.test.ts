@@ -35,7 +35,7 @@ vi.mock('../src/render', () => ({
     completed += 1
     return {
       body: Buffer.from('png'), contentType: 'image/png' as const,
-      pixels: 1, scale: 2, fullArt: true, dropped: 0, distinct: 1,
+      pixels: 1, scale: 2, fullArt: true, dropped: 0, distinct: 1, fetchMs: 0, encodeMs: 0,
     }
   }),
 }))

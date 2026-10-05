@@ -47,6 +47,12 @@ export type SheetRender = {
   fullArt: boolean
   dropped: number
   distinct: number
+  // Wall clock, in ms. fetchMs covers the art fetch and decode and the text
+  // overlays, which run together; encodeMs covers the composite and every encode,
+  // because sharp composites lazily inside toBuffer and the two cannot be told
+  // apart without paying for a raw encode.
+  fetchMs: number
+  encodeMs: number
 }
 
 // A card's picture, or why its box has none. `failure: null` is a card with no
@@ -395,10 +401,12 @@ export async function renderSheet(req: DeckSheetRequest, opts: SheetRenderOption
   const s = sheetScale(geom, resolveBudget(req.maxBytes, opts.pixelBudget))
   const { w, h } = canvasSize(geom, s)
 
+  const fetchStarted = performance.now()
   const [cards, text] = await Promise.all([
     cardOverlays(geom.sections, opts.imageBase, s, opts.fetchBudgetMs ?? FETCH_BUDGET_MS, opts.signal),
     textOverlays(geom, layout.title, s),
   ])
+  const fetchMs = Math.round(performance.now() - fetchStarted)
   // The composite and the two encoders are the expensive half and cannot be
   // interrupted once started, so this is the last point where abandoning is
   // still cheap.
@@ -410,7 +418,7 @@ export async function renderSheet(req: DeckSheetRequest, opts: SheetRenderOption
   // measured and rejected - it pays 22ms and 9 MB on the path that always runs
   // to save 170ms on the one that should never fire.
   const sheet = sharp(chromeSvg(geom, s)).composite([...cards.overlays, { input: badgeSvg(geom, s) }, ...text])
-  const common = { pixels: w * h, scale: s, fullArt: usesFullArt(s), dropped: cards.dropped, distinct: cards.distinct }
+  const common = { pixels: w * h, scale: s, fullArt: usesFullArt(s), dropped: cards.dropped, distinct: cards.distinct, fetchMs }
 
   // PNG so the file people pull out of Discord, or out of their downloads, is
   // lossless and ordinary. The card images it is drawn from are already lossy,
@@ -423,9 +431,13 @@ export async function renderSheet(req: DeckSheetRequest, opts: SheetRenderOption
   // against level 6's 281ms for 13.330 MB. Paying 241ms of the render budget
   // for 0.9% of the file is the wrong way round, and the byte ceiling is
   // measured after encoding anyway, so the fallback still catches an overshoot.
+  // performance.now() rather than Date.now(): it is monotonic, so a clock step
+  // mid-render cannot produce a negative duration.
+  const encodeStarted = performance.now()
+  const encodeMs = () => Math.round(performance.now() - encodeStarted)
   const png = await sheet.clone().png({ compressionLevel: 6 }).toBuffer()
   if (req.maxBytes === undefined || png.length <= req.maxBytes) {
-    return { body: png, contentType: 'image/png', ...common }
+    return { body: png, contentType: 'image/png', ...common, encodeMs: encodeMs() }
   }
 
   console.warn(`sheet: ${png.length} byte PNG over the ${req.maxBytes} byte ceiling, falling back to WebP`)
@@ -436,5 +448,5 @@ export async function renderSheet(req: DeckSheetRequest, opts: SheetRenderOption
   if (webp.length > req.maxBytes) {
     throw new Error(`sheet: ${webp.length} byte WebP still over the ${req.maxBytes} byte ceiling`)
   }
-  return { body: webp, contentType: 'image/webp', ...common }
+  return { body: webp, contentType: 'image/webp', ...common, encodeMs: encodeMs() }
 }

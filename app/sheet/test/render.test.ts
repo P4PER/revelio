@@ -175,6 +175,28 @@ describe('renderSheet', () => {
     expect((thrown as Error | undefined)?.message).toMatch(/still over the 100000 byte ceiling/)
   })
 
+  it('reports how long the fetch and the encode took', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(await art(), { status: 200 })))
+    const out = await renderSheet(req, opts)
+    expect(out.fetchMs).toBeGreaterThanOrEqual(0)
+    expect(out.encodeMs).toBeGreaterThan(0)
+  })
+
+  // The fallback is the slow path; a number that only covered the PNG would hide
+  // exactly the render someone is asking about.
+  it('counts both encodes when it falls back to WebP', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(await noisyArt(), { status: 200 })))
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    // Same fixture and ceiling as the fallback test above: the PNG overshoots,
+    // the WebP fits.
+    const png = await renderSheet(req, { ...opts, pixelBudget: 1_250_000 })
+    const webp = await renderSheet({ ...req, maxBytes: 300_000 }, { ...opts, pixelBudget: 1_250_000 })
+    expect(webp.contentType).toBe('image/webp')
+    // Two encodes against one. Not a strict ratio - timing on a loaded CI box is
+    // noisy - only that the second encode was not left out.
+    expect(webp.encodeMs).toBeGreaterThan(png.encodeMs)
+  })
+
   it('requests full art for an ordinary deck and never fetches a card without an image', async () => {
     const urls = recordingFetch(await art())
     await renderSheet(req, opts)

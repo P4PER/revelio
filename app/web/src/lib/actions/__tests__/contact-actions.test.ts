@@ -11,7 +11,11 @@ const m = vi.hoisted(() => ({
 vi.mock('@/lib/email/mailer', () => ({ sendMail: m.sendMail }))
 vi.mock('@/lib/email/contact-template', () => ({ renderContactEmail: m.renderContactEmail }))
 vi.mock('@/lib/server/site-settings', () => ({ getCachedSiteSettings: m.getCachedSiteSettings }))
-vi.mock('@/lib/server/rate-limit', () => ({ consumeContactRateLimit: m.consumeContactRateLimit }))
+// Only the budget is faked; clientIp stays the real resolver the action counts against.
+vi.mock('@/lib/server/rate-limit', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/server/rate-limit')>()),
+  consumeContactRateLimit: m.consumeContactRateLimit,
+}))
 vi.mock('next/headers', () => ({ headers: m.headers }))
 
 import { sendContactMessage } from '../contact-actions'

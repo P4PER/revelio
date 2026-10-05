@@ -128,7 +128,11 @@ describe('the render service', () => {
     // U+FFFD is three bytes in UTF-8 and one JS string unit, so it is the worst
     // a name can be without reaching for surrogate pairs (which cost four bytes
     // across two units, and so less per unit).
-    const wide = '\uFFFD'.repeat(L.nameInput)
+    // Not U+FFFD (three UTF-8 bytes): a control character is worse, because
+    // JSON escapes it to a six-byte \uXXXX sequence, and paintedText collapses
+    // rather than rejects it - so a name of text plus control characters is
+    // contract-valid and the most expensive thing a body can carry.
+    const wide = `${'a'.repeat(L.nameInput / 2)}${'\u0001'.repeat(L.nameInput / 2)}`
     const worst = {
       locale: 'de' as const, maxBytes: 50_000_000,
       deck: { name: wide, format: 'classic' as const },

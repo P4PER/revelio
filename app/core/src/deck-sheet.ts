@@ -57,11 +57,15 @@ export const SHEET_FIELD_LIMITS = {
   setCode: 20,
   types: 8,
   typeLength: 30,
-  // Worst case UTF-8 bytes per JS string unit for the free-text fields. Every
-  // character in the Basic Multilingual Plane encodes in at most three, and a
-  // surrogate pair is four bytes across two units. The domain codes are
+  // Worst-case bytes on the wire per JS string unit of free text, which is what
+  // the render service sizes its body cap from. Six, not three: UTF-8 costs at
+  // most three for a BMP character (and four across the two units of a
+  // surrogate pair, so less per unit), but JSON escapes a control character to
+  // a six-byte \uXXXX sequence - and paintedText collapses those rather than
+  // rejecting them, so a name of text plus control characters is valid and is
+  // the most expensive thing a request can carry. The domain codes are
   // allowlisted to ASCII, so only the names pay this.
-  bytesPerChar: 3,
+  jsonBytesPerChar: 6,
 } as const
 
 export const DeckSheetEntryInput = z.object({

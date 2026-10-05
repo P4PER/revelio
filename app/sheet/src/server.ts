@@ -12,18 +12,19 @@ const JSON_ENTRY_OVERHEAD = 190
 // there widens this by the same arithmetic.
 //
 // Counted in BYTES, not characters: zod bounds a string in JS string units and
-// this cap is compared against the UTF-8 body, so a German deck costs more per
-// character than an English one. Only the names pay the factor - cardId,
-// setCode and types are allowlisted to ASCII, which is half of why they are
-// allowlisted at all. Each type also costs its quotes and comma.
+// this cap is compared against the encoded body, so a German deck costs more
+// per character than an English one and a control character costs more again
+// (JSON escapes it to six). Only the names pay the factor - cardId, setCode and
+// types are allowlisted to ASCII, which is half of why they are allowlisted at
+// all. Each type also costs its quotes and comma.
 const MAX_ENTRY_BYTES =
   SHEET_FIELD_LIMITS.cardId +
-  SHEET_FIELD_LIMITS.nameInput * SHEET_FIELD_LIMITS.bytesPerChar +
+  SHEET_FIELD_LIMITS.nameInput * SHEET_FIELD_LIMITS.jsonBytesPerChar +
   SHEET_FIELD_LIMITS.setCode +
   SHEET_FIELD_LIMITS.types * (SHEET_FIELD_LIMITS.typeLength + 3) +
   JSON_ENTRY_OVERHEAD
 // The deck name, the locale, the format, maxBytes and the envelope punctuation.
-const JSON_ENVELOPE_BYTES = SHEET_FIELD_LIMITS.nameInput * SHEET_FIELD_LIMITS.bytesPerChar + 4_096
+const JSON_ENVELOPE_BYTES = SHEET_FIELD_LIMITS.nameInput * SHEET_FIELD_LIMITS.jsonBytesPerChar + 4_096
 export const MAX_BODY_BYTES = MAX_SHEET_ENTRIES * MAX_ENTRY_BYTES + JSON_ENVELOPE_BYTES
 // One render at a time, because the pod's memory limit is sized for one. Four
 // waiting is a short burst absorbed; past that the answer is 503, which every
@@ -38,6 +39,9 @@ export const MAX_QUEUED = 4
 // wall-clock bound on one, and the queue's worst-case wait is correspondingly
 // soft. MAX_SHEET_PIXELS is what actually bounds the uninterruptible half.
 export const REQUEST_DEADLINE_MS = 60_000
+// Sockets accepted at once. Generous for two callers that send one request at a
+// time, and small enough that every in-flight body fits the pod with room over.
+export const MAX_CONNECTIONS = 64
 
 function authorized(req: IncomingMessage, token: string): boolean {
   const header = req.headers.authorization ?? ''
@@ -186,7 +190,7 @@ export function createSheetServer(env: SheetEnv): Server {
     }
   }
 
-  return createServer((req, res) => {
+  const server = createServer((req, res) => {
     if (req.method === 'GET' && req.url === '/health') {
       send(res, 200, 'ok')
       return
@@ -213,4 +217,12 @@ export function createSheetServer(env: SheetEnv): Server {
       if (!res.headersSent) send(res, 500, 'request failed')
     })
   })
+
+  // A body is buffered before it reaches the queue, so the queue bounds renders
+  // but not bytes. This is what bounds the bytes: at most MAX_CONNECTIONS x
+  // MAX_BODY_BYTES is resident ahead of admission, which is a few tens of MB
+  // against the pod's limit. Two callers and no public ingress make the real
+  // number far smaller; this is the ceiling, not the expectation.
+  server.maxConnections = MAX_CONNECTIONS
+  return server
 }

@@ -201,6 +201,13 @@ export function createSheetServer(env: SheetEnv): Server {
             imageBase: env.IMAGE_BASE_URL,
             signal: abandon.signal,
           })
+          // The encode cannot be interrupted (render.ts), so a caller that left
+          // during it still gets a finished render back. Nobody will read these
+          // bytes: record the hang-up rather than a delivered sheet.
+          if (res.closed) {
+            logRender({ outcome: 'abandoned', digest, entries, queueMs, reason: JSON.stringify('caller went away during the encode') })
+            return
+          }
           logRender({
             outcome: 'rendered', digest, entries, distinct: out.distinct,
             mpx: (out.pixels / 1e6).toFixed(2), scale: out.scale.toFixed(3),

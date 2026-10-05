@@ -8,7 +8,10 @@ const gate = {
   concurrent: 0,
   peak: 0,
   release: [] as (() => void)[],
-  reset() { this.concurrent = 0; this.peak = 0; this.release = []; completed = 0 },
+  // Ignore the abort signal, like the real painter once it is past its last
+  // checkpoint and inside the uninterruptible encode.
+  encoding: false,
+  reset() { this.concurrent = 0; this.peak = 0; this.release = []; this.encoding = false; completed = 0 },
   openAll() { for (const r of this.release.splice(0)) r() },
 }
 
@@ -25,8 +28,8 @@ vi.mock('../src/render', () => ({
     gate.peak = Math.max(gate.peak, gate.concurrent)
     try {
       await new Promise<void>((resolve, reject) => {
-        if (opts.signal?.aborted) { reject(opts.signal.reason); return }
-        opts.signal?.addEventListener('abort', () => reject(opts.signal!.reason))
+        if (!gate.encoding && opts.signal?.aborted) { reject(opts.signal.reason); return }
+        if (!gate.encoding) opts.signal?.addEventListener('abort', () => reject(opts.signal!.reason))
         gate.release.push(resolve)
       })
     } finally {
@@ -134,6 +137,30 @@ describe('the render queue', () => {
       gate.openAll()
     }
     expect((await Promise.all(flight)).every((r) => r.status === 200)).toBe(true)
+    log.mockRestore()
+  })
+
+  // The encode cannot be interrupted, so a caller that leaves during it still
+  // gets a finished render back from the painter. Logging that as `rendered`
+  // would hide exactly the abandonment spec section 5 counts.
+  it('logs a caller that hung up during the encode as abandoned', async () => {
+    gate.reset()
+    gate.encoding = true
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const ac = new AbortController()
+    const gone = post({ signal: ac.signal }).catch(() => 'aborted')
+    await vi.waitFor(() => expect(gate.release.length).toBe(1))
+    ac.abort()
+    expect(await gone).toBe('aborted')
+    await new Promise((r) => setTimeout(r, 50))
+    gate.openAll()
+    await vi.waitFor(() => expect(completed).toBe(1))
+    const lines = await vi.waitFor(() => {
+      const found = log.mock.calls.map((c) => String(c[0])).filter((l) => l.startsWith('sheet: render '))
+      expect(found).toHaveLength(1)
+      return found
+    })
+    expect(lines[0]).toMatch(/^sheet: render outcome=abandoned /)
     log.mockRestore()
   })
 

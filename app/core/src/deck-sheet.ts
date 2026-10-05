@@ -6,10 +6,10 @@ import type { DeckCardView } from './domain'
 
 // The deck sheet: the picture of a deck that the web builder exports as a PNG and
 // the Discord bot posts for /deck. This module is the shared, pure half - grouping,
-// geometry and colours. Each side paints it with what its runtime has: the browser
-// with a Canvas (web/src/lib/deck-png.ts), the bot with sharp
-// (bot/src/images/deck-image.ts). Geometry is in CSS pixels; painters multiply by
-// DECK_SHEET.scale.
+// geometry and colours - and the request contract the render service takes. The
+// bot owns no painter any more: it asks @revelio/sheet (sheet/src/render.ts), which
+// is the one process that paints a deck. Geometry is in CSS pixels; the painter
+// multiplies by DECK_SHEET.scale.
 
 export type DeckSheetEntry = Pick<
   DeckCardView,
@@ -78,8 +78,11 @@ export const SHEET_FIELD_LIMITS = {
   types: 8,
   typeLength: 30,
   // Bounded so the serialized digits are bounded: an unbounded integer is 21
-  // characters of JSON at its longest, against six for anything real.
-  imageVersion: 1_000_000,
+  // characters of JSON at its longest. Ten digits, because this is an image
+  // file's mtime in unix seconds (ingest's fileVersion), which passed 1e9 in
+  // 2001 and reaches 1e10 in 2286 - a cap of 1e6 rejected every card in the
+  // dataset, and with it every sheet.
+  imageVersion: 9_999_999_999,
   orientation: 20,
   // Worst-case bytes on the wire per JS string unit of free text, which is what
   // the render service sizes its body cap from. Six, not three: UTF-8 costs at
@@ -236,8 +239,14 @@ function cardBox(card: DeckSheetCard): { w: number; h: number } {
  * Narrows card views to the fields the sheet paints. Both callers hold
  * DeckCardView lists with a dozen fields the picture never uses; sending them
  * would widen the request, and with it the cache key, for nothing.
+ *
+ * Returns the request's own entry type rather than DeckSheetEntry: that one
+ * inherits `orientation?` from DeckCardView, and the `?? null` below is exactly
+ * what settles it - a caller assigning the result straight into a
+ * DeckSheetRequest would otherwise not typecheck against a field this function
+ * has already made non-optional.
  */
-export function pickSheetEntries(views: DeckSheetEntry[]): DeckSheetEntry[] {
+export function pickSheetEntries(views: DeckSheetEntry[]): DeckSheetRequest['entries'] {
   return views.map((v) => ({
     cardId: v.cardId, zone: v.zone, quantity: v.quantity, name: v.name,
     setCode: v.setCode, types: v.types, imageVersion: v.imageVersion ?? null,

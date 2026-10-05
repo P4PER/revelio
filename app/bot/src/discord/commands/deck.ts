@@ -3,8 +3,8 @@ import type { Deps } from '../../clients'
 import { getPublicDeck } from '../../data/decks'
 import { toRevelioLocale } from '../../i18n/locale'
 import { t } from '../../i18n/t'
-import { renderDeckImage } from '../../images/deck-image'
-import { DECK_IMAGE_NAME, deckEmbed, type DeckView } from '../embeds/deck-embed'
+import { requestDeckSheet } from '../../data/sheet'
+import { deckEmbed } from '../embeds/deck-embed'
 
 export const data = new SlashCommandBuilder()
   .setName('deck')
@@ -45,25 +45,25 @@ export async function execute(
     return
   }
 
-  const embedOf = (view: DeckView) =>
-    deckEmbed(deck, { locale, siteBase: deps.env.SITE_BASE_URL, view })
+  const siteBase = deps.env.SITE_BASE_URL
 
-  // A deck with no cards has no picture worth posting, and a render that fails
-  // must not cost the answer: both fall back to the list the embed can always
-  // draw from the data already in hand.
+  // A deck with no cards has no picture worth posting, and a sheet that cannot
+  // be had must not cost the answer: both fall back to the list the embed can
+  // always draw from the data already in hand. The bot draws nothing itself -
+  // @revelio/sheet is the only process that paints a deck.
   const wantsImage = interaction.options.getString('view') !== 'list' && deck.entries.length > 0
   if (wantsImage) {
     try {
-      const image = await renderDeckImage(deck, { imageBase: deps.env.IMAGE_BASE_URL, locale })
+      const sheet = await requestDeckSheet(deck, locale, deps.env)
       await interaction.editReply({
-        embeds: [embedOf('image')],
-        files: [new AttachmentBuilder(image, { name: DECK_IMAGE_NAME })],
+        embeds: [deckEmbed(deck, { locale, siteBase, view: 'image', imageName: sheet.name })],
+        files: [new AttachmentBuilder(sheet.body, { name: sheet.name })],
       })
       return
     } catch (err) {
-      console.error('deck image render failed:', err)
+      console.error('deck sheet render failed:', err)
     }
   }
 
-  await interaction.editReply({ embeds: [embedOf('list')] })
+  await interaction.editReply({ embeds: [deckEmbed(deck, { locale, siteBase, view: 'list' })] })
 }

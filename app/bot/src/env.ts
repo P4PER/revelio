@@ -1,5 +1,13 @@
 import { z } from 'zod'
 
+// zod marks a failed .url() dirty rather than aborted, so a refinement below
+// still runs on a value new URL() cannot parse - and an unguarded `new URL(v)`
+// throws a TypeError straight out of safeParse, past the reporting in parseEnv.
+// Declared above the schema because the schema reads it at module init.
+const parseUrl = (v: string): URL | null => {
+  try { return new URL(v) } catch { return null }
+}
+
 const Env = z.object({
   DISCORD_TOKEN: z.string().min(1),
   DISCORD_CLIENT_ID: z.string().min(1),
@@ -14,8 +22,28 @@ const Env = z.object({
   DATABASE_URL: z.string().min(1),
   MEILI_HOST: z.string().url(),
   MEILI_SEARCH_KEY: z.string().default(''),
+  // Public, absolute. Goes into embed image URLs, which *Discord* fetches from
+  // the public internet. Nothing in this process fetches a card image itself,
+  // so there is only one image base here and no second one to confuse it with.
   IMAGE_BASE_URL: z.string().url(),
   SITE_BASE_URL: z.string().url(),
+  // The deck sheet render service. The bot draws no pictures itself: /deck posts
+  // what this answers with, and falls back to the list embed when it does not.
+  //
+  // Both checks are the ones the service puts on its own base, for the same
+  // reason: a value that is wrong in either way costs every /deck its picture
+  // and fails nothing at boot to say why.
+  //
+  // The scheme, because zod's url() accepts any scheme - "sheet:8080", a
+  // hostname someone forgot to prefix, passes it and fetch rejects it later.
+  // The query and fragment, because /render is appended to this: a base of
+  // http://sheet:8080/?token=x gives http://sheet:8080/?token=x/render, which
+  // resolves nowhere.
+  SHEET_SERVICE_URL: z.string().url()
+    .refine((v) => /^https?:$/.test(parseUrl(v)?.protocol ?? ''), { message: 'must be an http(s) URL' })
+    .refine((v) => { const u = parseUrl(v); return u !== null && u.search === '' && u.hash === '' },
+      { message: 'must have no query or fragment' }),
+  SHEET_TOKEN: z.string().min(16),
 })
 
 export type BotEnv = z.infer<typeof Env>

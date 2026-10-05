@@ -1,29 +1,3 @@
-  // The cap is counted in bytes and the contract in string units, so an ASCII
-  // payload proves nothing. This builds the most expensive request the contract
-  // will accept, field by field, rather than a payload that looks expensive.
-  it('reads the most expensive body the contract accepts', () => {
-    const L = SHEET_FIELD_LIMITS
-    // A lone surrogate is the worst character a name can carry: it is \p{Cs},
-    // so the collapse does not touch it, trim does not remove it, it survives
-    // min(1), and JSON.stringify escapes it to a six-byte \uXXXX sequence.
-    // A control character is only the second worst - it escapes the same way
-    // but the collapse can remove it.
-    const wide = '\uD800'.repeat(L.nameInput)
-    const worst = {
-      locale: 'de' as const, maxBytes: 50_000_000,
-      deck: { name: wide, format: 'classic' as const },
-      entries: Array.from({ length: MAX_SHEET_ENTRIES }, (_, i) => ({
-        cardId: `c${'x'.repeat(L.cardId - 5)}${String(i).padStart(4, '0')}`,
-        zone: 'sideboard' as const, quantity: 999, name: wide,
-        setCode: 'S'.repeat(L.setCode),
-        types: Array.from({ length: L.types }, () => 't'.repeat(L.typeLength)),
-        imageVersion: L.imageVersion, orientation: 'h'.repeat(L.orientation),
-      })),
-    }
-    expect(DeckSheetRequest.safeParse(worst).success).toBe(true)
-    expect(Buffer.byteLength(JSON.stringify(worst))).toBeLessThanOrEqual(MAX_BODY_BYTES)
-  })
-
 import { describe, it, expect, afterAll, beforeAll } from 'vitest'
 import type { AddressInfo } from 'node:net'
 import sharp from 'sharp'
@@ -121,6 +95,32 @@ describe('the render service', () => {
     await new Promise<void>((resolve) => occupied.close(() => resolve()))
   })
 
+  // The cap is counted in bytes and the contract in string units, so an ASCII
+  // payload proves nothing. This builds the most expensive request the contract
+  // will accept, field by field, rather than a payload that looks expensive.
+  it('reads the most expensive body the contract accepts', () => {
+    const L = SHEET_FIELD_LIMITS
+    // A lone surrogate is the worst character a name can carry: it is \p{Cs},
+    // so the collapse does not touch it, trim does not remove it, it survives
+    // min(1), and JSON.stringify escapes it to a six-byte \uXXXX sequence.
+    // A control character is only the second worst - it escapes the same way
+    // but the collapse can remove it.
+    const wide = '\uD800'.repeat(L.nameInput)
+    const worst = {
+      locale: 'de' as const, maxBytes: 50_000_000,
+      deck: { name: wide, format: 'classic' as const },
+      entries: Array.from({ length: MAX_SHEET_ENTRIES }, (_, i) => ({
+        cardId: `c${'x'.repeat(L.cardId - 5)}${String(i).padStart(4, '0')}`,
+        zone: 'sideboard' as const, quantity: 999, name: wide,
+        setCode: 'S'.repeat(L.setCode),
+        types: Array.from({ length: L.types }, () => 't'.repeat(L.typeLength)),
+        imageVersion: L.imageVersion, orientation: 'h'.repeat(L.orientation),
+      })),
+    }
+    expect(DeckSheetRequest.safeParse(worst).success).toBe(true)
+    expect(Buffer.byteLength(JSON.stringify(worst))).toBeLessThanOrEqual(MAX_BODY_BYTES)
+  })
+
   // MAX_SHEET_ENTRIES protects render memory; the body cap only bounds how much
   // is buffered before admission. One is derived from the other precisely so
   // they cannot disagree - a request the contract accepts that the server then
@@ -138,7 +138,7 @@ describe('the render service', () => {
         zone: 'sideboard' as const, quantity: 999, name: 'n'.repeat(L.name),
         setCode: 's'.repeat(L.setCode),
         types: Array.from({ length: L.types }, () => 't'.repeat(L.typeLength)),
-        imageVersion: 999_999, orientation: 'horizontal',
+        imageVersion: L.imageVersion, orientation: 'horizontal',
       })),
     }
     expect(DeckSheetRequest.safeParse(worst).success).toBe(true)
@@ -167,7 +167,7 @@ describe('the render service', () => {
         zone: 'sideboard' as const, quantity: 999, name: wide,
         setCode: 'S'.repeat(L.setCode),
         types: Array.from({ length: L.types }, () => 't'.repeat(L.typeLength)),
-        imageVersion: 999_999, orientation: 'horizontal',
+        imageVersion: L.imageVersion, orientation: 'horizontal',
       })),
     }
     expect(DeckSheetRequest.safeParse(worst).success).toBe(true)

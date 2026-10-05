@@ -1,20 +1,22 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import * as dbModule from '@revelio/db'
 import { COMMANDS } from '../src/discord/commands/index'
-import { DECK_IMAGE_NAME } from '../src/discord/embeds/deck-embed'
-import { renderDeckImage } from '../src/images/deck-image'
+import { requestDeckSheet } from '../src/data/sheet'
 
-// Rendering is exercised by deck-image.test.ts; here it is a seam, so /deck's
-// two views and its fallback can be told apart without drawing anything.
-vi.mock('../src/images/deck-image', () => ({
-  renderDeckImage: vi.fn().mockResolvedValue(Buffer.from('webp')),
-}))
+// The render service is exercised by sheet.test.ts and the service's own suite;
+// here it is a seam, so /deck's two views and its fallback can be told apart
+// without drawing anything.
+vi.mock('../src/data/sheet', () => ({ requestDeckSheet: vi.fn() }))
 
 // /card reaches Postgres for rulings. The fake deps carry no real db, so stub
 // the query itself; a card with no rulings is the common case anyway.
 beforeEach(() => {
   vi.spyOn(dbModule, 'getCardRulings').mockResolvedValue(null)
   vi.spyOn(dbModule, 'getSubTypeLabels').mockResolvedValue({})
+  // Armed here rather than in the mock factory: afterEach's restoreAllMocks
+  // strips a factory implementation too, and a seam that resolves undefined
+  // would leave /deck falling back to the list without any test saying so.
+  vi.mocked(requestDeckSheet).mockResolvedValue({ body: Buffer.from('png'), name: 'deck.png' })
 })
 afterEach(() => { vi.restoreAllMocks() })
 
@@ -63,7 +65,12 @@ function fakeDeps(hits: unknown[], total: number) {
     meili: fakeMeili(search),
     db: {},
     sets: { name: vi.fn().mockResolvedValue('Base Set') },
-    env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
+    env: {
+      IMAGE_BASE_URL: 'https://img.test',
+      SITE_BASE_URL: 'https://revelio.cards',
+      SHEET_SERVICE_URL: 'http://sheet:8080',
+      SHEET_TOKEN: 'a-token-at-least-16-chars',
+    },
   }
 }
 
@@ -184,7 +191,12 @@ function fastPathDeps(search: unknown) {
     meili: fakeMeili(search as ReturnType<typeof vi.fn>),
     db: {},
     sets: { name: vi.fn().mockResolvedValue('Base Set') },
-    env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
+    env: {
+      IMAGE_BASE_URL: 'https://img.test',
+      SITE_BASE_URL: 'https://revelio.cards',
+      SHEET_SERVICE_URL: 'http://sheet:8080',
+      SHEET_TOKEN: 'a-token-at-least-16-chars',
+    },
   }
 }
 
@@ -219,7 +231,12 @@ describe('/search set filter', () => {
       meili: fakeMeili(search),
       db: {},
       sets: { name: vi.fn(), all: vi.fn() },
-      env: { IMAGE_BASE_URL: 'https://img.test', SITE_BASE_URL: 'https://revelio.cards' },
+      env: {
+        IMAGE_BASE_URL: 'https://img.test',
+        SITE_BASE_URL: 'https://revelio.cards',
+        SHEET_SERVICE_URL: 'http://sheet:8080',
+        SHEET_TOKEN: 'a-token-at-least-16-chars',
+      },
     }
     const interaction = fakeInteraction({ query: 'broom', set: 'base' })
     await COMMANDS.get('search')!.execute(interaction as never, deps as never)
@@ -292,13 +309,14 @@ describe('/deck', () => {
 
   // getString returns null for an option nobody passed, which is exactly what
   // Discord sends when a user types /deck with no view.
-  it('defaults to the picture, uploaded as the embed attachment', async () => {
+  it('uploads the sheet under the name the service chose', async () => {
     vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    vi.mocked(requestDeckSheet).mockResolvedValueOnce({ body: Buffer.from('webp'), name: 'deck.webp' })
     const interaction = fakeInteraction({ deck: 'abc123' })
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     const payload = interaction.editReply.mock.calls[0][0]
-    expect(payload.files[0].name).toBe(DECK_IMAGE_NAME)
-    expect(payload.embeds[0].toJSON().image?.url).toBe(`attachment://${DECK_IMAGE_NAME}`)
+    expect(payload.files[0].name).toBe('deck.webp')
+    expect(payload.embeds[0].toJSON().image?.url).toBe('attachment://deck.webp')
     expect(payload.embeds[0].toJSON().fields?.some((f: { name: string }) => f.name.startsWith('Main deck'))).toBe(false)
   })
 
@@ -312,26 +330,44 @@ describe('/deck', () => {
   })
 
   // A deck the user can see is worth more than the picture of it.
-  it('falls back to the list when rendering throws', async () => {
+  it('falls back to the list embed when the service cannot answer', async () => {
     vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
-    vi.mocked(renderDeckImage).mockRejectedValueOnce(new Error('libvips said no'))
+    vi.mocked(requestDeckSheet).mockRejectedValueOnce(new Error('sheet service answered 503'))
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const interaction = fakeInteraction({ deck: 'abc123' })
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     const payload = interaction.editReply.mock.calls[0][0]
     expect(payload.files).toBeUndefined()
+    expect(payload.embeds[0].toJSON().image).toBeUndefined()
     expect(payload.embeds[0].toJSON().fields?.some((f: { name: string }) => f.name.startsWith('Main deck'))).toBe(true)
     expect(console.error).toHaveBeenCalled()
   })
 
-  it('never renders an empty deck', async () => {
+  // The picture's editReply lives inside the try for this reason: Discord can
+  // reject the upload itself (an attachment it will not take), and that must
+  // cost the picture rather than the answer. Hoisting it out of the try - which
+  // reads like a simplification, since a return follows - would turn "no
+  // picture" into "/deck failed".
+  it('falls back to the list when Discord rejects the upload', async () => {
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const interaction = fakeInteraction({ deck: 'abc123' })
+    interaction.editReply.mockRejectedValueOnce(new Error('Request entity too large'))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(interaction.editReply).toHaveBeenCalledTimes(2)
+    const payload = interaction.editReply.mock.calls[1][0]
+    expect(payload.files).toBeUndefined()
+    expect(payload.embeds[0].toJSON().fields?.some((f: { name: string }) => f.name.startsWith('Main deck'))).toBe(true)
+  })
+
+  it('never asks for a sheet of an empty deck', async () => {
     const empty = stubDeck()
     empty.views = []
     empty.deck.cards = []
     vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(empty as never)
     const interaction = fakeInteraction({ deck: 'abc123' })
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-    expect(vi.mocked(renderDeckImage)).not.toHaveBeenCalled()
+    expect(vi.mocked(requestDeckSheet)).not.toHaveBeenCalled()
     expect(interaction.editReply.mock.calls[0][0].files).toBeUndefined()
   })
 

@@ -205,6 +205,18 @@ describe('DeckSheetRequest', () => {
     expect(DeckSheetRequest.safeParse({ ...body, locale: 'fr' }).success).toBe(false)
   })
 
+  // imageVersion is an image file's mtime in unix seconds (ingest's fileVersion),
+  // so every real card carries ten digits. A cap sized for "anything real is six
+  // digits" rejected the whole dataset, and every /deck fell back to the list.
+  it('accepts the unix-seconds imageVersion every real card carries', () => {
+    const parsed = DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, imageVersion: 1_783_899_473 }] })
+    expect(parsed.success).toBe(true)
+    // Still bounded, because the service sizes its body cap from the digits.
+    expect(DeckSheetRequest.safeParse({
+      ...body, entries: [{ ...entry, imageVersion: SHEET_FIELD_LIMITS.imageVersion + 1 }],
+    }).success).toBe(false)
+  })
+
   it('rejects an empty deck and one past the entry cap', () => {
     expect(DeckSheetRequest.safeParse({ ...body, entries: [] }).success).toBe(false)
     const tooMany = Array.from({ length: MAX_SHEET_ENTRIES + 1 }, (_, i) => ({ ...entry, cardId: `c${i}` }))

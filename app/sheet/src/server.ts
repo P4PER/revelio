@@ -6,7 +6,7 @@ import { renderSheet } from './render'
 
 // The fixed half of a serialized entry: every key name, the zone, the quantity,
 // the bounded imageVersion and the punctuation around them, plus the comma that
-// joins it to the next. Measured at 122 against the contract's own maxima, not
+// joins it to the next. Measured at 124 against the contract's own maxima, not
 // against realistic values - sizing the fixed half from one and the variable
 // half from the other is how this was wrong before. The rest is headroom for
 // the contract gaining a field.

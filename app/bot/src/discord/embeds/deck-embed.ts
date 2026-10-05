@@ -4,13 +4,14 @@ import type { DeckEntryView, PublicDeck } from '../../data/decks'
 import { t } from '../../i18n/t'
 import { deckUrl } from '../../links'
 
-export type DeckView = 'image' | 'list'
-
-export type DeckEmbedOptions = { locale: string; siteBase: string; view: DeckView }
-
-// The file name the command uploads the rendered deck under. The embed can only
-// reference an attachment by name, so both sides read it from here.
-export const DECK_IMAGE_NAME = 'deck.webp'
+// The image view carries the attachment's file name because that is the only
+// handle an embed has on an upload, and the render service picks the format it
+// settled on - PNG, or WebP when the PNG overshot the attachment ceiling. A
+// single constant here used to be enough, back when one painter picked one
+// format for every sheet.
+export type DeckEmbedOptions =
+  | { locale: string; siteBase: string; view: 'list' }
+  | { locale: string; siteBase: string; view: 'image'; imageName: string }
 
 const FIELD_LIMIT = 1024
 const FALLBACK_COLOR = 0x2b2d31
@@ -67,7 +68,7 @@ export function deckEmbed(deck: PublicDeck, opts: DeckEmbedOptions): EmbedBuilde
   )
   if (opts.view === 'image') {
     // The picture shows every card, so the text lists would only repeat it.
-    return embed.setImage(`attachment://${DECK_IMAGE_NAME}`)
+    return embed.setImage(`attachment://${opts.imageName}`)
   }
   if (deck.main.length) {
     embed.addFields({

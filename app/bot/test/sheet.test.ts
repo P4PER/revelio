@@ -81,6 +81,42 @@ describe('requestDeckSheet', () => {
     expect(thrown).toBeInstanceOf(Error)
   })
 
+  // Media types are case-insensitive, and the name is the only thing standing
+  // between WebP bytes and media.discordapp.net transcoding them as a PNG.
+  it('matches the content type without regard to case', async () => {
+    stubFetch('webp-bytes', { status: 200, headers: { 'content-type': 'Image/WEBP; charset=binary' } })
+    expect((await requestDeckSheet(deck, 'en', env)).name).toBe('deck.webp')
+  })
+
+  it('throws rather than upload a 200 that is not an image', async () => {
+    for (const type of ['text/html', 'application/json', '']) {
+      stubFetch('<html>not a sheet</html>', { status: 200, headers: type ? { 'content-type': type } : {} })
+      let thrown: unknown
+      try { await requestDeckSheet(deck, 'en', env) } catch (err) { thrown = err }
+      // An embed pointing at a non-image attachment is a broken picture; the
+      // list embed is strictly better, and only a throw reaches it.
+      expect((thrown as Error | undefined)?.message).toContain('image')
+    }
+  })
+
+  it('refuses a body larger than the ceiling it asked for', async () => {
+    stubFetch('png', {
+      status: 200,
+      headers: { 'content-type': 'image/png', 'content-length': String(9_000_001) },
+    })
+    let thrown: unknown
+    try { await requestDeckSheet(deck, 'en', env) } catch (err) { thrown = err }
+    // Buffered into the gateway's heap otherwise, on a pod sized at 256Mi now
+    // that it draws nothing.
+    expect((thrown as Error | undefined)?.message).toContain('too large')
+  })
+
+  it('does not follow a redirect', async () => {
+    const fetchMock = stubFetch('png', { status: 200, headers: { 'content-type': 'image/png' } })
+    await requestDeckSheet(deck, 'en', env)
+    expect((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].redirect).toBe('error')
+  })
+
   it('trims a trailing slash off the service URL', async () => {
     const fetchMock = stubFetch('png', { status: 200, headers: { 'content-type': 'image/png' } })
     await requestDeckSheet(deck, 'en', { ...env, SHEET_SERVICE_URL: 'http://sheet:8080/' })

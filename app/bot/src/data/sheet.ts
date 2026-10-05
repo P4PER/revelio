@@ -43,8 +43,20 @@ export async function requestDeckSheet(deck: PublicDeck, locale: string, env: Bo
     headers: { 'content-type': 'application/json', authorization: `Bearer ${env.SHEET_TOKEN}` },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    // A service-to-service POST has nowhere legitimate to be redirected to, and
+    // following one would spend the render budget on whatever answered.
+    redirect: 'error',
   })
   if (!res.ok) throw new Error(`sheet service answered ${res.status}`)
-  const name = (res.headers.get('content-type') ?? '').startsWith('image/webp') ? 'deck.webp' : 'deck.png'
-  return { body: Buffer.from(await res.arrayBuffer()), name }
+  // Everything below is the envelope, which is not the service's own contract
+  // once SHEET_SERVICE_URL can point anywhere: a 200 that is not an image would
+  // otherwise be uploaded and shown as a broken picture, where a throw gets the
+  // list embed instead.
+  const type = (res.headers.get('content-type') ?? '').toLowerCase()
+  if (!type.startsWith('image/')) throw new Error(`sheet service answered a non-image body: ${type || 'no content type'}`)
+  // Checked before the body is read, because arrayBuffer() buffers all of it
+  // into the gateway's heap and the abort above bounds duration, not bytes.
+  const declared = Number(res.headers.get('content-length') ?? '0')
+  if (declared > MAX_ATTACHMENT_BYTES) throw new Error(`sheet service answered a body too large: ${declared}`)
+  return { body: Buffer.from(await res.arrayBuffer()), name: type.startsWith('image/webp') ? 'deck.webp' : 'deck.png' }
 }

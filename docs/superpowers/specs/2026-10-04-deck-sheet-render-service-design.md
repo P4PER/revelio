@@ -406,7 +406,7 @@ OOM-killing the pod.
   with Pango markup off. A test renders a name containing `</text><script>` and asserts the
   output is a picture of that string.
 - `entries` is capped (`MAX_ENTRIES = 400`, above any legal deck), the body at
-  `MAX_BODY_BYTES = 256 KB`, and `locale` is validated against core's supported locales.
+  `MAX_BODY_BYTES`, which is derived from the contract's own field ceilings rather than chosen, and `locale` is validated against core's supported locales.
   The cap is what keeps geometry from being a denial-of-service input.
 - The bearer token is compared with `timingSafeEqual`. The service has no public ingress; the
   token is defence in depth for a cluster-internal network, and its dev default lives in

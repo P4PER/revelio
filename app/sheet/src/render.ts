@@ -204,9 +204,6 @@ function centered(rendered: RenderedText, centerX: number, centerY: number): Ove
   }
 }
 
-// `deadline` is an epoch millisecond, shared by every fetch in one render, and
-// clamping each request's own timeout to what is left of it is what holds the
-// phase to its budget rather than to the budget plus one more timeout.
 /**
  * The art URL for one card, or null when the key would land outside the
  * configured base. Building a URL is not validating one: new URL resolves a
@@ -217,6 +214,12 @@ function centered(rendered: RenderedText, centerX: number, centerY: number): Ove
  * what still holds if that allowlist is ever widened.
  */
 function containedImageUrl(imageBase: string, key: string): string | null {
+  // Before any parsing: the WHATWG parser leaves %2e alone, so an encoded
+  // traversal keeps the pathname identical to the one built here and sails
+  // through the comparison below - while the object store on the other end may
+  // decode it and serve the escaped path. No key the image helpers produce
+  // contains a percent, so refusing one costs nothing.
+  if (key.includes('%')) return null
   const url = imageUrl(imageBase, key)
   try {
     const base = new URL(`${imageBase.replace(/\/$/, '')}/`)
@@ -224,8 +227,9 @@ function containedImageUrl(imageBase: string, key: string): string | null {
     // Exact match, not a prefix test: a prefix test passes trivially when the
     // base has no path of its own, and "did the parser have to change this?" is
     // the question that actually distinguishes a well-formed key. A '..'
-    // segment, a '//host' authority or a stray backslash all move the pathname;
-    // nothing a real key contains does.
+    // segment or a stray backslash moves the pathname; nothing a real key
+    // contains does. The origin is compared separately because a key starting
+    // '//' would otherwise be read as an authority.
     if (resolved.origin !== base.origin) return null
     if (resolved.pathname !== `${base.pathname}${key}`) return null
     return url
@@ -234,6 +238,9 @@ function containedImageUrl(imageBase: string, key: string): string | null {
   }
 }
 
+// `deadline` is an epoch millisecond, shared by every fetch in one render, and
+// clamping each request's own timeout to what is left of it is what holds the
+// phase to its budget rather than to the budget plus one more timeout.
 async function fetchCardImage(
   card: DeckSheetCard,
   imageBase: string,

@@ -270,6 +270,17 @@ describe('renderSheet', () => {
     expect(logged).not.toContain('img.test')
   })
 
+  // The WHATWG parser does not decode %2e, so an encoded traversal keeps the
+  // pathname equal to the one built and slips past the comparison - while the
+  // object store on the other end may well decode it.
+  it('never fetches a percent-encoded key', async () => {
+    const urls = recordingFetch(await art())
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const encoded = { ...req, entries: [entry('..%2f..%2fsecret', 'main', ['spell'])] }
+    await renderSheet(encoded, opts)
+    expect(urls).toEqual([])
+  })
+
   it('renders a German sheet from core labels alone', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(await art(), { status: 200 })))
     const out = await renderSheet({ ...req, locale: 'de' }, opts)

@@ -31,6 +31,13 @@ describe('parseEnv', () => {
     expect((thrown as Error).message).not.toContain('short')
   })
 
+  // A query or fragment would survive into every art URL and make every card a
+  // placeholder, with nothing failing at boot to say why.
+  it('rejects an image base carrying a query or fragment', () => {
+    expect(() => parseEnv({ ...base, IMAGE_BASE_URL: 'https://cdn.test/images?v=1' })).toThrow()
+    expect(() => parseEnv({ ...base, IMAGE_BASE_URL: 'https://cdn.test/images#f' })).toThrow()
+  })
+
   it('rejects an image base that is not a URL', () => {
     expect(() => parseEnv({ ...base, IMAGE_BASE_URL: 'rustfs:9000' })).toThrow()
   })

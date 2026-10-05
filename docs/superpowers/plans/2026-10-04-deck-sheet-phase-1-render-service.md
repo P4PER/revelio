@@ -796,7 +796,7 @@ export async function renderSheet(req: DeckSheetRequest, opts: SheetRenderOption
   // PNG so the file people pull out of Discord, or out of their downloads, is
   // lossless and ordinary. The card images it is drawn from are already lossy,
   // so webp q90 was a second generation of loss on top of them for no gain.
-  const png = await sheet.clone().png({ compressionLevel: 9 }).toBuffer()
+  const png = await sheet.clone().png({ compressionLevel: 6 }).toBuffer()
   if (req.maxBytes === undefined || png.length <= req.maxBytes) {
     return { body: png, contentType: 'image/png', ...common }
   }

@@ -44,7 +44,22 @@ export const MAX_SHEET_ENTRIES = 400
  */
 const paintedText = (paint: number, carry: number) =>
   z.string().max(carry)
-    .transform((v) => v.replace(/[\s\p{Cc}\p{Cf}]+/gu, ' ').trim().slice(0, paint))
+    .transform((v) => v
+      // Whitespace and C0/C1 controls only. Not \p{Cf} wholesale: that class
+      // holds the zero-width joiner, and stripping it turns one family emoji
+      // into three separate people. Neither it nor a soft hyphen can grow a
+      // Pango layout, which is the whole reason this collapse exists. The bidi
+      // overrides are the part of \p{Cf} worth removing, so they are named.
+      .replace(/[\s\p{Cc}\u202A-\u202E\u2066-\u2069]+/gu, ' ')
+      .trim()
+      .slice(0, paint)
+      // Slicing by string unit can cut a surrogate pair in half; a lone high
+      // surrogate renders as tofu and would key a cache separately from the
+      // same name sliced elsewhere.
+      .replace(/[\uD800-\uDBFF]$/u, '')
+      // Trimmed again because the slice can land mid-gap and leave the space
+      // the collapse just normalised.
+      .trim())
     .pipe(z.string().min(1))
 
 export const SHEET_FIELD_LIMITS = {
@@ -54,17 +69,26 @@ export const SHEET_FIELD_LIMITS = {
   // allows rather than for anything the picture needs.
   name: 120,
   nameInput: 200,
-  setCode: 20,
+  // Hyphens included and the ceiling generous because card-data derives this
+  // for any set name not in SET_CODES: transform_hpjson.py's slug() replaces
+  // every non-alphanumeric run with a hyphen, so 'Chamber of Secrets Expansion'
+  // gives CHAMBER-OF-SECRETS-EXPANSION. (sets.code in build_dataset.py strips
+  // instead - a different field, and they disagree.)
+  setCode: 40,
   types: 8,
   typeLength: 30,
+  // Bounded so the serialized digits are bounded: an unbounded integer is 21
+  // characters of JSON at its longest, against six for anything real.
+  imageVersion: 1_000_000,
+  orientation: 20,
   // Worst-case bytes on the wire per JS string unit of free text, which is what
   // the render service sizes its body cap from. Six, not three: UTF-8 costs at
   // most three for a BMP character (and four across the two units of a
-  // surrogate pair, so less per unit), but JSON escapes a control character to
-  // a six-byte \uXXXX sequence - and paintedText collapses those rather than
-  // rejecting them, so a name of text plus control characters is valid and is
-  // the most expensive thing a request can carry. The domain codes are
-  // allowlisted to ASCII, so only the names pay this.
+  // surrogate pair, so less per unit), but JSON escapes an unpaired surrogate
+  // to a six-byte \uXXXX sequence. That is the worst case rather than a control
+  // character, because \p{Cs} is not in the collapse class above, trim does not
+  // touch it and it survives min(1) - so a name of them is valid. Every other
+  // field is allowlisted to ASCII, so only the names pay this.
   jsonBytesPerChar: 6,
 } as const
 
@@ -78,13 +102,16 @@ export const DeckSheetEntryInput = z.object({
   name: paintedText(SHEET_FIELD_LIMITS.name, SHEET_FIELD_LIMITS.nameInput),
   // Domain codes rather than prose, so they are allowlisted like cardId: it
   // keeps them one byte per character, which is what lets the service derive a
-  // body cap it can honour. The set code has headroom because
-  // card-data/build_dataset.py derives one for an unknown set name by stripping
-  // non-alphanumerics, and a long name gives a long code.
-  setCode: z.string().regex(/^[A-Za-z0-9]+$/).max(SHEET_FIELD_LIMITS.setCode),
-  types: z.array(z.string().regex(/^[a-z_]+$/).max(SHEET_FIELD_LIMITS.typeLength)).max(SHEET_FIELD_LIMITS.types),
-  imageVersion: z.number().int().nonnegative().nullable(),
-  orientation: z.string().max(20).nullable(),
+  // body cap it can honour.
+  setCode: z.string().regex(/^[A-Za-z0-9-]+$/).max(SHEET_FIELD_LIMITS.setCode),
+  // slugify in attributes.ts emits [a-z0-9_], digits included, so a type code
+  // like level_2 must pass.
+  types: z.array(z.string().regex(/^[a-z0-9_]+$/).max(SHEET_FIELD_LIMITS.typeLength)).max(SHEET_FIELD_LIMITS.types),
+  imageVersion: z.number().int().nonnegative().max(SHEET_FIELD_LIMITS.imageVersion).nullable(),
+  // Allowlisted like the codes above rather than left as free text: only
+  // 'horizontal' is ever read, and an unbounded string here is bytes the body
+  // cap has to carry for nothing.
+  orientation: z.string().regex(/^[a-z]+$/).max(SHEET_FIELD_LIMITS.orientation).nullable(),
 })
 
 // What the render service takes. The body is the sheet's whole input, which is

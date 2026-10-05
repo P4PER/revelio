@@ -302,18 +302,71 @@ describe('DeckSheetRequest', () => {
 
   // setCode and types are domain codes, not prose: an allowlist keeps them one
   // byte per character, which is what lets the body cap be derived honestly.
-  // build_dataset.py derives a code for an unknown set name by stripping
-  // non-alphanumerics, so 'Lost Magic 2' gives LOSTMAGIC2 and a longer name
-  // gives more - hence the headroom.
-  it('allowlists the domain codes and leaves room for a generated set code', () => {
+  // The charsets come from the producers, not from today's values -
+  // transform_hpjson.py's slug() hyphenates an unmapped set name, and slugify
+  // in attributes.ts emits digits.
+  it('accepts every code its producers can emit', () => {
+    const L = SHEET_FIELD_LIMITS
     const ok = (over: Record<string, unknown>) =>
       DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, ...over }] }).success
-    expect(ok({ setCode: 'LOSTMAGIC2' })).toBe(true)
-    expect(ok({ setCode: 'A'.repeat(SHEET_FIELD_LIMITS.setCode) })).toBe(true)
-    expect(ok({ setCode: 'A'.repeat(SHEET_FIELD_LIMITS.setCode + 1) })).toBe(false)
-    expect(ok({ setCode: 'BS-1' })).toBe(false)
-    expect(ok({ types: ['creature', 'lesson'] })).toBe(true)
+    // slug(setName).upper() for a set missing from SET_CODES.
+    for (const setCode of ['BS', 'PROMO', 'LOST-MAGIC-2', 'CHAMBER-OF-SECRETS-EXPANSION']) {
+      expect(ok({ setCode }), setCode).toBe(true)
+    }
+    expect(ok({ setCode: 'A'.repeat(L.setCode + 1) })).toBe(false)
+    expect(ok({ setCode: 'has space' })).toBe(false)
+    // slugify output, digits included.
+    expect(ok({ types: ['creature', 'level_2'] })).toBe(true)
     expect(ok({ types: ['Creature'] })).toBe(false)
+    // Bounded so their serialized length is bounded.
+    expect(ok({ imageVersion: L.imageVersion })).toBe(true)
+    expect(ok({ imageVersion: L.imageVersion + 1 })).toBe(false)
+    expect(ok({ orientation: 'horizontal' })).toBe(true)
+    expect(ok({ orientation: null })).toBe(true)
+    expect(ok({ orientation: '../x' })).toBe(false)
+  })
+
+  // The service sizes its body cap on the premise that only the two names can
+  // carry a multi-byte character; every other field is allowlisted to ASCII and
+  // costs one byte per unit. Loosening any of these charsets silently breaks
+  // that arithmetic, so the premise is asserted rather than left in a comment.
+  it('keeps every field but the names to one byte per character', () => {
+    const wide = '\uD800'
+    const ok = (over: Record<string, unknown>) =>
+      DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, ...over }] }).success
+    expect(ok({ cardId: `a${wide}` })).toBe(false)
+    expect(ok({ setCode: `A${wide}` })).toBe(false)
+    expect(ok({ types: [`a${wide}`] })).toBe(false)
+    expect(ok({ orientation: `a${wide}` })).toBe(false)
+    // The names may: that is exactly what jsonBytesPerChar pays for.
+    expect(ok({ name: `a${wide}` })).toBe(true)
+  })
+
+  // Pango is fed these, but a zero-width joiner cannot grow a layout - and
+  // stripping it turns one family emoji into three people.
+  it('keeps the joiners that make one grapheme out of several', () => {
+    const parsed = DeckSheetRequest.parse({
+      ...body, deck: { ...body.deck, name: 'Team \u{1F468}\u200D\u{1F469}\u200D\u{1F467} Deck' },
+    })
+    expect(parsed.deck.name).toBe('Team \u{1F468}\u200D\u{1F469}\u200D\u{1F467} Deck')
+  })
+
+  // Slicing by string unit can cut a surrogate pair in half, and a lone
+  // surrogate is tofu on the sheet and a second cache key for one name.
+  it('never truncates into the middle of a character', () => {
+    const name = `${'x'.repeat(SHEET_FIELD_LIMITS.name - 1)}\u{1F600}trailing`
+    const parsed = DeckSheetRequest.parse({ ...body, deck: { ...body.deck, name } })
+    // With the u flag a valid pair is one code point outside this range, so
+    // this matches only an unpaired surrogate.
+    expect(/[\uD800-\uDFFF]/u.test(parsed.deck.name)).toBe(false)
+    expect(parsed.deck.name).toBe('x'.repeat(SHEET_FIELD_LIMITS.name - 1))
+  })
+
+  // trim ran before the slice, so the slice could put the space back.
+  it('leaves no trailing space behind the truncation', () => {
+    const name = `${'x'.repeat(SHEET_FIELD_LIMITS.name - 1)}   ${'y'.repeat(50)}`
+    const parsed = DeckSheetRequest.parse({ ...body, deck: { ...body.deck, name } })
+    expect(parsed.deck.name).toBe('x'.repeat(SHEET_FIELD_LIMITS.name - 1))
   })
 
   // layoutDeckSheet takes DeckSheetEntry[]; a parsed request must be usable as

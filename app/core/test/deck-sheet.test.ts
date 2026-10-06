@@ -232,8 +232,29 @@ describe('DeckSheetRequest', () => {
   })
 
   it('pickSheetEntries keeps exactly the painted fields', () => {
-    const view = { ...entry, cost: 4, damage: null, lesson: null, isOfficial: true, legality: 'legal' }
-    expect(pickSheetEntries([view])).toEqual([entry])
+    const view = { ...entry, artCropVersion: null, cost: 4, damage: null, lesson: null, isOfficial: true, legality: 'legal' }
+    expect(pickSheetEntries([view])).toEqual([{ ...entry, artCropVersion: null }])
+  })
+
+  // Only the banner reads it, and the banner only draws the character. Sending a
+  // version for every card would widen the request for bytes nothing paints.
+  it('pickSheetEntries sends the art crop for the character only', () => {
+    const character = { ...entry, zone: 'character' as const, artCropVersion: 1_783_899_940 }
+    const main = { ...entry, cardId: 'other', artCropVersion: 1_783_899_940 }
+    expect(pickSheetEntries([character, main]).map((e) => e.artCropVersion)).toEqual([1_783_899_940, null])
+  })
+
+  // Optional on the wire so a new service accepts an old caller's body, and
+  // bounded like imageVersion because it is the same kind of value.
+  it('defaults artCropVersion to null and bounds it like imageVersion', () => {
+    expect(DeckSheetRequest.parse(body).entries[0].artCropVersion).toBeNull()
+    const ok = (artCropVersion: unknown) =>
+      DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, artCropVersion }] }).success
+    expect(ok(1_783_899_940)).toBe(true)
+    expect(ok(null)).toBe(true)
+    expect(ok(-1)).toBe(false)
+    expect(ok(1.5)).toBe(false)
+    expect(ok(SHEET_FIELD_LIMITS.imageVersion + 1)).toBe(false)
   })
 
   // A deck name is user input and reaches Pango, which honours newlines: enough

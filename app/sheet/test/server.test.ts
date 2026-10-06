@@ -17,6 +17,7 @@ const body: DeckSheetRequest = {
     // outbound request and still exercise a real render.
     cardId: 'harry', zone: 'main', quantity: 2, name: 'Harry Potter',
     setCode: 'base', types: ['character'], imageVersion: null, orientation: null,
+    artCropVersion: null,
   }],
 }
 
@@ -150,7 +151,9 @@ describe('the render service', () => {
         zone: 'sideboard' as const, quantity: 999, name: wide,
         setCode: 'S'.repeat(L.setCode),
         types: Array.from({ length: L.types }, () => 't'.repeat(L.typeLength)),
-        imageVersion: L.imageVersion, orientation: 'h'.repeat(L.orientation),
+        imageVersion: L.imageVersion,
+        artCropVersion: L.imageVersion,
+        orientation: 'h'.repeat(L.orientation),
       })),
     }
     expect(DeckSheetRequest.safeParse(worst).success).toBe(true)

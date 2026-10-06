@@ -7,11 +7,12 @@ import { renderSheet } from './render'
 type RenderLog = Record<string, string | number | boolean>
 
 // The fixed half of a serialized entry: every key name, the zone, the quantity,
-// the bounded imageVersion and the punctuation around them, plus the comma that
-// joins it to the next. Measured at 124 against the contract's own maxima, not
-// against realistic values - sizing the fixed half from one and the variable
-// half from the other is how this was wrong before. The rest is headroom for
-// the contract gaining a field.
+// the bounded imageVersion and artCropVersion and the punctuation around them,
+// plus the comma that joins it to the next. Measured at 152 against the
+// contract's own maxima (124 before artCropVersion), not against realistic
+// values - sizing the fixed half from one and the variable half from the other
+// is how this was wrong before. The rest is headroom for the contract gaining a
+// field.
 const JSON_ENTRY_OVERHEAD = 180
 // The variable half comes from the contract's own ceilings, so widening one
 // there widens this by the same arithmetic.

@@ -62,6 +62,7 @@ describe('POST /api/deck-sheet', () => {
     expect(sent.entries).toEqual([{
       cardId: 'harry', zone: 'main', quantity: 2, name: 'Harry Potter',
       setCode: 'base', types: ['character'], imageVersion: 7, orientation: null,
+      artCropVersion: null,
     }])
     expect(sent.maxBytes).toBeUndefined()
   })

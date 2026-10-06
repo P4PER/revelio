@@ -13,7 +13,7 @@ afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks() })
 function entry(cardId: string, zone: DeckSheetEntry['zone'], types: string[], extra: Partial<DeckSheetEntry> = {}): DeckSheetEntry {
   return {
     cardId, zone, quantity: 2, types, name: `Card ${cardId}`, setCode: 'base',
-    imageVersion: 1, orientation: null, ...extra,
+    imageVersion: 1, orientation: null, artCropVersion: null, ...extra,
   }
 }
 

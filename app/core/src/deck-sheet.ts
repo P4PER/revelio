@@ -13,7 +13,7 @@ import type { DeckCardView } from './domain'
 
 export type DeckSheetEntry = Pick<
   DeckCardView,
-  'cardId' | 'zone' | 'quantity' | 'name' | 'setCode' | 'types' | 'imageVersion' | 'orientation'
+  'cardId' | 'zone' | 'quantity' | 'name' | 'setCode' | 'types' | 'imageVersion' | 'orientation' | 'artCropVersion'
 >
 
 // The locales the sheet renders. The request contract validates against this,
@@ -111,6 +111,11 @@ export const DeckSheetEntryInput = z.object({
   // like level_2 must pass.
   types: z.array(z.string().regex(/^[a-z0-9_]+$/).max(SHEET_FIELD_LIMITS.typeLength)).max(SHEET_FIELD_LIMITS.types),
   imageVersion: z.number().int().nonnegative().max(SHEET_FIELD_LIMITS.imageVersion).nullable(),
+  // The banner's art crop (images.ts artCropKey). Read on the character entry
+  // only; pickSheetEntries sends null everywhere else. Defaulted so a caller
+  // that predates the banner still sends a valid body, and bounded like
+  // imageVersion because it is the same unix-seconds mtime.
+  artCropVersion: z.number().int().nonnegative().max(SHEET_FIELD_LIMITS.imageVersion).nullable().default(null),
   // Allowlisted like the codes above rather than left as free text: only
   // 'horizontal' is ever read, and an unbounded string here is bytes the body
   // cap has to carry for nothing.
@@ -251,6 +256,7 @@ export function pickSheetEntries(views: DeckSheetEntry[]): DeckSheetRequest['ent
     cardId: v.cardId, zone: v.zone, quantity: v.quantity, name: v.name,
     setCode: v.setCode, types: v.types, imageVersion: v.imageVersion ?? null,
     orientation: v.orientation ?? null,
+    artCropVersion: v.zone === 'character' ? v.artCropVersion ?? null : null,
   }))
 }
 

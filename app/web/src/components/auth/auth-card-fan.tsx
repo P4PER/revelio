@@ -21,7 +21,8 @@ const REVELIO_SLOT = 'left-[118px] top-[14px] rotate-11 sm:left-[170px] sm:top-[
 // Decoration above the sign-in and register forms: two real cards and the
 // Revelio card. Hidden from assistive tech, not interactive, never animated.
 // The Revelio card reads the --dark-* tokens, which :root defines in every
-// theme, so it stays midnight and gold on the light theme too, like the app icon.
+// theme, so it is the same brand indigo and gold on both: indigo rather than
+// midnight, which on the dark theme is the page itself and lost the card's face.
 export function AuthCardFan() {
   return (
     <div
@@ -36,12 +37,12 @@ export function AuthCardFan() {
       ))}
       <div
         className={cn(
-          'absolute flex items-center justify-center rounded-md border-2 border-[var(--dark-primary)] bg-[var(--dark-background)] shadow-lg sm:items-start sm:rounded-lg sm:border-[3px] sm:pt-7',
+          'absolute flex items-center justify-center rounded-md border-2 border-[var(--dark-primary)] bg-[var(--dark-brand-indigo)] shadow-lg sm:items-start sm:rounded-lg sm:border-[3px] sm:pt-7',
           SIZE,
           REVELIO_SLOT,
         )}
       >
-        <Image src="/revelio-icon.svg" alt="" width={68} height={68} className="size-12 sm:size-[70px]" />
+        <Image src="/auth-fan/revelio-mark.svg" alt="" width={68} height={68} className="size-12 sm:size-[70px]" />
       </div>
     </div>
   )

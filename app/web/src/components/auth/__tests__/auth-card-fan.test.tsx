@@ -18,7 +18,7 @@ describe('AuthCardFan', () => {
     expect(srcs).toEqual([
       '/auth-fan/bs-111-wingardium-leviosa.webp',
       '/auth-fan/poa-71-lumos.webp',
-      '/revelio-icon.svg',
+      '/auth-fan/revelio-mark.svg',
     ])
   })
 

@@ -6,6 +6,18 @@ async function pixels(input: Buffer): Promise<Buffer> {
   return sharp(input).raw().toBuffer()
 }
 
+// First row with ink, and the row after the last one.
+async function inkRows(input: Buffer): Promise<[number, number]> {
+  const { data, info } = await sharp(input).raw().toBuffer({ resolveWithObject: true })
+  const rows: number[] = []
+  for (let y = 0; y < info.height; y++) {
+    for (let x = 0; x < info.width; x++) {
+      if (data[(y * info.width + x) * info.channels + 3] > 127) { rows.push(y); break }
+    }
+  }
+  return [rows[0], rows[rows.length - 1] + 1]
+}
+
 describe('renderText', () => {
   it('draws ink rather than an empty box', async () => {
     const out = await renderText('Gary Rattly Quest', { size: 32, color: '#ffffff' })
@@ -39,6 +51,28 @@ describe('renderText', () => {
     // Eight gaps between nine glyphs at 0.2em of 26px is ~42px wider.
     expect(tracked.width - plain.width).toBeGreaterThan(30)
   })
+
+  // Labels sit side by side and are placed by the top of their box. A box
+  // cropped to its ink put a word with an umlaut or no descender higher or
+  // lower than its neighbour, so every string of one style gets the same box,
+  // with the cap line and the baseline at the same rows in it.
+  it('gives every string of one style the same box and baseline', async () => {
+    const style = { size: 100, color: '#ffffff' }
+    const boxes = await Promise.all(
+      ['ZAUBER', 'GEGENSTÄNDE', 'Starting character', 'Fred & George Weasley', 'acme'].map((t) => renderText(t, style)),
+    )
+    for (const b of boxes) expect([b.height, b.capTop, b.baseline]).toEqual([boxes[0].height, boxes[0].capTop, boxes[0].baseline])
+    // Poppins' cap height is about 0.7em.
+    expect(boxes[0].baseline - boxes[0].capTop).toBeGreaterThan(65)
+    expect(boxes[0].baseline - boxes[0].capTop).toBeLessThan(76)
+  })
+
+  it('reports the rows its glyphs actually sit on', async () => {
+    const out = await renderText('H', { size: 100, color: '#ffffff' })
+    const [top, bottom] = await inkRows(out.input)
+    expect(Math.abs(top - out.capTop)).toBeLessThanOrEqual(1)
+    expect(Math.abs(bottom - out.baseline)).toBeLessThanOrEqual(1)
+  })
 })
 
 describe('fitText', () => {
@@ -53,4 +87,5 @@ describe('fitText', () => {
     expect(out.width).toBeLessThanOrEqual(120)
     expect(out.text.length).toBeGreaterThan(1)
   })
+
 })

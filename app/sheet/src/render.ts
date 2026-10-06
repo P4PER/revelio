@@ -262,13 +262,13 @@ function decorSvg(geom: SheetGeometry, layout: DeckSheetLayout, s: number, decor
   ])
 }
 
-// Text overlays are positioned by their box, so a baseline or a "middle" from
-// the Canvas painter becomes a top-left here.
+// Centred on its cap height rather than its box, which also holds room for
+// accents and descenders the string may not have.
 function centered(rendered: RenderedText, centerX: number, centerY: number): OverlayOptions {
   return {
     input: rendered.input,
     left: Math.round(centerX - rendered.width / 2),
-    top: Math.round(centerY - rendered.height / 2),
+    top: Math.round(centerY - (rendered.capTop + rendered.baseline) / 2),
   }
 }
 
@@ -479,7 +479,13 @@ async function textOverlays(geom: SheetGeometry, layout: DeckSheetLayout, s: num
   const overlays: OverlayOptions[] = []
   const decor: Decor = { pills: [], swatches: [], rules: [] }
   const style = (size: number, color: string, tracking?: number): TextStyle => ({ size: size * s, color, tracking })
-  const at = (t: RenderedText, left: number, top: number) => { overlays.push({ input: t.input, left: Math.round(left), top: Math.round(top) }); return t }
+  // Placed by the cap line, `capY`: every string of one style has the same
+  // box, so strings placed at one capY share a baseline whatever their glyphs.
+  const at = (t: RenderedText, left: number, capY: number) => {
+    overlays.push({ input: t.input, left: Math.round(left), top: Math.round(capY - t.capTop) })
+    return t
+  }
+  const capHeight = (t: RenderedText) => t.baseline - t.capTop
 
   // Banner text column.
   const { textX, textWidth } = geom.banner
@@ -503,7 +509,7 @@ async function textOverlays(geom: SheetGeometry, layout: DeckSheetLayout, s: num
     const count = await renderText(String(m.count), style(D.fontSize.legend, C.parchment))
     const itemW = 14 * s + label.width + 4 * s + count.width
     if (cursor + itemW > right) break
-    decor.swatches.push({ x: cursor, y: legendTop + Math.round((label.height - 8 * s) / 2), w: 8 * s, h: 8 * s, color: m.color })
+    decor.swatches.push({ x: cursor, y: legendTop + Math.round((capHeight(label) - 8 * s) / 2), w: 8 * s, h: 8 * s, color: m.color })
     at(label, cursor + 14 * s, legendTop)
     at(count, cursor + 14 * s + label.width + 4 * s, legendTop)
     cursor += itemW + 20 * s
@@ -515,7 +521,7 @@ async function textOverlays(geom: SheetGeometry, layout: DeckSheetLayout, s: num
     const title = at(await fitText(zone.title, style(D.fontSize.zone, C.parchment, D.tracking.zone), right - px(D.padding, s)), px(D.padding, s), top)
     const count = at(await renderText(String(zone.count), style(D.fontSize.zone, C.gold)), px(D.padding, s) + title.width + 10 * s, top)
     const ruleLeft = px(D.padding, s) + title.width + 10 * s + count.width + 14 * s
-    if (ruleLeft < right) decor.rules.push({ x: ruleLeft, y: top + Math.round(title.height / 2), w: right - ruleLeft, h: Math.max(1, Math.round(s)) })
+    if (ruleLeft < right) decor.rules.push({ x: ruleLeft, y: top + Math.round(capHeight(title) / 2), w: right - ruleLeft, h: Math.max(1, Math.round(s)) })
 
     for (const group of zone.groups) {
       if (group.title !== null) {
@@ -538,8 +544,11 @@ async function textOverlays(geom: SheetGeometry, layout: DeckSheetLayout, s: num
         const pill = { x: pillRight - pillW, y: pillBottom - pillH, w: pillW, h: pillH }
         decor.pills.push(pill)
         const textLeft = pill.x + (pillW - contentW) / 2
-        at(sign, textLeft, pill.y + (pillH - sign.height) / 2 + s)
-        at(num, textLeft + sign.width + s, pill.y + (pillH - num.height) / 2)
+        // The count's cap height is centred in the pill and the sign shares
+        // its baseline, as "x4" set in one line would.
+        const numCap = pill.y + (pillH - capHeight(num)) / 2
+        at(num, textLeft + sign.width + s, numCap)
+        at(sign, textLeft, numCap + capHeight(num) - capHeight(sign))
       }
     }
   }

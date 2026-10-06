@@ -204,6 +204,10 @@ themselves are about 745 px wide, so a crop of the art region cannot get much bi
   count at 14 px bold. It is 26 px tall, and its width follows the count, up to 999.
   `renderText` draws the text and the pill grows to fit it. This replaces the centred
   gold disc.
+- **Text boxes.** Every string of one style is drawn in the same box, so its cap line and
+  baseline sit at fixed rows whatever its glyphs, and strings side by side share a
+  baseline. A box cropped to the ink put a word with an umlaut or without a descender a
+  pixel or two off its neighbour.
 - **Group label.** The type in uppercase with 0.14em tracking, muted, followed by the count
   in gold. The Lessons label uses light gold (`#F6D58B`) instead of muted.
 - **Zone header.** "MAIN DECK 76" / "SIDEBOARD 8" in parchment, with the count in gold

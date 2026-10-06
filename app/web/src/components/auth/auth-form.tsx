@@ -180,17 +180,17 @@ export function AuthForm({
                 {t.rich('termsNotice', {
                   button: t('register'),
                   terms: (chunks) => (
-                    <Link href="/terms" target="_blank" className="text-foreground underline">
+                    <Link href="/terms" target="_blank" className="text-primary-ink underline underline-offset-2">
                       {chunks}
                     </Link>
                   ),
                   rules: (chunks) => (
-                    <Link href="/terms#acceptable-use" target="_blank" className="text-foreground underline">
+                    <Link href="/terms#acceptable-use" target="_blank" className="text-primary-ink underline underline-offset-2">
                       {chunks}
                     </Link>
                   ),
                   privacy: (chunks) => (
-                    <Link href="/privacy" target="_blank" className="text-foreground underline">
+                    <Link href="/privacy" target="_blank" className="text-primary-ink underline underline-offset-2">
                       {chunks}
                     </Link>
                   ),
@@ -254,12 +254,12 @@ export function AuthForm({
           {register ? (
             <>
               {t('haveAccount')}{' '}
-              <Link href={loginHref(redirectTo)} className="text-foreground underline">{t('signIn')}</Link>
+              <Link href={loginHref(redirectTo)} className="text-primary-ink underline underline-offset-2">{t('signIn')}</Link>
             </>
           ) : (
             <>
               {t('noAccount')}{' '}
-              <Link href={registerHref(redirectTo)} className="text-foreground underline">{t('register')}</Link>
+              <Link href={registerHref(redirectTo)} className="text-primary-ink underline underline-offset-2">{t('register')}</Link>
             </>
           )}
         </p>

@@ -5,11 +5,10 @@ import { groupMainEntries, OTHER_GROUP } from './deck-groups'
 import type { DeckCardView } from './domain'
 
 // The deck sheet: the picture of a deck that the web builder exports as a PNG and
-// the Discord bot posts for /deck. This module is the shared, pure half - grouping,
-// geometry and colours - and the request contract the render service takes. The
+// the Discord bot posts for /deck. This module is the shared, pure half - banner,
+// zones and geometry - and the request contract the render service takes. The
 // bot owns no painter any more: it asks @revelio/sheet (sheet/src/render.ts), which
-// is the one process that paints a deck. Geometry is in CSS pixels; the painter
-// multiplies by DECK_SHEET.scale.
+// is the one process that paints a deck.
 
 export type DeckSheetEntry = Pick<
   DeckCardView,
@@ -148,78 +147,115 @@ export type DeckSheetCard = {
   orientation: string | null
 }
 
-export type DeckSheetSection = {
-  title: string
-  color: string
-  cards: DeckSheetCard[]
+// One segment of the banner's makeup bar and its legend entry.
+export type DeckSheetMakeup = { key: string; label: string; count: number; color: string }
+
+// The hero banner. `character` is null for a deck without one; its
+// artCropVersion is null when the card has no crop, which the painter answers
+// with the glow fallback rather than a different layout.
+export type DeckSheetBanner = {
+  name: string
+  eyebrow: string
+  character: { card: DeckSheetCard; label: string; artCropVersion: number | null } | null
+  makeup: DeckSheetMakeup[]
 }
 
-export type DeckSheetLayout = {
-  title: string
-  sections: DeckSheetSection[]
-}
+// `title` is null for the sideboard's single group: the zone header names it.
+export type DeckSheetGroup = { key: string; title: string | null; count: number; color: string; cards: DeckSheetCard[] }
+export type DeckSheetZone = { title: string; count: number; groups: DeckSheetGroup[] }
+export type DeckSheetLayout = { banner: DeckSheetBanner; zones: DeckSheetZone[] }
 
-// Localized labels for the sheet, resolved by the caller from its own catalog
-// (next-intl on the web, the bot's i18n in Discord), so this module needs
-// neither. `group` maps a deck-groups type key (creature, spell, ..., or
+// Localized labels for the sheet, resolved by sheetLabels from core's own
+// catalog. `group` maps a deck-groups type key (creature, spell, ..., or
 // OTHER_GROUP) to its localized plural label.
 export type DeckSheetLabels = {
   formatLabel: Record<DeckFormat, string>
-  character: string
   mainDeck: string
   sideboard: string
+  cards: string
+  startingCharacter: string
   group: (key: string) => string
 }
 
-// `x`/`y` are the top-left of the drawn card box; `w`/`h` are its size - portrait
-// cards are cardWidth x cardHeight, horizontal cards the same card turned upright,
-// cardHeight x cardWidth. Cards sit in rows of uniform cardHeight; horizontal cards
-// are centered vertically within that row.
+export type Rect = { x: number; y: number; w: number; h: number }
+// `x`/`y` are the top-left of the drawn card box; `w`/`h` its size - portrait
+// cards are cardWidth x cardHeight, horizontal cards the same card turned
+// upright. Cards sit on the bottom edge of their row.
 export type PositionedCard = { card: DeckSheetCard; x: number; y: number; w: number; h: number }
-export type PositionedSection = { title: string; color: string; headerY: number; cards: PositionedCard[] }
-export type SheetGeometry = { width: number; height: number; sections: PositionedSection[] }
+// `x` is the group's left edge and `labelY` the top of its label band (or of its
+// cards, for an untitled group).
+export type PositionedGroup = { key: string; title: string | null; count: number; color: string; x: number; labelY: number; cards: PositionedCard[] }
+export type PositionedZone = { title: string; count: number; headerY: number; groups: PositionedGroup[] }
+export type PositionedBanner = { art: Rect; card: PositionedCard | null; textX: number; textWidth: number; bar: Rect; legendY: number }
+export type SheetGeometry = { width: number; height: number; banner: PositionedBanner; zones: PositionedZone[]; logo: Rect }
 
 export const DECK_SHEET_COLORS = {
   background: '#13122A',
   panel: '#1C1838',
   border: '#2E2A50',
   gold: '#E8B23A',
+  goldLight: '#F6D58B',
   mutedAccent: '#8C88A8',
   parchment: '#FBF3DC',
-  badgeText: '#1A1730',
+  // Makeup bar and legend swatch per deck-groups key. Fixed so a type is the
+  // same colour on every sheet; Lessons, the resource base, are the one gold.
+  group: {
+    creature: '#6E66C9',
+    spell: '#8C88A8',
+    item: '#4B4486',
+    adventure: '#B9B3D9',
+    location: '#5A5390',
+    event: '#9A93D6',
+    match: '#3B3194',
+    character: '#7D78A6',
+    [OTHER_GROUP]: '#57537A',
+    lesson: '#E8B23A',
+  } as Record<string, string>,
 } as const
 
+// Layout pixels; the painter multiplies by DECK_SHEET.scale (or less, inside
+// the pixel budget). Values are spec section 3 and 4 and mock B.
 export const DECK_SHEET = {
   // Device pixels per layout pixel. The render service lowers it for a sheet
   // that would pass its pixel budget (sheetScale in sheet/src/render.ts).
   scale: 2,
-  width: 980,
-  padding: 36,
-  // Midnight margin around the card-coloured panel.
-  frame: 8,
-  titleHeight: 48,
-  // Baseline of the title, measured from the top padding.
-  titleBaseline: 22,
-  sectionHeaderHeight: 30,
-  swatchSize: 12,
+  width: 1440,
+  padding: 40,
+  bannerHeight: 320,
+  // The art area is right-aligned and full height. focusY is how much of the
+  // crop's spare height is cut from the top: faces sit high in the crops.
+  art: { width: 880, focusY: 0.3 },
+  heroCard: { x: 40, y: 40, w: 224, h: 160 },
+  text: { xWithCard: 290, widthWithCard: 560, widthAlone: 1000, eyebrowY: 58, titleY: 84, subtitleY: 146 },
+  bar: { y: 254, height: 10, gap: 2, legendY: 274 },
+  zoneGap: 24,
+  zoneHeaderHeight: 44,
+  groupLabelHeight: 22,
+  // Also the room above a row for the stacked-copy outlines (two x stackOffset).
+  groupLabelGap: 10,
+  groupGapX: 36,
+  groupGapY: 24,
   // Portrait card box, 5:7.
-  cardWidth: 132,
-  cardHeight: 185,
-  // Horizontal gap between cards.
-  gridGap: 12,
-  // Vertical gap between rows - leaves room for the badge that hangs below each card.
-  rowGap: 26,
-  sectionGap: 16,
-  badgeRadius: 14,
-  fontSize: { title: 28, section: 16, placeholder: 14, badge: 15 },
+  cardWidth: 112,
+  cardHeight: 157,
+  cardRadius: 6,
+  cardGapX: 16,
+  // Leaves room for the chip that overhangs each card's bottom edge.
+  cardGapY: 20,
+  stackOffset: 5,
+  chip: { height: 26, minWidth: 30, padX: 7, overhangX: 6, overhangY: 8 },
+  footerHeight: 72,
+  // logos/revelio-logo-dark.svg is 262 x 78.
+  logo: { height: 34, aspect: 262 / 78 },
+  fontSize: { eyebrow: 12, title: 44, subtitle: 15, legend: 12, zone: 13, group: 12, chipSign: 11, chip: 14, placeholder: 12 },
+  tracking: { eyebrow: 0.2, zone: 0.2, group: 0.14 },
 } as const
 
 const CONTENT_W = DECK_SHEET.width - DECK_SHEET.padding * 2
+const CONTENT_RIGHT = DECK_SHEET.padding + CONTENT_W
 
-// Swatch color: gold for the Lessons resource base, neutral otherwise - matching
-// the deck view's group marker (var(--primary) vs var(--muted-foreground)).
 function groupColor(key: string): string {
-  return key === 'lesson' ? DECK_SHEET_COLORS.gold : DECK_SHEET_COLORS.mutedAccent
+  return DECK_SHEET_COLORS.group[key] ?? DECK_SHEET_COLORS.group[OTHER_GROUP]
 }
 
 function cardCell(v: DeckSheetEntry): DeckSheetCard {
@@ -238,6 +274,73 @@ function cardBox(card: DeckSheetCard): { w: number; h: number } {
   return card.orientation === 'horizontal'
     ? { w: DECK_SHEET.cardHeight, h: DECK_SHEET.cardWidth }
     : { w: DECK_SHEET.cardWidth, h: DECK_SHEET.cardHeight }
+}
+
+function naturalWidth(cards: DeckSheetCard[]): number {
+  return cards.reduce((w, c) => w + cardBox(c).w, 0) + DECK_SHEET.cardGapX * Math.max(0, cards.length - 1)
+}
+
+const sum = (list: { quantity: number }[]) => list.reduce((n, e) => n + e.quantity, 0)
+
+// One group's cards from (left, top), wrapping at the content's right edge. A
+// row is as tall as its tallest card and cards sit on its bottom edge, so a
+// row of landscape cards does not keep a portrait row's empty band.
+function placeCards(cards: DeckSheetCard[], left: number, top: number): { cards: PositionedCard[]; width: number; height: number } {
+  if (!cards.length) return { cards: [], width: 0, height: 0 }
+  const rows: { card: DeckSheetCard; x: number; w: number; h: number }[][] = [[]]
+  let x = left
+  let width = 0
+  for (const card of cards) {
+    const { w, h } = cardBox(card)
+    if (x > left && x + w > CONTENT_RIGHT) { rows.push([]); x = left }
+    rows[rows.length - 1].push({ card, x, w, h })
+    width = Math.max(width, x + w - left)
+    x += w + DECK_SHEET.cardGapX
+  }
+  const placed: PositionedCard[] = []
+  let y = top
+  for (const row of rows) {
+    const rowH = Math.max(...row.map((c) => c.h))
+    for (const c of row) placed.push({ card: c.card, x: c.x, y: y + rowH - c.h, w: c.w, h: c.h })
+    y += rowH + DECK_SHEET.cardGapY
+  }
+  return { cards: placed, width, height: y - DECK_SHEET.cardGapY - top }
+}
+
+function bannerGeometry(layout: DeckSheetLayout): PositionedBanner {
+  const { width, padding, bannerHeight, art, heroCard, text, bar } = DECK_SHEET
+  const character = layout.banner.character
+  return {
+    art: { x: width - art.width, y: 0, w: art.width, h: bannerHeight },
+    card: character ? { card: character.card, ...heroCard } : null,
+    textX: character ? text.xWithCard : padding,
+    textWidth: character ? text.widthWithCard : text.widthAlone,
+    bar: { x: padding, y: bar.y, w: CONTENT_W, h: bar.height },
+    legendY: bar.legendY,
+  }
+}
+
+/**
+ * The sheet's labels for one locale, resolved from core's own catalog. The
+ * render service calls this instead of taking labels in its request: the sheet
+ * is cached on its input, and translations in that input would mean a label
+ * change in one caller's catalog silently renders a different picture.
+ *
+ * Record<DeckFormat, string> is what makes a new format a type error here
+ * rather than a missing title at render time.
+ */
+export function sheetLabels(locale: string): DeckSheetLabels {
+  return {
+    formatLabel: {
+      classic: attrLabel('formats', 'classic', locale),
+      revival: attrLabel('formats', 'revival', locale),
+    },
+    mainDeck: attrLabel('deckSheet', 'mainDeck', locale),
+    sideboard: attrLabel('deckSheet', 'sideboard', locale),
+    cards: attrLabel('deckSheet', 'cards', locale),
+    startingCharacter: attrLabel('deckSheet', 'startingCharacter', locale),
+    group: (key) => attrLabel('deckGroups', key === OTHER_GROUP ? 'other' : key, locale),
+  }
 }
 
 /**
@@ -261,88 +364,111 @@ export function pickSheetEntries(views: DeckSheetEntry[]): DeckSheetRequest['ent
 }
 
 /**
- * The sheet's labels for one locale, resolved from core's own catalog. The
- * render service calls this instead of taking labels in its request: the sheet
- * is cached on its input, and translations in that input would mean a label
- * change in one caller's catalog silently renders a different picture.
- *
- * Record<DeckFormat, string> is what makes a new format a type error here
- * rather than a missing title at render time.
+ * Splits a deck into the banner and its zones. The character appears only in
+ * the banner: it is not one of the main deck's cards, so neither the zone
+ * counts nor the makeup bar include it. Main-zone groups reuse the deck view's
+ * type grouping (groupMainEntries), so the sheet matches the builder, with
+ * Lessons last. Cards keep the order they arrive in within a group.
  */
-export function sheetLabels(locale: string): DeckSheetLabels {
-  return {
-    formatLabel: {
-      classic: attrLabel('formats', 'classic', locale),
-      revival: attrLabel('formats', 'revival', locale),
-    },
-    character: attrLabel('deckSheet', 'character', locale),
-    mainDeck: attrLabel('deckSheet', 'mainDeck', locale),
-    sideboard: attrLabel('deckSheet', 'sideboard', locale),
-    group: (key) => attrLabel('deckGroups', key === OTHER_GROUP ? 'other' : key, locale),
-  }
-}
-
-// Groups a deck into sheet sections. Reuses the deck view's type-based main-zone
-// grouping (groupMainEntries) so the sheet matches the builder - Creatures /
-// Spells / Items / ... with Lessons pinned last. Cards keep the order they arrive
-// in within a section, so the caller decides that order.
 export function layoutDeckSheet(
   deck: { name: string; format: DeckFormat },
   entries: DeckSheetEntry[],
   labels: DeckSheetLabels,
 ): DeckSheetLayout {
-  const title = `${deck.name} (${labels.formatLabel[deck.format]})`
-  const sections: DeckSheetSection[] = []
-
-  const character = entries.find((e) => e.zone === 'character')
-  if (character) sections.push({ title: labels.character, color: DECK_SHEET_COLORS.gold, cards: [cardCell(character)] })
-
+  const characterEntry = entries.find((e) => e.zone === 'character')
   const main = entries.filter((e) => e.zone === 'main')
-  if (main.length) {
-    const mainCount = main.reduce((n, e) => n + e.quantity, 0)
-    sections.push({ title: `${labels.mainDeck} (${mainCount})`, color: DECK_SHEET_COLORS.gold, cards: [] })
-    for (const [key, list] of groupMainEntries(main)) {
-      const count = list.reduce((n, e) => n + e.quantity, 0)
-      sections.push({ title: `${labels.group(key)} (${count})`, color: groupColor(key), cards: list.map(cardCell) })
-    }
-  }
-
   const sideboard = entries.filter((e) => e.zone === 'sideboard')
+  const mainCount = sum(main)
+
+  const groups: DeckSheetGroup[] = [...groupMainEntries(main)].map(([key, list]) => ({
+    key, title: labels.group(key).toUpperCase(), count: sum(list), color: groupColor(key), cards: list.map(cardCell),
+  }))
+
+  const zones: DeckSheetZone[] = []
+  if (main.length) zones.push({ title: labels.mainDeck.toUpperCase(), count: mainCount, groups })
   if (sideboard.length) {
-    const sideCount = sideboard.reduce((n, e) => n + e.quantity, 0)
-    sections.push({ title: `${labels.sideboard} (${sideCount})`, color: DECK_SHEET_COLORS.gold, cards: sideboard.map(cardCell) })
+    zones.push({
+      title: labels.sideboard.toUpperCase(),
+      count: sum(sideboard),
+      groups: [{ key: 'sideboard', title: null, count: sum(sideboard), color: groupColor(OTHER_GROUP), cards: sideboard.map(cardCell) }],
+    })
   }
 
-  return { title, sections }
+  return {
+    banner: {
+      name: deck.name,
+      // A separator instead of "Classic deck", so no locale has to inflect the
+      // format name.
+      eyebrow: `${labels.formatLabel[deck.format]} · ${mainCount} ${labels.cards}`.toUpperCase(),
+      character: characterEntry
+        ? { card: cardCell(characterEntry), label: labels.startingCharacter, artCropVersion: characterEntry.artCropVersion ?? null }
+        : null,
+      makeup: groups.map((g) => ({ key: g.key, label: labels.group(g.key), count: g.count, color: g.color })),
+    },
+    zones,
+  }
 }
 
-// Positions each card into a flowing, wrapping grid and computes the total sheet
-// height. Content starts below the title; each section contributes a header plus
-// its wrapped rows of cards; a card-less section (e.g. the "Main deck (N)"
-// heading) contributes only its header. Cards flow left-to-right by their actual
-// width (portrait and landscape cards pack tightly with a uniform gap), wrapping
-// when the next card would overflow the content width.
+/**
+ * Positions everything on the sheet. Below the banner, each zone is a header
+ * followed by its groups packed left to right as inline blocks: a group that
+ * does not fit what is left of the line starts a new one, a group wider than
+ * the content takes a line of its own and wraps inside it, and a line is as
+ * tall as its tallest group. Greedy and order-keeping on purpose - the group
+ * order is information (Lessons last), which outranks a few pixels of gap.
+ */
 export function computeSheetGeometry(layout: DeckSheetLayout): SheetGeometry {
-  const { padding, titleHeight, sectionHeaderHeight, cardHeight, gridGap, rowGap, sectionGap } = DECK_SHEET
-  const sections: PositionedSection[] = []
-  let y = padding + titleHeight
-  for (const s of layout.sections) {
+  const D = DECK_SHEET
+  const zones: PositionedZone[] = []
+  let y = D.bannerHeight + D.zoneGap
+  for (const zone of layout.zones) {
     const headerY = y
-    const gridTop = y + sectionHeaderHeight
-    let x = padding
-    let rows = s.cards.length ? 1 : 0
-    const cards: PositionedCard[] = s.cards.map((card) => {
-      const { w, h } = cardBox(card)
-      if (x > padding && x + w > padding + CONTENT_W) { x = padding; rows += 1 }
-      const rowTop = gridTop + (rows - 1) * (cardHeight + rowGap)
-      const pc: PositionedCard = { card, x, y: rowTop + Math.round((cardHeight - h) / 2), w, h }
-      x += w + gridGap
-      return pc
-    })
-    const gridH = rows > 0 ? rows * cardHeight + (rows - 1) * rowGap : 0
-    sections.push({ title: s.title, color: s.color, headerY, cards })
-    y = gridTop + gridH + sectionGap
+    let lineTop = y + D.zoneHeaderHeight
+    let lineH = 0
+    let x = D.padding
+    const groups: PositionedGroup[] = []
+    for (const g of zone.groups) {
+      if (x > D.padding && x + naturalWidth(g.cards) > CONTENT_RIGHT) {
+        x = D.padding
+        lineTop += lineH + D.groupGapY
+        lineH = 0
+      }
+      const cardsTop = lineTop + (g.title === null ? 0 : D.groupLabelHeight) + D.groupLabelGap
+      const placed = placeCards(g.cards, x, cardsTop)
+      groups.push({ key: g.key, title: g.title, count: g.count, color: g.color, x, labelY: lineTop, cards: placed.cards })
+      lineH = Math.max(lineH, cardsTop + placed.height - lineTop)
+      x += placed.width + D.groupGapX
+    }
+    zones.push({ title: zone.title, count: zone.count, headerY, groups })
+    y = lineTop + lineH + D.zoneGap
   }
-  const height = y - sectionGap + padding
-  return { width: DECK_SHEET.width, height, sections }
+  const height = (zones.length ? y - D.zoneGap : D.bannerHeight) + D.footerHeight
+  const logoW = Math.round(D.logo.height * D.logo.aspect)
+  return {
+    width: D.width,
+    height,
+    banner: bannerGeometry(layout),
+    zones,
+    logo: { x: D.width - D.padding - logoW, y: height - D.footerHeight / 2 - D.logo.height / 2, w: logoW, h: D.logo.height },
+  }
+}
+
+/**
+ * The makeup bar's segments: one per group, sized by count, 2px apart. Widths
+ * are rounded and the last segment takes the remainder, so the bar always ends
+ * flush with the content edge whatever the rounding did.
+ */
+export function makeupSegments(makeup: DeckSheetMakeup[], bar: Rect): (Rect & { color: string })[] {
+  const total = makeup.reduce((n, m) => n + m.count, 0)
+  if (!total) return []
+  const free = bar.w - DECK_SHEET.bar.gap * (makeup.length - 1)
+  let x = bar.x
+  let used = 0
+  return makeup.map((m, i) => {
+    const w = i === makeup.length - 1 ? free - used : Math.round((m.count / total) * free)
+    const segment = { x, y: bar.y, w, h: bar.h, color: m.color }
+    x += w + DECK_SHEET.bar.gap
+    used += w
+    return segment
+  })
 }

@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import type { DeckCardView } from '../src/domain.js'
-import { DECK_SHEET, layoutDeckSheet, computeSheetGeometry, type DeckSheetCard } from '../src/deck-sheet.js'
+import {
+  DECK_SHEET, DECK_SHEET_COLORS, layoutDeckSheet, computeSheetGeometry, makeupSegments,
+  type DeckSheetCard, type DeckSheetLayout,
+} from '../src/deck-sheet.js'
 import { OTHER_GROUP, SHEET_LOCALES, sheetLabels } from '../src/index.js'
 import { DeckSheetRequest, MAX_SHEET_ENTRIES, SHEET_FIELD_LIMITS, pickSheetEntries, type DeckSheetEntry } from '../src/index.js'
 
@@ -8,7 +11,7 @@ const harry: DeckCardView = {
   cardId: 'bs-harry', zone: 'character', quantity: 1, types: ['character'],
   name: 'Harry Potter', cost: null, damage: null, setCode: 'BS', number: '1', lesson: null,
   isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: true,
-  imageVersion: 100, orientation: 'horizontal', artCropVersion: null,
+  imageVersion: 100, orientation: 'horizontal', artCropVersion: 1_783_899_940,
 }
 const accio: DeckCardView = {
   cardId: 'bs-accio', zone: 'main', quantity: 4, types: ['spell'],
@@ -37,133 +40,187 @@ const sideCard: DeckCardView = {
 
 const labels = {
   formatLabel: { classic: 'Classic', revival: 'Revival' },
-  character: 'Character',
   mainDeck: 'Main deck',
   sideboard: 'Sideboard',
+  cards: 'cards',
+  startingCharacter: 'Starting character',
   group: (k: string): string => ({ spell: 'Spells', item: 'Items', lesson: 'Lessons' } as Record<string, string>)[k] ?? k,
 }
 
-it('renders a title from deck name and format label', () => {
-  const { title } = layoutDeckSheet({ name: 'My Deck', format: 'revival' }, [], labels)
-  expect(title).toBe('My Deck (Revival)')
+const card = (v: DeckCardView) => ({
+  cardId: v.cardId, quantity: v.quantity, name: v.name, setCode: v.setCode,
+  imageVersion: v.imageVersion, orientation: v.orientation ?? null,
 })
+const full = [harry, accio, charmsLesson, item, sideCard]
 
-it('produces no sections for an empty deck', () => {
-  const { sections } = layoutDeckSheet({ name: 'Empty', format: 'classic' }, [], labels)
-  expect(sections).toEqual([])
-})
+describe('layoutDeckSheet', () => {
+  it('puts the character in the banner and in no zone', () => {
+    const { banner, zones } = layoutDeckSheet({ name: 'D', format: 'revival' }, full, labels)
+    expect(banner.character).toEqual({ card: card(harry), label: 'Starting character', artCropVersion: 1_783_899_940 })
+    const ids = zones.flatMap((z) => z.groups.flatMap((g) => g.cards.map((c) => c.cardId)))
+    expect(ids).not.toContain('bs-harry')
+  })
 
-it('adds a Character section holding the character card cell', () => {
-  const { sections } = layoutDeckSheet({ name: 'D', format: 'revival' }, [harry], labels)
-  expect(sections[0]).toEqual({
-    title: 'Character', color: '#E8B23A',
-    cards: [{ cardId: 'bs-harry', quantity: 1, name: 'Harry Potter', setCode: 'BS', imageVersion: 100, orientation: 'horizontal' }],
+  it('names the deck without the format suffix and counts the main deck in the eyebrow', () => {
+    const { banner } = layoutDeckSheet({ name: 'Charms Aggro', format: 'revival' }, full, labels)
+    expect(banner.name).toBe('Charms Aggro')
+    // The character and the sideboard are not part of the main deck's 12.
+    expect(banner.eyebrow).toBe('REVIVAL · 12 CARDS')
+  })
+
+  it('builds the makeup from the main zone only, in group order', () => {
+    const { banner } = layoutDeckSheet({ name: 'D', format: 'classic' }, full, labels)
+    expect(banner.makeup).toEqual([
+      { key: 'spell', label: 'Spells', count: 4, color: DECK_SHEET_COLORS.group.spell },
+      { key: 'item', label: 'Items', count: 2, color: DECK_SHEET_COLORS.group.item },
+      { key: 'lesson', label: 'Lessons', count: 6, color: DECK_SHEET_COLORS.group.lesson },
+    ])
+  })
+
+  it('groups the main zone by type and lists the sideboard as one untitled group', () => {
+    const { zones } = layoutDeckSheet({ name: 'D', format: 'classic' }, full, labels)
+    expect(zones).toEqual([
+      {
+        title: 'MAIN DECK', count: 12, groups: [
+          { key: 'spell', title: 'SPELLS', count: 4, color: DECK_SHEET_COLORS.group.spell, cards: [card(accio)] },
+          { key: 'item', title: 'ITEMS', count: 2, color: DECK_SHEET_COLORS.group.item, cards: [card(item)] },
+          { key: 'lesson', title: 'LESSONS', count: 6, color: DECK_SHEET_COLORS.group.lesson, cards: [card(charmsLesson)] },
+        ],
+      },
+      {
+        title: 'SIDEBOARD', count: 1, groups: [
+          { key: 'sideboard', title: null, count: 1, color: DECK_SHEET_COLORS.group[OTHER_GROUP], cards: [card(sideCard)] },
+        ],
+      },
+    ])
+  })
+
+  it('has no zones and no makeup for a deck that is only a character', () => {
+    const { banner, zones } = layoutDeckSheet({ name: 'D', format: 'classic' }, [harry], labels)
+    expect(zones).toEqual([])
+    expect(banner.makeup).toEqual([])
+    expect(banner.eyebrow).toBe('CLASSIC · 0 CARDS')
+  })
+
+  it('has no character when the deck has none', () => {
+    expect(layoutDeckSheet({ name: 'D', format: 'classic' }, [accio], labels).banner.character).toBeNull()
   })
 })
 
-it('groups the main zone into a heading plus lesson/type buckets, and lists the sideboard flat', () => {
-  const { sections } = layoutDeckSheet(
-    { name: 'D', format: 'revival' },
-    [harry, accio, charmsLesson, item, sideCard],
-    labels,
-  )
-
-  expect(sections).toEqual([
-    { title: 'Character', color: '#E8B23A', cards: [{ cardId: 'bs-harry', quantity: 1, name: 'Harry Potter', setCode: 'BS', imageVersion: 100, orientation: 'horizontal' }] },
-    { title: 'Main deck (12)', color: '#E8B23A', cards: [] },
-    { title: 'Spells (4)', color: '#8C88A8', cards: [{ cardId: 'bs-accio', quantity: 4, name: 'Accio', setCode: 'BS', imageVersion: 101, orientation: null }] },
-    { title: 'Items (2)', color: '#8C88A8', cards: [{ cardId: 'bs-nimbus', quantity: 2, name: 'Nimbus Two Thousand', setCode: 'BS', imageVersion: null, orientation: null }] },
-    { title: 'Lessons (6)', color: '#E8B23A', cards: [{ cardId: 'bs-charms-class', quantity: 6, name: 'Charms Class', setCode: 'BS', imageVersion: 102, orientation: null }] },
-    { title: 'Sideboard (1)', color: '#E8B23A', cards: [{ cardId: 'bs-dobby', quantity: 1, name: 'Dobby', setCode: 'BS', imageVersion: 103, orientation: null }] },
-  ])
+const p = (id: string, quantity = 1): DeckSheetCard => ({ cardId: id, quantity, name: id, setCode: 'BS', imageVersion: 1, orientation: null })
+const l = (id: string): DeckSheetCard => ({ ...p(id), orientation: 'horizontal' })
+const group = (key: string, cards: DeckSheetCard[], title: string | null = key.toUpperCase()) =>
+  ({ key, title, count: cards.length, color: '#000000', cards })
+const sheet = (groups: ReturnType<typeof group>[], character: DeckSheetCard | null = null): DeckSheetLayout => ({
+  banner: { name: 'D', eyebrow: 'E', makeup: [], character: character && { card: character, label: 'S', artCropVersion: null } },
+  zones: [{ title: 'MAIN DECK', count: 0, groups }],
 })
 
-it('omits Main deck / Sideboard sections entirely when those zones are empty', () => {
-  const { sections } = layoutDeckSheet({ name: 'D', format: 'classic' }, [harry], labels)
-  expect(sections.map((s) => s.title)).toEqual(['Character'])
-})
-
-const cell = (cardId: string): DeckSheetCard => ({
-  cardId, quantity: 1, name: cardId, setCode: 'BS', imageVersion: 1, orientation: null,
-})
-const hcell = (cardId: string): DeckSheetCard => ({
-  cardId, quantity: 1, name: cardId, setCode: 'BS', imageVersion: 1, orientation: 'horizontal',
-})
-
-it('positions a single-card section and sizes the canvas to fit', () => {
-  const geom = computeSheetGeometry({
-    title: 'D',
-    sections: [{ title: 'Character', color: '#E8B23A', cards: [cell('a')] }],
+describe('computeSheetGeometry', () => {
+  it('is 1440 wide with the first zone below the banner', () => {
+    const geom = computeSheetGeometry(sheet([group('spell', [p('a')])]))
+    expect(geom.width).toBe(1440)
+    // banner 320 + zone gap 24
+    expect(geom.zones[0].headerY).toBe(344)
+    // header 344 + 44 = line top 388; label 22 + gap 10 = cards at 420
+    expect(geom.zones[0].groups[0].labelY).toBe(388)
+    expect(geom.zones[0].groups[0].cards[0]).toEqual({ card: p('a'), x: 40, y: 420, w: 112, h: 157 })
+    // line 420 + 157 - 388 = 189; y = 388 + 189 + 24 = 601; height = 601 - 24 + footer 72
+    expect(geom.height).toBe(649)
   })
-  expect(geom.width).toBe(980)
-  // content top = PADDING(36)+TITLE_HEIGHT(48)=84; header 84; gridTop 114
-  expect(geom.sections[0].headerY).toBe(84)
-  expect(geom.sections[0].cards[0]).toEqual({ card: cell('a'), x: 36, y: 114, w: 132, h: 185 })
-  // gridH = 185; y = 114+185+16 = 315; height = 315 - 16 + 36 = 335
-  expect(geom.height).toBe(335)
+
+  it('makes a row of landscape cards only as tall as a landscape card', () => {
+    const geom = computeSheetGeometry(sheet([group('creature', [l('a'), l('b')])]))
+    expect(geom.zones[0].groups[0].cards[1]).toEqual({ card: l('b'), x: 213, y: 420, w: 157, h: 112 }) // 40 + 157 + 16
+    expect(geom.height).toBe(604) // 649 - (157 - 112)
+  })
+
+  it('bottom-aligns a landscape card in a row with a portrait one', () => {
+    const geom = computeSheetGeometry(sheet([group('item', [p('a'), l('b')])]))
+    expect(geom.zones[0].groups[0].cards[1]).toMatchObject({ x: 168, y: 465 }) // 40+112+16; 420+157-112
+  })
+
+  it('packs a second group beside the first when it fits', () => {
+    const geom = computeSheetGeometry(sheet([group('spell', [p('a'), p('b'), p('c')]), group('item', [p('d')])]))
+    // 3 x 112 + 2 x 16 = 368; next group at 40 + 368 + 36
+    expect(geom.zones[0].groups[1]).toMatchObject({ x: 444, labelY: 388 })
+    expect(geom.zones[0].groups[1].cards[0]).toMatchObject({ x: 444, y: 420 })
+  })
+
+  it('starts a new line when the next group does not fit', () => {
+    const nine = Array.from({ length: 9 }, (_, i) => p(`s${i}`))
+    const geom = computeSheetGeometry(sheet([group('spell', nine), group('item', [p('x'), p('y')])]))
+    // 9 cards end at 40 + 1136 = 1176; + 36 = 1212; two cards (240) would end at 1452 > 1400
+    // new line top = 388 + 189 + 24 = 601; cards at 601 + 32
+    expect(geom.zones[0].groups[1]).toMatchObject({ x: 40, labelY: 601 })
+    expect(geom.zones[0].groups[1].cards[0]).toMatchObject({ x: 40, y: 633 })
+  })
+
+  it('wraps an oversize group inside itself at ten portrait cards a row', () => {
+    const twelve = Array.from({ length: 12 }, (_, i) => p(`s${i}`))
+    const geom = computeSheetGeometry(sheet([group('spell', twelve)]))
+    // 40 + 10 x 112 + 9 x 16 = 1304 fits; an eleventh would end at 1432 > 1400
+    expect(geom.zones[0].groups[0].cards[10]).toMatchObject({ x: 40, y: 597 }) // 420 + 157 + 20
+  })
+
+  it('skips the label band for an untitled group', () => {
+    const geom = computeSheetGeometry(sheet([group('sideboard', [p('a')], null)]))
+    expect(geom.zones[0].groups[0].cards[0].y).toBe(398) // 388 + 10
+  })
+
+  it('places the banner card, the text column and the bar', () => {
+    const geom = computeSheetGeometry(sheet([group('spell', [p('a')])], l('hero')))
+    expect(geom.banner).toEqual({
+      art: { x: 560, y: 0, w: 880, h: 320 },
+      card: { card: l('hero'), x: 40, y: 40, w: 224, h: 160 },
+      textX: 290, textWidth: 560,
+      bar: { x: 40, y: 254, w: 1360, h: 10 },
+      legendY: 274,
+    })
+  })
+
+  it('moves the text left and widens it when there is no character', () => {
+    const geom = computeSheetGeometry(sheet([group('spell', [p('a')])]))
+    expect(geom.banner).toMatchObject({ card: null, textX: 40, textWidth: 1000 })
+  })
+
+  it('is banner plus footer for a deck with no zones', () => {
+    const geom = computeSheetGeometry({ ...sheet([], l('hero')), zones: [] })
+    expect(geom.zones).toEqual([])
+    expect(geom.height).toBe(392) // 320 + 72
+  })
+
+  it('puts the logo in the footer, right-aligned', () => {
+    const geom = computeSheetGeometry(sheet([group('spell', [p('a')])]))
+    // 34 tall, 34 x 262 / 78 = 114 wide; centred in the 72px footer of a 649 sheet
+    expect(geom.logo).toEqual({ x: 1286, y: 596, w: 114, h: 34 })
+  })
 })
 
-it('renders a horizontal card as a landscape box centered in the row', () => {
-  const geom = computeSheetGeometry({
-    title: 'D',
-    sections: [{ title: 'Character', color: '#E8B23A', cards: [hcell('a')] }],
+describe('makeupSegments', () => {
+  it('splits the bar by count with 2px gaps and ends flush', () => {
+    const segs = makeupSegments(
+      [{ key: 'a', label: 'A', count: 3, color: '#111111' }, { key: 'b', label: 'B', count: 1, color: '#222222' }],
+      { x: 40, y: 254, w: 1360, h: 10 },
+    )
+    // free = 1360 - 2 = 1358; round(0.75 x 1358) = 1019; the last takes the rest
+    expect(segs).toEqual([
+      { x: 40, y: 254, w: 1019, h: 10, color: '#111111' },
+      { x: 1061, y: 254, w: 339, h: 10, color: '#222222' },
+    ])
   })
-  // landscape box THUMB_H×THUMB_W = 185×132; vertically centered: 114 + round((185-132)/2) = 141
-  expect(geom.sections[0].cards[0]).toEqual({ card: hcell('a'), x: 36, y: 141, w: 185, h: 132 })
-  expect(geom.height).toBe(335)
-})
 
-it('packs adjacent horizontal cards tightly with one gap between them', () => {
-  const geom = computeSheetGeometry({
-    title: 'D',
-    sections: [{ title: 'Locations (2)', color: '#8C88A8', cards: [hcell('a'), hcell('b')] }],
+  it('draws nothing for an empty main deck', () => {
+    expect(makeupSegments([], { x: 40, y: 254, w: 1360, h: 10 })).toEqual([])
   })
-  // second card starts one GRID_GAP after the first: 36 + 185 + 12 = 233
-  expect(geom.sections[0].cards[1].x).toBe(233)
-})
-
-it('wraps cards that overflow the content width onto the next row', () => {
-  const cards = Array.from({ length: 7 }, (_, i) => cell(`c${i}`))
-  const geom = computeSheetGeometry({
-    title: 'D',
-    sections: [{ title: 'Spells (7)', color: '#8C88A8', cards }],
-  })
-  // 6 portrait cards (pitch 144) fill row 1; the 7th wraps to row 2, col 0
-  expect(geom.sections[0].cards[6]).toEqual({ card: cards[6], x: 36, y: 325, w: 132, h: 185 }) // 114 + (185+26)
-  // rows=2 → gridH = 2*185 + 26 = 396; y = 114+396+16 = 526; height = 526-16+36 = 546
-  expect(geom.height).toBe(546)
-})
-
-it('wraps a horizontal card that would overflow the content width', () => {
-  // six portrait cards fill row 1 (cursor at 900); a horizontal (185 wide) won't
-  // fit in the remaining width, so it wraps to row 2.
-  const cards = [cell('v0'), cell('v1'), cell('v2'), cell('v3'), cell('v4'), cell('v5'), hcell('h')]
-  const geom = computeSheetGeometry({
-    title: 'D',
-    sections: [{ title: 'Main', color: '#8C88A8', cards }],
-  })
-  expect(geom.sections[0].cards[6]).toEqual({ card: hcell('h'), x: 36, y: 352, w: 185, h: 132 }) // row2 top 325 + 27
-})
-
-it('advances past a header-only section (Main deck heading with no cards)', () => {
-  const geom = computeSheetGeometry({
-    title: 'D',
-    sections: [
-      { title: 'Main deck (4)', color: '#E8B23A', cards: [] },
-      { title: 'Spells (4)', color: '#8C88A8', cards: [cell('a')] },
-    ],
-  })
-  expect(geom.sections[0].headerY).toBe(84)
-  // header-only: gridTop 114, gridH 0, y = 114+0+16 = 130 → next headerY 130
-  expect(geom.sections[1].headerY).toBe(130)
-  expect(geom.sections[1].cards[0]).toEqual({ card: cell('a'), x: 36, y: 160, w: 132, h: 185 }) // 130+30
 })
 
 describe('sheetLabels', () => {
   it('resolves every label the sheet layout asks for', () => {
     const en = sheetLabels('en')
     expect(en.formatLabel).toEqual({ classic: 'Classic', revival: 'Revival' })
-    expect(en.character).toBe('Character')
+    expect(en.cards).toBe('cards')
+    expect(en.startingCharacter).toBe('Starting character')
     expect(en.mainDeck).toBe('Main deck')
     expect(en.sideboard).toBe('Sideboard')
     expect(en.group('creature')).toBe('Creatures')
@@ -176,6 +233,8 @@ describe('sheetLabels', () => {
     expect(de.mainDeck).toBe('Hauptdeck')
     expect(de.group('creature')).toBe('Kreaturen')
     expect(de.group(OTHER_GROUP)).toBe('Sonstige')
+    expect(de.cards).toBe('Karten')
+    expect(de.startingCharacter).toBe('Startcharakter')
   })
 
   // An unknown locale must not render a sheet full of raw keys.

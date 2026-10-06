@@ -12,15 +12,13 @@ import { AuthForm } from '@/components/auth/auth-form'
 export function AuthCard({
   mode,
   redirectTo,
-  fanImages = [],
 }: {
   mode: 'login' | 'register'
   redirectTo?: string | null
-  fanImages?: string[]
 }) {
   return (
     <main className="mx-auto flex w-full max-w-[430px] flex-col px-4 py-6 sm:min-h-[calc(100dvh-var(--header-h))] sm:justify-center sm:px-0 md:py-12">
-      <AuthCardFan images={fanImages} />
+      <AuthCardFan />
       <AuthForm mode={mode} redirectTo={redirectTo} />
     </main>
   )

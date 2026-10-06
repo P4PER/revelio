@@ -7,36 +7,26 @@ vi.mock('next/image', () => ({
 
 import { AuthCardFan } from '@/components/auth/auth-card-fan'
 
-const A = 'https://img.test/cards/thumb/a.1.webp'
-const B = 'https://img.test/cards/thumb/b.1.webp'
-
 function fan(container: HTMLElement) {
   return container.querySelector('[data-slot="auth-card-fan"]') as HTMLElement
 }
 
 describe('AuthCardFan', () => {
-  it('draws each card image plus the Revelio mark', () => {
-    const { container } = render(<AuthCardFan images={[A, B]} />)
+  it('draws the two fan cards from /public, then the Revelio mark', () => {
+    const { container } = render(<AuthCardFan />)
     const srcs = [...fan(container).querySelectorAll('img')].map((i) => i.getAttribute('src'))
-    expect(srcs).toEqual([A, B, '/revelio-icon.svg'])
-  })
-
-  it('still draws the Revelio card with no card images', () => {
-    const { container } = render(<AuthCardFan images={[]} />)
-    const srcs = [...fan(container).querySelectorAll('img')].map((i) => i.getAttribute('src'))
-    expect(srcs).toEqual(['/revelio-icon.svg'])
+    expect(srcs).toEqual([
+      '/auth-fan/bs-111-wingardium-leviosa.webp',
+      '/auth-fan/poa-71-lumos.webp',
+      '/revelio-icon.svg',
+    ])
   })
 
   it('is hidden from assistive tech and has no empty-alt gaps', () => {
-    const { container } = render(<AuthCardFan images={[A, B]} />)
+    const { container } = render(<AuthCardFan />)
     expect(fan(container)).toHaveAttribute('aria-hidden', 'true')
     for (const img of fan(container).querySelectorAll('img')) {
       expect(img).toHaveAttribute('alt', '')
     }
-  })
-
-  it('ignores more than two images rather than stacking them in one slot', () => {
-    const { container } = render(<AuthCardFan images={[A, B, A]} />)
-    expect(fan(container).querySelectorAll('img')).toHaveLength(3)
   })
 })

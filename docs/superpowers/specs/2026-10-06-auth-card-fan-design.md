@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-06
 **Status:** approved, not implemented
-**Workspaces:** `web` only (`components/auth`, `lib/server`, the two auth pages, messages)
+**Workspaces:** `web` only (`components/auth`, `public/auth-fan`, messages)
 **Mock:** "B3 - Fan over the form" and "B3 - Phone" in the design study artifact
 (https://claude.ai/artifact/95nJi3qhx8VBYbG95kPaMz), with the glow removed
 
@@ -50,7 +50,7 @@ unchanged.
 |---|---|---|
 | left | Wingardium Leviosa! (`bs-111-wingardium-leviosa`) | -14deg |
 | middle | Lumos! (`poa-71-lumos`) | -2deg |
-| front | the Revelio card: a midnight card, gold border, the wand-and-star mark | 11deg |
+| front | the Revelio card: a brand-indigo card, gold border, the wand-and-star mark | 11deg |
 
 Both real cards are upright Charms spells; many cards are stored sideways (all characters,
 and e.g. Norbert and Golden Snitch), which reads as a mistake in a fan. The front card is
@@ -60,28 +60,27 @@ the brand, not a card from the game, so it never depends on data.
   card sits behind the form card. Below `sm` they are 88 x 123 px and shown whole (see
   **Phone**).
 - **Theme:** the real cards are images and look the same in both themes. The Revelio card
-  uses the `--dark-background` and `--dark-primary` tokens, which `:root` defines in every
-  theme, so it stays midnight and gold on the parchment light theme too, like the app icon.
-  No glow, no gradient.
+  uses the `--dark-brand-indigo` and `--dark-primary` tokens, which `:root` defines in every
+  theme, so it is indigo and gold on both. Not midnight (`--dark-background`): on the dark
+  theme that is the page itself, and the card's face disappeared into it. Its mark is the
+  app-icon badge's glyph (`logos/revelio-icon-badge.svg`, without the square), whose
+  parchment wand reads on indigo where the plain icon's indigo wand would vanish. No glow,
+  no gradient.
 - **Decorative only:** the fan's container is `aria-hidden`, its images have `alt=""`, it
   takes no pointer events and has no links, and it does not animate.
 
 ### Card images
 
-The pages are server components and already dynamic (they read `searchParams`). Each
-resolves the two cards' images through a new server module, `lib/server/auth-fan.ts`:
+The two card thumbnails are static files in `public/auth-fan/`, as the Discord page's
+sample card already is (`public/discord/alohomora-thumb.webp`): the 300 px thumbnails,
+copied from the bucket once. The fan is a fixed decoration, so it needs no database read,
+no cache, and no fallback for a read that failed. A first cut resolved the images at
+request time through `getCardViews` and a day-long `unstable_cache`; that cached the
+image's version in its url, and an editor replacing either card's image deletes the old
+file, which left a broken image on both pages for up to a day. If a card's art is ever
+re-scanned, the copy in `public/` simply stays on the old scan.
 
-- `getAuthFanCards()` calls the existing `getCardViews(db, ids)` for the two ids and builds
-  `imageUrl(base, thumbKey(id, imageVersion))` with `NEXT_PUBLIC_IMAGE_BASE_URL`: the 300 px
-  thumbnail, as everywhere else a card is displayed at this size.
-- Wrapped in `unstable_cache` for a day, as `lib/server/showcase.ts` does: the images change
-  only with an ingest run.
-- **It never fails the page.** A card that is missing, or has no image (`imageVersion`
-  null), is left out of the result; a database error is caught and yields an empty list.
-  The fan then draws the slots it has; the Revelio card always draws. A sign-in page that
-  500s because a decoration could not load would be the wrong trade.
-
-The ids live in that module as a constant, with a comment saying why those two.
+A random or daily pick, like the home page's constellation, is out of scope (see below).
 
 ### Copy
 
@@ -92,6 +91,11 @@ One new key, `auth.tagline`, in `messages/en.json` and `messages/de.json`:
 
 Nothing else changes: the button labels stay `Login` / `Register`, and the headings,
 subtitles, terms notice, code step and error strings stay as they are.
+
+The form's inline links (the cross-link and the three links in the terms notice) take
+the site's inline-link style, `text-primary-ink underline underline-offset-2`, as on the
+About page and in the docs, instead of `text-foreground`, which drew them in the body
+text's colour.
 
 ### Phone
 
@@ -110,16 +114,16 @@ above the fold (mock "B3 - Phone").
 ## Out of scope
 
 - The auth flow, its validation, rate limits and server actions.
-- A per-day or random choice of fan cards. Two fixed cards keep the page stable and the
-  query trivially cacheable; rotating them is a later, separate idea.
+- A per-day or random choice of fan cards. Most cards are stored sideways, so a pick would
+  need an upright-only pool, and it would bring back the database read and the cache that
+  static files remove. The home page already rotates cards; a sign-in page gains little
+  from it.
 - The site header and footer.
 
 ## Testing
 
-- `lib/server/__tests__/auth-fan.test.ts`: both cards present -> two URLs in slot order;
-  a card with a null `imageVersion` -> left out; `getCardViews` throws -> `[]`.
-- `components/auth/__tests__/auth-card-fan.test.tsx`: renders one image per card passed plus
-  the Revelio card; zero cards -> only the Revelio card; the container is `aria-hidden`.
+- `components/auth/__tests__/auth-card-fan.test.tsx`: draws the two `public/auth-fan`
+  images in slot order, then the Revelio mark; the container is `aria-hidden`.
 - `components/auth/__tests__/auth-card.test.tsx`: still renders the form for each mode, and
   now the fan.
 - `components/auth/__tests__/auth-i18n.test.ts`: `tagline` exists in both locales.
@@ -131,5 +135,4 @@ above the fold (mock "B3 - Phone").
 
 ## Deployment
 
-Nothing outside the diff: no env var, no migration, no ingest run. Both cards and their
-images already exist in production.
+Nothing outside the diff: no env var, no migration, no ingest run.

@@ -415,4 +415,15 @@ describe('renderSheet', () => {
     // The last segment is Lessons, gold, and ends flush at 1400.
     expect(near(await pixelAt(out.body, 1395, 259, out.scale), DECK_SHEET_COLORS.group.lesson)).toBe(true)
   })
+
+  // Copies are counted by the chip alone. The outlines stacked behind a card
+  // read as a drop shadow rather than as more copies.
+  it('draws nothing behind a card with several copies', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(await art(), { status: 200 })))
+    const out = await renderSheet(req, opts)
+    const geom = computeSheetGeometry(layoutDeckSheet(req.deck, req.entries, sheetLabels('en')))
+    const pc = geom.zones[0].groups.flatMap((g) => g.cards).find((c) => c.card.quantity >= 3)!
+    // In the card gap, where the first outline's right edge used to show.
+    expect(near(await pixelAt(out.body, pc.x + pc.w + 3, pc.y + pc.h / 2, out.scale), DECK_SHEET_COLORS.background, 3)).toBe(true)
+  })
 })

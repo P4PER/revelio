@@ -196,11 +196,8 @@ themselves are about 745 px wide, so a crop of the art region cannot get much bi
 
 ### 5. Cards, quantity and copies
 
-- **Stacked copies.** For quantity 2, one card outline sits behind the face, offset 5 px
-  right and 5 px up. For 3 or more there is a second outline at 10 px. Each outline is a
-  midnight rect with a 1 px `#2E2A50` stroke, drawn in the chrome SVG before the art, so
-  the face covers all of it but the offset edges. A 10 px offset fits inside the 16 px
-  card gap and the 10 px space above each row.
+- **No stacked copies.** The chip alone carries the count. Outlines offset behind a card
+  were tried and dropped on review: they read as a drop shadow, not as more copies.
 - **Quantity chip.** A ×N pill at the card's bottom-right corner, overhanging it by 6 px
   right and 8 px down. Midnight fill, 2 px gold border, gold text: "×" at 11 px, then the
   count at 14 px bold. It is 26 px tall, and its width follows the count, up to 999.

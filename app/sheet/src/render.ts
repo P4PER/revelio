@@ -205,10 +205,6 @@ function baseSvg(geom: SheetGeometry, s: number, hasArt: boolean): Buffer {
   for (const zone of geom.zones) {
     for (const group of zone.groups) {
       for (const pc of group.cards) {
-        // Farthest copy first, so the nearer one and then the face cover it.
-        const off = DECK_SHEET.stackOffset
-        if (pc.card.quantity >= 3) parts.push(box(pc, off * 2, off * 2))
-        if (pc.card.quantity >= 2) parts.push(box(pc, off, off))
         parts.push(box(pc, 0, 0))
       }
     }

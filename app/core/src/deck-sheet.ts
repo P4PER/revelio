@@ -234,7 +234,6 @@ export const DECK_SHEET = {
   zoneGap: 24,
   zoneHeaderHeight: 44,
   groupLabelHeight: 22,
-  // Also the room above a row for the stacked-copy outlines (two x stackOffset).
   groupLabelGap: 10,
   groupGapX: 36,
   groupGapY: 24,
@@ -245,7 +244,6 @@ export const DECK_SHEET = {
   cardGapX: 16,
   // Leaves room for the chip that overhangs each card's bottom edge.
   cardGapY: 20,
-  stackOffset: 5,
   chip: { height: 26, minWidth: 30, padX: 7, overhangX: 6, overhangY: 8 },
   footerHeight: 72,
   // logos/revelio-logo-dark.svg is 262 x 78.

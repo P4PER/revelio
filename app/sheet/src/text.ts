@@ -39,9 +39,10 @@ const ELLIPSIS = '…'
 // the string itself holds. Measured against the whole of A-ring, E-acute, the
 // umlauts, C-cedilla, g, j, y, p and the bar: these two alone reach as far.
 const STRUT = 'ÅÇ'
-// Between the text and the strut. A full em, so no glyph's overhang can bridge
-// it and the crop always finds clear columns to cut in.
-const STRUT_GAP = '\u2003'
+// Between the text and the strut: clear columns for the crop to cut in. Plain
+// spaces, which every face has - an em space is not in Poppins, and the
+// fallback drew it a quarter as wide as its name says.
+const STRUT_GAP = '    '
 // Per family and size: two draws and a scan, paid once per style. Bounded,
 // because sizes carry the render scale and a sheet shrunk to its pixel budget
 // has a fractional one, so nearly every such sheet brings sizes of its own. A
@@ -82,14 +83,15 @@ function drawWithStrut(text: string, style: TextStyle): Promise<Bitmap> {
   return draw(`${span(text, style)}${STRUT_GAP}${STRUT}`, style)
 }
 
-// Width of the text in a text + strut drawing: start inside the em gap, safely
-// left of the strut, and walk left to the text's last inked column.
-function textWidth(drawn: Bitmap, strutWidth: number, size: number): number {
+// Width of the text in a text + strut drawing: start just left of the strut,
+// where the gap is, and walk left to the text's last inked column. Two columns
+// of margin cover the strut drawing a pixel wider alone than beside the text.
+function textWidth(drawn: Bitmap, strutWidth: number): number {
   const inked = (x: number) => {
     for (let y = 0; y < drawn.height; y++) if (drawn.data[(y * drawn.width + x) * 4 + 3] > 0) return true
     return false
   }
-  let x = drawn.width - strutWidth - Math.ceil(size / 2)
+  let x = drawn.width - strutWidth - 2
   while (x > 0 && !inked(x - 1)) x--
   return x
 }
@@ -109,7 +111,7 @@ function lineMetrics(style: TextStyle): Promise<LineMetrics> {
   if (!metrics) {
     const probe = { size: style.size, color: '#ffffff', family: style.family }
     metrics = Promise.all([drawWithStrut('H', probe), draw(STRUT, probe)]).then(([drawn, strut]) => {
-      const h = cropLeft(drawn, textWidth(drawn, strut.width, style.size))
+      const h = cropLeft(drawn, textWidth(drawn, strut.width))
       const inked = (y: number) => {
         for (let x = 0; x < h.width; x++) if (h.data[(y * h.width + x) * 4 + 3] > 127) return true
         return false
@@ -137,7 +139,7 @@ function lineMetrics(style: TextStyle): Promise<LineMetrics> {
 export async function renderText(text: string, style: TextStyle): Promise<RenderedText> {
   // One draw of text + strut: the strut sets the height, the scan the width.
   const [drawn, { capTop, baseline, strutWidth }] = await Promise.all([drawWithStrut(text, style), lineMetrics(style)])
-  const box = cropLeft(drawn, textWidth(drawn, strutWidth, style.size))
+  const box = cropLeft(drawn, textWidth(drawn, strutWidth))
   const input = await sharp(box.data, { raw: { width: box.width, height: box.height, channels: 4 } }).png().toBuffer()
   return { input, width: box.width, height: box.height, capTop, baseline }
 }

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
 import { fitText, renderText } from '../src/text'
 
@@ -65,6 +66,19 @@ describe('renderText', () => {
     // Poppins' cap height is about 0.7em.
     expect(boxes[0].baseline - boxes[0].capTop).toBeGreaterThan(65)
     expect(boxes[0].baseline - boxes[0].capTop).toBeLessThan(76)
+  })
+
+  // The box is cut from a drawing of the text with its strut, so the cut must
+  // land past the text's last glyph: a cut that fell inside it clipped the
+  // final letter of every label.
+  it('is exactly as wide as the text drawn on its own', async () => {
+    for (const text of ['Card harry', 'Starting character', 'Creatures', 'ZAUBER', 'x', 'Ü']) {
+      const out = await renderText(text, { size: 30, color: '#ffffff' })
+      const { info } = await sharp({
+        text: { text, font: 'Poppins SemiBold 30', fontfile: fileURLToPath(new URL('../src/Poppins-SemiBold.ttf', import.meta.url)), rgba: true, dpi: 72 },
+      }).toBuffer({ resolveWithObject: true })
+      expect(Math.abs(out.width - info.width), text).toBeLessThanOrEqual(1)
+    }
   })
 
   it('reports the rows its glyphs actually sit on', async () => {

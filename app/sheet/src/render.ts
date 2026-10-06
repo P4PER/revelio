@@ -2,19 +2,24 @@ import sharp, { type OverlayOptions } from 'sharp'
 import {
   DECK_SHEET,
   DECK_SHEET_COLORS,
+  artCropKey,
   computeSheetGeometry,
   imageKey,
   imageUrl,
   layoutDeckSheet,
+  makeupSegments,
   mapLimit,
   sheetLabels,
   thumbKey,
+  type DeckSheetBanner,
   type DeckSheetCard,
+  type DeckSheetLayout,
   type DeckSheetRequest,
-  type PositionedSection,
+  type PositionedCard,
+  type Rect,
   type SheetGeometry,
 } from '@revelio/core'
-import { fitText, renderText, type RenderedText } from './text'
+import { fitText, renderText, type RenderedText, type TextStyle } from './text'
 
 export type SheetRenderOptions = {
   imageBase: string
@@ -59,6 +64,11 @@ export type SheetRender = {
 // stored image at all, which is normal and not worth a log line; a string is a
 // failure and is.
 type CardImageResult = { body: Buffer } | { failure: string | null }
+
+// Shapes that can only be placed once their text is measured: chip pills,
+// legend swatches and the rules beside zone headers. Device pixels.
+type Decor = { pills: Rect[]; swatches: (Rect & { color: string })[]; rules: Rect[] }
+type TextLayer = { overlays: OverlayOptions[]; decor: Decor }
 
 // Matches web's old browser painter. The full card image is ~317 KB against a
 // thumb's ~23 KB, so the 5s that covered a thumb does not cover this.
@@ -136,7 +146,7 @@ export function sheetScale(geom: SheetGeometry, budget: number): number {
  * the same scale, and DECK_SHEET.cardWidth * s is the short side of all of them,
  * portrait or turned.
  *
- * At the full 2x that side is 264px against a thumb's 300 - a 1.14:1 repaint of
+ * At the full 2x that side is 224px against a thumb's 300 - a 1.34:1 repaint of
  * an already lossy source, which is what the full art buys off. Once the pixel
  * budget pulls the scale down the thumb has real headroom instead, and a
  * 100-entry deck would otherwise pull ~31 MB of art to paint 154px boxes.
@@ -158,46 +168,91 @@ function canvasSize(geom: SheetGeometry, s: number): { w: number; h: number } {
   return { w: Math.floor(geom.width * s), h: Math.floor(geom.height * s) }
 }
 
-// Everything that is a shape rather than a glyph or a photo, in one SVG: the
-// midnight sheet, the card-coloured panel, a placeholder box per card and the
-// section swatches. One overlay instead of several hundred.
-function chromeSvg(geom: SheetGeometry, s: number): Buffer {
-  const { padding, frame, sectionHeaderHeight, swatchSize } = DECK_SHEET
+function svg(geom: SheetGeometry, s: number, parts: string[]): Buffer {
   const { w, h } = canvasSize(geom, s)
-  const parts = [
-    `<rect width="${w}" height="${h}" fill="${DECK_SHEET_COLORS.background}"/>`,
-    `<rect x="${frame * s}" y="${frame * s}" width="${w - frame * 2 * s}" height="${h - frame * 2 * s}"` +
-      ` fill="${DECK_SHEET_COLORS.panel}" stroke="${DECK_SHEET_COLORS.border}" stroke-width="${s}"/>`,
-  ]
-  for (const section of geom.sections) {
-    const centerY = (section.headerY + sectionHeaderHeight / 2) * s
-    parts.push(
-      `<rect x="${padding * s}" y="${centerY - (swatchSize / 2) * s}" width="${(swatchSize / 3) * s}"` +
-        ` height="${swatchSize * s}" fill="${section.color}"/>`,
-    )
-    for (const pc of section.cards) {
-      // Rounded exactly as the card overlay is, so the 1px stroke lands on the
-      // outermost pixel of the box the art covers. At a fractional scale the raw
-      // coordinates round the other way for some cards and the border shows.
-      parts.push(
-        `<rect x="${px(pc.x, s) + 0.5}" y="${px(pc.y, s) + 0.5}" width="${px(pc.w, s) - 1}" height="${px(pc.h, s) - 1}"` +
-          ` fill="${DECK_SHEET_COLORS.panel}" stroke="${DECK_SHEET_COLORS.border}" stroke-width="1"/>`,
-      )
-    }
-  }
   return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${parts.join('')}</svg>`)
 }
 
-// The gold disc a quantity sits in, straddling each card's bottom edge.
-function badgeSvg(geom: SheetGeometry, s: number): Buffer {
+// Under everything: the midnight sheet, the glow when there is no art, the
+// banner card's shadow and gold ring, each card's stacked-copy outlines and
+// placeholder box, and the makeup bar.
+function baseSvg(geom: SheetGeometry, layout: DeckSheetLayout, s: number, hasArt: boolean): Buffer {
+  const C = DECK_SHEET_COLORS
+  const r = px(DECK_SHEET.cardRadius, s)
   const { w, h } = canvasSize(geom, s)
-  const circles = geom.sections.flatMap((section) =>
-    section.cards.map((pc) =>
-      `<circle cx="${(pc.x + pc.w / 2) * s}" cy="${(pc.y + pc.h) * s}" r="${DECK_SHEET.badgeRadius * s}"` +
-        ` fill="${DECK_SHEET_COLORS.gold}" stroke="${DECK_SHEET_COLORS.background}" stroke-width="${2 * s}"/>`,
-    ),
-  )
-  return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${circles.join('')}</svg>`)
+  const parts = [
+    `<defs>` +
+      `<radialGradient id="glow"><stop offset="0" stop-color="${C.gold}" stop-opacity="0.18"/><stop offset="1" stop-color="${C.gold}" stop-opacity="0"/></radialGradient>` +
+      `<filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="${12 * s}"/></filter>` +
+      `<clipPath id="bar"><rect x="${px(geom.banner.bar.x, s)}" y="${px(geom.banner.bar.y, s)}" width="${px(geom.banner.bar.w, s)}" height="${px(geom.banner.bar.h, s)}" rx="${px(geom.banner.bar.h / 2, s)}"/></clipPath>` +
+    `</defs>`,
+    `<rect width="${w}" height="${h}" fill="${C.background}"/>`,
+  ]
+  if (!hasArt) parts.push(`<circle cx="${px(DECK_SHEET.width - 300, s)}" cy="${px(140, s)}" r="${px(420, s)}" fill="url(#glow)"/>`)
+  const hero = geom.banner.card
+  if (hero) {
+    parts.push(
+      `<rect x="${px(hero.x, s)}" y="${px(hero.y + 14, s)}" width="${px(hero.w, s)}" height="${px(hero.h, s)}" fill="#000" opacity="0.6" filter="url(#shadow)"/>`,
+      `<rect x="${px(hero.x - 2, s)}" y="${px(hero.y - 2, s)}" width="${px(hero.w + 4, s)}" height="${px(hero.h + 4, s)}" rx="${px(8, s)}" fill="${C.gold}"/>`,
+    )
+  }
+  const box = (pc: PositionedCard, dx: number, dy: number) =>
+    `<rect x="${px(pc.x + dx, s) + 0.5}" y="${px(pc.y - dy, s) + 0.5}" width="${px(pc.w, s) - 1}" height="${px(pc.h, s) - 1}"` +
+    ` rx="${r}" fill="${C.panel}" stroke="${C.border}" stroke-width="1"/>`
+  for (const zone of geom.zones) {
+    for (const group of zone.groups) {
+      for (const pc of group.cards) {
+        // Farthest copy first, so the nearer one and then the face cover it.
+        const off = DECK_SHEET.stackOffset
+        if (pc.card.quantity >= 3) parts.push(box(pc, off * 2, off * 2))
+        if (pc.card.quantity >= 2) parts.push(box(pc, off, off))
+        parts.push(box(pc, 0, 0))
+      }
+    }
+  }
+  if (hero) parts.push(box(hero, 0, 0))
+  const segments = makeupSegments(layout.banner.makeup, geom.banner.bar)
+  if (segments.length) {
+    parts.push(`<g clip-path="url(#bar)">${segments.map((g) =>
+      `<rect x="${px(g.x, s)}" y="${px(g.y, s)}" width="${px(g.w, s)}" height="${px(g.h, s)}" fill="${g.color}"/>`).join('')}</g>`)
+  }
+  return svg(geom, s, parts)
+}
+
+// Over the art only: fades it into the sheet leftwards and downwards so the
+// title and the bar sit on midnight. Drawn only when there is art.
+function fadeSvg(geom: SheetGeometry, s: number): Buffer {
+  const bg = DECK_SHEET_COLORS.background
+  const a = geom.banner.art
+  const rect = (fill: string) =>
+    `<rect x="${px(a.x, s)}" y="${px(a.y, s)}" width="${px(a.w, s)}" height="${px(a.h, s)}" fill="${fill}"/>`
+  return svg(geom, s, [
+    `<defs>` +
+      `<linearGradient id="fl" x1="0" y1="0" x2="1" y2="0">` +
+        `<stop offset="0" stop-color="${bg}" stop-opacity="1"/><stop offset="0.22" stop-color="${bg}" stop-opacity="0.85"/>` +
+        `<stop offset="0.6" stop-color="${bg}" stop-opacity="0.15"/><stop offset="1" stop-color="${bg}" stop-opacity="0"/>` +
+      `</linearGradient>` +
+      `<linearGradient id="fb" x1="0" y1="0" x2="0" y2="1">` +
+        `<stop offset="0.6" stop-color="${bg}" stop-opacity="0"/><stop offset="1" stop-color="${bg}" stop-opacity="1"/>` +
+      `</linearGradient>` +
+    `</defs>`,
+    rect('url(#fl)'),
+    rect('url(#fb)'),
+  ])
+}
+
+// Over the cards: chip pills, legend swatches and the zone rules, each placed
+// from text the text layer has already measured.
+function decorSvg(geom: SheetGeometry, s: number, decor: Decor): Buffer {
+  const C = DECK_SHEET_COLORS
+  return svg(geom, s, [
+    `<defs><linearGradient id="rule" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${C.border}"/><stop offset="1" stop-color="${C.border}" stop-opacity="0"/></linearGradient></defs>`,
+    ...decor.rules.map((r) => `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="url(#rule)"/>`),
+    ...decor.swatches.map((r) => `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="${2 * s}" fill="${r.color}"/>`),
+    ...decor.pills.map((r) =>
+      `<rect x="${r.x + s}" y="${r.y + s}" width="${r.w - 2 * s}" height="${r.h - 2 * s}" rx="${(r.h - 2 * s) / 2}"` +
+      ` fill="${C.background}" stroke="${C.gold}" stroke-width="${2 * s}"/>`),
+  ])
 }
 
 // Text overlays are positioned by their box, so a baseline or a "middle" from
@@ -247,33 +302,38 @@ function containedImageUrl(imageBase: string, key: string): string | null {
 // `deadline` is an epoch millisecond, shared by every fetch in one render, and
 // clamping each request's own timeout to what is left of it is what holds the
 // phase to its budget rather than to the budget plus one more timeout.
-async function fetchCardImage(
+async function fetchKey(
+  key: string,
+  imageBase: string,
+  deadline: number,
+  signal: AbortSignal | undefined,
+): Promise<CardImageResult> {
+  const left = deadline - Date.now()
+  if (left <= 0) return { failure: BUDGET_SPENT }
+  // The reason names the key's card, never the resolved URL: the image base can
+  // be an internal hostname and this ends up in a log line.
+  const url = containedImageUrl(imageBase, key)
+  if (url === null) return { failure: 'key resolves outside the configured image base' }
+  try {
+    const timeout = AbortSignal.timeout(Math.min(FETCH_TIMEOUT_MS, left))
+    const res = await fetch(url, { signal: signal ? AbortSignal.any([timeout, signal]) : timeout })
+    if (!res.ok) return { failure: `HTTP ${res.status}` }
+    return { body: Buffer.from(await res.arrayBuffer()) }
+  } catch (err) {
+    return { failure: err instanceof Error ? err.message : String(err) }
+  }
+}
+
+function fetchCardImage(
   card: DeckSheetCard,
   imageBase: string,
   fullArt: boolean,
   deadline: number,
   signal: AbortSignal | undefined,
 ): Promise<CardImageResult> {
-  if (card.imageVersion == null) return { failure: null }
-  const left = deadline - Date.now()
-  if (left <= 0) return { failure: BUDGET_SPENT }
+  if (card.imageVersion == null) return Promise.resolve({ failure: null })
   const key = fullArt ? imageKey : thumbKey
-  // The reason names the card, never the resolved URL: the image base can be an
-  // internal hostname and this ends up in a log line.
-  const url = containedImageUrl(imageBase, key(card.cardId, card.imageVersion))
-  if (url === null) return { failure: 'key resolves outside the configured image base' }
-  try {
-    // The per-card timeout and the render's own abandonment are both reasons to
-    // stop dialling, so the request carries whichever fires first.
-    const timeout = AbortSignal.timeout(Math.min(FETCH_TIMEOUT_MS, left))
-    const res = await fetch(url, {
-      signal: signal ? AbortSignal.any([timeout, signal]) : timeout,
-    })
-    if (!res.ok) return { failure: `HTTP ${res.status}` }
-    return { body: Buffer.from(await res.arrayBuffer()) }
-  } catch (err) {
-    return { failure: err instanceof Error ? err.message : String(err) }
-  }
+  return fetchKey(key(card.cardId, card.imageVersion), imageBase, deadline, signal)
 }
 
 /**
@@ -282,11 +342,20 @@ async function fetchCardImage(
  * counter-clockwise, so a quarter turn back draws them upright - what
  * drawRotatedUpright does on the web.
  */
-async function cardImage(source: Buffer, w: number, h: number, upright: boolean): Promise<CardImageResult> {
+// Alpha mask for a rounded card: dest-in keeps the image only where this is opaque.
+function roundedMask(w: number, h: number, r: number): Buffer {
+  return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" rx="${r}" ry="${r}"/></svg>`)
+}
+
+async function cardImage(source: Buffer, w: number, h: number, upright: boolean, radius: number): Promise<CardImageResult> {
   try {
     const pipeline = sharp(source)
     if (upright) pipeline.rotate(90)
-    return { body: await pipeline.resize(w, h, { fit: 'cover' }).png().toBuffer() }
+    return {
+      body: await pipeline.resize(w, h, { fit: 'cover' })
+        .composite([{ input: roundedMask(w, h, radius), blend: 'dest-in' }])
+        .png().toBuffer(),
+    }
   } catch (err) {
     return { failure: err instanceof Error ? err.message : String(err) }
   }
@@ -296,13 +365,12 @@ async function cardImage(source: Buffer, w: number, h: number, upright: boolean)
 // can appear in two zones, so images are fetched once per distinct card, and
 // `dropped` counts distinct cards rather than boxes for the same reason.
 async function cardOverlays(
-  sections: PositionedSection[],
+  positioned: PositionedCard[],
   imageBase: string,
   s: number,
   budgetMs: number,
   signal: AbortSignal | undefined,
 ): Promise<{ overlays: OverlayOptions[]; dropped: number; distinct: number }> {
-  const positioned = sections.flatMap((section) => section.cards)
   const distinct = [...new Set(positioned.map((pc) => pc.card.cardId))]
   const cardById = new Map(positioned.map((pc) => [pc.card.cardId, pc.card]))
   const fullArt = usesFullArt(s)
@@ -336,7 +404,7 @@ async function cardOverlays(
     const id = pc.card.cardId
     const source = imageById.get(id)!
     const image = 'body' in source
-      ? await cardImage(source.body, px(pc.w, s), px(pc.h, s), pc.card.orientation === 'horizontal')
+      ? await cardImage(source.body, px(pc.w, s), px(pc.h, s), pc.card.orientation === 'horizontal', px(DECK_SHEET.cardRadius, s))
       : source
     if ('body' in image) return { input: image.body, left: px(pc.x, s), top: px(pc.y, s) }
     if (image.failure !== null && !failed.has(id)) {
@@ -353,41 +421,130 @@ async function cardOverlays(
   return { overlays, dropped: failed.size, distinct: distinct.length }
 }
 
-async function textOverlays(geom: SheetGeometry, title: string, s: number): Promise<OverlayOptions[]> {
-  const { padding, titleBaseline, sectionHeaderHeight, swatchSize, fontSize } = DECK_SHEET
-  const contentWidth = (geom.width - padding * 2) * s
+/**
+ * The art crop cut to the banner's art area: scaled to cover it, centred
+ * horizontally, and cut focusY of the spare height from the top rather than
+ * the middle, because the crops put faces high.
+ */
+async function coverFocused(source: Buffer, w: number, h: number): Promise<Buffer> {
+  const meta = await sharp(source).metadata()
+  const k = Math.max(w / meta.width!, h / meta.height!)
+  const rw = Math.max(w, Math.ceil(meta.width! * k))
+  const rh = Math.max(h, Math.ceil(meta.height! * k))
+  return sharp(source)
+    .resize(rw, rh)
+    .extract({ left: Math.floor((rw - w) / 2), top: Math.round((rh - h) * DECK_SHEET.art.focusY), width: w, height: h })
+    .png()
+    .toBuffer()
+}
 
-  const heading = await fitText(title, { size: fontSize.title * s, color: DECK_SHEET_COLORS.gold }, contentWidth)
-  // The Canvas painter draws the title on a baseline; center the box on where
-  // that baseline puts the x-height instead, which lands in the same place.
-  const overlays: OverlayOptions[] = [
-    { input: heading.input, left: px(padding, s), top: Math.round((padding + titleBaseline) * s - heading.height * 0.8) },
-  ]
+// The banner's art overlay, or null for the glow fallback. A crop that fails to
+// fetch or decode counts as one dropped image, like a card's.
+async function bannerArt(
+  banner: DeckSheetBanner,
+  area: Rect,
+  imageBase: string,
+  s: number,
+  budgetMs: number,
+  signal: AbortSignal | undefined,
+): Promise<{ overlay: OverlayOptions | null; dropped: number }> {
+  const character = banner.character
+  if (!character || character.artCropVersion === null) return { overlay: null, dropped: 0 }
+  const id = character.card.cardId
+  const fetched = await fetchKey(artCropKey(id, character.artCropVersion), imageBase, Date.now() + budgetMs, signal)
+  if (!('body' in fetched)) {
+    console.warn(`deck image: no banner art for ${id}: ${fetched.failure}`)
+    return { overlay: null, dropped: 1 }
+  }
+  try {
+    const input = await coverFocused(fetched.body, px(area.w, s), px(area.h, s))
+    return { overlay: { input, left: px(area.x, s), top: px(area.y, s) }, dropped: 0 }
+  } catch (err) {
+    console.warn(`deck image: could not decode banner art for ${id}: ${err instanceof Error ? err.message : String(err)}`)
+    return { overlay: null, dropped: 1 }
+  }
+}
 
-  for (const section of geom.sections) {
-    const label = await fitText(
-      section.title,
-      { size: fontSize.section * s, color: DECK_SHEET_COLORS.parchment },
-      contentWidth - 14 * s,
-    )
-    const centerY = (section.headerY + sectionHeaderHeight / 2) * s
-    overlays.push({ input: label.input, left: px(padding + swatchSize, s), top: Math.round(centerY - label.height / 2) })
+async function textOverlays(geom: SheetGeometry, layout: DeckSheetLayout, s: number): Promise<TextLayer> {
+  const D = DECK_SHEET
+  const C = DECK_SHEET_COLORS
+  const right = px(D.width - D.padding, s)
+  const overlays: OverlayOptions[] = []
+  const decor: Decor = { pills: [], swatches: [], rules: [] }
+  const style = (size: number, color: string, tracking?: number): TextStyle => ({ size: size * s, color, tracking })
+  const at = (t: RenderedText, left: number, top: number) => { overlays.push({ input: t.input, left: Math.round(left), top: Math.round(top) }); return t }
 
-    for (const pc of section.cards) {
-      const quantity = await renderText(String(pc.card.quantity), {
-        size: fontSize.badge * s, color: DECK_SHEET_COLORS.badgeText,
-      })
-      overlays.push(centered(quantity, (pc.x + pc.w / 2) * s, (pc.y + pc.h) * s))
+  // Banner text column.
+  const { textX, textWidth } = geom.banner
+  const colLeft = px(textX, s)
+  const colW = px(textWidth, s)
+  at(await fitText(layout.banner.eyebrow, style(D.fontSize.eyebrow, C.gold, D.tracking.eyebrow), colW), colLeft, px(D.text.eyebrowY, s))
+  at(await fitText(layout.banner.name, style(D.fontSize.title, C.parchment), colW), colLeft, px(D.text.titleY, s))
+  const character = layout.banner.character
+  if (character) {
+    const label = at(await renderText(character.label, style(D.fontSize.subtitle, C.mutedAccent)), colLeft, px(D.text.subtitleY, s))
+    const nameLeft = colLeft + label.width + 6 * s
+    at(await fitText(character.card.name, style(D.fontSize.subtitle, C.goldLight), colLeft + colW - nameLeft), nameLeft, px(D.text.subtitleY, s))
+  }
+
+  // Legend: swatch, label, count per group, stopping at the bar's right edge
+  // rather than running off the canvas (the bar itself still shows every group).
+  let cursor = px(geom.banner.bar.x, s)
+  const legendTop = px(geom.banner.legendY, s)
+  for (const m of layout.banner.makeup) {
+    const label = await renderText(m.label, style(D.fontSize.legend, C.mutedAccent))
+    const count = await renderText(String(m.count), style(D.fontSize.legend, C.parchment))
+    const itemW = 14 * s + label.width + 4 * s + count.width
+    if (cursor + itemW > right) break
+    decor.swatches.push({ x: cursor, y: legendTop + Math.round((label.height - 8 * s) / 2), w: 8 * s, h: 8 * s, color: m.color })
+    at(label, cursor + 14 * s, legendTop)
+    at(count, cursor + 14 * s + label.width + 4 * s, legendTop)
+    cursor += itemW + 20 * s
+  }
+
+  for (const zone of geom.zones) {
+    // Zone header: title, count, then a rule that fades out to the right.
+    const top = px(zone.headerY, s)
+    const title = at(await fitText(zone.title, style(D.fontSize.zone, C.parchment, D.tracking.zone), right - px(D.padding, s)), px(D.padding, s), top)
+    const count = at(await renderText(String(zone.count), style(D.fontSize.zone, C.gold)), px(D.padding, s) + title.width + 10 * s, top)
+    const ruleLeft = px(D.padding, s) + title.width + 10 * s + count.width + 14 * s
+    if (ruleLeft < right) decor.rules.push({ x: ruleLeft, y: top + Math.round(title.height / 2), w: right - ruleLeft, h: Math.max(1, Math.round(s)) })
+
+    for (const group of zone.groups) {
+      if (group.title !== null) {
+        const left = px(group.x, s)
+        const color = group.key === 'lesson' ? C.goldLight : C.mutedAccent
+        const label = at(await fitText(group.title, style(D.fontSize.group, color, D.tracking.group), right - left), left, px(group.labelY, s))
+        const n = await renderText(String(group.count), style(D.fontSize.group, C.gold))
+        const nLeft = left + label.width + 8 * s
+        if (nLeft + n.width <= right) at(n, nLeft, px(group.labelY, s))
+      }
+      for (const pc of group.cards) {
+        // xN chip on the bottom-right corner, sized to its digits.
+        const sign = await renderText('×', style(D.fontSize.chipSign, C.gold))
+        const num = await renderText(String(pc.card.quantity), style(D.fontSize.chip, C.gold))
+        const contentW = sign.width + s + num.width
+        const pillH = px(D.chip.height, s)
+        const pillW = Math.max(px(D.chip.minWidth, s), Math.round(contentW + 2 * D.chip.padX * s))
+        const pillRight = px(pc.x + pc.w + D.chip.overhangX, s)
+        const pillBottom = px(pc.y + pc.h + D.chip.overhangY, s)
+        const pill = { x: pillRight - pillW, y: pillBottom - pillH, w: pillW, h: pillH }
+        decor.pills.push(pill)
+        const textLeft = pill.x + (pillW - contentW) / 2
+        at(sign, textLeft, pill.y + (pillH - sign.height) / 2 + s)
+        at(num, textLeft + sign.width + s, pill.y + (pillH - num.height) / 2)
+      }
     }
   }
-  return overlays
+  return { overlays, decor }
 }
 
 /**
  * The deck as a picture: the sheet web's "Export PNG" downloads and the Discord
  * bot posts for /deck, drawn once here instead of twice in two runtimes.
  * Grouping, geometry and colours come from @revelio/core, so this process owns
- * no layout.
+ * no layout. The banner draws the character's art crop when it has one and a
+ * gold glow when it does not; either way the layout is the same.
  *
  * The art source is picked per sheet by usesFullArt: full card images while the
  * boxes are big enough for a thumb to show its own compression, the thumbs once
@@ -400,11 +557,17 @@ export async function renderSheet(req: DeckSheetRequest, opts: SheetRenderOption
   const geom = computeSheetGeometry(layout)
   const s = sheetScale(geom, resolveBudget(req.maxBytes, opts.pixelBudget))
   const { w, h } = canvasSize(geom, s)
+  const budgetMs = opts.fetchBudgetMs ?? FETCH_BUDGET_MS
+  const positioned = [
+    ...(geom.banner.card ? [geom.banner.card] : []),
+    ...geom.zones.flatMap((z) => z.groups.flatMap((g) => g.cards)),
+  ]
 
   const fetchStarted = performance.now()
-  const [cards, text] = await Promise.all([
-    cardOverlays(geom.sections, opts.imageBase, s, opts.fetchBudgetMs ?? FETCH_BUDGET_MS, opts.signal),
-    textOverlays(geom, layout.title, s),
+  const [cards, banner, text] = await Promise.all([
+    cardOverlays(positioned, opts.imageBase, s, budgetMs, opts.signal),
+    bannerArt(layout.banner, geom.banner.art, opts.imageBase, s, budgetMs, opts.signal),
+    textOverlays(geom, layout, s),
   ])
   const fetchMs = Math.round(performance.now() - fetchStarted)
   // The composite and the two encoders are the expensive half and cannot be
@@ -417,8 +580,17 @@ export async function renderSheet(req: DeckSheetRequest, opts: SheetRenderOption
   // composite once into raw pixels and feeding both encoders from it was
   // measured and rejected - it pays 22ms and 9 MB on the path that always runs
   // to save 170ms on the one that should never fire.
-  const sheet = sharp(chromeSvg(geom, s)).composite([...cards.overlays, { input: badgeSvg(geom, s) }, ...text])
-  const common = { pixels: w * h, scale: s, fullArt: usesFullArt(s), dropped: cards.dropped, distinct: cards.distinct, fetchMs }
+  //
+  // Paint order: sheet and placeholders, the art and its fades, the card
+  // faces, then the shapes and text that sit on top of them.
+  const sheet = sharp(baseSvg(geom, layout, s, banner.overlay !== null)).composite([
+    ...(banner.overlay ? [banner.overlay, { input: fadeSvg(geom, s) }] : []),
+    ...cards.overlays,
+    { input: decorSvg(geom, s, text.decor) },
+    ...text.overlays,
+  ])
+  const dropped = cards.dropped + banner.dropped
+  const common = { pixels: w * h, scale: s, fullArt: usesFullArt(s), dropped, distinct: cards.distinct, fetchMs }
 
   // PNG so the file people pull out of Discord, or out of their downloads, is
   // lossless and ordinary. The card images it is drawn from are already lossy,

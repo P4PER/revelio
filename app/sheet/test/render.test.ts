@@ -426,4 +426,18 @@ describe('renderSheet', () => {
     // In the card gap, where the first outline's right edge used to show.
     expect(near(await pixelAt(out.body, pc.x + pc.w + 3, pc.y + pc.h / 2, out.scale), DECK_SHEET_COLORS.background, 3)).toBe(true)
   })
+
+  // The title column runs on into the art, where the fade is only about half
+  // midnight; on bright art the parchment title needs its own shadow to read.
+  it('lifts the banner title off bright art with a shadow', async () => {
+    const bright = new Uint8Array(await sharp({ create: { width: 300, height: 420, channels: 3, background: '#F4EBD0' } }).webp().toBuffer())
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(bright, { status: 200 })))
+    const short = await renderSheet({ ...req, deck: { ...req.deck, name: 'W' } }, opts)
+    const long = await renderSheet({ ...req, deck: { ...req.deck, name: 'W'.repeat(40) } }, opts)
+    // Just under the title's baseline, out over the art: W has no descender, so
+    // only a shadow puts anything here.
+    const lum = ([r, g, b]: number[]) => (r + g + b) / 3
+    const at = (out: typeof short) => pixelAt(out.body, 880, DECK_SHEET.text.titleY + 36, out.scale)
+    expect(lum(await at(long))).toBeLessThan(lum(await at(short)) - 10)
+  })
 })

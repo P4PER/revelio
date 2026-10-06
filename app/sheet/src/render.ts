@@ -468,6 +468,28 @@ async function bannerArt(
   }
 }
 
+// A soft midnight halo in the shape of `t`, padded so the blur has room to
+// spread, and the padding it was given.
+async function textShadow(t: RenderedText, s: number): Promise<{ input: Buffer; pad: number }> {
+  const { blur, boost, opacity } = DECK_SHEET.textShadow
+  const pad = Math.ceil(blur * 3 * s)
+  const { data, info } = await sharp(t.input)
+    .extractChannel(3)
+    .extend({ top: pad, bottom: pad, left: pad, right: pad, background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .blur(blur * s)
+    .raw()
+    .toBuffer({ resolveWithObject: true })
+  // A blur of thin strokes alone spreads too little ink to carry the title over
+  // bright art: boost, clip at full, then fade. In JS because sharp's linear()
+  // is one setting per pipeline, so two calls do not chain.
+  for (let i = 0; i < data.length; i++) data[i] = Math.round(Math.min(255, data[i] * boost) * opacity)
+  const input = await sharp({ create: { width: info.width, height: info.height, channels: 3, background: DECK_SHEET_COLORS.background } })
+    .joinChannel(data, { raw: { width: info.width, height: info.height, channels: 1 } })
+    .png()
+    .toBuffer()
+  return { input, pad }
+}
+
 async function textOverlays(geom: SheetGeometry, layout: DeckSheetLayout, s: number): Promise<TextLayer> {
   const D = DECK_SHEET
   const C = DECK_SHEET_COLORS
@@ -482,22 +504,28 @@ async function textOverlays(geom: SheetGeometry, layout: DeckSheetLayout, s: num
     return t
   }
   const capHeight = (t: RenderedText) => t.baseline - t.capTop
+  // For the banner column, which runs on into the art: the text over its halo.
+  const atShadowed = async (t: RenderedText, left: number, capY: number) => {
+    const shadow = await textShadow(t, s)
+    overlays.push({ input: shadow.input, left: Math.round(left) - shadow.pad, top: Math.round(capY - t.capTop) - shadow.pad })
+    return at(t, left, capY)
+  }
 
   // Banner text column.
   const { textX, textWidth } = geom.banner
   const colLeft = px(textX, s)
   const colW = px(textWidth, s)
-  at(await fitText(layout.banner.eyebrow, style(D.fontSize.eyebrow, C.gold, D.tracking.eyebrow), colW), colLeft, px(D.text.eyebrowY, s))
+  await atShadowed(await fitText(layout.banner.eyebrow, style(D.fontSize.eyebrow, C.gold, D.tracking.eyebrow), colW), colLeft, px(D.text.eyebrowY, s))
   // A long name steps down towards titleMin before it is cut, and sits on the
   // baseline a full-size title would have, so the lines around it do not move.
   const deckTitle = await fitText(layout.banner.name, style(D.fontSize.title, C.parchment), colW, D.fontSize.titleMin * s)
   const titleBaseline = px(D.text.titleY, s) + capHeight(deckTitle) * (D.fontSize.title * s / deckTitle.size)
-  at(deckTitle, colLeft, titleBaseline - capHeight(deckTitle))
+  await atShadowed(deckTitle, colLeft, titleBaseline - capHeight(deckTitle))
   const character = layout.banner.character
   if (character) {
-    const label = at(await renderText(character.label, style(D.fontSize.subtitle, C.mutedAccent)), colLeft, px(D.text.subtitleY, s))
+    const label = await atShadowed(await renderText(character.label, style(D.fontSize.subtitle, C.mutedAccent)), colLeft, px(D.text.subtitleY, s))
     const nameLeft = colLeft + label.width + 6 * s
-    at(await fitText(character.card.name, style(D.fontSize.subtitle, C.goldLight), colLeft + colW - nameLeft), nameLeft, px(D.text.subtitleY, s))
+    await atShadowed(await fitText(character.card.name, style(D.fontSize.subtitle, C.goldLight), colLeft + colW - nameLeft), nameLeft, px(D.text.subtitleY, s))
   }
 
   // Legend: swatch, label, count per group, stopping at the bar's right edge

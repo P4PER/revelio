@@ -234,6 +234,11 @@ export const DECK_SHEET = {
   // art. The Y values are where each line's cap height starts.
   text: { xWithCard: 290, widthWithCard: 640, widthAlone: 1360, eyebrowY: 58, titleY: 84, subtitleY: 146 },
   bar: { y: 254, height: 10, gap: 2, legendY: 274 },
+  // Under the banner text, which runs on into the art: a midnight halo from the
+  // glyphs' own shape, so the title reads on bright art too.
+  // `boost` scales the blurred alpha before it is clipped at full, which
+  // fattens the halo around thin strokes.
+  textShadow: { blur: 8, boost: 2.5, opacity: 0.85 },
   zoneGap: 24,
   zoneHeaderHeight: 44,
   groupLabelHeight: 22,

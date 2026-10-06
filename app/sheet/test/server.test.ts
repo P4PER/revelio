@@ -3,7 +3,7 @@ import type { AddressInfo } from 'node:net'
 import sharp from 'sharp'
 import { createServer } from 'node:http'
 import { DeckSheetRequest, MAX_SHEET_ENTRIES, SHEET_FIELD_LIMITS } from '@revelio/core'
-import { createSheetServer, listen, MAX_BODY_BYTES } from '../src/server'
+import { createSheetServer, listen, MAX_BODY_BYTES, MAX_QUEUED } from '../src/server'
 
 const env = { PORT: 0, IMAGE_BASE_URL: 'https://img.test', SHEET_TOKEN: 'a-token-at-least-16-chars' }
 const server = createSheetServer(env)
@@ -216,7 +216,12 @@ describe('the render service', () => {
   it('sheds load rather than render two sheets at once', async () => {
     // One render in flight, four queued, everything past that is a 503 - which
     // is the same path the callers take when the service is down.
-    const flight = Array.from({ length: 12 }, () => post(body))
+    //
+    // Sized from the admission, not "plenty": the earlier tests leave keep-alive
+    // sockets idle in fetch's pool, and every new one past MAX_CONNECTIONS is
+    // dropped by the server, which the client sees as ECONNRESET rather than a
+    // status. Two past the admission is enough to see a 503 and leaves room.
+    const flight = Array.from({ length: MAX_QUEUED + 3 }, () => post(body))
     const statuses = (await Promise.all(flight)).map((r) => r.status)
     expect(statuses).toContain(200)
     expect(statuses).toContain(503)

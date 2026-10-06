@@ -35,10 +35,12 @@ const FONT_FILE = fileURLToPath(new URL('./Poppins-SemiBold.ttf', import.meta.ur
 const FONTS_CONF = fileURLToPath(new URL('./fonts.conf', import.meta.url))
 const ELLIPSIS = '…'
 // Drawn after every string and cropped off again, so the box spans the tallest
-// accent and the deepest descender a Latin or German name can reach whatever
-// the string itself holds. Measured against the whole of A-ring, E-acute, the
-// umlauts, C-cedilla, g, j, y, p and the bar: these two alone reach as far.
-const STRUT = 'ÅÇ'
+// accent and the deepest descender a name can reach whatever the string itself
+// holds. Measured in Poppins inside the service image - a macOS host draws a
+// fallback face, whose extremes differ - against every printable character of
+// Latin-1 and Latin Extended-A: no glyph there reaches past these five. g is
+// a pixel deeper than C-cedilla; l-acute and the comma-below letters go further.
+const STRUT = 'ÅÇgĺņ'
 // Between the text and the strut: clear columns for the crop to cut in. Plain
 // spaces, which every face has - an em space is not in Poppins, and the
 // fallback drew it a quarter as wide as its name says.

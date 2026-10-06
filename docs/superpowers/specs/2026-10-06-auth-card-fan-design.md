@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-06
 **Status:** approved, not implemented
-**Workspaces:** `web` only (`components/auth`, `public/auth-fan`, messages)
+**Workspaces:** `web` only (`components/auth`, `public/auth`, messages)
 **Mock:** "B3 - Fan over the form" and "B3 - Phone" in the design study artifact
 (https://claude.ai/artifact/95nJi3qhx8VBYbG95kPaMz), with the glow removed
 
@@ -50,7 +50,7 @@ unchanged.
 |---|---|---|
 | left | Wingardium Leviosa! (`bs-111-wingardium-leviosa`) | -14deg |
 | middle | Lumos! (`poa-71-lumos`) | -2deg |
-| front | the Revelio card: a brand-indigo card, gold border, the wand-and-star mark | 11deg |
+| front | the Revelio card: a deep-indigo card, gold border, the wand-and-star mark | 11deg |
 
 Both real cards are upright Charms spells; many cards are stored sideways (all characters,
 and e.g. Norbert and Golden Snitch), which reads as a mistake in a fan. The front card is
@@ -60,18 +60,20 @@ the brand, not a card from the game, so it never depends on data.
   card sits behind the form card. Below `sm` they are 88 x 123 px and shown whole (see
   **Phone**).
 - **Theme:** the real cards are images and look the same in both themes. The Revelio card
-  uses the `--dark-brand-indigo` and `--dark-primary` tokens, which `:root` defines in every
-  theme, so it is indigo and gold on both. Not midnight (`--dark-background`): on the dark
-  theme that is the page itself, and the card's face disappeared into it. Its mark is the
-  app-icon badge's glyph (`logos/revelio-icon-badge.svg`, without the square), whose
-  parchment wand reads on indigo where the plain icon's indigo wand would vanish. No glow,
-  no gradient.
+  uses the `--dark-*` tokens, which `:root` defines in every theme, so it looks the same on
+  both: a face of 45% `--dark-brand-indigo` mixed into `--dark-background`, and a
+  `--dark-primary` border. Not plain midnight: on the dark theme that is the page itself,
+  and the card's face disappeared into it. Not full brand indigo either, which was too
+  bright beside the card art. Its mark is `public/revelio-icon-dark.svg`, the icon for a
+  dark background (named like `revelio-logo-dark.svg`): the app-icon badge's glyph
+  (`logos/revelio-icon-badge.svg`) without the square, whose parchment wand reads on indigo
+  where `revelio-icon.svg`'s indigo wand would vanish. No glow, no gradient.
 - **Decorative only:** the fan's container is `aria-hidden`, its images have `alt=""`, it
   takes no pointer events and has no links, and it does not animate.
 
 ### Card images
 
-The two card thumbnails are static files in `public/auth-fan/`, as the Discord page's
+The two card thumbnails are static files in `public/auth/`, as the Discord page's
 sample card already is (`public/discord/alohomora-thumb.webp`): the 300 px thumbnails,
 copied from the bucket once. The fan is a fixed decoration, so it needs no database read,
 no cache, and no fallback for a read that failed. A first cut resolved the images at
@@ -122,7 +124,7 @@ above the fold (mock "B3 - Phone").
 
 ## Testing
 
-- `components/auth/__tests__/auth-card-fan.test.tsx`: draws the two `public/auth-fan`
+- `components/auth/__tests__/auth-card-fan.test.tsx`: draws the two `public/auth`
   images in slot order, then the Revelio mark; the container is `aria-hidden`.
 - `components/auth/__tests__/auth-card.test.tsx`: still renders the form for each mode, and
   now the fan.

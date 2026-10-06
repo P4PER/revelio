@@ -13,16 +13,17 @@ const SIZE = 'h-[123px] w-[88px] sm:h-[190px] sm:w-[136px]'
 // sideways (every character, and e.g. Norbert and Golden Snitch), which reads
 // as a mistake in a fan; Lumos is a light charm, which suits the "reveal" brand.
 const IMAGE_SLOTS = [
-  { src: '/auth-fan/bs-111-wingardium-leviosa.webp', slot: 'left-0 top-[18px] -rotate-14 sm:top-[26px]' },
-  { src: '/auth-fan/poa-71-lumos.webp', slot: 'left-[59px] top-[4px] -rotate-2 sm:left-[85px] sm:top-0' },
+  { src: '/auth/bs-111-wingardium-leviosa.webp', slot: 'left-0 top-[18px] -rotate-14 sm:top-[26px]' },
+  { src: '/auth/poa-71-lumos.webp', slot: 'left-[59px] top-[4px] -rotate-2 sm:left-[85px] sm:top-0' },
 ]
 const REVELIO_SLOT = 'left-[118px] top-[14px] rotate-11 sm:left-[170px] sm:top-[18px]'
 
 // Decoration above the sign-in and register forms: two real cards and the
 // Revelio card. Hidden from assistive tech, not interactive, never animated.
 // The Revelio card reads the --dark-* tokens, which :root defines in every
-// theme, so it is the same brand indigo and gold on both: indigo rather than
-// midnight, which on the dark theme is the page itself and lost the card's face.
+// theme, so it looks the same on both. Its face is brand indigo mixed into
+// midnight: plain midnight is the dark theme's page itself and lost the card's
+// face, and full brand indigo shouted next to the card art.
 export function AuthCardFan() {
   return (
     <div
@@ -37,12 +38,12 @@ export function AuthCardFan() {
       ))}
       <div
         className={cn(
-          'absolute flex items-center justify-center rounded-md border-2 border-[var(--dark-primary)] bg-[var(--dark-brand-indigo)] shadow-lg sm:items-start sm:rounded-lg sm:border-[3px] sm:pt-7',
+          'absolute flex items-center justify-center rounded-md border-2 border-[var(--dark-primary)] bg-[color-mix(in_srgb,var(--dark-brand-indigo)_45%,var(--dark-background))] shadow-lg sm:items-start sm:rounded-lg sm:border-[3px] sm:pt-7',
           SIZE,
           REVELIO_SLOT,
         )}
       >
-        <Image src="/auth-fan/revelio-mark.svg" alt="" width={68} height={68} className="size-12 sm:size-[70px]" />
+        <Image src="/revelio-icon-dark.svg" alt="" width={68} height={68} className="size-12 sm:size-[70px]" />
       </div>
     </div>
   )

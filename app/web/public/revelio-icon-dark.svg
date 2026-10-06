@@ -1,6 +1,7 @@
 <svg width="68" height="68" viewBox="16 16 68 68" xmlns="http://www.w3.org/2000/svg">
-  <!-- The glyph of logos/revelio-icon-badge.svg without its square: a parchment
-       wand, so it still reads on the indigo face of the auth fan's brand card. -->
+  <!-- The icon for a dark background, like revelio-logo-dark.svg: the glyph of
+       logos/revelio-icon-badge.svg without its square. Its wand is parchment, where
+       revelio-icon.svg's is indigo and vanishes on a dark or indigo face. -->
   <g transform="translate(-7,2.5)">
     <polygon points="26.51,72.70 33.49,79.30 65.16,41.10 62.84,38.90" fill="#FBF3DC"/>
     <line x1="40.12" y1="73.30" x2="32.12" y2="65.74" stroke="#E8B23A" stroke-width="2.6" stroke-linecap="round"/>

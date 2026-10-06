@@ -16,9 +16,9 @@ describe('AuthCardFan', () => {
     const { container } = render(<AuthCardFan />)
     const srcs = [...fan(container).querySelectorAll('img')].map((i) => i.getAttribute('src'))
     expect(srcs).toEqual([
-      '/auth-fan/bs-111-wingardium-leviosa.webp',
-      '/auth-fan/poa-71-lumos.webp',
-      '/auth-fan/revelio-mark.svg',
+      '/auth/bs-111-wingardium-leviosa.webp',
+      '/auth/poa-71-lumos.webp',
+      '/revelio-icon-dark.svg',
     ])
   })
 

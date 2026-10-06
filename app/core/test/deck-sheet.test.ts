@@ -210,6 +210,20 @@ describe('makeupSegments', () => {
     ])
   })
 
+  // Rounding each share on its own can overshoot the bar by up to half a pixel
+  // per segment, which the last one used to pay for with a negative width.
+  it('never gives a segment a negative width', () => {
+    const counts = [9, 9, 9, 1]
+    const bar = { x: 0, y: 0, w: 20, h: 10 }
+    const segs = makeupSegments(counts.map((count, i) => ({ key: `k${i}`, label: '', count, color: '#000000' })), bar)
+    const free = bar.w - DECK_SHEET.bar.gap * (counts.length - 1)
+    segs.forEach((seg, i) => {
+      expect(seg.w).toBeGreaterThanOrEqual(0)
+      expect(Math.abs(seg.w - (counts[i] / 28) * free)).toBeLessThanOrEqual(1)
+    })
+    expect(segs[3].x + segs[3].w).toBe(bar.x + bar.w)
+  })
+
   it('draws nothing for an empty main deck', () => {
     expect(makeupSegments([], { x: 40, y: 254, w: 1360, h: 10 })).toEqual([])
   })

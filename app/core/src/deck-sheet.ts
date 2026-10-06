@@ -225,6 +225,9 @@ export const DECK_SHEET = {
   // The art area is right-aligned and full height. focusY is how much of the
   // crop's spare height is cut from the top: faces sit high in the crops.
   art: { width: 880, focusY: 0.3 },
+  // Landscape, because every starting character is a horizontal card (all 117
+  // in card-data today). A portrait one would be cover-cropped to this box and
+  // lose most of its face, so a new set with one needs a portrait slot here.
   heroCard: { x: 40, y: 40, w: 224, h: 160 },
   // The column runs on into the art as far as its left fade is still mostly
   // midnight (about 45% across), and across the whole content when there is no
@@ -455,21 +458,20 @@ export function computeSheetGeometry(layout: DeckSheetLayout): SheetGeometry {
 }
 
 /**
- * The makeup bar's segments: one per group, sized by count, 2px apart. Widths
- * are rounded and the last segment takes the remainder, so the bar always ends
- * flush with the content edge whatever the rounding did.
+ * The makeup bar's segments: one per group, sized by count, 2px apart. The
+ * boundaries are rounded, not the widths: a width is the gap between two
+ * rounded boundaries, so none goes negative, each is within a pixel of its
+ * share, and the last ends flush with the bar however the rounding fell.
  */
 export function makeupSegments(makeup: DeckSheetMakeup[], bar: Rect): (Rect & { color: string })[] {
   const total = makeup.reduce((n, m) => n + m.count, 0)
   if (!total) return []
   const free = bar.w - DECK_SHEET.bar.gap * (makeup.length - 1)
-  let x = bar.x
-  let used = 0
+  let before = 0
   return makeup.map((m, i) => {
-    const w = i === makeup.length - 1 ? free - used : Math.round((m.count / total) * free)
-    const segment = { x, y: bar.y, w, h: bar.h, color: m.color }
-    x += w + DECK_SHEET.bar.gap
-    used += w
-    return segment
+    const start = Math.round((before / total) * free)
+    before += m.count
+    const w = Math.round((before / total) * free) - start
+    return { x: bar.x + start + DECK_SHEET.bar.gap * i, y: bar.y, w, h: bar.h, color: m.color }
   })
 }

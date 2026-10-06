@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { AuthCard } from '@/components/auth/auth-card'
 import { safeRedirectPath } from '@/lib/redirect-path'
+import { getAuthFanImages } from '@/lib/server/auth-fan'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('auth')
@@ -15,6 +16,7 @@ export default async function RegisterPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   // Validated here, on the server, so an untrusted value never reaches the client.
-  const redirectTo = safeRedirectPath((await searchParams).redirect)
-  return <AuthCard mode="register" redirectTo={redirectTo} />
+  const [params, fanImages] = await Promise.all([searchParams, getAuthFanImages()])
+  const redirectTo = safeRedirectPath(params.redirect)
+  return <AuthCard mode="register" redirectTo={redirectTo} fanImages={fanImages} />
 }

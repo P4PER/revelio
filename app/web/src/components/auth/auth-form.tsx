@@ -18,6 +18,13 @@ import { FieldError } from '@/components/ui/field-error'
 import { makeEmailStepSchema, makeCodeSchema } from '@/lib/schemas/auth'
 import { REGEXP_ONLY_DIGITS } from 'input-otp'
 
+// The card chrome only applies from `sm` up. On a phone a box costs width - a
+// second gutter inside the page's - and frames a form that already fills the
+// screen, so below `sm` the form sits directly on the page. z-10 keeps it above
+// the fan cards that run behind its top edge.
+const FORM_CARD =
+  'relative z-10 sm:rounded-xl sm:border sm:border-border sm:bg-card sm:p-8 sm:shadow-[0_-10px_28px_rgb(19_18_42/0.22)]'
+
 // Shared passwordless (email OTP) form. `register` collects a username and sets
 // it after verification; `login` is email-only. Both cross-link to the other.
 //
@@ -116,139 +123,146 @@ export function AuthForm({
   }
 
   return (
-    <div>
-      <h1 className="mb-2 text-2xl font-semibold tracking-tight text-foreground">
-        {register ? t('registerTitle') : t('title')}
-      </h1>
-      {step === 'email' && (
-        <p className="mb-6 text-base text-muted-foreground">
-          {register
-            ? t('registerSubtitle', { brand: BRAND_NAME })
-            : t('subtitle', { brand: BRAND_NAME })}
-        </p>
-      )}
-      {step === 'email' ? (
-        <form onSubmit={emailForm.handleSubmit(requestCode)} className="space-y-4" noValidate>
-          <div className="space-y-1.5">
-            <Label htmlFor="email">{t('email')}</Label>
-            <Input
-              id="email"
-              type="email"
-              autoFocus
-              autoComplete="email"
-              placeholder={t('emailPlaceholder')}
-              size="lg"
-              aria-invalid={!!emailForm.formState.errors.email}
-              {...emailForm.register('email')}
-            />
-            <FieldError>{emailForm.formState.errors.email?.message}</FieldError>
-          </div>
-          {register && (
-            <div className="space-y-1.5">
-              <Label htmlFor="username">{t('username')}</Label>
-              <Input
-                id="username"
-                type="text"
-                autoComplete="username"
-                placeholder={t('usernamePlaceholder')}
-                size="lg"
-                aria-invalid={!!emailForm.formState.errors.name}
-                {...emailForm.register('name')}
-              />
-              <FieldError>{emailForm.formState.errors.name?.message}</FieldError>
-            </div>
-          )}
-          <FieldError>{emailForm.formState.errors.root?.message}</FieldError>
-          {register && (
-            // Incorporates the terms (§ 305(2) BGB): shown before the click that
-            // concludes the contract. Links open in a new tab so reading the terms
-            // does not throw away what the visitor has typed.
-            <p className="text-sm text-muted-foreground">
-              {t.rich('termsNotice', {
-                button: t('register'),
-                terms: (chunks) => (
-                  <Link href="/terms" target="_blank" className="text-foreground underline">
-                    {chunks}
-                  </Link>
-                ),
-                rules: (chunks) => (
-                  <Link href="/terms#acceptable-use" target="_blank" className="text-foreground underline">
-                    {chunks}
-                  </Link>
-                ),
-                privacy: (chunks) => (
-                  <Link href="/privacy" target="_blank" className="text-foreground underline">
-                    {chunks}
-                  </Link>
-                ),
-              })}
+    <>
+      <div data-slot="auth-form-card" className={FORM_CARD}>
+        <div className="mb-6 text-center">
+          <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-primary-ink">
+            {t('tagline')}
+          </p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            {register ? t('registerTitle') : t('title')}
+          </h1>
+          {step === 'email' && (
+            <p className="mt-2 text-base text-muted-foreground">
+              {register
+                ? t('registerSubtitle', { brand: BRAND_NAME })
+                : t('subtitle', { brand: BRAND_NAME })}
             </p>
           )}
-          <Button type="submit" size="lg" disabled={emailForm.formState.isSubmitting} className="w-full font-semibold">
-            {register ? t('register') : t('login')}
-          </Button>
-        </form>
-      ) : (
-        <form onSubmit={verify} className="space-y-4" noValidate>
-          <p className="text-base text-muted-foreground">{t('codeSent', { email })}</p>
-          <div className="space-y-1.5">
-            <Label htmlFor="code">{t('code')}</Label>
-            <InputOTP
-              id="code"
-              maxLength={6}
-              value={code}
-              onChange={(value) => {
-                setCode(value)
+        </div>
+        {step === 'email' ? (
+          <form onSubmit={emailForm.handleSubmit(requestCode)} className="space-y-4" noValidate>
+            <div className="space-y-1.5">
+              <Label htmlFor="email">{t('email')}</Label>
+              <Input
+                id="email"
+                type="email"
+                autoFocus
+                autoComplete="email"
+                placeholder={t('emailPlaceholder')}
+                size="lg"
+                aria-invalid={!!emailForm.formState.errors.email}
+                {...emailForm.register('email')}
+              />
+              <FieldError>{emailForm.formState.errors.email?.message}</FieldError>
+            </div>
+            {register && (
+              <div className="space-y-1.5">
+                <Label htmlFor="username">{t('username')}</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  autoComplete="username"
+                  placeholder={t('usernamePlaceholder')}
+                  size="lg"
+                  aria-invalid={!!emailForm.formState.errors.name}
+                  {...emailForm.register('name')}
+                />
+                <FieldError>{emailForm.formState.errors.name?.message}</FieldError>
+              </div>
+            )}
+            <FieldError>{emailForm.formState.errors.root?.message}</FieldError>
+            {register && (
+              // Incorporates the terms (§ 305(2) BGB): shown before the click that
+              // concludes the contract. Links open in a new tab so reading the terms
+              // does not throw away what the visitor has typed.
+              <p className="text-sm text-muted-foreground">
+                {t.rich('termsNotice', {
+                  button: t('register'),
+                  terms: (chunks) => (
+                    <Link href="/terms" target="_blank" className="text-foreground underline">
+                      {chunks}
+                    </Link>
+                  ),
+                  rules: (chunks) => (
+                    <Link href="/terms#acceptable-use" target="_blank" className="text-foreground underline">
+                      {chunks}
+                    </Link>
+                  ),
+                  privacy: (chunks) => (
+                    <Link href="/privacy" target="_blank" className="text-foreground underline">
+                      {chunks}
+                    </Link>
+                  ),
+                })}
+              </p>
+            )}
+            <Button type="submit" size="lg" disabled={emailForm.formState.isSubmitting} className="w-full font-semibold">
+              {register ? t('register') : t('login')}
+            </Button>
+          </form>
+        ) : (
+          <form onSubmit={verify} className="space-y-4" noValidate>
+            <p className="text-center text-base text-muted-foreground">{t('codeSent', { email })}</p>
+            <div className="space-y-1.5">
+              <Label htmlFor="code">{t('code')}</Label>
+              <InputOTP
+                id="code"
+                maxLength={6}
+                value={code}
+                onChange={(value) => {
+                  setCode(value)
+                  setCodeError(null)
+                }}
+                pattern={REGEXP_ONLY_DIGITS}
+                inputMode="numeric"
+                autoFocus
+                autoComplete="one-time-code"
+                containerClassName="justify-center"
+                aria-invalid={!!codeError}
+              >
+                <InputOTPGroup data-invalid={!!codeError}>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+              <FieldError>{codeError}</FieldError>
+            </div>
+            <Button type="submit" size="lg" disabled={verifying} className="w-full font-semibold">
+              {t('verify')}
+            </Button>
+            <button
+              type="button"
+              onClick={() => {
+                setStep('email')
+                setCode('')
                 setCodeError(null)
               }}
-              pattern={REGEXP_ONLY_DIGITS}
-              inputMode="numeric"
-              autoFocus
-              autoComplete="one-time-code"
-              containerClassName="justify-center"
-              aria-invalid={!!codeError}
+              className="mx-auto flex cursor-pointer items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             >
-              <InputOTPGroup data-invalid={!!codeError}>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
-              </InputOTPGroup>
-            </InputOTP>
-            <FieldError>{codeError}</FieldError>
-          </div>
-          <Button type="submit" size="lg" disabled={verifying} className="w-full font-semibold">
-            {t('verify')}
-          </Button>
-          <button
-            type="button"
-            onClick={() => {
-              setStep('email')
-              setCode('')
-              setCodeError(null)
-            }}
-            className="mx-auto flex cursor-pointer items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-          >
-            <ArrowLeft className="size-3.5" aria-hidden />
-            {t('differentEmail')}
-          </button>
-        </form>
-      )}
-      <p className="mt-6 text-center text-base text-muted-foreground">
-        {register ? (
-          <>
-            {t('haveAccount')}{' '}
-            <Link href={loginHref(redirectTo)} className="text-foreground underline">{t('signIn')}</Link>
-          </>
-        ) : (
-          <>
-            {t('noAccount')}{' '}
-            <Link href={registerHref(redirectTo)} className="text-foreground underline">{t('register')}</Link>
-          </>
+              <ArrowLeft className="size-3.5" aria-hidden />
+              {t('differentEmail')}
+            </button>
+          </form>
         )}
-      </p>
-    </div>
+      </div>
+        <p className="mt-6 border-t border-border pt-4 text-center text-base text-muted-foreground sm:border-0 sm:pt-0">
+          {register ? (
+            <>
+              {t('haveAccount')}{' '}
+              <Link href={loginHref(redirectTo)} className="text-foreground underline">{t('signIn')}</Link>
+            </>
+          ) : (
+            <>
+              {t('noAccount')}{' '}
+              <Link href={registerHref(redirectTo)} className="text-foreground underline">{t('register')}</Link>
+            </>
+          )}
+        </p>
+    </>
   )
 }

@@ -212,4 +212,13 @@ describe('AuthForm', () => {
     await signIn(null)
     expect(acceptTermsAction).not.toHaveBeenCalled()
   })
+
+  it('shows the tagline above the heading, inside the form card', () => {
+    renderForm('login')
+    const tagline = screen.getByText('Your collection, revealed')
+    const heading = screen.getByRole('heading', { level: 1 })
+    expect(tagline.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(tagline.closest('[data-slot="auth-form-card"]')).not.toBeNull()
+    expect(screen.getByRole('link', { name: 'Register' }).closest('[data-slot="auth-form-card"]')).toBeNull()
+  })
 })

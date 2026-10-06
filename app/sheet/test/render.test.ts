@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import sharp from 'sharp'
 import {
-  DECK_SHEET, computeSheetGeometry, layoutDeckSheet, sheetLabels,
+  DECK_SHEET, DECK_SHEET_COLORS, computeSheetGeometry, layoutDeckSheet, sheetLabels,
   type DeckSheetEntry, type DeckSheetRequest,
 } from '@revelio/core'
 import {
@@ -405,5 +405,14 @@ describe('renderSheet', () => {
     let light = 0
     for (let i = 0; i < data.length; i += info.channels) if (data[i] > 220 && data[i + 1] > 220) light++
     expect(light).toBeGreaterThan(50)
+  })
+
+  // Spec section 4 draws the bar above the fades. Under them, the left fade's
+  // solid midnight hid every segment past the art's left edge, Lessons included.
+  it('draws the makeup bar over the art fades, out to the content edge', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(await art(), { status: 200 })))
+    const out = await renderSheet(req, opts)
+    // The last segment is Lessons, gold, and ends flush at 1400.
+    expect(near(await pixelAt(out.body, 1395, 259, out.scale), DECK_SHEET_COLORS.group.lesson)).toBe(true)
   })
 })

@@ -178,9 +178,9 @@ function svg(geom: SheetGeometry, s: number, parts: string[]): Buffer {
 }
 
 // Under everything: the midnight sheet, the glow when there is no art, the
-// banner card's shadow and gold ring, each card's stacked-copy outlines and
-// placeholder box, and the makeup bar.
-function baseSvg(geom: SheetGeometry, layout: DeckSheetLayout, s: number, hasArt: boolean): Buffer {
+// banner card's shadow and gold ring, and each card's stacked-copy outlines and
+// placeholder box.
+function baseSvg(geom: SheetGeometry, s: number, hasArt: boolean): Buffer {
   const C = DECK_SHEET_COLORS
   const r = px(DECK_SHEET.cardRadius, s)
   const { w, h } = canvasSize(geom, s)
@@ -188,7 +188,6 @@ function baseSvg(geom: SheetGeometry, layout: DeckSheetLayout, s: number, hasArt
     `<defs>` +
       `<radialGradient id="glow"><stop offset="0" stop-color="${C.gold}" stop-opacity="0.18"/><stop offset="1" stop-color="${C.gold}" stop-opacity="0"/></radialGradient>` +
       `<filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="${12 * s}"/></filter>` +
-      `<clipPath id="bar"><rect x="${px(geom.banner.bar.x, s)}" y="${px(geom.banner.bar.y, s)}" width="${px(geom.banner.bar.w, s)}" height="${px(geom.banner.bar.h, s)}" rx="${px(geom.banner.bar.h / 2, s)}"/></clipPath>` +
     `</defs>`,
     `<rect width="${w}" height="${h}" fill="${C.background}"/>`,
   ]
@@ -215,11 +214,6 @@ function baseSvg(geom: SheetGeometry, layout: DeckSheetLayout, s: number, hasArt
     }
   }
   if (hero) parts.push(box(hero, 0, 0))
-  const segments = makeupSegments(layout.banner.makeup, geom.banner.bar)
-  if (segments.length) {
-    parts.push(`<g clip-path="url(#bar)">${segments.map((g) =>
-      `<rect x="${px(g.x, s)}" y="${px(g.y, s)}" width="${px(g.w, s)}" height="${px(g.h, s)}" fill="${g.color}"/>`).join('')}</g>`)
-  }
   return svg(geom, s, parts)
 }
 
@@ -245,12 +239,21 @@ function fadeSvg(geom: SheetGeometry, s: number): Buffer {
   ])
 }
 
-// Over the cards: chip pills, legend swatches and the zone rules, each placed
-// from text the text layer has already measured.
-function decorSvg(geom: SheetGeometry, s: number, decor: Decor): Buffer {
+// Over the art fades and the cards: the makeup bar, which spec section 4 puts
+// above the fades (under them, the left fade's solid midnight hides every
+// segment past the art's left edge), then chip pills, legend swatches and the
+// zone rules, each placed from text the text layer has already measured.
+function decorSvg(geom: SheetGeometry, layout: DeckSheetLayout, s: number, decor: Decor): Buffer {
   const C = DECK_SHEET_COLORS
+  const segments = makeupSegments(layout.banner.makeup, geom.banner.bar)
   return svg(geom, s, [
-    `<defs><linearGradient id="rule" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${C.border}"/><stop offset="1" stop-color="${C.border}" stop-opacity="0"/></linearGradient></defs>`,
+    `<defs><linearGradient id="rule" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${C.border}"/><stop offset="1" stop-color="${C.border}" stop-opacity="0"/></linearGradient>` +
+      `<clipPath id="bar"><rect x="${px(geom.banner.bar.x, s)}" y="${px(geom.banner.bar.y, s)}" width="${px(geom.banner.bar.w, s)}" height="${px(geom.banner.bar.h, s)}" rx="${px(geom.banner.bar.h / 2, s)}"/></clipPath>` +
+    `</defs>`,
+    segments.length
+      ? `<g clip-path="url(#bar)">${segments.map((g) =>
+        `<rect x="${px(g.x, s)}" y="${px(g.y, s)}" width="${px(g.w, s)}" height="${px(g.h, s)}" fill="${g.color}"/>`).join('')}</g>`
+      : '',
     ...decor.rules.map((r) => `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="url(#rule)"/>`),
     ...decor.swatches.map((r) => `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="${2 * s}" fill="${r.color}"/>`),
     ...decor.pills.map((r) =>
@@ -595,10 +598,10 @@ export async function renderSheet(req: DeckSheetRequest, opts: SheetRenderOption
   //
   // Paint order: sheet and placeholders, the art and its fades, the card
   // faces, then the shapes and text that sit on top of them.
-  const sheet = sharp(baseSvg(geom, layout, s, banner.overlay !== null)).composite([
+  const sheet = sharp(baseSvg(geom, s, banner.overlay !== null)).composite([
     ...(banner.overlay ? [banner.overlay, { input: fadeSvg(geom, s) }] : []),
     ...cards.overlays,
-    { input: decorSvg(geom, s, text.decor) },
+    { input: decorSvg(geom, layout, s, text.decor) },
     ...text.overlays,
     logo,
   ])

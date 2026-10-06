@@ -225,15 +225,26 @@ export const DECK_SHEET = {
   // The art area is right-aligned and full height. focusY is how much of the
   // crop's spare height is cut from the top: faces sit high in the crops.
   art: { width: 880, focusY: 0.3 },
+  // Over the art: midnight fading out rightwards ([offset, opacity] stops), and
+  // in from `bottomFrom` of the banner's height down to solid.
+  fade: { left: [[0, 1], [0.22, 0.85], [0.6, 0.15], [1, 0]], bottomFrom: 0.6 },
+  // Drawn instead of the art when there is none: a gold radial glow, centred
+  // `fromRight` in from the sheet's right edge.
+  glow: { fromRight: 300, y: 140, r: 420, opacity: 0.18 },
   // Landscape, because every starting character is a horizontal card (all 117
   // in card-data today). A portrait one would be cover-cropped to this box and
   // lose most of its face, so a new set with one needs a portrait slot here.
   heroCard: { x: 40, y: 40, w: 224, h: 160 },
+  heroRing: { width: 2, radius: 8 },
+  heroShadow: { offsetY: 14, blur: 12, opacity: 0.6 },
   // The column runs on into the art as far as its left fade is still mostly
   // midnight (about 45% across), and across the whole content when there is no
   // art. The Y values are where each line's cap height starts.
-  text: { xWithCard: 290, widthWithCard: 640, widthAlone: 1360, eyebrowY: 58, titleY: 84, subtitleY: 146 },
+  // `subtitleGap` sits between "Starting character" and the name.
+  text: { xWithCard: 290, widthWithCard: 640, widthAlone: 1360, eyebrowY: 58, titleY: 84, subtitleY: 146, subtitleGap: 6 },
   bar: { y: 254, height: 10, gap: 2, legendY: 274 },
+  // One legend item is swatch, gap, label, gap, count; items are `itemGap` apart.
+  legend: { swatch: 8, swatchRadius: 2, labelGap: 6, countGap: 4, itemGap: 20 },
   // Under the banner text, which runs on into the art: a midnight halo from the
   // glyphs' own shape, so the title reads on bright art too.
   // `boost` scales the blurred alpha before it is clipped at full, which
@@ -241,8 +252,11 @@ export const DECK_SHEET = {
   textShadow: { blur: 8, boost: 2.5, opacity: 0.85 },
   zoneGap: 24,
   zoneHeaderHeight: 44,
+  // Title, `countGap`, count, `ruleGap`, then the rule to the right edge.
+  zoneHeader: { countGap: 10, ruleGap: 14 },
   groupLabelHeight: 22,
   groupLabelGap: 10,
+  groupCountGap: 8,
   groupGapX: 36,
   groupGapY: 24,
   // Portrait card box, 5:7.
@@ -252,7 +266,11 @@ export const DECK_SHEET = {
   cardGapX: 16,
   // Leaves room for the chip that overhangs each card's bottom edge.
   cardGapY: 20,
-  chip: { height: 26, minWidth: 30, padX: 7, overhangX: 6, overhangY: 8 },
+  // `signGap` sits between the x and the count.
+  chip: { height: 26, minWidth: 30, padX: 7, overhangX: 6, overhangY: 8, border: 2, signGap: 1 },
+  // Taken off the box width to fit a placeholder's card name, as the web
+  // painter clamped it.
+  placeholderInset: 16,
   footerHeight: 72,
   // logos/revelio-logo-dark.svg is 262 x 78.
   logo: { height: 34, aspect: 262 / 78 },

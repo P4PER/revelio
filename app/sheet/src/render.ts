@@ -81,8 +81,6 @@ const FETCH_TIMEOUT_MS = 10_000
 // placeholders.
 const FETCH_BUDGET_MS = 30_000
 const MAX_IN_FLIGHT = 8
-// Padding either side of a placeholder's card name, as the web painter clamps it.
-const PLACEHOLDER_INSET = 16
 // Width of a stored thumb, baked by card-data/accio_images.py and web's upload
 // action; the full image beside it is 745 wide.
 const THUMB_WIDTH = 300
@@ -178,25 +176,26 @@ function svg(geom: SheetGeometry, s: number, parts: string[]): Buffer {
 }
 
 // Under everything: the midnight sheet, the glow when there is no art, the
-// banner card's shadow and gold ring, and each card's stacked-copy outlines and
-// placeholder box.
+// banner card's shadow and gold ring, and each card's placeholder box.
 function baseSvg(geom: SheetGeometry, s: number, hasArt: boolean): Buffer {
   const C = DECK_SHEET_COLORS
+  const { glow, heroRing, heroShadow } = DECK_SHEET
   const r = px(DECK_SHEET.cardRadius, s)
   const { w, h } = canvasSize(geom, s)
   const parts = [
     `<defs>` +
-      `<radialGradient id="glow"><stop offset="0" stop-color="${C.gold}" stop-opacity="0.18"/><stop offset="1" stop-color="${C.gold}" stop-opacity="0"/></radialGradient>` +
-      `<filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="${12 * s}"/></filter>` +
+      `<radialGradient id="glow"><stop offset="0" stop-color="${C.gold}" stop-opacity="${glow.opacity}"/><stop offset="1" stop-color="${C.gold}" stop-opacity="0"/></radialGradient>` +
+      `<filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="${heroShadow.blur * s}"/></filter>` +
     `</defs>`,
     `<rect width="${w}" height="${h}" fill="${C.background}"/>`,
   ]
-  if (!hasArt) parts.push(`<circle cx="${px(DECK_SHEET.width - 300, s)}" cy="${px(140, s)}" r="${px(420, s)}" fill="url(#glow)"/>`)
+  if (!hasArt) parts.push(`<circle cx="${px(DECK_SHEET.width - glow.fromRight, s)}" cy="${px(glow.y, s)}" r="${px(glow.r, s)}" fill="url(#glow)"/>`)
   const hero = geom.banner.card
   if (hero) {
+    const ring = heroRing.width
     parts.push(
-      `<rect x="${px(hero.x, s)}" y="${px(hero.y + 14, s)}" width="${px(hero.w, s)}" height="${px(hero.h, s)}" fill="#000" opacity="0.6" filter="url(#shadow)"/>`,
-      `<rect x="${px(hero.x - 2, s)}" y="${px(hero.y - 2, s)}" width="${px(hero.w + 4, s)}" height="${px(hero.h + 4, s)}" rx="${px(8, s)}" fill="${C.gold}"/>`,
+      `<rect x="${px(hero.x, s)}" y="${px(hero.y + heroShadow.offsetY, s)}" width="${px(hero.w, s)}" height="${px(hero.h, s)}" fill="#000" opacity="${heroShadow.opacity}" filter="url(#shadow)"/>`,
+      `<rect x="${px(hero.x - ring, s)}" y="${px(hero.y - ring, s)}" width="${px(hero.w + ring * 2, s)}" height="${px(hero.h + ring * 2, s)}" rx="${px(heroRing.radius, s)}" fill="${C.gold}"/>`,
     )
   }
   const box = (pc: PositionedCard, dx: number, dy: number) =>
@@ -217,17 +216,17 @@ function baseSvg(geom: SheetGeometry, s: number, hasArt: boolean): Buffer {
 // title and the bar sit on midnight. Drawn only when there is art.
 function fadeSvg(geom: SheetGeometry, s: number): Buffer {
   const bg = DECK_SHEET_COLORS.background
+  const { left, bottomFrom } = DECK_SHEET.fade
   const a = geom.banner.art
   const rect = (fill: string) =>
     `<rect x="${px(a.x, s)}" y="${px(a.y, s)}" width="${px(a.w, s)}" height="${px(a.h, s)}" fill="${fill}"/>`
   return svg(geom, s, [
     `<defs>` +
       `<linearGradient id="fl" x1="0" y1="0" x2="1" y2="0">` +
-        `<stop offset="0" stop-color="${bg}" stop-opacity="1"/><stop offset="0.22" stop-color="${bg}" stop-opacity="0.85"/>` +
-        `<stop offset="0.6" stop-color="${bg}" stop-opacity="0.15"/><stop offset="1" stop-color="${bg}" stop-opacity="0"/>` +
+        left.map(([offset, opacity]) => `<stop offset="${offset}" stop-color="${bg}" stop-opacity="${opacity}"/>`).join('') +
       `</linearGradient>` +
       `<linearGradient id="fb" x1="0" y1="0" x2="0" y2="1">` +
-        `<stop offset="0.6" stop-color="${bg}" stop-opacity="0"/><stop offset="1" stop-color="${bg}" stop-opacity="1"/>` +
+        `<stop offset="${bottomFrom}" stop-color="${bg}" stop-opacity="0"/><stop offset="1" stop-color="${bg}" stop-opacity="1"/>` +
       `</linearGradient>` +
     `</defs>`,
     rect('url(#fl)'),
@@ -241,6 +240,8 @@ function fadeSvg(geom: SheetGeometry, s: number): Buffer {
 // zone rules, each placed from text the text layer has already measured.
 function decorSvg(geom: SheetGeometry, layout: DeckSheetLayout, s: number, decor: Decor): Buffer {
   const C = DECK_SHEET_COLORS
+  // The border straddles the pill's edge, so the rect is inset by half of it.
+  const border = DECK_SHEET.chip.border * s
   const segments = makeupSegments(layout.banner.makeup, geom.banner.bar)
   return svg(geom, s, [
     `<defs><linearGradient id="rule" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${C.border}"/><stop offset="1" stop-color="${C.border}" stop-opacity="0"/></linearGradient>` +
@@ -251,10 +252,10 @@ function decorSvg(geom: SheetGeometry, layout: DeckSheetLayout, s: number, decor
         `<rect x="${px(g.x, s)}" y="${px(g.y, s)}" width="${px(g.w, s)}" height="${px(g.h, s)}" fill="${g.color}"/>`).join('')}</g>`
       : '',
     ...decor.rules.map((r) => `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="url(#rule)"/>`),
-    ...decor.swatches.map((r) => `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="${2 * s}" fill="${r.color}"/>`),
+    ...decor.swatches.map((r) => `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="${DECK_SHEET.legend.swatchRadius * s}" fill="${r.color}"/>`),
     ...decor.pills.map((r) =>
-      `<rect x="${r.x + s}" y="${r.y + s}" width="${r.w - 2 * s}" height="${r.h - 2 * s}" rx="${(r.h - 2 * s) / 2}"` +
-      ` fill="${C.background}" stroke="${C.gold}" stroke-width="${2 * s}"/>`),
+      `<rect x="${r.x + border / 2}" y="${r.y + border / 2}" width="${r.w - border}" height="${r.h - border}" rx="${(r.h - border) / 2}"` +
+      ` fill="${C.background}" stroke="${C.gold}" stroke-width="${border}"/>`),
   ])
 }
 
@@ -417,7 +418,7 @@ async function cardOverlays(
     const name = await fitText(
       pc.card.name,
       { size: DECK_SHEET.fontSize.placeholder * s, color: DECK_SHEET_COLORS.parchment },
-      (pc.w - PLACEHOLDER_INSET) * s,
+      (pc.w - DECK_SHEET.placeholderInset) * s,
     )
     return centered(name, (pc.x + pc.w / 2) * s, (pc.y + pc.h / 2) * s)
   })
@@ -524,7 +525,7 @@ async function textOverlays(geom: SheetGeometry, layout: DeckSheetLayout, s: num
   const character = layout.banner.character
   if (character) {
     const label = await atShadowed(await renderText(character.label, style(D.fontSize.subtitle, C.mutedAccent)), colLeft, px(D.text.subtitleY, s))
-    const nameLeft = colLeft + label.width + 6 * s
+    const nameLeft = colLeft + label.width + D.text.subtitleGap * s
     await atShadowed(await fitText(character.card.name, style(D.fontSize.subtitle, C.goldLight), colLeft + colW - nameLeft), nameLeft, px(D.text.subtitleY, s))
   }
 
@@ -532,23 +533,29 @@ async function textOverlays(geom: SheetGeometry, layout: DeckSheetLayout, s: num
   // rather than running off the canvas (the bar itself still shows every group).
   let cursor = px(geom.banner.bar.x, s)
   const legendTop = px(geom.banner.legendY, s)
+  const L = D.legend
+  const labelOffset = (L.swatch + L.labelGap) * s
   for (const m of layout.banner.makeup) {
     const label = await renderText(m.label, style(D.fontSize.legend, C.mutedAccent))
     const count = await renderText(String(m.count), style(D.fontSize.legend, C.parchment))
-    const itemW = 14 * s + label.width + 4 * s + count.width
+    const itemW = labelOffset + label.width + L.countGap * s + count.width
     if (cursor + itemW > right) break
-    decor.swatches.push({ x: cursor, y: legendTop + Math.round((capHeight(label) - 8 * s) / 2), w: 8 * s, h: 8 * s, color: m.color })
-    at(label, cursor + 14 * s, legendTop)
-    at(count, cursor + 14 * s + label.width + 4 * s, legendTop)
-    cursor += itemW + 20 * s
+    const swatch = L.swatch * s
+    decor.swatches.push({ x: cursor, y: legendTop + Math.round((capHeight(label) - swatch) / 2), w: swatch, h: swatch, color: m.color })
+    at(label, cursor + labelOffset, legendTop)
+    at(count, cursor + labelOffset + label.width + L.countGap * s, legendTop)
+    cursor += itemW + L.itemGap * s
   }
 
+  // The same glyph on every chip, so drawn once per sheet.
+  const sign = await renderText('×', style(D.fontSize.chipSign, C.gold))
+  const signGap = D.chip.signGap * s
   for (const zone of geom.zones) {
     // Zone header: title, count, then a rule that fades out to the right.
     const top = px(zone.headerY, s)
     const title = at(await fitText(zone.title, style(D.fontSize.zone, C.parchment, D.tracking.zone), right - px(D.padding, s)), px(D.padding, s), top)
-    const count = at(await renderText(String(zone.count), style(D.fontSize.zone, C.gold)), px(D.padding, s) + title.width + 10 * s, top)
-    const ruleLeft = px(D.padding, s) + title.width + 10 * s + count.width + 14 * s
+    const count = at(await renderText(String(zone.count), style(D.fontSize.zone, C.gold)), px(D.padding, s) + title.width + D.zoneHeader.countGap * s, top)
+    const ruleLeft = px(D.padding, s) + title.width + D.zoneHeader.countGap * s + count.width + D.zoneHeader.ruleGap * s
     if (ruleLeft < right) decor.rules.push({ x: ruleLeft, y: top + Math.round(capHeight(title) / 2), w: right - ruleLeft, h: Math.max(1, Math.round(s)) })
 
     for (const group of zone.groups) {
@@ -557,14 +564,13 @@ async function textOverlays(geom: SheetGeometry, layout: DeckSheetLayout, s: num
         const color = group.key === 'lesson' ? C.goldLight : C.mutedAccent
         const label = at(await fitText(group.title, style(D.fontSize.group, color, D.tracking.group), right - left), left, px(group.labelY, s))
         const n = await renderText(String(group.count), style(D.fontSize.group, C.gold))
-        const nLeft = left + label.width + 8 * s
+        const nLeft = left + label.width + D.groupCountGap * s
         if (nLeft + n.width <= right) at(n, nLeft, px(group.labelY, s))
       }
       for (const pc of group.cards) {
         // xN chip on the bottom-right corner, sized to its digits.
-        const sign = await renderText('×', style(D.fontSize.chipSign, C.gold))
         const num = await renderText(String(pc.card.quantity), style(D.fontSize.chip, C.gold))
-        const contentW = sign.width + s + num.width
+        const contentW = sign.width + signGap + num.width
         const pillH = px(D.chip.height, s)
         const pillW = Math.max(px(D.chip.minWidth, s), Math.round(contentW + 2 * D.chip.padX * s))
         const pillRight = px(pc.x + pc.w + D.chip.overhangX, s)
@@ -575,7 +581,7 @@ async function textOverlays(geom: SheetGeometry, layout: DeckSheetLayout, s: num
         // The count's cap height is centred in the pill and the sign shares
         // its baseline, as "x4" set in one line would.
         const numCap = pill.y + (pillH - capHeight(num)) / 2
-        at(num, textLeft + sign.width + s, numCap)
+        at(num, textLeft + sign.width + signGap, numCap)
         at(sign, textLeft, numCap + capHeight(num) - capHeight(sign))
       }
     }

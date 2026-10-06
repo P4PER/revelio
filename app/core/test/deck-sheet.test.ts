@@ -173,7 +173,7 @@ describe('computeSheetGeometry', () => {
     expect(geom.banner).toEqual({
       art: { x: 560, y: 0, w: 880, h: 320 },
       card: { card: l('hero'), x: 40, y: 40, w: 224, h: 160 },
-      textX: 290, textWidth: 560,
+      textX: 290, textWidth: 640,
       bar: { x: 40, y: 254, w: 1360, h: 10 },
       legendY: 274,
     })
@@ -181,7 +181,7 @@ describe('computeSheetGeometry', () => {
 
   it('moves the text left and widens it when there is no character', () => {
     const geom = computeSheetGeometry(sheet([group('spell', [p('a')])]))
-    expect(geom.banner).toMatchObject({ card: null, textX: 40, textWidth: 1000 })
+    expect(geom.banner).toMatchObject({ card: null, textX: 40, textWidth: 1360 })
   })
 
   it('is banner plus footer for a deck with no zones', () => {

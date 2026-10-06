@@ -88,4 +88,22 @@ describe('fitText', () => {
     expect(out.text.length).toBeGreaterThan(1)
   })
 
+  // A deck title shrinks before it loses characters: the banner has room for
+  // a smaller title, and the name is the one thing the reader came for.
+  it('steps the size down before it cuts', async () => {
+    const style = { size: 44, color: '#fff' }
+    const full = await renderText('Adventure Snuffling Corner', style)
+    const out = await fitText('Adventure Snuffling Corner', style, full.width - 40, 32)
+    expect(out.text).toBe('Adventure Snuffling Corner')
+    expect(out.size).toBeLessThan(44)
+    expect(out.size).toBeGreaterThanOrEqual(32)
+    expect(out.width).toBeLessThanOrEqual(full.width - 40)
+  })
+
+  it('cuts at the smallest size once stepping down is not enough', async () => {
+    const out = await fitText('W'.repeat(120), { size: 44, color: '#fff' }, 600, 32)
+    expect(out.size).toBe(32)
+    expect(out.text.endsWith('…')).toBe(true)
+    expect(out.width).toBeLessThanOrEqual(600)
+  })
 })

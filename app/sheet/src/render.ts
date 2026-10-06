@@ -492,7 +492,11 @@ async function textOverlays(geom: SheetGeometry, layout: DeckSheetLayout, s: num
   const colLeft = px(textX, s)
   const colW = px(textWidth, s)
   at(await fitText(layout.banner.eyebrow, style(D.fontSize.eyebrow, C.gold, D.tracking.eyebrow), colW), colLeft, px(D.text.eyebrowY, s))
-  at(await fitText(layout.banner.name, style(D.fontSize.title, C.parchment), colW), colLeft, px(D.text.titleY, s))
+  // A long name steps down towards titleMin before it is cut, and sits on the
+  // baseline a full-size title would have, so the lines around it do not move.
+  const deckTitle = await fitText(layout.banner.name, style(D.fontSize.title, C.parchment), colW, D.fontSize.titleMin * s)
+  const titleBaseline = px(D.text.titleY, s) + capHeight(deckTitle) * (D.fontSize.title * s / deckTitle.size)
+  at(deckTitle, colLeft, titleBaseline - capHeight(deckTitle))
   const character = layout.banner.character
   if (character) {
     const label = at(await renderText(character.label, style(D.fontSize.subtitle, C.mutedAccent)), colLeft, px(D.text.subtitleY, s))

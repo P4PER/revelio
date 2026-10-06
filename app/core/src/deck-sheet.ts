@@ -226,7 +226,10 @@ export const DECK_SHEET = {
   // crop's spare height is cut from the top: faces sit high in the crops.
   art: { width: 880, focusY: 0.3 },
   heroCard: { x: 40, y: 40, w: 224, h: 160 },
-  text: { xWithCard: 290, widthWithCard: 560, widthAlone: 1000, eyebrowY: 58, titleY: 84, subtitleY: 146 },
+  // The column runs on into the art as far as its left fade is still mostly
+  // midnight (about 45% across), and across the whole content when there is no
+  // art. The Y values are where each line's cap height starts.
+  text: { xWithCard: 290, widthWithCard: 640, widthAlone: 1360, eyebrowY: 58, titleY: 84, subtitleY: 146 },
   bar: { y: 254, height: 10, gap: 2, legendY: 274 },
   zoneGap: 24,
   zoneHeaderHeight: 44,
@@ -247,7 +250,7 @@ export const DECK_SHEET = {
   footerHeight: 72,
   // logos/revelio-logo-dark.svg is 262 x 78.
   logo: { height: 34, aspect: 262 / 78 },
-  fontSize: { eyebrow: 12, title: 44, subtitle: 15, legend: 12, zone: 13, group: 12, chipSign: 11, chip: 14, placeholder: 12 },
+  fontSize: { eyebrow: 12, title: 44, titleMin: 32, subtitle: 15, legend: 12, zone: 13, group: 12, chipSign: 11, chip: 14, placeholder: 12 },
   tracking: { eyebrow: 0.2, zone: 0.2, group: 0.14 },
 } as const
 

@@ -16,7 +16,8 @@ export type TextStyle = {
 // lets two strings placed at one top share a baseline.
 export type RenderedText = { input: Buffer; width: number; height: number; capTop: number; baseline: number }
 
-export type FittedText = RenderedText & { text: string }
+// `size` is the one the text was drawn at, which fitText may have stepped down.
+export type FittedText = RenderedText & { text: string; size: number }
 
 type LineMetrics = { capTop: number; baseline: number }
 
@@ -107,27 +108,42 @@ export async function renderText(text: string, style: TextStyle): Promise<Render
   return { input, width: box.width, height: box.height, ...metrics }
 }
 
-/**
- * Like renderText, but cut with an ellipsis to fit `maxWidth`. A binary search
- * over the length, so an overlong name costs a handful of renders, not one per
- * character.
- */
-export async function fitText(text: string, style: TextStyle, maxWidth: number): Promise<FittedText> {
-  const full = await renderText(text, style)
-  if (full.width <= maxWidth) return { ...full, text }
+// The longest prefix of `text` that fits with an ellipsis. A binary search over
+// the length, so an overlong name costs a handful of renders, not one per
+// character.
+async function cut(text: string, style: TextStyle, maxWidth: number): Promise<FittedText> {
   let lo = 0
   let hi = text.length
-  let best: FittedText = { ...await renderText(ELLIPSIS, style), text: ELLIPSIS }
+  let best: FittedText = { ...await renderText(ELLIPSIS, style), text: ELLIPSIS, size: style.size }
   while (lo < hi) {
     const mid = Math.ceil((lo + hi) / 2)
     const candidate = `${text.slice(0, mid).trimEnd()}${ELLIPSIS}`
     const rendered = await renderText(candidate, style)
     if (rendered.width <= maxWidth) {
       lo = mid
-      best = { ...rendered, text: candidate }
+      best = { ...rendered, text: candidate, size: style.size }
     } else {
       hi = mid - 1
     }
   }
   return best
+}
+
+/**
+ * Like renderText, but made to fit `maxWidth`. Given a `minSize`, the size
+ * steps down towards it first; only past that is the text cut with an
+ * ellipsis. Width is near enough proportional to size that the first guess
+ * usually fits, and the loop only walks down from it.
+ */
+export async function fitText(text: string, style: TextStyle, maxWidth: number, minSize = style.size): Promise<FittedText> {
+  const full = await renderText(text, style)
+  if (full.width <= maxWidth) return { ...full, text, size: style.size }
+  let size = Math.max(minSize, Math.floor((style.size * maxWidth) / full.width))
+  while (size < style.size) {
+    const rendered = await renderText(text, { ...style, size })
+    if (rendered.width <= maxWidth) return { ...rendered, text, size }
+    if (size === minSize) break
+    size = Math.max(minSize, size - 1)
+  }
+  return cut(text, { ...style, size: Math.min(style.size, minSize) }, maxWidth)
 }

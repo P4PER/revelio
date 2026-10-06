@@ -164,8 +164,10 @@ Drawn in this z-order:
    ring and a soft shadow (a blurred midnight rect under it, via `feGaussianBlur`).
 4. **Text.** Starts at x 290, or at 40 when there is no character. Three lines:
    - the eyebrow, 12 px uppercase gold
-   - the deck name, 44 px parchment, ellipsised by `fitText` to the text column (560 px
-     with a card, 1000 without)
+   - the deck name, 44 px parchment, in a text column 640 px wide with a card (it runs on
+     into the art while the left fade is still mostly midnight) and 1360 without. A name
+     that does not fit steps down towards 32 px first, keeping the full-size baseline,
+     and is ellipsised by `fitText` only past that
    - "Starting character {name}", 15 px
 5. **Makeup bar.** 10 px tall, from x 40 to 1400, 30 px above the banner's bottom edge.
    Segments sit 2 px apart and the ends are rounded. A legend line below it gives each

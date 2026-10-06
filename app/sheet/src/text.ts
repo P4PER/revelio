@@ -93,6 +93,9 @@ function lineMetrics(style: TextStyle): Promise<LineMetrics> {
       return { capTop, baseline }
     })
     metricsCache.set(key, metrics)
+    // A failed measurement is not a fact about the style: left cached, it would
+    // fail every later render at this size until the process restarts.
+    metrics.catch(() => metricsCache.delete(key))
   }
   return metrics
 }

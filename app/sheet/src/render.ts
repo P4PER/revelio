@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import sharp, { type OverlayOptions } from 'sharp'
 import {
   DECK_SHEET,
@@ -93,6 +94,9 @@ const MIN_THUMB_DOWNSCALE = 1.5
 // spends the budget once, so these collapse into a single log line instead of
 // repeating the same sentence for every card still in the queue.
 const BUDGET_SPENT = 'fetch budget spent'
+// Resolved against this module in dev and against sheet.mjs in the bundle, the
+// same way text.ts finds the font; build.mjs copies it next to the bundle.
+const LOGO_FILE = fileURLToPath(new URL('./revelio-logo.svg', import.meta.url))
 // Upper bound on the painted sheet, in device pixels, and the only pixel cap in
 // the system - the browser painter's per-axis MAX_CANVAS_DIM went away with the
 // canvas. Two things scale with canvas area and this bounds both: peak RSS, at
@@ -539,6 +543,13 @@ async function textOverlays(geom: SheetGeometry, layout: DeckSheetLayout, s: num
   return { overlays, decor }
 }
 
+// The logo's wordmark is already paths, so librsvg draws it with no font.
+// Rasterised large and scaled down, which keeps the star's points crisp.
+async function logoOverlay(rect: Rect, s: number): Promise<OverlayOptions> {
+  const input = await sharp(LOGO_FILE, { density: 288 }).resize({ height: px(rect.h, s) }).png().toBuffer()
+  return { input, left: px(rect.x, s), top: px(rect.y, s) }
+}
+
 /**
  * The deck as a picture: the sheet web's "Export PNG" downloads and the Discord
  * bot posts for /deck, drawn once here instead of twice in two runtimes.
@@ -564,10 +575,11 @@ export async function renderSheet(req: DeckSheetRequest, opts: SheetRenderOption
   ]
 
   const fetchStarted = performance.now()
-  const [cards, banner, text] = await Promise.all([
+  const [cards, banner, text, logo] = await Promise.all([
     cardOverlays(positioned, opts.imageBase, s, budgetMs, opts.signal),
     bannerArt(layout.banner, geom.banner.art, opts.imageBase, s, budgetMs, opts.signal),
     textOverlays(geom, layout, s),
+    logoOverlay(geom.logo, s),
   ])
   const fetchMs = Math.round(performance.now() - fetchStarted)
   // The composite and the two encoders are the expensive half and cannot be
@@ -588,6 +600,7 @@ export async function renderSheet(req: DeckSheetRequest, opts: SheetRenderOption
     ...cards.overlays,
     { input: decorSvg(geom, s, text.decor) },
     ...text.overlays,
+    logo,
   ])
   const dropped = cards.dropped + banner.dropped
   const common = { pixels: w * h, scale: s, fullArt: usesFullArt(s), dropped, distinct: cards.distinct, fetchMs }

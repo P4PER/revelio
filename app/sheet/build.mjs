@@ -29,10 +29,10 @@ try {
     logLevel: 'warning',
   })
 
-  // text.ts resolves both of these against import.meta.url, which inside the
-  // bundle is dist/sheet.mjs.
+  // text.ts and render.ts resolve these against import.meta.url, which inside
+  // the bundle is dist/sheet.mjs.
   await mkdir('dist', { recursive: true })
-  for (const asset of ['Poppins-SemiBold.ttf', 'fonts.conf']) {
+  for (const asset of ['Poppins-SemiBold.ttf', 'fonts.conf', 'revelio-logo.svg']) {
     await copyFile(`src/${asset}`, `dist/${asset}`)
   }
 } catch (err) {

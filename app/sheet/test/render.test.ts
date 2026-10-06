@@ -390,4 +390,20 @@ describe('renderSheet', () => {
     }
     expect((await sharp((await renderSheet(every, opts)).body).metadata()).format).toBe('png')
   })
+
+  it('draws the logo in the footer corner', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(await art(), { status: 200 })))
+    const out = await renderSheet(req, opts)
+    const geom = computeSheetGeometry(layoutDeckSheet(req.deck, req.entries, sheetLabels('en')))
+    const { data, info } = await sharp(out.body)
+      .extract({
+        left: Math.round(geom.logo.x * out.scale), top: Math.round(geom.logo.y * out.scale),
+        width: Math.round(geom.logo.w * out.scale), height: Math.round(geom.logo.h * out.scale),
+      })
+      .raw().toBuffer({ resolveWithObject: true })
+    // The wordmark is parchment (#FBF3DC); nothing else in the footer is that light.
+    let light = 0
+    for (let i = 0; i < data.length; i += info.channels) if (data[i] > 220 && data[i + 1] > 220) light++
+    expect(light).toBeGreaterThan(50)
+  })
 })

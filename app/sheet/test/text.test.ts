@@ -31,6 +31,14 @@ describe('renderText', () => {
     const out = await renderText('Fred & <George>', { size: 16, color: '#fff' })
     expect(out.width).toBeGreaterThan(0)
   })
+
+  // Uppercase labels are set with tracking, as the mock does with letter-spacing.
+  it('spreads glyphs apart when tracking is set', async () => {
+    const plain = await renderText('MAIN DECK', { size: 26, color: '#ffffff' })
+    const tracked = await renderText('MAIN DECK', { size: 26, color: '#ffffff', tracking: 0.2 })
+    // Eight gaps between nine glyphs at 0.2em of 26px is ~42px wider.
+    expect(tracked.width - plain.width).toBeGreaterThan(30)
+  })
 })
 
 describe('fitText', () => {

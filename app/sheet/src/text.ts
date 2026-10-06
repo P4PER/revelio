@@ -4,6 +4,9 @@ import sharp from 'sharp'
 export type TextStyle = {
   size: number
   color: string
+  // Letter-spacing in em. Pango takes it in 1/1024 pt, and at dpi 72 a point is
+  // a pixel, so size x tracking x 1024 is exact.
+  tracking?: number
   // Only for tests proving the bundled face is the one drawn.
   family?: string
 }
@@ -34,9 +37,10 @@ export async function renderText(text: string, style: TextStyle): Promise<Render
   // it here, not at import, still takes effect and keeps the module side-effect
   // free. An operator's own setting wins.
   process.env.FONTCONFIG_FILE ??= FONTS_CONF
+  const spacing = style.tracking ? ` letter_spacing="${Math.round(style.tracking * style.size * 1024)}"` : ''
   const { data, info } = await sharp({
     text: {
-      text: `<span foreground="${style.color}">${escapeMarkup(text)}</span>`,
+      text: `<span foreground="${style.color}"${spacing}>${escapeMarkup(text)}</span>`,
       font: `${style.family ?? 'Poppins'} SemiBold ${style.size}`,
       fontfile: FONT_FILE,
       rgba: true,

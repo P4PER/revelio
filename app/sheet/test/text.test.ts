@@ -1,9 +1,22 @@
 import { describe, it, expect } from 'vitest'
+import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
 import { fitText, renderText } from '../src/text'
 
 async function pixels(input: Buffer): Promise<Buffer> {
   return sharp(input).raw().toBuffer()
+}
+
+// First row with ink, and the row after the last one.
+async function inkRows(input: Buffer): Promise<[number, number]> {
+  const { data, info } = await sharp(input).raw().toBuffer({ resolveWithObject: true })
+  const rows: number[] = []
+  for (let y = 0; y < info.height; y++) {
+    for (let x = 0; x < info.width; x++) {
+      if (data[(y * info.width + x) * info.channels + 3] > 127) { rows.push(y); break }
+    }
+  }
+  return [rows[0], rows[rows.length - 1] + 1]
 }
 
 describe('renderText', () => {
@@ -31,6 +44,49 @@ describe('renderText', () => {
     const out = await renderText('Fred & <George>', { size: 16, color: '#fff' })
     expect(out.width).toBeGreaterThan(0)
   })
+
+  // Uppercase labels are set with tracking, as the mock does with letter-spacing.
+  it('spreads glyphs apart when tracking is set', async () => {
+    const plain = await renderText('MAIN DECK', { size: 26, color: '#ffffff' })
+    const tracked = await renderText('MAIN DECK', { size: 26, color: '#ffffff', tracking: 0.2 })
+    // Eight gaps between nine glyphs at 0.2em of 26px is ~42px wider.
+    expect(tracked.width - plain.width).toBeGreaterThan(30)
+  })
+
+  // Labels sit side by side and are placed by the top of their box. A box
+  // cropped to its ink put a word with an umlaut or no descender higher or
+  // lower than its neighbour, so every string of one style gets the same box,
+  // with the cap line and the baseline at the same rows in it.
+  it('gives every string of one style the same box and baseline', async () => {
+    const style = { size: 100, color: '#ffffff' }
+    const boxes = await Promise.all(
+      ['ZAUBER', 'GEGENSTÄNDE', 'Starting character', 'Fred & George Weasley', 'acme'].map((t) => renderText(t, style)),
+    )
+    for (const b of boxes) expect([b.height, b.capTop, b.baseline]).toEqual([boxes[0].height, boxes[0].capTop, boxes[0].baseline])
+    // Poppins' cap height is about 0.7em.
+    expect(boxes[0].baseline - boxes[0].capTop).toBeGreaterThan(65)
+    expect(boxes[0].baseline - boxes[0].capTop).toBeLessThan(76)
+  })
+
+  // The box is cut from a drawing of the text with its strut, so the cut must
+  // land past the text's last glyph: a cut that fell inside it clipped the
+  // final letter of every label.
+  it('is exactly as wide as the text drawn on its own', async () => {
+    for (const text of ['Card harry', 'Starting character', 'Creatures', 'ZAUBER', 'x', 'Ü']) {
+      const out = await renderText(text, { size: 30, color: '#ffffff' })
+      const { info } = await sharp({
+        text: { text, font: 'Poppins SemiBold 30', fontfile: fileURLToPath(new URL('../src/Poppins-SemiBold.ttf', import.meta.url)), rgba: true, dpi: 72 },
+      }).toBuffer({ resolveWithObject: true })
+      expect(Math.abs(out.width - info.width), text).toBeLessThanOrEqual(1)
+    }
+  })
+
+  it('reports the rows its glyphs actually sit on', async () => {
+    const out = await renderText('H', { size: 100, color: '#ffffff' })
+    const [top, bottom] = await inkRows(out.input)
+    expect(Math.abs(top - out.capTop)).toBeLessThanOrEqual(1)
+    expect(Math.abs(bottom - out.baseline)).toBeLessThanOrEqual(1)
+  })
 })
 
 describe('fitText', () => {
@@ -44,5 +100,24 @@ describe('fitText', () => {
     expect(out.text.endsWith('…')).toBe(true)
     expect(out.width).toBeLessThanOrEqual(120)
     expect(out.text.length).toBeGreaterThan(1)
+  })
+
+  // A deck title shrinks before it loses characters: the banner has room for
+  // a smaller title, and the name is the one thing the reader came for.
+  it('steps the size down before it cuts', async () => {
+    const style = { size: 44, color: '#fff' }
+    const full = await renderText('Adventure Snuffling Corner', style)
+    const out = await fitText('Adventure Snuffling Corner', style, full.width - 40, 32)
+    expect(out.text).toBe('Adventure Snuffling Corner')
+    expect(out.size).toBeLessThan(44)
+    expect(out.size).toBeGreaterThanOrEqual(32)
+    expect(out.width).toBeLessThanOrEqual(full.width - 40)
+  })
+
+  it('cuts at the smallest size once stepping down is not enough', async () => {
+    const out = await fitText('W'.repeat(120), { size: 44, color: '#fff' }, 600, 32)
+    expect(out.size).toBe(32)
+    expect(out.text.endsWith('…')).toBe(true)
+    expect(out.width).toBeLessThanOrEqual(600)
   })
 })

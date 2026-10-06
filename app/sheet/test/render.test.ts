@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import sharp from 'sharp'
 import {
-  DECK_SHEET, computeSheetGeometry, layoutDeckSheet, sheetLabels,
+  DECK_SHEET, DECK_SHEET_COLORS, computeSheetGeometry, layoutDeckSheet, sheetLabels,
   type DeckSheetEntry, type DeckSheetRequest,
 } from '@revelio/core'
 import {
@@ -13,12 +13,12 @@ afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks() })
 function entry(cardId: string, zone: DeckSheetEntry['zone'], types: string[], extra: Partial<DeckSheetEntry> = {}): DeckSheetEntry {
   return {
     cardId, zone, quantity: 2, types, name: `Card ${cardId}`, setCode: 'base',
-    imageVersion: 1, orientation: null, ...extra,
+    imageVersion: 1, orientation: null, artCropVersion: null, ...extra,
   }
 }
 
 const entries: DeckSheetEntry[] = [
-  entry('harry', 'character', ['character'], { quantity: 1, orientation: 'horizontal' }),
+  entry('harry', 'character', ['character'], { quantity: 1, orientation: 'horizontal', artCropVersion: 9 }),
   ...Array.from({ length: 8 }, (_, i) => entry(`creature${i}`, 'main', ['creature'])),
   entry('lesson', 'main', ['lesson'], { quantity: 20 }),
   entry('noimg', 'main', ['spell'], { imageVersion: null, name: 'Fred & <George>' }),
@@ -79,6 +79,15 @@ function recordingFetch(body: Uint8Array): string[] {
   }))
   return urls
 }
+
+// RGB of one layout-pixel position on a rendered sheet.
+async function pixelAt(png: Buffer, x: number, y: number, s: number): Promise<[number, number, number]> {
+  const { data, info } = await sharp(png).raw().toBuffer({ resolveWithObject: true })
+  const i = (Math.round(y * s) * info.width + Math.round(x * s)) * info.channels
+  return [data[i], data[i + 1], data[i + 2]]
+}
+const near = ([r, g, b]: number[], hex: string, tol = 24) =>
+  [1, 3, 5].every((o, k) => Math.abs([r, g, b][k] - parseInt(hex.slice(o, o + 2), 16)) <= tol)
 
 describe('pixelBudget', () => {
   it('is the cap when the caller states no ceiling', () => {
@@ -218,7 +227,7 @@ describe('renderSheet', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const out = await renderSheet(req, opts)
     expect((await sharp(out.body).metadata()).format).toBe('png')
-    expect(out.dropped).toBe(out.distinct - 1) // 'noimg' has no image to drop
+    expect(out.dropped).toBe(out.distinct) // every distinct card but 'noimg', plus the crop
     expect(warn.mock.calls.flat().join(' ')).toContain('HTTP 500')
   })
 
@@ -309,5 +318,126 @@ describe('renderSheet', () => {
     // Same geometry, same bytes-ish: what matters is that no labels were passed
     // in and the render succeeded.
     expect((await sharp(out.body).metadata()).format).toBe('png')
+  })
+
+  it('fetches the character art crop and paints it on the banner', async () => {
+    const urls = recordingFetch(await art())
+    const out = await renderSheet(req, opts)
+    expect(urls).toContain('https://img.test/cards/art-crop/harry.9.webp')
+    // Far right of the banner, above the bottom fade: the crop shows through as is.
+    expect(near(await pixelAt(out.body, 1400, 60, out.scale), '#6E66C9')).toBe(true)
+  })
+
+  it('draws the glow instead when the character has no crop, and asks for none', async () => {
+    const urls = recordingFetch(await art())
+    const noCrop = { ...req, entries: req.entries.map((e) => ({ ...e, artCropVersion: null })) }
+    const out = await renderSheet(noCrop, opts)
+    expect(urls.some((u) => u.includes('/art-crop/'))).toBe(false)
+    expect(near(await pixelAt(out.body, 1400, 60, out.scale), '#6E66C9')).toBe(false)
+  })
+
+  it('counts a failed crop as dropped and still renders', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) =>
+      String(url).includes('/art-crop/') ? new Response('nope', { status: 404 }) : new Response(await art(), { status: 200 })))
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const out = await renderSheet(req, opts)
+    expect(out.dropped).toBe(1)
+    expect(warn.mock.calls.flat().join(' ')).toContain('no banner art for harry')
+  })
+
+  it('renders a deck without a character', async () => {
+    const urls = recordingFetch(await art())
+    const out = await renderSheet({ ...req, entries: req.entries.filter((e) => e.zone !== 'character') }, opts)
+    expect((await sharp(out.body).metadata()).format).toBe('png')
+    expect(urls.some((u) => u.includes('harry'))).toBe(false)
+  })
+
+  // Review focus 3: no zones at all.
+  it('renders a deck that is only a character', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(await art(), { status: 200 })))
+    const only = { ...req, entries: req.entries.filter((e) => e.zone === 'character') }
+    const out = await renderSheet(only, opts)
+    const meta = await sharp(out.body).metadata()
+    expect(meta.height).toBe(Math.floor((DECK_SHEET.bannerHeight + DECK_SHEET.footerHeight) * out.scale))
+  })
+
+  // Review focus 1 and 2: the widest title and the widest chip must stay on the
+  // canvas - sharp rejects an overlay that runs past its edge, which would fail
+  // the whole render.
+  it('fits the longest deck name and a 999 chip on the canvas', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(await art(), { status: 200 })))
+    const wide = {
+      ...req,
+      deck: { ...req.deck, name: 'W'.repeat(120) },
+      entries: [...req.entries, ...Array.from({ length: 9 }, (_, i) => entry(`q${i}`, 'main', ['spell'], { quantity: 999 }))],
+    }
+    expect((await sharp((await renderSheet(wide, opts)).body).metadata()).format).toBe('png')
+    const alone = { ...wide, entries: wide.entries.filter((e) => e.zone !== 'character') }
+    expect((await sharp((await renderSheet(alone, opts)).body).metadata()).format).toBe('png')
+  })
+
+  // Review focus 4 and 5: every group, German labels, and a one-card group whose
+  // label is wider than its card landing in the last column.
+  it('keeps every legend item and group label inside the canvas', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(await art(), { status: 200 })))
+    const types = ['creature', 'spell', 'item', 'adventure', 'location', 'event', 'match', 'lesson', 'unknown_type']
+    const every: DeckSheetRequest = {
+      ...req, locale: 'de',
+      entries: [
+        ...Array.from({ length: 9 }, (_, i) => entry(`fill${i}`, 'main', ['creature'])),
+        ...types.map((t) => entry(`one-${t}`, 'main', [t], { quantity: 999 })),
+      ],
+    }
+    expect((await sharp((await renderSheet(every, opts)).body).metadata()).format).toBe('png')
+  })
+
+  it('draws the logo in the footer corner', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(await art(), { status: 200 })))
+    const out = await renderSheet(req, opts)
+    const geom = computeSheetGeometry(layoutDeckSheet(req.deck, req.entries, sheetLabels('en')))
+    const { data, info } = await sharp(out.body)
+      .extract({
+        left: Math.round(geom.logo.x * out.scale), top: Math.round(geom.logo.y * out.scale),
+        width: Math.round(geom.logo.w * out.scale), height: Math.round(geom.logo.h * out.scale),
+      })
+      .raw().toBuffer({ resolveWithObject: true })
+    // The wordmark is parchment (#FBF3DC); nothing else in the footer is that light.
+    let light = 0
+    for (let i = 0; i < data.length; i += info.channels) if (data[i] > 220 && data[i + 1] > 220) light++
+    expect(light).toBeGreaterThan(50)
+  })
+
+  // Spec section 4 draws the bar above the fades. Under them, the left fade's
+  // solid midnight hid every segment past the art's left edge, Lessons included.
+  it('draws the makeup bar over the art fades, out to the content edge', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(await art(), { status: 200 })))
+    const out = await renderSheet(req, opts)
+    // The last segment is Lessons, gold, and ends flush at 1400.
+    expect(near(await pixelAt(out.body, 1395, 259, out.scale), DECK_SHEET_COLORS.group.lesson)).toBe(true)
+  })
+
+  // Copies are counted by the chip alone. The outlines stacked behind a card
+  // read as a drop shadow rather than as more copies.
+  it('draws nothing behind a card with several copies', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(await art(), { status: 200 })))
+    const out = await renderSheet(req, opts)
+    const geom = computeSheetGeometry(layoutDeckSheet(req.deck, req.entries, sheetLabels('en')))
+    const pc = geom.zones[0].groups.flatMap((g) => g.cards).find((c) => c.card.quantity >= 3)!
+    // In the card gap, where the first outline's right edge used to show.
+    expect(near(await pixelAt(out.body, pc.x + pc.w + 3, pc.y + pc.h / 2, out.scale), DECK_SHEET_COLORS.background, 3)).toBe(true)
+  })
+
+  // The title column runs on into the art, where the fade is only about half
+  // midnight; on bright art the parchment title needs its own shadow to read.
+  it('lifts the banner title off bright art with a shadow', async () => {
+    const bright = new Uint8Array(await sharp({ create: { width: 300, height: 420, channels: 3, background: '#F4EBD0' } }).webp().toBuffer())
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(bright, { status: 200 })))
+    const short = await renderSheet({ ...req, deck: { ...req.deck, name: 'W' } }, opts)
+    const long = await renderSheet({ ...req, deck: { ...req.deck, name: 'W'.repeat(40) } }, opts)
+    // Just under the title's baseline, out over the art: W has no descender, so
+    // only a shadow puts anything here.
+    const lum = ([r, g, b]: number[]) => (r + g + b) / 3
+    const at = (out: typeof short) => pixelAt(out.body, 880, DECK_SHEET.text.titleY + 36, out.scale)
+    expect(lum(await at(long))).toBeLessThan(lum(await at(short)) - 10)
   })
 })

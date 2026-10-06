@@ -42,7 +42,7 @@ ENV NODE_ENV=production
 RUN addgroup -g 1001 -S nodejs && adduser -S sheet -u 1001
 COPY --from=build --chown=sheet:nodejs /sharp/node_modules ./node_modules
 COPY --from=build --chown=sheet:nodejs /app/sheet/dist/sheet.mjs ./sheet.mjs
-COPY --from=build --chown=sheet:nodejs /app/sheet/dist/Poppins-SemiBold.ttf /app/sheet/dist/fonts.conf ./
+COPY --from=build --chown=sheet:nodejs /app/sheet/dist/Poppins-SemiBold.ttf /app/sheet/dist/fonts.conf /app/sheet/dist/revelio-logo.svg ./
 
 # fontconfig writes a cache on its first text render and warns on every boot
 # without somewhere to put it. One font makes the cache tiny; the warning is
@@ -55,7 +55,7 @@ RUN mkdir -p /var/cache/fontconfig && chown sheet:nodejs /var/cache/fontconfig
 # an error, it silently substitutes. The render then proves the native binary
 # loads, and that an unmatched family resolves to Poppins - which it can only do
 # while fonts.conf leaves Poppins the one family fontconfig knows.
-RUN test -s /app/Poppins-SemiBold.ttf && test -s /app/fonts.conf
+RUN test -s /app/Poppins-SemiBold.ttf && test -s /app/fonts.conf && test -s /app/revelio-logo.svg
 RUN node -e "const s=require('sharp');process.env.FONTCONFIG_FILE='/app/fonts.conf';\
 const d=f=>s({text:{text:'revelio',font:f,fontfile:'/app/Poppins-SemiBold.ttf',rgba:true}}).raw().toBuffer();\
 Promise.all([d('Poppins SemiBold 24'),d('Nonexistent SemiBold 24')])\

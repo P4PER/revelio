@@ -39,9 +39,10 @@
     "revival": "Revival"
   },
   "deckSheet": {
-    "character": "Character",
     "mainDeck": "Main deck",
-    "sideboard": "Sideboard"
+    "sideboard": "Sideboard",
+    "cards": "cards",
+    "startingCharacter": "Starting character"
   },
   "deckGroups": {
     "creature": "Creatures",

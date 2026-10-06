@@ -51,6 +51,7 @@ describe('requestDeckSheet', () => {
     expect(sent.entries[0]).toEqual({
       cardId: 'harry', zone: 'main', quantity: 2, name: 'Card harry',
       setCode: 'base', types: ['creature'], imageVersion: 4, orientation: null,
+      artCropVersion: null,
     })
   })
 

@@ -1,7 +1,7 @@
 # Deck sheet redesign - Design
 
 **Date:** 2026-10-06
-**Status:** draft, awaiting review
+**Status:** implemented
 **Workspaces:** `core` (contract, layout, geometry, labels), `sheet` (painter, logo asset);
 `web` and `bot` change only through `pickSheetEntries`
 **Builds on:** `2026-10-04-deck-sheet-render-service-design.md` (the service, its contract
@@ -215,8 +215,8 @@ themselves are about 745 px wide, so a crop of the art region cannot get much bi
 
 - **Asset.** `sheet/src/revelio-logo.svg` is a byte copy of `logos/revelio-logo-dark.svg`.
   The wordmark is already paths, so it needs no font. `sheet/build.mjs` copies it next to
-  the bundle, alongside `Poppins-SemiBold.ttf` and `fonts.conf`, and the Dockerfile's
-  build-stage boot check is unchanged.
+  the bundle, alongside `Poppins-SemiBold.ttf` and `fonts.conf`, and the Dockerfile
+  copies it into the runtime stage and checks it is non-empty, as it does the font.
 - **Why a copy.** The sheet image's build context is `app/`, which cannot reach the repo
   root's `logos/`.
 - **Drift test.** A test in `sheet/test` reads both files and fails if they differ, so a

@@ -70,7 +70,8 @@ slightly different pictures depending on where it was drawn.
   (`next/og`) on a crawler hot path, 1200x630, built from one art crop. Unrelated and untouched.
 - **Posting a sheet URL instead of an attachment.** See *Rejected alternatives*.
 - **A public ingress for the service.** It is reachable from `web` and `bot` only.
-- **Sharing the cache between replicas.** Specced as the extension point, not built.
+- **Caching**, on one replica or shared between several. §5 keeps the design and says what
+  log evidence would justify building it.
 
 ## Baseline
 
@@ -130,7 +131,7 @@ Content-Type: application/json
 
 200 OK
 Content-Type: image/png | image/webp
-X-Sheet-Cache:   hit | miss
+Server-Timing:   queue;dur=0, fetch;dur=812, encode;dur=401
 X-Sheet-Pixels:  4987200
 X-Sheet-Scale:   1.76
 X-Sheet-Dropped: 0
@@ -152,7 +153,8 @@ Three reasons this is a payload and not `{ deckId, locale }`:
   `getDeckForViewer`'s owner-or-public check, and get it right, to avoid becoming a way to read
   a private deck as a picture.
 - **The payload is the cache key.** The sheet is pure in its input; when the request body *is*
-  that input, the key is a hash of the body and correctness is not an argument.
+  that input, the key is a hash of the body and correctness is not an argument. No cache is
+  built (§5), but this keeps one cheap to add.
 
 Error responses, all of which the callers treat identically ("no picture this time"):
 
@@ -204,7 +206,6 @@ A seventh npm workspace, `@revelio/sheet` at `app/sheet/`, depending on `@reveli
   `chromeSvg`, `badgeSvg`, the per-card overlays, `sheetScale`, `usesFullArt`, `px`,
   `canvasSize`, the fetch budget and the PNG/WebP encode with its post-encode check.
 - `src/text.ts`, `src/Poppins-SemiBold.ttf`, `src/fonts.conf` — ported from `bot/src/images/`.
-- `src/cache.ts` — the two caches (§5).
 - `build.mjs` + `Dockerfile` — mirroring `bot`'s exactly, and for the same reasons: the
   `createRequire` banner, `sharp` marked external and installed alone into the runtime stage,
   the font files copied beside the bundle because `text.ts` resolves them against
@@ -264,7 +265,34 @@ What that does to each side's picture:
 - **No new download-size concern.** Today's browser export already emits 13.9 MB for a
   60-entry deck; 19.2 MB at the 12 Mpx cap is the same order, from an explicit export click.
 
-### 5. Caching
+### 5. Caching (deferred)
+
+**Not built.** Phase 4 was planned as these two caches and shipped as the render log (§11)
+instead (decided 2026-10-05). Nothing has shown a cache is needed yet:
+
+- A render takes about 3 s, and only on an explicit export click or a `/deck` command, which
+  both callers already wait for (30 s and 75 s budgets).
+- Most sheet keys never repeat: any deck edit makes a new key, and the web export renders
+  unsaved decks.
+- An art hit only saves one in-cluster GET of ~317 KB; sharp decodes the image either way.
+- Load is already bounded by web's per-IP limit (`SHEET_RATE`) and the queue's 503, and both
+  callers degrade gracefully past it.
+- The cost was real: a persistent volume, three env vars, a hand-written LRU with atomic-write
+  and concurrent-eviction hazards, and a key that has to be exactly right.
+
+**What would bring it back**, read from the `sheet: render` lines:
+
+| Evidence in the log | Build |
+| --- | --- |
+| `outcome=shed` or `outcome=abandoned` with a long `queueMs`, more than occasionally | first look at why renders are slow; a sheet cache only helps if the shed requests are repeats |
+| `fetchMs` a large share of the render, across many renders | the art cache alone - the simpler half, keyed on immutable image keys |
+| the same `digest` recurring within hours (e.g. a popular deck posted with `/deck`) | the sheet cache |
+
+If it is built, use `lru-cache` (already in the lockfile) as the in-memory index with
+`dispose` deleting the file, write each entry to a temp name and `rename` it into place, and
+do not hand-roll eviction. The design below stands otherwise.
+
+The design, as it was specced:
 
 Two caches, both bounded, both on the service's own disk, both behind one small `BlobCache`
 interface (`get(key)`, `put(key, bytes)`, byte cap, LRU eviction, nothing else).
@@ -378,8 +406,7 @@ process is left with one unambiguous `IMAGE_BASE_URL`:
 | `sheet` | `IMAGE_BASE_URL` | where **this process** GETs card art; in a cluster, the object store's internal service name |
 | `web` | `NEXT_PUBLIC_IMAGE_BASE_URL` | unchanged |
 
-`@revelio/sheet` env in full: `PORT` (8080), `IMAGE_BASE_URL`, `SHEET_TOKEN`, `CACHE_DIR`,
-`SHEET_CACHE_BYTES`, `ART_CACHE_BYTES`. No `DATABASE_URL`, no `MEILI_*`, no `S3_*`. New on
+`@revelio/sheet` env in full: `PORT` (8080), `IMAGE_BASE_URL`, `SHEET_TOKEN`. No `DATABASE_URL`, no `MEILI_*`, no `S3_*`. New on
 `bot` and `web`: `SHEET_SERVICE_URL` and `SHEET_TOKEN` (server-only in web).
 
 ### 9. Failure modes
@@ -417,8 +444,11 @@ OOM-killing the pod.
 
 ### 11. Observability
 
-One structured line per render: cache hit or miss, distinct entries, megapixels, scale, full
-art or thumbs, dropped art count, fetch ms, composite ms, encoded bytes, output format. That is
+One key=value line per request that reaches the queue: outcome (rendered, shed, failed,
+abandoned), a 16-char request digest for counting repeats, distinct entries, megapixels,
+scale, full art or thumbs, dropped art count, queue ms, fetch ms, composite-and-encode ms,
+encoded bytes, output format. No deck title, card name or URL. A 200 also carries the three
+timings in a standard `Server-Timing` header. That is
 the line that answers "why is this sheet soft" and "why did that one take four seconds", both
 of which currently need a reproduction. The `X-Sheet-*` response headers carry the same facts
 to the caller, so a bot log can say why a sheet looked the way it did without correlating two
@@ -429,8 +459,7 @@ services by timestamp.
 1. **New image** `ghcr.io/<owner>/revelio-sheet`: a `build-sheet` job in `publish.yml` plus a
    `sheet` entry in the `changes` paths-filter (sharing the existing `shared` anchor, since
    `core` changes rebuild it), and a `SHEET_REDEPLOY_WEBHOOK_URL` secret.
-2. **New deployment**: 1 replica, **limit 768Mi / request 256Mi**, 1 Gi of ephemeral disk for
-   `/cache`, no public ingress. `IMAGE_BASE_URL` points at the in-cluster object store service
+2. **New deployment**: 1 replica, **limit 768Mi / request 256Mi**, no public ingress. `IMAGE_BASE_URL` points at the in-cluster object store service
    name — the value that is currently in the bot's `IMAGE_FETCH_BASE_URL`.
 3. **`SHEET_TOKEN`** generated once and set on all three services.
 4. **`SHEET_SERVICE_URL`** set on `bot` and `web` (in-cluster service name).
@@ -457,20 +486,21 @@ interchangeable" — each of which this change makes wrong.
 | 1 | `2026-10-04-deck-sheet-phase-1-render-service.md` | `@revelio/sheet`: contract in core, labels in core, the painter ported from the branch, image, compose, CI/publish wiring. Nothing switched; `curl` renders a sheet. |
 | 2 | `2026-10-04-deck-sheet-phase-2-bot-switchover.md` | `/deck` calls the service. `deck-image.ts`, `text.ts`, the font, `fonts.conf`, sharp, the font proof and `IMAGE_FETCH_BASE_URL` leave `bot`. |
 | 3 | `2026-10-04-deck-sheet-phase-3-web-switchover.md` | `/api/deck-sheet`, the export menu, deletion of `deck-png.ts` and `MAX_CANVAS_DIM`; compose CORS comment rewritten. |
-| 4 | `2026-10-04-deck-sheet-phase-4-caching.md` | The two caches and the render log. |
+| 4 | `2026-10-04-deck-sheet-phase-4-telemetry.md` | The render log and `Server-Timing`. The caches are deferred (§5). |
 
 Phase 1 ships behind nothing and changes no behaviour, so it can land and be exercised against
 production card art before either caller moves. Phases 2 and 3 are independent of each other.
-Phase 4 is last on purpose: a cache that is wrong is worse than no cache, and it is easier to
-be sure of a key when both callers are already producing requests to key on.
+Phase 4 is last on purpose: it measures the traffic both callers produce once they are
+switched over. It was planned as the caches; a cache that is wrong is worse than no cache, so
+it now ships only the measurement that would justify one.
 
 ## Rejected alternatives
 
 - **A render endpoint on `web`.** §2. Memory, not architecture, is what decides it.
 - **Render on deck save.** Cannot serve the web export at all (unsaved state), re-renders on
   every save of a deck nobody will ever post, needs a queue and a retry path, and still goes
-  stale at every ingest run that moves an `imageVersion`. Request-time plus a cache gets the
-  same second-request-is-free property without any of that.
+  stale at every ingest run that moves an `imageVersion`. Request-time plus a cache, if §5 is
+  ever built, gets the same second-request-is-free property without any of that.
 - **A shared painter library, imported by `bot` and `web` instead of called over HTTP.** It
   removes the duplication but none of the cost: sharp, the font and the half-gigabyte peak stay
   on the gateway pod, and the browser still cannot run it, so web keeps a Canvas painter.

@@ -8,7 +8,10 @@ const gate = {
   concurrent: 0,
   peak: 0,
   release: [] as (() => void)[],
-  reset() { this.concurrent = 0; this.peak = 0; this.release = []; completed = 0 },
+  // Ignore the abort signal, like the real painter once it is past its last
+  // checkpoint and inside the uninterruptible encode.
+  encoding: false,
+  reset() { this.concurrent = 0; this.peak = 0; this.release = []; this.encoding = false; completed = 0 },
   openAll() { for (const r of this.release.splice(0)) r() },
 }
 
@@ -25,8 +28,8 @@ vi.mock('../src/render', () => ({
     gate.peak = Math.max(gate.peak, gate.concurrent)
     try {
       await new Promise<void>((resolve, reject) => {
-        if (opts.signal?.aborted) { reject(opts.signal.reason); return }
-        opts.signal?.addEventListener('abort', () => reject(opts.signal!.reason))
+        if (!gate.encoding && opts.signal?.aborted) { reject(opts.signal.reason); return }
+        if (!gate.encoding) opts.signal?.addEventListener('abort', () => reject(opts.signal!.reason))
         gate.release.push(resolve)
       })
     } finally {
@@ -35,7 +38,7 @@ vi.mock('../src/render', () => ({
     completed += 1
     return {
       body: Buffer.from('png'), contentType: 'image/png' as const,
-      pixels: 1, scale: 2, fullArt: true, dropped: 0, distinct: 1,
+      pixels: 1, scale: 2, fullArt: true, dropped: 0, distinct: 1, fetchMs: 0, encodeMs: 0,
     }
   }),
 }))
@@ -117,6 +120,69 @@ describe('the render queue', () => {
     }
     expect((await Promise.all(after)).every((r) => r.status === 200)).toBe(true)
     expect(completed).toBe(MAX_QUEUED + 1)
+  })
+
+  // A shed request is the clearest sign the service is short of capacity, so it
+  // has to show up in the same line as everything else.
+  it('logs a shed request', async () => {
+    gate.reset()
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const flight = Array.from({ length: MAX_QUEUED + 1 }, post)
+    await vi.waitFor(() => expect(gate.release.length).toBe(1))
+    const shed = await post()
+    expect(shed.status).toBe(503)
+    expect(log.mock.calls.map((c) => String(c[0])).some((l) => /^sheet: render outcome=shed /.test(l))).toBe(true)
+    for (let i = 0; i <= MAX_QUEUED; i++) {
+      await vi.waitFor(() => expect(gate.release.length).toBe(1))
+      gate.openAll()
+    }
+    expect((await Promise.all(flight)).every((r) => r.status === 200)).toBe(true)
+    log.mockRestore()
+  })
+
+  // The encode cannot be interrupted, so a caller that leaves during it still
+  // gets a finished render back from the painter. Logging that as `rendered`
+  // would hide exactly the abandonment spec section 5 counts.
+  it('logs a caller that hung up during the encode as abandoned', async () => {
+    gate.reset()
+    gate.encoding = true
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const ac = new AbortController()
+    const gone = post({ signal: ac.signal }).catch(() => 'aborted')
+    await vi.waitFor(() => expect(gate.release.length).toBe(1))
+    ac.abort()
+    expect(await gone).toBe('aborted')
+    await new Promise((r) => setTimeout(r, 50))
+    gate.openAll()
+    await vi.waitFor(() => expect(completed).toBe(1))
+    const lines = await vi.waitFor(() => {
+      const found = log.mock.calls.map((c) => String(c[0])).filter((l) => l.startsWith('sheet: render '))
+      expect(found).toHaveLength(1)
+      return found
+    })
+    expect(lines[0]).toMatch(/^sheet: render outcome=abandoned /)
+    log.mockRestore()
+  })
+
+  // The deadline fires the same abort signal as a hang-up, but here the caller is
+  // still connected and receives a 500. That is a failure it saw, not an
+  // abandonment, and counting it as one would skew the evidence the same way.
+  it('logs a render that passed its deadline as failed, not abandoned', async () => {
+    gate.reset()
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      const res = post()
+      await vi.waitFor(() => expect(gate.release.length).toBe(1))
+      vi.advanceTimersByTime(REQUEST_DEADLINE_MS)
+      expect((await res).status).toBe(500)
+    } finally {
+      vi.useRealTimers()
+    }
+    const lines = log.mock.calls.map((c) => String(c[0])).filter((l) => l.startsWith('sheet: render '))
+    expect(lines).toHaveLength(1)
+    expect(lines[0]).toMatch(/^sheet: render outcome=failed .*deadline/)
+    log.mockRestore()
   })
 
   it('states a request deadline that bounds one render', () => {

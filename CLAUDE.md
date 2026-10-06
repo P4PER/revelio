@@ -93,6 +93,10 @@ Seven npm workspaces under `app/`, with a strict dependency direction `core ← 
   (`DeckSheetRequest`), so the service owns no layout and no visibility rules. One pixel cap
   (`MAX_SHEET_PIXELS = 12_000_000`, ~551 MB peak, a 768Mi pod) and a byte ceiling the caller
   states; one render at a time, 503 past a queue of four.
+  Every request that reaches the queue logs one `sheet: render outcome=...` key=value line
+  (rendered / shed / failed / abandoned, with queue, fetch and encode ms and a 16-char request
+  digest) and a 200 carries the same timings in `Server-Timing`. No cache, on purpose: spec
+  section 5 keeps the design and names the log evidence that would justify building it.
 
 ### Web app specifics
 

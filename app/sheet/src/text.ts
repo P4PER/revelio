@@ -19,7 +19,11 @@ export type RenderedText = { input: Buffer; width: number; height: number; capTo
 // `size` is the one the text was drawn at, which fitText may have stepped down.
 export type FittedText = RenderedText & { text: string; size: number }
 
-type LineMetrics = { capTop: number; baseline: number }
+// `strutWidth` is the strut's own ink width, which is what lets one draw of
+// text + strut be cropped back to the text.
+type LineMetrics = { capTop: number; baseline: number; strutWidth: number }
+
+type Bitmap = { data: Buffer; width: number; height: number }
 
 // Alpine ships no fonts, so text is drawn from a bundled file. Both files are
 // resolved against this module in dev and against sheet.mjs in the bundle, which
@@ -34,8 +38,15 @@ const ELLIPSIS = '…'
 // accent and the deepest descender a Latin or German name can reach whatever
 // the string itself holds. Measured against the whole of A-ring, E-acute, the
 // umlauts, C-cedilla, g, j, y, p and the bar: these two alone reach as far.
-const STRUT = ' ÅÇ'
-// Per family and size: one render and a row scan, paid once per style.
+const STRUT = 'ÅÇ'
+// Between the text and the strut. A full em, so no glyph's overhang can bridge
+// it and the crop always finds clear columns to cut in.
+const STRUT_GAP = '\u2003'
+// Per family and size: two draws and a scan, paid once per style. Bounded,
+// because sizes carry the render scale and a sheet shrunk to its pixel budget
+// has a fractional one, so nearly every such sheet brings sizes of its own. A
+// render uses about ten styles, so this holds several renders' worth.
+const MAX_CACHED_STYLES = 64
 const metricsCache = new Map<string, Promise<LineMetrics>>()
 
 // Pango markup: the text input parses it, so a card name with & or < would
@@ -50,7 +61,7 @@ function span(text: string, style: TextStyle): string {
 }
 
 // One line of markup as raw RGBA, sized by libvips to its ink box.
-async function draw(markup: string, style: TextStyle): Promise<{ data: Buffer; width: number; height: number }> {
+async function draw(markup: string, style: TextStyle): Promise<Bitmap> {
   // Read by fontconfig when it initialises on the first text render, so setting
   // it here, not at import, still takes effect and keeps the module side-effect
   // free. An operator's own setting wins.
@@ -67,31 +78,49 @@ async function draw(markup: string, style: TextStyle): Promise<{ data: Buffer; w
   return { data, width: info.width, height: info.height }
 }
 
-// The text's own ink sets the width; the strut sets the height. The text comes
-// first, so it starts at column 0 of both renders and the strut is what the
-// crop drops.
-async function lineBox(text: string, style: TextStyle): Promise<{ data: Buffer; width: number; height: number }> {
-  const [ink, line] = await Promise.all([draw(span(text, style), style), draw(`${span(text, style)}${escapeMarkup(STRUT)}`, style)])
-  const width = Math.min(ink.width, line.width)
-  const data = Buffer.alloc(width * line.height * 4)
-  for (let y = 0; y < line.height; y++) line.data.copy(data, y * width * 4, y * line.width * 4, (y * line.width + width) * 4)
-  return { data, width, height: line.height }
+function drawWithStrut(text: string, style: TextStyle): Promise<Bitmap> {
+  return draw(`${span(text, style)}${STRUT_GAP}${STRUT}`, style)
+}
+
+// Width of the text in a text + strut drawing: start inside the em gap, safely
+// left of the strut, and walk left to the text's last inked column.
+function textWidth(drawn: Bitmap, strutWidth: number, size: number): number {
+  const inked = (x: number) => {
+    for (let y = 0; y < drawn.height; y++) if (drawn.data[(y * drawn.width + x) * 4 + 3] > 0) return true
+    return false
+  }
+  let x = drawn.width - strutWidth - Math.ceil(size / 2)
+  while (x > 0 && !inked(x - 1)) x--
+  return x
+}
+
+// The left `width` columns of a drawing, every row: the text without its strut.
+function cropLeft(drawn: Bitmap, width: number): Bitmap {
+  const data = Buffer.alloc(width * drawn.height * 4)
+  for (let y = 0; y < drawn.height; y++) drawn.data.copy(data, y * width * 4, y * drawn.width * 4, (y * drawn.width + width) * 4)
+  return { data, width, height: drawn.height }
 }
 
 // Where a capital's top and the baseline land in this style's box, read off an
-// H: flat top, flat foot, no overshoot.
+// H (flat top, flat foot, no overshoot), and how wide the strut is.
 function lineMetrics(style: TextStyle): Promise<LineMetrics> {
   const key = `${style.family ?? 'Poppins'}|${style.size}`
   let metrics = metricsCache.get(key)
   if (!metrics) {
-    metrics = lineBox('H', { size: style.size, color: '#ffffff', family: style.family }).then(({ data, width, height }) => {
-      const inked = (y: number) => { for (let x = 0; x < width; x++) if (data[(y * width + x) * 4 + 3] > 127) return true; return false }
+    const probe = { size: style.size, color: '#ffffff', family: style.family }
+    metrics = Promise.all([drawWithStrut('H', probe), draw(STRUT, probe)]).then(([drawn, strut]) => {
+      const h = cropLeft(drawn, textWidth(drawn, strut.width, style.size))
+      const inked = (y: number) => {
+        for (let x = 0; x < h.width; x++) if (h.data[(y * h.width + x) * 4 + 3] > 127) return true
+        return false
+      }
       let capTop = 0
-      while (capTop < height && !inked(capTop)) capTop++
-      let baseline = height
+      while (capTop < h.height && !inked(capTop)) capTop++
+      let baseline = h.height
       while (baseline > capTop && !inked(baseline - 1)) baseline--
-      return { capTop, baseline }
+      return { capTop, baseline, strutWidth: strut.width }
     })
+    if (metricsCache.size >= MAX_CACHED_STYLES) metricsCache.delete(metricsCache.keys().next().value!)
     metricsCache.set(key, metrics)
     // A failed measurement is not a fact about the style: left cached, it would
     // fail every later render at this size until the process restarts.
@@ -106,9 +135,11 @@ function lineMetrics(style: TextStyle): Promise<LineMetrics> {
  * width.
  */
 export async function renderText(text: string, style: TextStyle): Promise<RenderedText> {
-  const [box, metrics] = await Promise.all([lineBox(text, style), lineMetrics(style)])
+  // One draw of text + strut: the strut sets the height, the scan the width.
+  const [drawn, { capTop, baseline, strutWidth }] = await Promise.all([drawWithStrut(text, style), lineMetrics(style)])
+  const box = cropLeft(drawn, textWidth(drawn, strutWidth, style.size))
   const input = await sharp(box.data, { raw: { width: box.width, height: box.height, channels: 4 } }).png().toBuffer()
-  return { input, width: box.width, height: box.height, ...metrics }
+  return { input, width: box.width, height: box.height, capTop, baseline }
 }
 
 // The longest prefix of `text` that fits with an ellipsis. A binary search over

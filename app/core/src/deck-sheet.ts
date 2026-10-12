@@ -33,13 +33,14 @@ export const MAX_SHEET_ENTRIES = 400
  * them grow the title layer past the canvas and sharp rejects the composite, so
  * one pasted name would 500 that deck's sheet forever.
  *
- * Truncating: nothing upstream bounds these. duplicateDeckAction appends
- * " (copy)" by calling createDeck directly, past the writer schema that caps a
- * name at 120, and a localized card name is saved with no max at all. A length
- * the sheet cannot paint is a cosmetic fact - fitText already ellipsizes to the
- * card box - so rejecting one would turn it into "this deck has no picture,
- * ever". `paint` is what the picture gets; `carry` is the hard bound on what the
- * request may hold, and past that it is a payload problem and a 400.
+ * Truncating: web's writers now hold deck and card names to DECK_NAME_MAX and
+ * CARD_NAME_MAX, duplication included, but rows written before that were not
+ * bounded (a deck copied repeatedly gained " (copy)" past the 120 its writer
+ * schema allowed). A length the sheet cannot paint is a cosmetic fact - fitText
+ * already ellipsizes to the card box - so rejecting one would turn it into "this
+ * deck has no picture, ever". `paint` is what the picture gets; `carry` is the
+ * hard bound on what the request may hold, and past that it is a payload
+ * problem and a 400.
  */
 const paintedText = (paint: number, carry: number) =>
   z.string().max(carry)

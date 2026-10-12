@@ -20,8 +20,9 @@ export const runtime = 'nodejs'
  * client-supplied card name would let anyone have the render service draw
  * arbitrary text and serve it from this origin.
  *
- * The title is not length-checked here on purpose: the builder's name field has
- * no maxLength, so a limit the service does not share would fail that deck's
+ * The title is not length-checked here on purpose: the builder exports its
+ * unsaved name, and a deck stored before the writers held names to
+ * DECK_NAME_MAX may still be longer, so a limit here would fail that deck's
  * export forever. The body cap bounds it; the handler clamps it to what the
  * service carries.
  */

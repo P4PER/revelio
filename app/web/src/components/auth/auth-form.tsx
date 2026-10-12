@@ -117,8 +117,10 @@ export function AuthForm({
     }
     // Refresh so server components (e.g. the header) re-render with the new
     // session cookie — without this the header keeps its logged-out state.
-    // Back to wherever the visitor was headed before the sign-in wall.
-    router.push(redirectTo ?? '/')
+    // Back to wherever the visitor was headed before the sign-in wall. Replace,
+    // not push: signed in, the auth page redirects forward, so leaving it in
+    // history would turn the Back button into a loop.
+    router.replace(redirectTo ?? '/')
     router.refresh()
   }
 

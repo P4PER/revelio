@@ -25,9 +25,9 @@ const acceptTermsAction = vi.fn(async () => ({ ok: true as const }))
 vi.mock('@/lib/actions/terms-actions', () => ({
   acceptTermsAction: (...a: unknown[]) => acceptTermsAction(...a),
 }))
-const push = vi.fn()
+const replace = vi.fn()
 vi.mock('@/../i18n/navigation', () => ({
-  useRouter: () => ({ push, refresh: vi.fn() }),
+  useRouter: () => ({ replace, refresh: vi.fn() }),
   Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,
 }))
 
@@ -48,7 +48,7 @@ beforeEach(() => {
   updateUser.mockClear()
   emailHasAccount.mockClear()
   usernameAvailable.mockClear()
-  push.mockClear()
+  replace.mockClear()
   acceptTermsAction.mockClear()
 })
 
@@ -133,12 +133,12 @@ describe('AuthForm', () => {
 
   it('lands on the destination after verifying when a redirect target came in', async () => {
     await signIn('/collection')
-    expect(push).toHaveBeenCalledWith('/collection')
+    expect(replace).toHaveBeenCalledWith('/collection')
   })
 
   it('lands on the home page when no redirect target came in', async () => {
     await signIn(null)
-    expect(push).toHaveBeenCalledWith('/')
+    expect(replace).toHaveBeenCalledWith('/')
   })
 
   it('carries the destination across to the register link', () => {
@@ -205,7 +205,7 @@ describe('AuthForm', () => {
   it('still finishes registration when recording acceptance fails', async () => {
     acceptTermsAction.mockRejectedValueOnce(new Error('network'))
     await registerAs('Hermione')
-    expect(push).toHaveBeenCalledWith('/')
+    expect(replace).toHaveBeenCalledWith('/')
   })
 
   it('records nothing on login', async () => {

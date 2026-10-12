@@ -50,7 +50,7 @@ unchanged.
 |---|---|---|
 | left | Wingardium Leviosa! (`bs-111-wingardium-leviosa`) | -14deg |
 | middle | Lumos! (`poa-71-lumos`) | -2deg |
-| front | the Revelio card: a deep-indigo card, gold border, the wand-and-star mark | 11deg |
+| front | the Revelio card: a midnight card, gold border and inner frame, the mark and the wordmark | 11deg |
 
 Both real cards are upright Charms spells; many cards are stored sideways (all characters,
 and e.g. Norbert and Golden Snitch), which reads as a mistake in a fan. The front card is
@@ -59,15 +59,19 @@ the brand, not a card from the game, so it never depends on data.
 - **Sizes:** cards are 136 x 190 px from `sm` up, with a 150 px fan box; the rest of each
   card sits behind the form card. Below `sm` they are 88 x 123 px and shown whole (see
   **Phone**).
-- **Theme:** the real cards are images and look the same in both themes. The Revelio card
-  uses the `--dark-*` tokens, which `:root` defines in every theme, so it looks the same on
-  both: a face of 45% `--dark-brand-indigo` mixed into `--dark-background`, and a
-  `--dark-primary` border. Not plain midnight: on the dark theme that is the page itself,
-  and the card's face disappeared into it. Not full brand indigo either, which was too
-  bright beside the card art. Its mark is `public/revelio-icon-dark.svg`, the icon for a
-  dark background (named like `revelio-logo-dark.svg`): the app-icon badge's glyph
-  (`logos/revelio-icon-badge.svg`) without the square, whose parchment wand reads on indigo
-  where `revelio-icon.svg`'s indigo wand would vanish. No glow, no gradient.
+- **Theme:** the real cards are images and look the same in both themes, except that on
+  the dark theme they carry a 1.5 px parchment ring (`--dark-foreground` at 45%): the
+  scans' own frames are black and otherwise had no edge against the dark page. The
+  Revelio card uses the `--dark-*` tokens, which `:root` defines in every theme, so it
+  looks the same on both: a `--dark-card` face (the form card's midnight), a
+  `--dark-primary` border and a thin gold inner frame. Brand indigo, at full strength or
+  mixed into midnight, was tried first and was too loud beside the card art. On it sit
+  `public/revelio-icon-dark.svg`, the icon for a dark background (named like
+  `revelio-logo-dark.svg`: the app-icon badge's glyph from `logos/revelio-icon-badge.svg`
+  without the square, whose parchment wand reads where `revelio-icon.svg`'s indigo wand
+  would vanish), and under it `public/revelio-wordmark-dark.svg`, the wordmark of
+  `revelio-logo-dark.svg` on its own. From `sm` up both sit in the top of the card, the
+  part not behind the form. No glow, no gradient.
 - **Decorative only:** the fan's container is `aria-hidden`, its images have `alt=""`, it
   takes no pointer events and has no links, and it does not animate.
 

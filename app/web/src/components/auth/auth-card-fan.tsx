@@ -21,9 +21,12 @@ const REVELIO_SLOT = 'left-[118px] top-[14px] rotate-11 sm:left-[170px] sm:top-[
 // Decoration above the sign-in and register forms: two real cards and the
 // Revelio card. Hidden from assistive tech, not interactive, never animated.
 // The Revelio card reads the --dark-* tokens, which :root defines in every
-// theme, so it looks the same on both. Its face is brand indigo mixed into
-// midnight: plain midnight is the dark theme's page itself and lost the card's
-// face, and full brand indigo shouted next to the card art.
+// theme, so it looks the same on both. Its face is the form card's midnight
+// (--dark-card), which ties it to the form; the gold border and inner frame
+// keep it apart from the dark theme's page, which is only a shade darker. The
+// mark and the logo's own wordmark make it read as a card rather than a tile.
+// From `sm` up the lower part of the card runs behind the form, so its content
+// sits in the top, visible part.
 export function AuthCardFan() {
   return (
     <div
@@ -38,12 +41,16 @@ export function AuthCardFan() {
       ))}
       <div
         className={cn(
-          'absolute flex items-center justify-center rounded-md border-2 border-[var(--dark-primary)] bg-[color-mix(in_srgb,var(--dark-brand-indigo)_45%,var(--dark-background))] shadow-lg sm:items-start sm:rounded-lg sm:border-[3px] sm:pt-7',
+          'absolute flex items-center justify-center rounded-md border-2 border-[var(--dark-primary)] bg-[var(--dark-card)] shadow-lg sm:items-start sm:rounded-lg sm:border-[3px] sm:pt-[22px]',
           SIZE,
           REVELIO_SLOT,
         )}
       >
-        <Image src="/revelio-icon-dark.svg" alt="" width={68} height={68} className="size-12 sm:size-[70px]" />
+        <div className="absolute inset-1 rounded-sm border border-[color-mix(in_srgb,var(--dark-primary)_65%,transparent)] sm:inset-[7px] sm:rounded-[5px]" />
+        <div className="relative flex flex-col items-center gap-1 sm:gap-2">
+          <Image src="/revelio-icon-dark.svg" alt="" width={56} height={56} className="size-9 sm:size-14" />
+          <Image src="/revelio-wordmark-dark.svg" alt="" width={86} height={24} className="h-auto w-[52px] sm:w-[86px]" />
+        </div>
       </div>
     </div>
   )

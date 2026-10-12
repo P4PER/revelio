@@ -12,13 +12,14 @@ function fan(container: HTMLElement) {
 }
 
 describe('AuthCardFan', () => {
-  it('draws the two fan cards from /public, then the Revelio mark', () => {
+  it('draws the two fan cards from /public, then the Revelio mark and wordmark', () => {
     const { container } = render(<AuthCardFan />)
     const srcs = [...fan(container).querySelectorAll('img')].map((i) => i.getAttribute('src'))
     expect(srcs).toEqual([
       '/auth/bs-111-wingardium-leviosa.webp',
       '/auth/poa-71-lumos.webp',
       '/revelio-icon-dark.svg',
+      '/revelio-wordmark-dark.svg',
     ])
   })
 

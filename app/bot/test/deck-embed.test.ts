@@ -29,6 +29,12 @@ describe('deckEmbed', () => {
     expect(json.url).toBe('https://revelio.cards/decks/abc123')
   })
 
+  it('pads Format and Legality to a full row when there is no character', () => {
+    const json = deckEmbed({ ...deck, character: null }, opts).toJSON()
+    const inline = (json.fields ?? []).filter((f) => f.inline)
+    expect(inline.map((f) => f.name)).toEqual(['Format', 'Legality', '\u200b'])
+  })
+
   it('tints with the most-used lesson colour', () => {
     expect(deckEmbed(deck, opts).toJSON().color).toBe(0x0069a9)
   })

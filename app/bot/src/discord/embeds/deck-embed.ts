@@ -1,8 +1,9 @@
-import { EmbedBuilder } from 'discord.js'
+import { EmbedBuilder, type APIEmbedField } from 'discord.js'
 import { LESSONS } from '@revelio/core'
 import type { DeckEntryView, PublicDeck } from '../../data/decks'
 import { t } from '../../i18n/t'
 import { deckUrl } from '../../links'
+import { inlineGrid } from './inline-grid'
 
 // The image view carries the attachment's file name because that is the only
 // handle an embed has on an upload, and the render service picks the format it
@@ -55,17 +56,19 @@ export function deckEmbed(deck: PublicDeck, opts: DeckEmbedOptions): EmbedBuilde
         : t(locale, 'deck.footer.anonymous'),
     })
 
+  const header: APIEmbedField[] = []
   if (deck.character) {
-    embed.addFields({
+    header.push({
       name: t(locale, 'deck.field.character'),
       value: deck.character.name,
       inline: true,
     })
   }
-  embed.addFields(
+  header.push(
     { name: t(locale, 'deck.field.format'), value: t(locale, `deck.format.${deck.format}`), inline: true },
     { name: t(locale, 'deck.field.legality'), value: t(locale, `deck.status.${deck.status}`), inline: true },
   )
+  embed.addFields(inlineGrid(header))
   if (opts.view === 'image') {
     // The picture shows every card, so the text lists would only repeat it.
     return embed.setImage(`attachment://${opts.imageName}`)

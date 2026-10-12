@@ -90,6 +90,18 @@ describe('cardEmbed', () => {
     expect(json.fields?.some((f) => f.name === 'Damage per turn')).toBe(false)
   })
 
+  it('pads the inline fields to full rows of three so none stretches', () => {
+    // Nimbus 2000 has type, lesson, cost, rarity and legality: five fields.
+    const inline = (cardEmbed(doc, opts).toJSON().fields ?? []).filter((f) => f.inline)
+    expect(inline).toHaveLength(6)
+    expect(inline[5]).toEqual({ name: '\u200b', value: '\u200b', inline: true })
+  })
+
+  it('adds no padding when the inline fields already fill their rows', () => {
+    const json = cardEmbed({ ...doc, rarity: null, legality: null }, opts).toJSON()
+    expect(json.fields?.some((f) => f.name === '\u200b')).toBe(false)
+  })
+
   it('renders rulings when present', () => {
     const json = cardEmbed(doc, {
       ...opts,

@@ -22,6 +22,13 @@ function lessonColor(lesson: string | null): number {
   return hex ? parseInt(hex.slice(1), 16) : FALLBACK_COLOR
 }
 
+// "(BS 75)" names the printing, since the same card name can recur across sets.
+// Left off when the card row did not resolve rather than printing "( )".
+function entryLine(entry: DeckEntryView): string {
+  const line = `${entry.quantity}x ${entry.name}`
+  return entry.setCode && entry.number ? `${line} (${entry.setCode} ${entry.number})` : line
+}
+
 // Fill the field with whole lines, then say how many were left out. A truncated
 // card name would read as a data bug; an explicit remainder reads as a summary.
 // The remainder counts copies, not entries, because the field header counts
@@ -31,7 +38,7 @@ function cardList(entries: DeckEntryView[], locale: string): string {
   let used = 0
   let left = entries.reduce((n, e) => n + e.quantity, 0)
   for (const entry of entries) {
-    const line = `${entry.quantity}x ${entry.name}`
+    const line = entryLine(entry)
     const remainder = t(locale, 'deck.more', { count: left })
     if (used + line.length + 1 + remainder.length + 1 > FIELD_LIMIT) {
       lines.push(remainder)

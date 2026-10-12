@@ -31,10 +31,10 @@ describe('parseDeckRef', () => {
 })
 
 const views = [
-  { cardId: 'c1', zone: 'character', quantity: 1, name: 'Harry Potter', cost: null, lesson: null, types: ['character'], subTypes: ['wizard'], isLesson: false, isStartingCharacter: true, isOfficial: true, legality: 'legal' },
-  { cardId: 'c2', zone: 'main', quantity: 4, name: 'Alohomora', cost: 2, lesson: 'charms', types: ['spell'], subTypes: [], isLesson: false, isStartingCharacter: false, isOfficial: true, legality: 'legal' },
-  { cardId: 'c3', zone: 'main', quantity: 8, name: 'Charms Lesson', cost: 0, lesson: 'charms', types: ['lesson'], subTypes: [], isLesson: true, isStartingCharacter: false, isOfficial: true, legality: 'legal' },
-  { cardId: 'c4', zone: 'sideboard', quantity: 2, name: 'Nimbus 2000', cost: 4, lesson: 'quidditch', types: ['item'], subTypes: [], isLesson: false, isStartingCharacter: false, isOfficial: true, legality: 'legal' },
+  { cardId: 'c1', setCode: 'BS', number: '1', zone: 'character', quantity: 1, name: 'Harry Potter', cost: null, lesson: null, types: ['character'], subTypes: ['wizard'], isLesson: false, isStartingCharacter: true, isOfficial: true, legality: 'legal' },
+  { cardId: 'c2', setCode: 'BS', number: '75', zone: 'main', quantity: 4, name: 'Alohomora', cost: 2, lesson: 'charms', types: ['spell'], subTypes: [], isLesson: false, isStartingCharacter: false, isOfficial: true, legality: 'legal' },
+  { cardId: 'c3', setCode: 'BS', number: '112', zone: 'main', quantity: 8, name: 'Charms Lesson', cost: 0, lesson: 'charms', types: ['lesson'], subTypes: [], isLesson: true, isStartingCharacter: false, isOfficial: true, legality: 'legal' },
+  { cardId: 'c4', setCode: 'QC', number: '8', zone: 'sideboard', quantity: 2, name: 'Nimbus 2000', cost: 4, lesson: 'quidditch', types: ['item'], subTypes: [], isLesson: false, isStartingCharacter: false, isOfficial: true, legality: 'legal' },
 ]
 
 export function stubDeck() {
@@ -52,6 +52,13 @@ export function stubDeck() {
 }
 
 describe('getPublicDeck', () => {
+  it('carries each entry\'s set code and number for the list view', async () => {
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    const deck = await getPublicDeck({} as never, 'abc123')
+    expect(deck!.main.map((c) => `${c.setCode} ${c.number}`)).toEqual(['BS 112', 'BS 75'])
+    expect(deck!.sideboard[0]).toMatchObject({ setCode: 'QC', number: '8' })
+  })
+
   it('reads through getDeckForViewer with a null viewer', async () => {
     const spy = vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
     await getPublicDeck({} as never, 'https://revelio.cards/decks/abc123')

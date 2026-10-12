@@ -7,12 +7,12 @@ const deck: PublicDeck = {
   name: 'Charms Aggro',
   format: 'classic',
   ownerUsername: 'seeker',
-  character: { name: 'Harry Potter', quantity: 1, cost: null, lesson: null },
+  character: { name: 'Harry Potter', quantity: 1, cost: null, lesson: null, setCode: 'BS', number: '1' },
   main: [
-    { name: 'Charms Lesson', quantity: 8, cost: 0, lesson: 'charms' },
-    { name: 'Alohomora', quantity: 4, cost: 2, lesson: 'charms' },
+    { name: 'Charms Lesson', quantity: 8, cost: 0, lesson: 'charms', setCode: 'BS', number: '112' },
+    { name: 'Alohomora', quantity: 4, cost: 2, lesson: 'charms', setCode: 'BS', number: '75' },
   ],
-  sideboard: [{ name: 'Nimbus 2000', quantity: 2, cost: 4, lesson: 'quidditch' }],
+  sideboard: [{ name: 'Nimbus 2000', quantity: 2, cost: 4, lesson: 'quidditch', setCode: 'QC', number: '8' }],
   entries: [],
   mainCount: 12,
   sideboardCount: 2,
@@ -42,8 +42,22 @@ describe('deckEmbed', () => {
   it('lists the main deck as quantity-prefixed lines', () => {
     const field = deckEmbed(deck, opts).toJSON().fields?.find((f) => f.name.startsWith('Main deck'))
     expect(field?.name).toBe('Main deck (12)')
-    expect(field?.value).toContain('8x Charms Lesson')
-    expect(field?.value).toContain('4x Alohomora')
+    expect(field?.value).toContain('8x Charms Lesson (BS 112)')
+    expect(field?.value).toContain('4x Alohomora (BS 75)')
+  })
+
+  it('names the printing of each sideboard card too', () => {
+    const field = deckEmbed(deck, opts).toJSON().fields?.find((f) => f.name.startsWith('Sideboard'))
+    expect(field?.value).toBe('2x Nimbus 2000 (QC 8)')
+  })
+
+  it('leaves the printing off a card whose set and number did not resolve', () => {
+    // getDeck falls back to empty strings when a card row is missing; "()" or
+    // "( )" there would read as a rendering bug.
+    const orphan = { name: 'Lost Card', quantity: 1, cost: 1, lesson: null, setCode: '', number: '' }
+    const field = deckEmbed({ ...deck, sideboard: [orphan] }, opts).toJSON().fields
+      ?.find((f) => f.name.startsWith('Sideboard'))
+    expect(field?.value).toBe('1x Lost Card')
   })
 
   it('shows the starting character', () => {
@@ -72,7 +86,7 @@ describe('deckEmbed', () => {
     // too. Counting distinct entries there leaves two numbers in one field that
     // the reader cannot reconcile.
     const many = Array.from({ length: 200 }, (_, i) => ({
-      name: `Card number ${i}`, quantity: 2, cost: i, lesson: 'charms',
+      name: `Card number ${i}`, quantity: 2, cost: i, lesson: 'charms', setCode: 'BS', number: String(i),
     }))
     const json = deckEmbed({ ...deck, main: many, mainCount: 400 }, opts).toJSON()
     const value = json.fields?.find((f) => f.name.startsWith('Main deck'))!.value
@@ -82,7 +96,7 @@ describe('deckEmbed', () => {
 
   it('truncates a long card list with a remainder line, inside the 1024 limit', () => {
     const many = Array.from({ length: 200 }, (_, i) => ({
-      name: `Card number ${i}`, quantity: 1, cost: i, lesson: 'charms',
+      name: `Card number ${i}`, quantity: 1, cost: i, lesson: 'charms', setCode: 'BS', number: String(i),
     }))
     const json = deckEmbed({ ...deck, main: many, mainCount: 200 }, opts).toJSON()
     const field = json.fields?.find((f) => f.name.startsWith('Main deck'))

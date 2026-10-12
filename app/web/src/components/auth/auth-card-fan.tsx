@@ -16,6 +16,10 @@ const IMAGE_SLOTS = [
   { src: '/auth/bs-111-wingardium-leviosa.webp', slot: 'left-0 top-[18px] -rotate-14 sm:top-[26px]' },
   { src: '/auth/poa-71-lumos.webp', slot: 'left-[59px] top-[4px] -rotate-2 sm:left-[85px] sm:top-0' },
 ]
+// The scans' own frames are black, which on the dark theme's page left the two
+// cards without an edge. A thin parchment ring gives them one, as a card's
+// border catching the light; on the light theme the black frame already reads.
+const SCAN_EDGE = 'dark:ring-[1.5px] dark:ring-[color-mix(in_srgb,var(--dark-foreground)_45%,transparent)]'
 const REVELIO_SLOT = 'left-[118px] top-[14px] rotate-11 sm:left-[170px] sm:top-[18px]'
 
 // Decoration above the sign-in and register forms: two real cards and the
@@ -35,7 +39,7 @@ export function AuthCardFan() {
       className="pointer-events-none relative mx-auto h-[150px] w-[206px] shrink-0 select-none sm:w-[306px]"
     >
       {IMAGE_SLOTS.map(({ src, slot }) => (
-        <div key={src} className={cn('absolute overflow-hidden rounded-md shadow-lg sm:rounded-lg', SIZE, slot)}>
+        <div key={src} className={cn('absolute overflow-hidden rounded-md shadow-lg sm:rounded-lg', SCAN_EDGE, SIZE, slot)}>
           <Image src={src} alt="" fill sizes="136px" className="object-cover" />
         </div>
       ))}

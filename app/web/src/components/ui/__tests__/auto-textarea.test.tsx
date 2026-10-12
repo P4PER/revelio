@@ -59,4 +59,9 @@ describe('AutoTextarea', () => {
     const el = renderSized(100, '384px')
     expect(el.style.overflowY).toBe('hidden')
   })
+
+  it('never scrolls without a max-height cap', () => {
+    const el = renderSized(1000, 'none')
+    expect(el.style.overflowY).toBe('hidden')
+  })
 })

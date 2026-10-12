@@ -40,6 +40,10 @@ export function AutoTextarea({
   const resize = React.useCallback(() => {
     const el = innerRef.current
     if (!el) return
+    // Measure with overflow hidden: a classic (space-taking) scrollbar left on
+    // by the last resize narrows the content box, wraps more and over-reports
+    // scrollHeight.
+    el.style.overflowY = 'hidden'
     el.style.height = 'auto'
     const style = getComputedStyle(el)
     const line = parseFloat(style.lineHeight) || 20

@@ -1,7 +1,7 @@
 'use server'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { DeckFormat, DeckVisibility, DeckZone } from '@revelio/core'
+import { DeckFormat, DeckVisibility, DeckZone, DECK_NAME_MAX, copyDeckName } from '@revelio/core'
 import type { CardDetailDTO, DeckCardView } from '@revelio/core'
 import { getSession } from '@/lib/server/session'
 import { getDb } from '@/lib/server/db'
@@ -14,7 +14,7 @@ import { DECK_BROWSE_PAGE_SIZE } from '@/lib/deck-view'
 export type DeckActionResult = { ok: true; id: string } | { ok: false; error: string }
 
 const writeSchema = z.object({
-  name: z.string().trim().min(1).max(120),
+  name: z.string().trim().min(1).max(DECK_NAME_MAX),
   format: DeckFormat,
   visibility: DeckVisibility,
   cards: z.array(z.object({
@@ -55,7 +55,7 @@ export async function updateDeckAction(id: string, input: unknown): Promise<Deck
 }
 
 const metaSchema = z.object({
-  name: z.string().trim().min(1).max(120).optional(),
+  name: z.string().trim().min(1).max(DECK_NAME_MAX).optional(),
   visibility: DeckVisibility.optional(),
 })
 
@@ -160,8 +160,9 @@ export async function duplicateDeckAction(id: string): Promise<DeckActionResult>
     return { ok: false, error: 'forbidden' }
   }
   const { deck } = existing
+  // createDeck takes no schema, so the copy's name is bounded here.
   const newId = await createDeck(getDb(), userId, {
-    name: `${deck.name} (copy)`, format: deck.format, visibility: 'private', cards: deck.cards,
+    name: copyDeckName(deck.name), format: deck.format, visibility: 'private', cards: deck.cards,
   })
   revalidatePath('/decks/mine')
   return { ok: true, id: newId }

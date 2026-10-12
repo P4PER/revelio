@@ -129,6 +129,22 @@ it('duplicates a deck with the session user id and suffixed name', async () => {
   )
 })
 
+it('keeps a duplicated name inside the deck name bound', async () => {
+  m.getDeck.mockResolvedValueOnce({
+    userId: 'u1',
+    deck: { name: 'x'.repeat(120), format: 'revival', visibility: 'private', cards: [] },
+  } as never)
+  await duplicateDeckAction('d1')
+  const { name } = (m.createDeck.mock.calls[0] as unknown[])[2] as { name: string }
+  expect(name).toHaveLength(120)
+  expect(name.endsWith(' (copy)')).toBe(true)
+})
+
+it('rejects a deck name past the bound on create', async () => {
+  expect(await createDeckAction({ name: 'x'.repeat(121), format: 'revival', visibility: 'private', cards: [] }))
+    .toEqual({ ok: false, error: 'invalid' })
+})
+
 it('searchDeckCards restricts classic to official sets only', async () => {
   await searchDeckCards('en', { query: 'accio', format: 'classic', lessons: ['charms'] })
   expect(m.runSearch).toHaveBeenCalledWith(

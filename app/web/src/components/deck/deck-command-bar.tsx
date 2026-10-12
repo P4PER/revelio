@@ -1,6 +1,6 @@
 'use client'
 import { useTranslations } from 'next-intl'
-import type { DeckFormat } from '@revelio/core'
+import { DECK_NAME_MAX, type DeckFormat } from '@revelio/core'
 import type { BuilderState } from '@/lib/deck-model'
 import { DeckFormatSwitch } from '@/components/deck/deck-format-switch'
 import { DeckImportDialog } from '@/components/deck/deck-import-dialog'
@@ -55,6 +55,7 @@ export function DeckCommandBar({
       <Input
         value={state.name}
         onChange={(e) => onNameChange(e.target.value)}
+        maxLength={DECK_NAME_MAX}
         placeholder={t('namePlaceholder')}
         aria-label={t('namePlaceholder')}
         className="h-9 w-full max-w-full min-w-0 rounded-md px-3 text-lg font-semibold shadow-none md:w-[40rem] md:text-lg"

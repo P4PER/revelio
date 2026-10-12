@@ -11,7 +11,8 @@ const sizeClasses = {
 } as const
 
 // A textarea that grows to fit its content plus one extra line, so there's
-// always a blank line below the text.
+// always a blank line below the text. A caller may cap the growth with a
+// max-h-* class; past that cap the box scrolls rather than clipping the rest.
 export function AutoTextarea({
   className,
   value,
@@ -40,8 +41,13 @@ export function AutoTextarea({
     const el = innerRef.current
     if (!el) return
     el.style.height = 'auto'
-    const line = parseFloat(getComputedStyle(el).lineHeight) || 20
-    el.style.height = `${el.scrollHeight + line}px`
+    const style = getComputedStyle(el)
+    const line = parseFloat(style.lineHeight) || 20
+    const height = el.scrollHeight + line
+    el.style.height = `${height}px`
+    // overflow stays hidden while the box can still grow, so no scrollbar
+    // flashes up mid-resize; maxHeight parses to NaN for "none".
+    el.style.overflowY = height > parseFloat(style.maxHeight) ? 'auto' : 'hidden'
   }, [])
 
   React.useEffect(() => {

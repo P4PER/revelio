@@ -86,7 +86,6 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings | null }) 
       <form onSubmit={form.handleSubmit(submit)} className="max-w-xl space-y-4" noValidate>
         <p className="text-sm text-muted-foreground">{t('intro')}</p>
         {textField('operatorName')}
-        {/* AutoTextarea is controlled (value/onChange), so bind field explicitly. */}
         <FormField
           control={form.control}
           name="operatorAddress"
@@ -94,12 +93,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings | null }) 
             <FormItem>
               <FormLabel>{t('operatorAddress')}</FormLabel>
               <FormControl>
-                <AutoTextarea
-                  name={field.name}
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                />
+                <AutoTextarea {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

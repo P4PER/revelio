@@ -49,6 +49,17 @@ describe('SiteSettingsForm', () => {
     )
   })
 
+  it('focuses the address box when it fails validation', async () => {
+    // RHF focuses the first invalid field through the ref it registered, so a
+    // field rendered without field.ref leaves focus on the submit button.
+    renderForm()
+    const address = screen.getByLabelText(en.adminSettings.operatorAddress)
+    fireEvent.input(address, { target: { value: 'x'.repeat(1001) } })
+    fireEvent.click(screen.getByRole('button', { name: en.adminSettings.save }))
+    await waitFor(() => expect(address).toHaveFocus())
+    expect(update).not.toHaveBeenCalled()
+  })
+
   it('shows a reactive validation error for a bad email and does not submit', async () => {
     renderForm()
     fireEvent.input(screen.getByLabelText(en.adminSettings.contactEmail), { target: { value: 'nope' } })

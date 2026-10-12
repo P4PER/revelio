@@ -98,3 +98,7 @@ export type DeckCardView = DeckCardDTO & {
   imageVersion: number | null
   artCropVersion: number | null
 }
+
+// The longest localized card name an editor may save, in UTF-16 units. Real
+// names top out at 51; this is the width the deck sheet paints.
+export const CARD_NAME_MAX = 120

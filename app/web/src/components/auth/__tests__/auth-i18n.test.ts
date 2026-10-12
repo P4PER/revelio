@@ -20,4 +20,9 @@ describe('auth i18n', () => {
       expect(m.auth.termsNotice).toContain('<privacy>')
     }
   })
+
+  it('carries the tagline above the auth heading in both locales', () => {
+    expect(en.auth.tagline).toBe('Your collection, revealed')
+    expect(de.auth.tagline).toBe('Deine Sammlung, enthüllt')
+  })
 })

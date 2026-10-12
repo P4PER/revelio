@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { truncateUnits } from './text'
 
 export const DeckFormat = z.enum(['classic', 'revival'])
 export const DeckVisibility = z.enum(['private', 'public'])
@@ -11,13 +12,6 @@ export type DeckZone = z.infer<typeof DeckZone>
 // Source strings 'Witch' / 'Wizard' / 'Wizard/Witch' slugify to these.
 export const STARTING_CHARACTER_SUBTYPES = ['witch', 'wizard', 'wizard_witch'] as const
 
-// The longest deck name any writer may store, in UTF-16 units (what zod's
-// .max counts). Every write path holds to it, duplication included, so the
-// deck sheet's carry bound is never reached by a stored name.
-export const DECK_NAME_MAX = 120
-
-const COPY_SUFFIX = ' (copy)'
-
 export type DeckCardMeta = {
   id: string
   isOfficial: boolean
@@ -26,16 +20,25 @@ export type DeckCardMeta = {
   isStartingCharacter: boolean
 }
 
+// The longest deck name any writer may store, in UTF-16 units (what zod's
+// .max counts). The writer schemas reject past it; duplication, the builder's
+// save and import clamp to it, so the deck sheet never has to cut a stored
+// name.
+export const DECK_NAME_MAX = 120
+
+const COPY_SUFFIX = ' (copy)'
+
+// A name cut to DECK_NAME_MAX, for the paths a maxLength attribute cannot
+// reach: an imported name, a stored draft, a deck saved before the bound.
+export function clampDeckName(name: string): string {
+  return truncateUnits(name, DECK_NAME_MAX)
+}
+
 // The name a duplicated deck gets. The base is cut so the suffix still fits
 // DECK_NAME_MAX: appending blindly grows a name by seven per copy of a copy,
 // and duplication writes past the action's writer schema.
 export function copyDeckName(name: string): string {
-  const base = name
-    .slice(0, DECK_NAME_MAX - COPY_SUFFIX.length)
-    // A cut by string unit can halve a surrogate pair.
-    .replace(/[\uD800-\uDBFF]$/u, '')
-    .trimEnd()
-  return `${base}${COPY_SUFFIX}`
+  return `${truncateUnits(name, DECK_NAME_MAX - COPY_SUFFIX.length)}${COPY_SUFFIX}`.trim()
 }
 
 export function deckCardMeta(c: {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { DeckFormat, DeckZone, deckCardMeta, STARTING_CHARACTER_SUBTYPES, DECK_NAME_MAX, copyDeckName } from '../src/deck.js'
+import { DeckFormat, DeckZone, deckCardMeta, STARTING_CHARACTER_SUBTYPES, DECK_NAME_MAX, clampDeckName, copyDeckName } from '../src/deck.js'
 
 describe('deck enums', () => {
   it('accepts valid format and zone', () => {
@@ -52,10 +52,22 @@ describe('copyDeckName', () => {
     const base = 'd'.repeat(DECK_NAME_MAX - 8) + ' tail'
     expect(copyDeckName(base)).toBe('d'.repeat(DECK_NAME_MAX - 8) + ' (copy)')
   })
+  it('does not lead with a space when the base is blank', () => {
+    expect(copyDeckName('   ')).toBe('(copy)')
+  })
   it('does not split a surrogate pair at the cut', () => {
     const base = 'e'.repeat(DECK_NAME_MAX - 8) + '\u{1F9D9}' + 'tail'
     const copy = copyDeckName(base)
     expect(copy).toBe('e'.repeat(DECK_NAME_MAX - 8) + ' (copy)')
     expect(copy.length).toBeLessThanOrEqual(DECK_NAME_MAX)
+  })
+})
+
+describe('clampDeckName', () => {
+  it('leaves a name inside the bound alone, trimmed', () => {
+    expect(clampDeckName('  Deck  ')).toBe('Deck')
+  })
+  it('cuts an over-long name to the bound', () => {
+    expect(clampDeckName('f'.repeat(300))).toBe('f'.repeat(DECK_NAME_MAX))
   })
 })

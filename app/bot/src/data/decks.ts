@@ -12,6 +12,10 @@ export type DeckEntryView = {
   quantity: number
   cost: number | null
   lesson: string | null
+  // The printing, for the list view's "(BS 75)". Both are '' when getDeck could
+  // not resolve the card row, so a consumer has to treat empty as absent.
+  setCode: string
+  number: string
 }
 
 export type PublicDeck = {
@@ -59,6 +63,7 @@ export async function getPublicDeck(db: DB, ref: string): Promise<PublicDeck | n
 
   const toEntry = (v: (typeof views)[number]): DeckEntryView => ({
     name: v.name, quantity: v.quantity, cost: v.cost, lesson: v.lesson,
+    setCode: v.setCode, number: v.number,
   })
   const zone = (name: string) => views.filter((v) => v.zone === name).sort(byCostThenName)
   const mainViews = zone('main')

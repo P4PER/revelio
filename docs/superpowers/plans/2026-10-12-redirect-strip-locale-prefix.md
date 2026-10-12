@@ -1,7 +1,7 @@
-# Redirect targets drop a locale prefix
+# Redirect targets keep their locale without doubling it
 
 **Goal:** a `?redirect=` target that carries a locale prefix (`/de/collection`) lands on
-`/de/collection`, not `/de/de/collection` (a 404).
+`/de/collection` from any login page, not `/de/de/collection` (a 404).
 
 **Cause:** `safeRedirectPath` documents that targets are locale-free, but does not enforce
 it. Every consumer (`redirectIfSignedIn`, `requireUser` via `loginHref`, the auth form's
@@ -13,22 +13,24 @@ Follow-up to PR #144, which surfaced it in review (finding 5).
 
 ## Design
 
-`safeRedirectPath` strips leading locale segments (`routing.locales`) before validating,
-so a single function owns the "locale-free" rule and every consumer inherits it. A segment
-only counts when it is the whole first segment: `/de`, `/de/...`, `/de?...`, `/de#...` -
-not `/deck`. A bare `/de` becomes `/`. The strip repeats, so `/de/en/x` is `/x`.
+The target keeps its locale. Stripping it in `safeRedirectPath` (the first cut) fixed
+`/de/login` but broke the unprefixed English `/login`: with `localePrefix: 'as-needed'`,
+`/login?redirect=/de/collection` used to reach the German page, and would then land on the
+English one.
 
-Validation runs on the stripped value, not the raw one: `/de//evil.example` strips to
-`//evil.example` and must still be rejected.
-
-The current locale wins over the stripped one. That matches what a locale-free target
-already does, and switching language is the locale switcher's job.
+- `splitLocalePrefix(path)` in `lib/redirect-path.ts` returns `{ href, locale? }`: a whole
+  first segment that `hasLocale(routing.locales, ...)` accepts is split off (`/de` -> `/`,
+  `/de?x` -> `/?x`); `/deck` is left alone.
+- `safeRedirectPath` returns the value unchanged, prefix included, so `loginHref` carries it
+  through the sign-in round trip. Its same-origin checks run on the split `href`, since that
+  is what navigation emits: `/en//evil.example` would leave as `//evil.example`.
+- The two places that navigate split first and pass the locale: `redirectIfSignedIn`
+  (`locale ?? getLocale()`) and the auth form's `router.replace(href, { locale })`.
 
 ## Tasks
 
-1. Tests in `lib/__tests__/redirect-path.test.ts`: prefixed path, bare prefix, prefix
-   before query/hash, repeated prefix, a lookalike segment (`/deck`, `/english`) kept, and
-   `/de//evil.example` rejected; `loginHref` carries the stripped target. Watch them fail.
-2. Implement in `lib/redirect-path.ts`, importing `routing` from `@/../i18n/routing`
-   (isomorphic, safe for the client form). Watch them pass.
+1. Tests: `splitLocalePrefix` cases, `safeRedirectPath` keeps the prefix and rejects
+   `/en//evil.example`; `redirectIfSignedIn` and the auth form navigate to a prefixed target
+   in its locale. Watch them fail.
+2. Implement. Watch them pass.
 3. `npm test -w web`, `npm run typecheck`, `npm run lint`.

@@ -9,7 +9,7 @@ import { authClient } from '@/lib/auth-client'
 import { emailHasAccount, usernameAvailable } from '@/lib/actions/auth-actions'
 import { acceptTermsAction } from '@/lib/actions/terms-actions'
 import { BRAND_NAME } from '@/lib/brand'
-import { loginHref, registerHref } from '@/lib/redirect-path'
+import { loginHref, registerHref, splitLocalePrefix } from '@/lib/redirect-path'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -119,8 +119,10 @@ export function AuthForm({
     // session cookie — without this the header keeps its logged-out state.
     // Back to wherever the visitor was headed before the sign-in wall. Replace,
     // not push: signed in, the auth page redirects forward, so leaving it in
-    // history would turn the Back button into a loop.
-    router.replace(redirectTo ?? '/')
+    // history would turn the Back button into a loop. An unset locale keeps
+    // the current one.
+    const { href, locale } = splitLocalePrefix(redirectTo ?? '/')
+    router.replace(href, { locale })
     router.refresh()
   }
 

@@ -2,7 +2,7 @@ import 'server-only'
 import { getLocale } from 'next-intl/server'
 import { redirect } from '@/../i18n/navigation'
 import { getSession } from '@/lib/server/session'
-import { loginHref } from '@/lib/redirect-path'
+import { loginHref, splitLocalePrefix } from '@/lib/redirect-path'
 
 /**
  * The signed-in user, or a redirect to /login carrying `redirectTo` so signing
@@ -23,9 +23,12 @@ export async function requireUser(redirectTo?: string) {
 /**
  * The inverse guard, for /login and /register: a visitor who is already signed
  * in has no use for either form, which would only sign them in again, so send
- * them on to `redirectTo` (already narrowed by safeRedirectPath) or home.
+ * them on to `redirectTo` (already narrowed by safeRedirectPath) or home, in
+ * the language the target names, else the current one.
  */
 export async function redirectIfSignedIn(redirectTo: string | null) {
   const session = await getSession()
-  if (session?.user) redirect({ href: redirectTo ?? '/', locale: await getLocale() })
+  if (!session?.user) return
+  const { href, locale } = splitLocalePrefix(redirectTo ?? '/')
+  redirect({ href, locale: locale ?? (await getLocale()) })
 }

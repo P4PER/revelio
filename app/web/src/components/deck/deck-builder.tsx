@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { useRouter } from '@/../i18n/navigation'
 import type { DeckCardView, DeckZone, SetDTO } from '@revelio/core'
-import { evaluateDeck } from '@revelio/core'
+import { clampDeckName, evaluateDeck } from '@revelio/core'
 import {
   type BuilderState,
   addCard,
@@ -130,7 +130,7 @@ export function DeckBuilder({
     setSaving(true)
     try {
       const input = {
-        name: state.name.trim() || t('namePlaceholder'),
+        name: clampDeckName(state.name) || t('namePlaceholder'),
         format: state.format,
         visibility: state.visibility,
         cards: state.entries.map((e) => ({ cardId: e.cardId, zone: e.zone, quantity: e.quantity })),
@@ -157,7 +157,7 @@ export function DeckBuilder({
     setSavingDraft(true)
     try {
       const input = {
-        name: draft.name.trim() || t('namePlaceholder'),
+        name: clampDeckName(draft.name) || t('namePlaceholder'),
         format: draft.format,
         visibility: draft.visibility,
         cards: draft.entries.map((e) => ({ cardId: e.cardId, zone: e.zone, quantity: e.quantity })),

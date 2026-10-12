@@ -2,7 +2,8 @@ import { z } from 'zod'
 import { DeckFormat, DeckZone } from './deck'
 import { attrLabel } from './labels'
 import { groupMainEntries, OTHER_GROUP } from './deck-groups'
-import type { DeckCardView } from './domain'
+import { CARD_NAME_MAX, type DeckCardView } from './domain'
+import { truncateUnits } from './text'
 
 // The deck sheet: the picture of a deck that the web builder exports as a PNG and
 // the Discord bot posts for /deck. This module is the shared, pure half - banner,
@@ -33,13 +34,14 @@ export const MAX_SHEET_ENTRIES = 400
  * them grow the title layer past the canvas and sharp rejects the composite, so
  * one pasted name would 500 that deck's sheet forever.
  *
- * Truncating: nothing upstream bounds these. duplicateDeckAction appends
- * " (copy)" by calling createDeck directly, past the writer schema that caps a
- * name at 120, and a localized card name is saved with no max at all. A length
- * the sheet cannot paint is a cosmetic fact - fitText already ellipsizes to the
- * card box - so rejecting one would turn it into "this deck has no picture,
- * ever". `paint` is what the picture gets; `carry` is the hard bound on what the
- * request may hold, and past that it is a payload problem and a 400.
+ * Truncating: web's writers now hold deck and card names to DECK_NAME_MAX and
+ * CARD_NAME_MAX, duplication included, but rows written before that were not
+ * bounded (a deck copied repeatedly gained " (copy)" past the 120 its writer
+ * schema allowed). A length the sheet cannot paint is a cosmetic fact - fitText
+ * already ellipsizes to the card box - so rejecting one would turn it into "this
+ * deck has no picture, ever". `paint` is what the picture gets; `carry` is the
+ * hard bound on what the request may hold, and past that it is a payload
+ * problem and a 400.
  */
 const paintedText = (paint: number, carry: number) =>
   z.string().max(carry)
@@ -50,23 +52,20 @@ const paintedText = (paint: number, carry: number) =>
       // Pango layout, which is the whole reason this collapse exists. The bidi
       // overrides are the part of \p{Cf} worth removing, so they are named.
       .replace(/[\s\p{Cc}\u202A-\u202E\u2066-\u2069]+/gu, ' ')
-      .trim()
-      .slice(0, paint)
-      // Slicing by string unit can cut a surrogate pair in half; a lone high
-      // surrogate renders as tofu and would key a cache separately from the
-      // same name sliced elsewhere.
-      .replace(/[\uD800-\uDBFF]$/u, '')
-      // Trimmed again because the slice can land mid-gap and leave the space
-      // the collapse just normalised.
       .trim())
+    // The cut drops a halved surrogate pair, which would also key a cache
+    // separately from the same name cut elsewhere, and trims the space the
+    // collapse just normalised when the cut lands mid-gap.
+    .transform((v) => truncateUnits(v, paint))
     .pipe(z.string().min(1))
 
 export const SHEET_FIELD_LIMITS = {
   cardId: 80,
-  // What the sheet paints, and what it will carry to get there. Real names top
-  // out at 51 across the dataset; the carry headroom is for the growth upstream
-  // allows rather than for anything the picture needs.
-  name: 120,
+  // What the sheet paints, and what it will carry to get there. The paint width
+  // is the card name bound, and a test holds the deck name bound inside it, so
+  // only a row stored before the writers held to them is ever cut. The carry
+  // headroom is for those rows rather than for anything the picture needs.
+  name: CARD_NAME_MAX,
   nameInput: 200,
   // Hyphens included and the ceiling generous because card-data derives this
   // for any set name not in SET_CODES: transform_hpjson.py's slug() replaces

@@ -5,7 +5,7 @@ import {
   type DeckSheetCard, type DeckSheetLayout,
 } from '../src/deck-sheet.js'
 import { OTHER_GROUP, SHEET_LOCALES, sheetLabels } from '../src/index.js'
-import { DeckSheetRequest, MAX_SHEET_ENTRIES, SHEET_FIELD_LIMITS, pickSheetEntries, type DeckSheetEntry } from '../src/index.js'
+import { CARD_NAME_MAX, DECK_NAME_MAX, DeckSheetRequest, MAX_SHEET_ENTRIES, SHEET_FIELD_LIMITS, pickSheetEntries, type DeckSheetEntry } from '../src/index.js'
 
 const harry: DeckCardView = {
   cardId: 'bs-harry', zone: 'character', quantity: 1, types: ['character'],
@@ -481,5 +481,12 @@ describe('DeckSheetRequest', () => {
     const parsed = DeckSheetRequest.parse(body)
     const entries: DeckSheetEntry[] = parsed.entries
     expect(computeSheetGeometry(layoutDeckSheet(parsed.deck, entries, sheetLabels('en'))).width).toBe(DECK_SHEET.width)
+  })
+})
+
+describe('stored name bounds', () => {
+  it('fit inside what the sheet paints, so no stored name is ever cut', () => {
+    expect(CARD_NAME_MAX).toBeLessThanOrEqual(SHEET_FIELD_LIMITS.name)
+    expect(DECK_NAME_MAX).toBeLessThanOrEqual(SHEET_FIELD_LIMITS.name)
   })
 })

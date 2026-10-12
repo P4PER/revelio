@@ -3,7 +3,7 @@ import { useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { ChevronDown, Copy, Globe, Link2, Lock, Pencil, Trash } from 'lucide-react'
-import type { DeckCardView, DeckFormat } from '@revelio/core'
+import { copyDeckName, type DeckCardView, type DeckFormat } from '@revelio/core'
 import { Link, useRouter } from '@/../i18n/navigation'
 import { deleteDeckAction, duplicateDeckAction, updateDeckMetaAction } from '@/lib/actions/deck-actions'
 import { saveDraft, type BuilderState } from '@/lib/deck-model'
@@ -51,7 +51,9 @@ export function DeckOverviewActions({
 
   function setVisibility(next: 'private' | 'public') {
     startTransition(async () => {
-      const res = await updateDeckMetaAction(deckId, { name, visibility: next })
+      // Visibility alone: resending the name would fail a deck whose name was
+      // stored before the bound, and leave it stuck at its visibility.
+      const res = await updateDeckMetaAction(deckId, { visibility: next })
       if (!res.ok) toast.error(t('list.visibilityError'))
     })
   }
@@ -85,7 +87,7 @@ export function DeckOverviewActions({
         else toast.error(t('list.duplicateError'))
       })
     } else {
-      saveDraft({ name: `${name} (copy)`, format, visibility: 'private', entries: views })
+      saveDraft({ name: copyDeckName(name), format, visibility: 'private', entries: views })
       router.push('/decks/new')
     }
   }

@@ -29,6 +29,25 @@ describe('safeRedirectPath', () => {
     expect(safeRedirectPath(['/collection', '/decks/mine'])).toBeNull()
   })
 
+  it('drops a locale prefix, which the navigation helpers would add a second time', () => {
+    expect(safeRedirectPath('/de/collection')).toBe('/collection')
+    expect(safeRedirectPath('/en/decks/mine')).toBe('/decks/mine')
+    expect(safeRedirectPath('/de')).toBe('/')
+    expect(safeRedirectPath('/de?tab=browse')).toBe('/?tab=browse')
+    expect(safeRedirectPath('/de#top')).toBe('/#top')
+    expect(safeRedirectPath('/de/en/collection')).toBe('/collection')
+  })
+
+  it('keeps a first segment that only starts with a locale', () => {
+    expect(safeRedirectPath('/deck/42')).toBe('/deck/42')
+    expect(safeRedirectPath('/english')).toBe('/english')
+  })
+
+  it('validates what is left after the locale prefix', () => {
+    expect(safeRedirectPath('/de//evil.example')).toBeNull()
+    expect(safeRedirectPath('/de/\\evil.example')).toBeNull()
+  })
+
   it('rejects empty and missing values', () => {
     expect(safeRedirectPath('')).toBeNull()
     expect(safeRedirectPath(null)).toBeNull()
@@ -43,6 +62,10 @@ describe('loginHref', () => {
 
   it('carries an encoded target', () => {
     expect(loginHref('/collection?tab=browse')).toBe(`/login?${REDIRECT_PARAM}=%2Fcollection%3Ftab%3Dbrowse`)
+  })
+
+  it('carries a locale-prefixed target without its prefix', () => {
+    expect(loginHref('/de/collection')).toBe(`/login?${REDIRECT_PARAM}=%2Fcollection`)
   })
 
   it('drops an unsafe target rather than passing it on', () => {

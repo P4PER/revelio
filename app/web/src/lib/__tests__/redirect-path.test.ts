@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { REDIRECT_PARAM, safeRedirectPath, loginHref, registerHref } from '../redirect-path'
+import { REDIRECT_PARAM, safeRedirectPath, splitLocalePrefix, loginHref, registerHref } from '../redirect-path'
 
 describe('safeRedirectPath', () => {
   it('keeps a root-relative path, including query and hash', () => {
@@ -29,10 +29,47 @@ describe('safeRedirectPath', () => {
     expect(safeRedirectPath(['/collection', '/decks/mine'])).toBeNull()
   })
 
+  it('keeps a locale prefix, so the target keeps its language', () => {
+    expect(safeRedirectPath('/de/collection')).toBe('/de/collection')
+  })
+
+  it('checks the path after a locale prefix, which is what navigation emits', () => {
+    expect(safeRedirectPath('/en//evil.example')).toBeNull()
+    expect(safeRedirectPath('/en/\\evil.example')).toBeNull()
+  })
+
+  // Only one prefix is split off before navigating, so a second would reach
+  // next-intl's middleware, which strips the default locale's prefix again:
+  // /en/en//evil.example -> /en//evil.example -> //evil.example.
+  it('rejects a second locale prefix, which no page has', () => {
+    expect(safeRedirectPath('/en/en//evil.example')).toBeNull()
+    expect(safeRedirectPath('/de/en/collection')).toBeNull()
+  })
+
   it('rejects empty and missing values', () => {
     expect(safeRedirectPath('')).toBeNull()
     expect(safeRedirectPath(null)).toBeNull()
     expect(safeRedirectPath(undefined)).toBeNull()
+  })
+})
+
+describe('splitLocalePrefix', () => {
+  it('splits a leading locale off the path', () => {
+    expect(splitLocalePrefix('/de/collection')).toEqual({ href: '/collection', locale: 'de' })
+    expect(splitLocalePrefix('/en/decks/mine')).toEqual({ href: '/decks/mine', locale: 'en' })
+  })
+
+  it('leaves a root-relative path for a bare locale, with or without query or hash', () => {
+    expect(splitLocalePrefix('/de')).toEqual({ href: '/', locale: 'de' })
+    expect(splitLocalePrefix('/de?tab=browse')).toEqual({ href: '/?tab=browse', locale: 'de' })
+    expect(splitLocalePrefix('/de#top')).toEqual({ href: '/#top', locale: 'de' })
+  })
+
+  it('leaves a path without a locale alone, including one that only starts like one', () => {
+    expect(splitLocalePrefix('/collection')).toEqual({ href: '/collection' })
+    expect(splitLocalePrefix('/deck/42')).toEqual({ href: '/deck/42' })
+    expect(splitLocalePrefix('/english')).toEqual({ href: '/english' })
+    expect(splitLocalePrefix('/')).toEqual({ href: '/' })
   })
 })
 

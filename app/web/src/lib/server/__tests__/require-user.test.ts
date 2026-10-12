@@ -60,6 +60,13 @@ describe('redirectIfSignedIn', () => {
     expect(redirectMock).toHaveBeenCalledWith({ href: '/collection?set=bs', locale: 'de' })
   })
 
+  it('sends a signed-in visitor to a locale-prefixed destination in that locale', async () => {
+    getSession.mockResolvedValue({ user: { id: 'u1' } })
+    // getLocale says 'de'; the target names 'en', which wins.
+    expect(await catchThrow(() => redirectIfSignedIn('/en/collection'))).toBe('NEXT_REDIRECT')
+    expect(redirectMock).toHaveBeenCalledWith({ href: '/collection', locale: 'en' })
+  })
+
   it('sends a signed-in visitor home when no destination is given', async () => {
     getSession.mockResolvedValue({ user: { id: 'u1' } })
     expect(await catchThrow(() => redirectIfSignedIn(null))).toBe('NEXT_REDIRECT')

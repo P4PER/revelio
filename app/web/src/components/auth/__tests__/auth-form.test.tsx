@@ -133,12 +133,19 @@ describe('AuthForm', () => {
 
   it('lands on the destination after verifying when a redirect target came in', async () => {
     await signIn('/collection')
-    expect(replace).toHaveBeenCalledWith('/collection')
+    expect(replace).toHaveBeenCalledWith('/collection', { locale: undefined })
+  })
+
+  // Passing the prefix through would come out as /de/de/collection; dropping
+  // the locale would send a German target to the current language instead.
+  it('lands on a locale-prefixed destination in that locale', async () => {
+    await signIn('/de/collection')
+    expect(replace).toHaveBeenCalledWith('/collection', { locale: 'de' })
   })
 
   it('lands on the home page when no redirect target came in', async () => {
     await signIn(null)
-    expect(replace).toHaveBeenCalledWith('/')
+    expect(replace).toHaveBeenCalledWith('/', { locale: undefined })
   })
 
   it('carries the destination across to the register link', () => {
@@ -205,7 +212,7 @@ describe('AuthForm', () => {
   it('still finishes registration when recording acceptance fails', async () => {
     acceptTermsAction.mockRejectedValueOnce(new Error('network'))
     await registerAs('Hermione')
-    expect(replace).toHaveBeenCalledWith('/')
+    expect(replace).toHaveBeenCalledWith('/', { locale: undefined })
   })
 
   it('records nothing on login', async () => {

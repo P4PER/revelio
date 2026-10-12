@@ -38,6 +38,14 @@ describe('updateLocalization', () => {
     expect(res).toEqual({ ok: false, error: 'invalid' })
     expect(m.upsertLocalization).not.toHaveBeenCalled()
   })
+  it('rejects a name past the card name bound', async () => {
+    const res = await updateLocalization({ ...valid, name: 'x'.repeat(121) })
+    expect(res).toEqual({ ok: false, error: 'invalid' })
+    expect(m.upsertLocalization).not.toHaveBeenCalled()
+  })
+  it('accepts a name at the card name bound', async () => {
+    expect(await updateLocalization({ ...valid, name: 'x'.repeat(120) })).toEqual({ ok: true })
+  })
   it('upserts (empty strings -> null), reindexes, revalidates, returns ok', async () => {
     const res = await updateLocalization(valid)
     expect(m.upsertLocalization).toHaveBeenCalledWith(expect.anything(), {

@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter, Link } from '@/../i18n/navigation'
 import { useTranslations } from 'next-intl'
+import { CARD_NAME_MAX } from '@revelio/core'
 import { toast } from 'sonner'
 import { updateLocalization, type SaveResult } from '@/lib/actions/localization-actions'
 import { Input } from '@/components/ui/input'
@@ -98,7 +99,7 @@ export function LocalizationForm({
             <FormItem>
               <FormLabel>{t('name')}</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} maxLength={CARD_NAME_MAX} />
               </FormControl>
               <FormMessage />
             </FormItem>

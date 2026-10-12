@@ -7,7 +7,7 @@ import { upsertLocalization, getCardIndexData } from '@revelio/db'
 import { getWriteClient } from '@/lib/server/reindex'
 import { reindexCard } from '@revelio/search'
 import { routing } from '@/../i18n/routing'
-import type { AdventureData, MatchData } from '@revelio/core'
+import { CARD_NAME_MAX, type AdventureData, type MatchData } from '@revelio/core'
 
 const adventureInput = z.object({ effect: z.string(), reward: z.string(), toSolve: z.string() })
 const matchInput = z.object({ prize: z.string(), toWin: z.string() })
@@ -27,7 +27,7 @@ function normMatch(m: { prize: string; toWin: string }): MatchData | null {
 const schema = z.object({
   cardId: z.string().min(1),
   lang: z.enum(routing.locales as unknown as [string, ...string[]]),
-  name: z.string().trim().min(1),
+  name: z.string().trim().min(1).max(CARD_NAME_MAX),
   text: z.string(),
   flavorText: z.string(),
   status: z.enum(['machine', 'official']),

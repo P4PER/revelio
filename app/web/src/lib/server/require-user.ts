@@ -19,3 +19,13 @@ export async function requireUser(redirectTo?: string) {
   if (!session?.user) redirect({ href: loginHref(redirectTo), locale: await getLocale() })
   return session!.user
 }
+
+/**
+ * The inverse guard, for /login and /register: a visitor who is already signed
+ * in has no use for either form, which would only sign them in again, so send
+ * them on to `redirectTo` (already narrowed by safeRedirectPath) or home.
+ */
+export async function redirectIfSignedIn(redirectTo: string | null) {
+  const session = await getSession()
+  if (session?.user) redirect({ href: redirectTo ?? '/', locale: await getLocale() })
+}

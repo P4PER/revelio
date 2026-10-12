@@ -11,7 +11,7 @@ vi.mock('@/lib/server/session', () => ({ getSession: () => getSession() }))
 vi.mock('@/../i18n/navigation', () => ({ redirect: (...a: unknown[]) => redirectMock(...a) }))
 vi.mock('next-intl/server', () => ({ getLocale: async () => 'de' }))
 
-import { requireUser } from '../require-user'
+import { requireUser, redirectIfSignedIn } from '../require-user'
 
 beforeEach(() => {
   getSession.mockReset()
@@ -50,5 +50,25 @@ describe('requireUser', () => {
     getSession.mockResolvedValue(null)
     expect(await catchThrow(() => requireUser())).toBe('NEXT_REDIRECT')
     expect(redirectMock).toHaveBeenCalledWith({ href: '/login', locale: 'de' })
+  })
+})
+
+describe('redirectIfSignedIn', () => {
+  it('sends a signed-in visitor to the destination', async () => {
+    getSession.mockResolvedValue({ user: { id: 'u1' } })
+    expect(await catchThrow(() => redirectIfSignedIn('/collection?set=bs'))).toBe('NEXT_REDIRECT')
+    expect(redirectMock).toHaveBeenCalledWith({ href: '/collection?set=bs', locale: 'de' })
+  })
+
+  it('sends a signed-in visitor home when no destination is given', async () => {
+    getSession.mockResolvedValue({ user: { id: 'u1' } })
+    expect(await catchThrow(() => redirectIfSignedIn(null))).toBe('NEXT_REDIRECT')
+    expect(redirectMock).toHaveBeenCalledWith({ href: '/', locale: 'de' })
+  })
+
+  it('lets a signed-out visitor through', async () => {
+    getSession.mockResolvedValue(null)
+    expect(await catchThrow(() => redirectIfSignedIn('/collection'))).toBeUndefined()
+    expect(redirectMock).not.toHaveBeenCalled()
   })
 })

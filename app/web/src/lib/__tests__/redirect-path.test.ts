@@ -38,6 +38,14 @@ describe('safeRedirectPath', () => {
     expect(safeRedirectPath('/en/\\evil.example')).toBeNull()
   })
 
+  // Only one prefix is split off before navigating, so a second would reach
+  // next-intl's middleware, which strips the default locale's prefix again:
+  // /en/en//evil.example -> /en//evil.example -> //evil.example.
+  it('rejects a second locale prefix, which no page has', () => {
+    expect(safeRedirectPath('/en/en//evil.example')).toBeNull()
+    expect(safeRedirectPath('/de/en/collection')).toBeNull()
+  })
+
   it('rejects empty and missing values', () => {
     expect(safeRedirectPath('')).toBeNull()
     expect(safeRedirectPath(null)).toBeNull()

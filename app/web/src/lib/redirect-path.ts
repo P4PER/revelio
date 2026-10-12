@@ -23,7 +23,9 @@ export const REDIRECT_PARAM = 'redirect'
  * survives the round trip; navigate with splitLocalePrefix, never the raw
  * value. The checks run on the path after the prefix, because that is what
  * the navigation helpers emit: "/en//evil.example" would leave as
- * "//evil.example", since the default locale goes unprefixed.
+ * "//evil.example", since the default locale goes unprefixed. A second prefix
+ * is rejected outright: no page has one, and next-intl's middleware would strip
+ * the default locale's again ("/en/en//evil.example" -> "//evil.example").
  *
  * Takes the raw searchParams shape rather than a plain string: Next.js hands
  * back an array when a key repeats ("?redirect=/a&redirect=/b"), and a caller
@@ -33,6 +35,7 @@ export function safeRedirectPath(value: string | string[] | null | undefined): s
   if (typeof value !== 'string') return null
   if (!value || !value.startsWith('/')) return null
   const { href } = splitLocalePrefix(value)
+  if (splitLocalePrefix(href).locale) return null
   if (href.startsWith('//') || href.startsWith('/\\')) return null
   for (let i = 0; i < href.length; i++) {
     const code = href.charCodeAt(i)

@@ -1,14 +1,10 @@
-import { afterEach, describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { createRef } from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { Slot } from 'radix-ui'
 import { AutoTextarea } from '../auto-textarea'
 
 describe('AutoTextarea', () => {
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
   it('renders a controlled textarea and forwards changes', () => {
     const onChange = vi.fn()
     render(<AutoTextarea aria-label="notes" value="hello" onChange={onChange} />)
@@ -18,16 +14,15 @@ describe('AutoTextarea', () => {
     expect(onChange).toHaveBeenCalled()
   })
 
-  it('composes a forwarded ref with its internal auto-grow ref', () => {
+  it('forwards a ref to the textarea', () => {
     const ref = createRef<HTMLTextAreaElement>()
     render(<AutoTextarea aria-label="notes" value="" onChange={() => {}} ref={ref} />)
     expect(ref.current).toBe(screen.getByLabelText('notes'))
   })
 
   it('still attaches to the DOM node when rendered as a Radix Slot child', () => {
-    // shadcn's <FormControl> is a Slot; this is the arrangement that used to
-    // clobber the internal ref and break growth. The internal ref is private,
-    // so assert via the composed forwarded ref that the node is reachable.
+    // shadcn's <FormControl> is a Slot, and react-hook-form needs the node to
+    // focus a field with an error.
     const ref = createRef<HTMLTextAreaElement>()
     render(
       <Slot.Root ref={ref}>
@@ -37,31 +32,21 @@ describe('AutoTextarea', () => {
     expect(ref.current).toBe(screen.getByLabelText('notes'))
   })
 
-  // jsdom has no layout, so scrollHeight and the computed max-height are stubbed
-  // to put the content past (or inside) a caller's max-h cap.
-  function renderSized(scrollHeight: number, maxHeight: string) {
-    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(scrollHeight)
-    const real = window.getComputedStyle
-    vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
-      const style = real(el)
-      return Object.assign(Object.create(style), { lineHeight: '20px', maxHeight })
-    })
-    render(<AutoTextarea aria-label="notes" value="x" onChange={() => {}} />)
-    return screen.getByLabelText('notes') as HTMLTextAreaElement
-  }
-
-  it('scrolls once the content outgrows a max-height cap', () => {
-    const el = renderSized(1000, '384px')
-    expect(el.style.overflowY).toBe('auto')
+  // jsdom has no layout, so the sizing itself is the browser's (checked by
+  // hand in Chromium, WebKit and Firefox); these pin the CSS that asks for it.
+  it('lets the browser size the box and scroll past a caller cap', () => {
+    render(<AutoTextarea aria-label="notes" value="" onChange={() => {}} className="max-h-96" />)
+    const el = screen.getByLabelText('notes')
+    expect(el).toHaveClass('field-sizing-content', 'overflow-y-auto', 'max-h-96')
+    expect(el).not.toHaveClass('overflow-hidden')
   })
 
-  it('stays unscrollable while the content fits', () => {
-    const el = renderSized(100, '384px')
-    expect(el.style.overflowY).toBe('hidden')
-  })
-
-  it('never scrolls without a max-height cap', () => {
-    const el = renderSized(1000, 'none')
-    expect(el.style.overflowY).toBe('hidden')
+  it('never writes an inline height while typing', () => {
+    // Resetting height per keystroke collapsed the box to its min-height and
+    // made the scrolling deck import Sheet jump.
+    render(<AutoTextarea aria-label="notes" value="a" onChange={() => {}} />)
+    const el = screen.getByLabelText('notes') as HTMLTextAreaElement
+    fireEvent.change(el, { target: { value: 'a\nb\nc' } })
+    expect(el.style.height).toBe('')
   })
 })

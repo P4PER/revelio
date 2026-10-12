@@ -32,8 +32,8 @@ describe('AutoTextarea', () => {
     expect(ref.current).toBe(screen.getByLabelText('notes'))
   })
 
-  // jsdom has no layout, so the sizing itself is the browser's (checked by
-  // hand in Chromium, WebKit and Firefox); these pin the CSS that asks for it.
+  // jsdom has no layout, so these only pin the CSS that asks for the sizing.
+  // The sizing itself is covered by e2e/deck-builder.spec.ts in a real browser.
   it('lets the browser size the box and scroll past a caller cap', () => {
     render(<AutoTextarea aria-label="notes" value="" onChange={() => {}} className="max-h-96" />)
     const el = screen.getByLabelText('notes')

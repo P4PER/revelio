@@ -115,3 +115,54 @@ test('the desktop workbench never locks the page', async ({ page }) => {
   await page.evaluate(() => window.scrollTo({ top: 200, behavior: 'instant' }))
   expect(await page.evaluate(() => window.scrollY)).toBe(200)
 })
+
+// The import box grows with what is pasted, stops at its cap and scrolls past
+// it. It used to measure itself by resetting its height on every keystroke,
+// which collapsed it to its min-height for a moment: with a long list pasted
+// and the Sheet scrolled down, the Sheet clamped its own scroll and the first
+// keystroke jumped it up by the difference.
+test('the deck import box grows, scrolls past its cap and holds the Sheet still', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 700 })
+  await page.goto('/decks/new')
+  await page.getByRole('button', { name: 'Import', exact: true }).first().click()
+  const box = page.getByLabel('Paste a deck list')
+  const lines = (n: number) => Array.from({ length: n }, (_, i) => `1x Card ${i}`).join('\n')
+
+  await box.fill(lines(4))
+  const short = await box.evaluate((el) => el.offsetHeight)
+  await box.fill(lines(12))
+  const tall = await box.evaluate((el) => el.offsetHeight)
+  expect(tall).toBeGreaterThan(short)
+
+  await box.fill(lines(60))
+  const capped = await box.evaluate((el) => ({
+    height: el.offsetHeight,
+    max: parseFloat(getComputedStyle(el).maxHeight),
+    overflows: el.scrollHeight > el.clientHeight,
+  }))
+  expect(capped.height).toBe(capped.max)
+  expect(capped.overflows).toBe(true)
+
+  // A wheel, not scrollTop: overflow hidden only stops a user, so a scripted
+  // scroll would move a clipped box too.
+  const scrollTop = () => box.evaluate((el) => el.scrollTop)
+  const atEnd = await scrollTop()
+  await box.hover()
+  await page.mouse.wheel(0, -300)
+  await expect.poll(scrollTop).toBeLessThan(atEnd)
+
+  const sheet = page.getByRole('dialog')
+  const sheetTop = () => sheet.evaluate((el) => el.scrollTop)
+  await sheet.evaluate((el) => el.scrollTo({ top: el.scrollHeight, behavior: 'instant' }))
+  const before = await sheetTop()
+  // Guards the assertion below: a Sheet that cannot scroll has nothing to clamp.
+  expect(before).toBeGreaterThan(0)
+  await box.evaluate((el: HTMLTextAreaElement) => {
+    el.focus({ preventScroll: true })
+    el.setSelectionRange(el.value.length, el.value.length)
+  })
+  await page.keyboard.type('x')
+  expect(await sheetTop()).toBe(before)
+})

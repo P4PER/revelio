@@ -1,67 +1,42 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import LoginPage from '../login/page'
+import RegisterPage from '../register/page'
 
-// /login and /register are server components. A signed-in visitor has no use
-// for either form, so both pages send them on to the validated ?redirect=
-// target, or home. next-intl's redirect throws to end the render, and the mock
-// does the same so nothing after it runs.
+// /login and /register hand redirectIfSignedIn (tested in lib/server) the
+// ?redirect= value only after safeRedirectPath has narrowed it, so a signed-in
+// visitor can never be sent off-site. Pin that wiring on both pages.
 
-const getSession = vi.fn()
-const redirect = vi.fn((_: { href: string; locale: string }) => {
-  throw new Error('NEXT_REDIRECT')
-})
+type Page = typeof LoginPage
 
-vi.mock('@/lib/server/session', () => ({ getSession: () => getSession() }))
-vi.mock('@/../i18n/navigation', () => ({
-  redirect: (a: { href: string; locale: string }) => redirect(a),
+const redirectIfSignedIn = vi.fn()
+
+// vi.mock is hoisted above the imports, so the pages load against these mocks.
+vi.mock('@/lib/server/require-user', () => ({
+  redirectIfSignedIn: (to: string | null) => redirectIfSignedIn(to),
 }))
 vi.mock('@/components/auth/auth-card', () => ({ AuthCard: () => null }))
 vi.mock('next-intl/server', () => ({ getTranslations: async () => (k: string) => k }))
 
-import LoginPage from '../login/page'
-import RegisterPage from '../register/page'
-
-type Page = typeof LoginPage
-
-async function renderPage(page: Page, searchParams: Record<string, string | string[] | undefined>, locale = 'en') {
-  try {
-    return await page({ params: Promise.resolve({ locale }), searchParams: Promise.resolve(searchParams) })
-  } catch (e) {
-    if (e instanceof Error && e.message === 'NEXT_REDIRECT') return 'redirected'
-    throw e
-  }
+function renderPage(page: Page, searchParams: Record<string, string | string[] | undefined>) {
+  return page({ searchParams: Promise.resolve(searchParams) })
 }
 
 beforeEach(() => {
-  getSession.mockReset()
-  redirect.mockClear()
+  redirectIfSignedIn.mockReset()
 })
 
 describe.each([
   ['/login', LoginPage, 'login'],
   ['/register', RegisterPage, 'register'],
 ] as const)('%s', (_, page, mode) => {
-  it('sends a signed-in visitor to the redirect target', async () => {
-    getSession.mockResolvedValue({ user: { id: 'u1' } })
-    expect(await renderPage(page, { redirect: '/collection?set=bs' }, 'de')).toBe('redirected')
-    expect(redirect).toHaveBeenCalledWith({ href: '/collection?set=bs', locale: 'de' })
-  })
-
-  it('sends a signed-in visitor home when there is no redirect target', async () => {
-    getSession.mockResolvedValue({ user: { id: 'u1' } })
-    expect(await renderPage(page, {})).toBe('redirected')
-    expect(redirect).toHaveBeenCalledWith({ href: '/', locale: 'en' })
-  })
-
-  it('sends a signed-in visitor home rather than off-site', async () => {
-    getSession.mockResolvedValue({ user: { id: 'u1' } })
-    expect(await renderPage(page, { redirect: '//evil.example' })).toBe('redirected')
-    expect(redirect).toHaveBeenCalledWith({ href: '/', locale: 'en' })
-  })
-
-  it('shows a signed-out visitor the form', async () => {
-    getSession.mockResolvedValue(null)
+  it('hands the guard the validated destination', async () => {
     const out = await renderPage(page, { redirect: '/decks/mine' })
-    expect(redirect).not.toHaveBeenCalled()
+    expect(redirectIfSignedIn).toHaveBeenCalledWith('/decks/mine')
     expect(out).toMatchObject({ props: { mode, redirectTo: '/decks/mine' } })
+  })
+
+  it('hands the guard nothing for an off-site destination', async () => {
+    await renderPage(page, { redirect: '//evil.example' })
+    expect(redirectIfSignedIn).toHaveBeenCalledWith(null)
   })
 })

@@ -4,7 +4,7 @@ import { useFormatter, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Ellipsis, Pencil, SquarePen, Copy, Trash, Eye, EyeOff, Check, X, Star } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
-import { DECK_NAME_MAX } from '@revelio/core'
+import { DECK_NAME_MAX, clampDeckName } from '@revelio/core'
 import type { DeckSummary } from '@revelio/db'
 import { duplicateDeckAction, deleteDeckAction, updateDeckMetaAction } from '@/lib/actions/deck-actions'
 import { cn } from '@/lib/utils'
@@ -58,7 +58,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
   }
 
   function saveRename(deck: DeckSummary) {
-    const name = draftName.trim()
+    const name = clampDeckName(draftName)
     if (!name || name === deck.name) {
       cancelRename()
       return

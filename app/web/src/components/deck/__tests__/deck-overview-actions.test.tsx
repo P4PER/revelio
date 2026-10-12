@@ -73,7 +73,8 @@ describe('DeckOverviewActions visibility', () => {
     const dialog = screen.getByRole('alertdialog')
     fireEvent.click(within(dialog).getByRole('button', { name: 'Publish' }))
     await waitFor(() =>
-      expect(updateDeckMetaAction).toHaveBeenCalledWith('d1', { name: 'My Deck', visibility: 'public' }),
+      // Visibility alone: resending the name would fail a legacy over-long one.
+      expect(updateDeckMetaAction).toHaveBeenCalledWith('d1', { visibility: 'public' }),
     )
   })
 })

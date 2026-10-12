@@ -102,6 +102,15 @@ describe('DeckBuilder save-on-login prompt', () => {
     expect(push).toHaveBeenCalledWith('/decks/new-id')
   })
 
+  it('clamps an over-long draft name to the deck name bound on save', async () => {
+    draftBox.current = { name: 'n'.repeat(300), format: 'revival', visibility: 'private', entries: [draftEntry] }
+    renderBuilder({ loggedIn: true, deckId: null })
+    const user = userEvent.setup()
+    await user.click(await screen.findByRole('button', { name: 'Save to account' }))
+    await waitFor(() => expect(createDeckAction).toHaveBeenCalledTimes(1))
+    expect(createDeckAction).toHaveBeenCalledWith(expect.objectContaining({ name: 'n'.repeat(120) }))
+  })
+
   it('hides the banner on dismiss without touching the stored draft', async () => {
     draftBox.current = { name: 'My Draft', format: 'revival', visibility: 'private', entries: [draftEntry] }
     renderBuilder({ loggedIn: true, deckId: null })

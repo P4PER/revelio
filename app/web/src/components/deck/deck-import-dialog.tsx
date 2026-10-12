@@ -4,7 +4,7 @@ import type { ChangeEvent } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { ClipboardPaste, Upload } from 'lucide-react'
-import { parseJson, parseText } from '@revelio/core'
+import { clampDeckName, parseJson, parseText } from '@revelio/core'
 import type { ParsedTextLine } from '@revelio/core'
 import { getCardViewsAction, resolveImportNames } from '@/lib/actions/deck-actions'
 import { jsonToEntries, textLinesToEntries } from '@/lib/deck-import'
@@ -133,7 +133,7 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
     const views = await getCardViewsAction(ids)
     const { entries, missingIds } = jsonToEntries(deck, views)
     setUnresolved(missingIds)
-    onImport({ name: deck.name, format: deck.format, visibility: state.visibility, entries })
+    onImport({ name: clampDeckName(deck.name), format: deck.format, visibility: state.visibility, entries })
     toast.success(t('import.success'))
     if (missingIds.length === 0) {
       setOpen(false)

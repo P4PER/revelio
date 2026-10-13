@@ -33,25 +33,26 @@ function clamp(value: string, limit: number): string {
   return value.length <= limit ? value : `${value.slice(0, limit - ELLIPSIS.length)}${ELLIPSIS}`
 }
 
-// One line in place of the embed's inline-field grid, which needed blank
-// padding fields to keep its columns. Sub-types are not curated in
-// attributes.ts, so they resolve like the card page: a translation from the
-// DB, else the humanized code.
-function statsLine(detail: CardDetail, locale: string): string {
+// Two lines in place of the embed's inline-field grid, which needed blank
+// padding fields to keep its columns: what the card is (types, sub-types,
+// lesson), then what it costs and how it plays. One line ran the two together.
+// Sub-types are not curated in attributes.ts, so they resolve like the card
+// page: a translation from the DB, else the humanized code.
+function headerLines(detail: CardDetail, locale: string): string[] {
   const { doc } = detail
   const types = [
     ...doc.types.map((code) => attrLabel('types', code, locale)),
     ...doc.subTypes.map((code) => detail.subTypeLabels[code] ?? humanize(code)),
   ].join(', ')
-  return [
-    types,
-    doc.lesson ? attrLabel('lessons', doc.lesson, locale) : '',
+  const tags = [types, doc.lesson ? attrLabel('lessons', doc.lesson, locale) : '']
+  const stats = [
     doc.cost != null ? t(locale, 'card.stat.cost', { value: doc.cost }) : '',
     doc.damage != null ? t(locale, 'card.stat.damage', { value: doc.damage }) : '',
     doc.rarity ? attrLabel('rarities', doc.rarity, locale) : '',
-    // The line has no field labels, and a bare "Unknown" would not say what is.
+    // Without field labels, a bare "Unknown" would not say what is.
     doc.legality && doc.legality !== 'unknown' ? attrLabel('legalities', doc.legality, locale) : '',
-  ].filter(Boolean).join(' · ')
+  ]
+  return [tags, stats].map((parts) => parts.filter(Boolean).join(' · ')).filter(Boolean)
 }
 
 export function cardView(detail: CardDetail, opts: CardViewOptions): ContainerBuilder[] {
@@ -59,8 +60,7 @@ export function cardView(detail: CardDetail, opts: CardViewOptions): ContainerBu
   const { locale } = opts
   const view = container(lessonColor(doc.lesson))
 
-  const stats = statsLine(detail, locale)
-  view.addTextDisplayComponents(text(stats ? `## ${doc.name}\n${stats}` : `## ${doc.name}`))
+  view.addTextDisplayComponents(text([`## ${doc.name}`, ...headerLines(detail, locale)].join('\n')))
 
   // Card faces are stored portrait, so a horizontal card uses its pre-baked
   // landscape thumb to read upright. The 300px thumb, never the full image.

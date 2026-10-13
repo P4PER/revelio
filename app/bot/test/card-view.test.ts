@@ -52,12 +52,18 @@ describe('cardView', () => {
     expect(cardView(detail(), opts)[0].toJSON().accent_color).toBe(0xe2ae37)
   })
 
-  it('puts type, lesson, cost, rarity and legality on one line', () => {
-    expect(textOf(view(detail()))).toContain('Item, Broom · Quidditch · Cost 4 · Rare · Legal')
+  // Two lines, so what the card is never runs into what it costs.
+  it('puts the tags on one line and the stats on the next', () => {
+    expect(textOf(view(detail()))).toContain('## Nimbus 2000\nItem, Broom · Quidditch\nCost 4 · Rare · Legal\n')
+  })
+
+  it('leaves the stats line out when the card has no stats', () => {
+    const t = textOf(view(detail({ cost: null, rarity: null, legality: null })))
+    expect(t).toMatch(/^## Nimbus 2000\nItem, Broom · Quidditch\n[^\n]*Whenever/)
   })
 
   it('localizes the stats line and humanizes an untranslated sub-type', () => {
-    expect(textOf(view(detail(), { locale: 'de' }))).toContain('Gegenstand, Broom · Quidditch · Kosten 4')
+    expect(textOf(view(detail(), { locale: 'de' }))).toContain('Gegenstand, Broom · Quidditch\nKosten 4')
   })
 
   it('prefers a translated sub-type label', () => {
@@ -67,7 +73,7 @@ describe('cardView', () => {
 
   // Without the embed's field label a bare "Unknown" says nothing.
   it('leaves an unknown legality off the stats line', () => {
-    expect(textOf(view(detail({ legality: 'unknown' })))).toContain('Item, Broom · Quidditch · Cost 4 · Rare\n')
+    expect(textOf(view(detail({ legality: 'unknown' })))).toContain('Quidditch\nCost 4 · Rare\n')
   })
 
   it('drops what the card has no value for', () => {

@@ -234,7 +234,8 @@ Same lookup, same public reply, new layout via `v2/card-view.ts`:
 ```
 Container (lesson colour)
   TextDisplay   ## Alohomora
-                Spell · Charms · Cost 2 · Uncommon · Legal      (one line, attrLabel)
+                Spell · Charms                  (tags: types, sub-types, lesson)
+                Cost 2 · Uncommon · Legal       (stats; an unknown legality is left off)
   MediaGallery  card image (thumbKey / landscapeThumbKey)
   TextDisplay   effect text, then *flavour*
   Separator
@@ -243,7 +244,7 @@ Container (lesson colour)
   ActionRow     [Open on revelio.cards]
 ```
 
-The stats line replaces the inline-field grid, so `inline-grid.ts` and its zero-width padding
+The tags and stats lines replace the inline-field grid, so `inline-grid.ts` and its zero-width padding
 go away with the embeds. Loading moves into `data/card-detail.ts`
 (`loadCardDetail(deps, id, locale)`: doc, set name, rulings, sub-type labels), shared by
 `/card`, the browser's "Open a card" and "View a card".

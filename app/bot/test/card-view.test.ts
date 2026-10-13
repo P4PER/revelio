@@ -68,8 +68,11 @@ describe('cardView', () => {
     expect(t).toMatch(/^## Nimbus 2000\n\*\*Type\*\* Item, Broom · \*\*Lesson\*\* Quidditch\nWhenever/)
   })
 
-  it('localizes the stats line and humanizes an untranslated sub-type', () => {
-    expect(textOf(view(detail(), { locale: 'de' }))).toContain('**Typ** Gegenstand, Broom · **Lektion** Quidditch\n**Kosten** 4')
+  it('localizes the header labels and humanizes an untranslated sub-type', () => {
+    const t = textOf(view(detail({ damage: 2 }), { locale: 'de' }))
+    expect(t).toContain('**Typ** Gegenstand, Broom · **Lektion** Quidditch\n**Kosten** 4')
+    expect(t).toContain('**Schaden pro Zug** 2 · **Seltenheit**')
+    expect(t).toContain('**Legalität**')
   })
 
   it('prefers a translated sub-type label', () => {

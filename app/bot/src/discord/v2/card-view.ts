@@ -13,6 +13,10 @@ import { t } from '../../i18n/t'
 import { cardUrl } from '../../links'
 import { container, lessonColor, linkButton, text } from './parts'
 
+// The card.field.* labels the header uses, typed so a misspelt one fails to
+// compile instead of showing its raw catalog key in a channel.
+type FieldKey = 'type' | 'lesson' | 'cost' | 'damage' | 'rarity' | 'legality'
+
 export type CardViewOptions = {
   locale: string
   imageBase: string
@@ -40,7 +44,7 @@ function clamp(value: string, limit: number): string {
 // resolve like the card page: a translation from the DB, else the humanized code.
 function headerLines(detail: CardDetail, locale: string): string[] {
   const { doc } = detail
-  const pair = (key: string, value: string | number | null | undefined): string =>
+  const pair = (key: FieldKey, value: string | number | null | undefined): string =>
     value == null || value === '' ? '' : `**${t(locale, `card.field.${key}`)}** ${value}`
   const types = [
     ...doc.types.map((code) => attrLabel('types', code, locale)),

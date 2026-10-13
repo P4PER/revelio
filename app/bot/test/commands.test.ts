@@ -29,6 +29,7 @@ function fakeInteraction(
   return {
     locale,
     user: { id: '111' },
+    inGuild: () => true,
     deferReply: vi.fn().mockResolvedValue(undefined),
     editReply: vi.fn().mockResolvedValue(undefined),
     deleteReply: vi.fn().mockResolvedValue(undefined),
@@ -415,6 +416,32 @@ describe('/deck', () => {
     expect(payload.embeds[0].toJSON().fields?.some((f: { name: string }) => f.name.startsWith('Main deck'))).toBe(true)
   })
 
+  // An edit of the bot's own reply cannot post twice, so any failed picture
+  // edit - a timed-out upload included - still falls back to the list.
+  it('falls back to the list when the picture edit times out', async () => {
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const interaction = fakeInteraction({ deck: 'abc123' })
+    interaction.editReply.mockRejectedValueOnce(new Error('The operation was aborted'))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(interaction.editReply).toHaveBeenCalledTimes(2)
+    expect(interaction.editReply.mock.calls[1][0].files).toBeUndefined()
+  })
+
+  // In a DM with the bot nobody else can see anything, so there is nothing to
+  // choose: the owner's private deck is shown at once.
+  it('shows an own private deck in a DM without asking', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    const load = vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    const interaction = { ...fakeInteraction({ deck: 'abc123' }), inGuild: () => false }
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(interaction.reply).not.toHaveBeenCalled()
+    expect(interaction.deferReply).toHaveBeenCalledWith({ flags: MessageFlags.Ephemeral })
+    expect(load).toHaveBeenCalledWith({}, 'abc123', 'user-1')
+    expect(interaction.editReply.mock.calls[0][0].embeds[0].toJSON().title).toBe('Charms Aggro')
+  })
+
   it('never asks for a sheet of an empty deck', async () => {
     const empty = stubDeck()
     empty.views = []
@@ -476,8 +503,6 @@ describe('/deck', () => {
     expect(prompt.components).toHaveLength(1)
   })
 
-  // The click opens the deck's own message with deferReply, so Discord shows
-  // its native "thinking" state at once; the answered prompt is deleted.
   // "Post publicly" sends a plain channel message: an interaction reply to the
   // click would render as a reply to the private, deleted prompt.
   it('posts publicly only after "Post publicly", as a plain channel message', async () => {
@@ -511,6 +536,20 @@ describe('/deck', () => {
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(click.appPermissions.has.mock.calls[0][0]).toContain(PermissionFlagsBits.SendMessagesInThreads)
     expect(click.channel.send).toHaveBeenCalled()
+  })
+
+  // No cached channel: a guild where only the user installed the app, or an
+  // archived thread. Moderators cannot fix that, so the reply does not ask them.
+  it('says it cannot post here when the channel is out of reach', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    const click = fakeComponent('deck:post')
+    ;(click as { channel: unknown }).channel = null
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.update).toHaveBeenCalledWith({
+      content: "I can't post here. Run /deck again and choose Only show me.", components: [],
+    })
   })
 
   it('says so privately when the bot may not post in the channel', async () => {
@@ -588,8 +627,6 @@ describe('/deck', () => {
     })
   })
 
-  // The full deck load runs after the defer; a deck gone in that gap takes the
-  // public placeholder back and tells the caller alone.
   // The full load runs after the click is acknowledged; a deck gone in that gap
   // is reported in the private prompt, and nothing reaches the channel.
   it('reports a deck gone after the click in the prompt, and posts nothing', async () => {
@@ -652,8 +689,6 @@ describe('/deck', () => {
     })
   })
 
-  // Discord rejecting the deck message itself, after the public defer: the
-  // empty public placeholder is taken back and the error goes to the caller.
   // A send that failed without Discord's answer may still have posted, so it is
   // not retried as the list: that could post the deck twice.
   it('reports a failed post in the prompt without retrying it', async () => {
@@ -669,6 +704,41 @@ describe('/deck', () => {
     expect(click.editReply).toHaveBeenCalledWith({
       content: 'Something went wrong. Please try again in a moment.', components: [],
     })
+    // The prompt carries the error now; deleting it would hide the failure.
+    expect(interaction.deleteReply).not.toHaveBeenCalled()
+  })
+
+  it('reports a post whose list fallback also failed, and posts nothing more', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const click = fakeComponent('deck:post')
+    click.channel.send.mockRejectedValueOnce(rejected()).mockRejectedValueOnce(new Error('socket hang up'))
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.channel.send).toHaveBeenCalledTimes(2)
+    expect(click.editReply.mock.calls.at(-1)![0].content).toBe('Something went wrong. Please try again in a moment.')
+    expect(interaction.deleteReply).not.toHaveBeenCalled()
+  })
+
+  // A private thread the bot is not in: app_permissions can still read as
+  // allowed, and Discord refuses the send itself with Missing Access.
+  it('says it cannot post here when Discord refuses access to the channel', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const click = fakeComponent('deck:post')
+    const missingAccess = new DiscordAPIError(
+      { code: 50001, message: 'Missing Access' }, 50001, 403, 'POST', '/messages', { body: undefined, files: undefined },
+    )
+    click.channel.send.mockRejectedValue(missingAccess)
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.editReply.mock.calls.at(-1)![0].content).toBe(
+      "I can't post here. Run /deck again and choose Only show me.",
+    )
   })
 
   it('posts the list when Discord rejects the picture', async () => {
@@ -759,6 +829,18 @@ describe('/deck', () => {
       const interaction = fakeInteraction({ deck: 'aggro' }, 'en', vi.fn().mockResolvedValue(pick))
       await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
       expect(load).toHaveBeenCalledWith({}, 'mine', 'user-1')
+    })
+
+    it('shows a picked private deck at once in a DM', async () => {
+      const pick = fakeComponent('deck:pick', ['mine'])
+      const interaction = {
+        ...fakeInteraction({ deck: 'aggro' }, 'en', vi.fn().mockResolvedValue(pick)),
+        inGuild: () => false,
+      }
+      await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+      expect(pick.update).toHaveBeenCalledWith({ content: 'Loading the deck...', components: [] })
+      expect(pick.editReply.mock.calls[0][0].embeds[0].toJSON().title).toBe('Charms Aggro')
+      expect(pick.channel.send).not.toHaveBeenCalled()
     })
 
     it('asks again before showing a picked private deck', async () => {

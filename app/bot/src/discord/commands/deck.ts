@@ -3,6 +3,7 @@ import {
   DiscordAPIError,
   MessageFlags,
   PermissionFlagsBits,
+  RESTJSONErrorCodes,
   SlashCommandBuilder,
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
@@ -43,6 +44,15 @@ type Delivery = 'post' | 'self'
 // Who reads the message a deck is delivered in. Required wherever a deck is
 // sent, so the page link is decided from data rather than defaulted.
 type Audience = 'channel' | 'caller'
+
+// Whether a deck can go to the interaction's channel as a plain message.
+// 'unreachable' is a channel the bot has no hold on at all (not cached: a
+// guild where only the user installed the app, an archived thread), which no
+// moderator can fix; 'forbidden' is a missing permission, which one can.
+type PostTarget =
+  | { kind: 'ok'; channel: SendableChannels }
+  | { kind: 'unreachable' }
+  | { kind: 'forbidden' }
 
 // What a plain channel post of a deck needs: the embed and the sheet are an
 // embed and an attachment. A thread takes its own send permission.
@@ -87,6 +97,7 @@ async function deliverDeck(
   deck: DeckView,
   ctx: DeckContext,
   audience: Audience,
+  sendEdits: boolean,
 ): Promise<void> {
   const { locale } = ctx
   // Only the owner can open a private deck's page, so a channel never gets a
@@ -108,28 +119,41 @@ async function deliverDeck(
         return
       } catch (err) {
         // Discord can reject the upload itself (an attachment it will not
-        // take), which must cost the picture rather than the answer. Only a
-        // rejection Discord answered proves nothing was posted, though: a
-        // timeout or a dropped socket may have reached the channel, and a
-        // retry as the list could then post the deck twice.
-        if (!(err instanceof DiscordAPIError)) throw err
-        console.error('deck sheet upload rejected:', err)
+        // take), which must cost the picture rather than the answer. An edit
+        // of the bot's own message can always be retried as the list. A new
+        // message only after a rejection Discord answered, which proves
+        // nothing was posted: a timeout or a dropped socket may have reached
+        // the channel, and a retry could then post the deck twice.
+        if (!sendEdits && !(err instanceof DiscordAPIError)) throw err
+        console.error('deck sheet upload failed:', err)
       }
     }
   }
   await send({ embeds: [deckEmbed(deck, { locale, siteBase, linkPage, view: 'list' })], components: [] })
 }
 
-// The channel a deck may be posted to as a plain message, or null. Discord
-// sends the bot's permissions in that channel with every interaction, so this
-// needs no request of its own.
-function postableChannel(component: MessageComponentInteraction): SendableChannels | null {
+// Where a deck may be posted as a plain message. Discord sends the bot's
+// permissions in that channel with every interaction, so this needs no
+// request of its own.
+function postTarget(component: MessageComponentInteraction): PostTarget {
   const channel = component.channel
-  if (!channel?.isSendable()) return null
+  if (!channel?.isSendable()) return { kind: 'unreachable' }
   const send = channel.isThread()
     ? PermissionFlagsBits.SendMessagesInThreads
     : PermissionFlagsBits.SendMessages
-  return component.appPermissions.has([...POST_PERMISSIONS, send]) ? channel : null
+  return component.appPermissions.has([...POST_PERMISSIONS, send])
+    ? { kind: 'ok', channel }
+    : { kind: 'forbidden' }
+}
+
+// Discord's own refusal of a post, read as the same answers postTarget gives
+// up front. A private thread the bot is not in can pass the permission check
+// and still be refused with Missing Access.
+function refusalKey(err: unknown): string | null {
+  if (!(err instanceof DiscordAPIError)) return null
+  if (err.code === RESTJSONErrorCodes.MissingAccess) return 'deck.cannotPostHere'
+  if (err.code === RESTJSONErrorCodes.MissingPermissions) return 'deck.cannotPost'
+  return null
 }
 
 // Answers a click on the prompt. Whether the deck may be shown is checked
@@ -170,11 +194,13 @@ async function deliverChoice(
       return
     }
     if (delivery === 'post') {
-      channel = postableChannel(component)
-      if (!channel) {
-        await component.update({ content: t(locale, 'deck.cannotPost'), components: [] })
+      const target = postTarget(component)
+      if (target.kind !== 'ok') {
+        const key = target.kind === 'unreachable' ? 'deck.cannotPostHere' : 'deck.cannotPost'
+        await component.update({ content: t(locale, key), components: [] })
         return
       }
+      channel = target.channel
       await component.update({ content: t(locale, 'deck.posting'), components: [] })
     } else {
       // The prompt itself becomes the deck: a progress line at once, then the
@@ -213,14 +239,14 @@ async function deliverChoice(
       // The mention names who shared it - a plain message carries no "used
       // /deck" line - and never pings: the client's allowedMentions parses none.
       const content = t(locale, 'deck.sharedBy', { user: `<@${component.user.id}>` })
-      await deliverDeck((p) => target.send({ ...p, content }), deck, ctx, 'channel')
+      await deliverDeck((p) => target.send({ ...p, content }), deck, ctx, 'channel', false)
       await prompt.deleteReply().catch(() => {})
     } else {
-      await deliverDeck((p) => component.editReply({ ...p, content: '' }), deck, ctx, 'caller')
+      await deliverDeck((p) => component.editReply({ ...p, content: '' }), deck, ctx, 'caller', true)
     }
   } catch (err) {
     console.error('deck prompt failed:', err)
-    await fail('error.generic')
+    await fail(refusalKey(err) ?? 'error.generic')
   }
 }
 
@@ -245,6 +271,11 @@ async function answerPick(
   }
   if (accessOf(chosen) === 'public') {
     await deliverChoice(interaction, pick, chosen.id, 'post', ctx, false)
+    return
+  }
+  // Outside a server there is no channel to post to, so nothing to choose.
+  if (!interaction.inGuild()) {
+    await deliverChoice(interaction, pick, chosen.id, 'self', ctx, true)
     return
   }
   await pick.update(visibilityPrompt(chosen.name, ctx.locale))
@@ -288,7 +319,21 @@ export async function execute(
       await interaction.editReply({ content: t(locale, 'deck.notFound') })
       return
     }
-    await deliverDeck((p) => interaction.editReply(p), deck, ctx, 'channel')
+    await deliverDeck((p) => interaction.editReply(p), deck, ctx, 'channel', true)
+    return
+  }
+
+  // Outside a server - a DM with the bot, or a user-installed app in a DM or
+  // group DM - the bot cannot post to the channel, so an own private deck
+  // needs no question: it is shown ephemerally at once.
+  if (ref.kind === 'deck' && !interaction.inGuild()) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral })
+    const deck = await getDeckView(deps.db, ref.id, viewerId)
+    if (!deck) {
+      await interaction.editReply({ content: t(locale, 'deck.notFound') })
+      return
+    }
+    await deliverDeck((p) => interaction.editReply(p), deck, ctx, 'caller', true)
     return
   }
 

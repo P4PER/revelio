@@ -148,6 +148,12 @@ export function clampQuery(query: string): string {
   return out
 }
 
+// Whether a decoded id carries a card browser's state as a CardKind. The share
+// picker's Post (sx) carries one too, but is not a browser control.
+export function isCardKind(kind: string): kind is CardKind {
+  return CARD_KINDS.includes(kind)
+}
+
 // A card or deck id as it may appear in an id or a select value. Select values
 // come back from the client, so this runs before one reaches a query.
 export function isEntityId(value: string): boolean {

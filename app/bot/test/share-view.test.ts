@@ -67,9 +67,9 @@ describe('shareView', () => {
     expect(buttonsOf(view()).find((b) => b.url)?.url).toBe('https://revelio.cards/search?q=lumos&lesson=charms')
   })
 
-  it('links a search without a query in number order', () => {
+  it('links a search without a query in the browser\'s order', () => {
     expect(buttonsOf(view(hits, { ...state, query: '' })).find((b) => b.url)?.url)
-      .toBe('https://revelio.cards/search?q=&lesson=charms&sort=number')
+      .toBe('https://revelio.cards/search?q=&lesson=charms&sort=name')
   })
 
   it('stays inside the limits', () => {

@@ -1,12 +1,14 @@
 import { SectionBuilder, ThumbnailBuilder, type ContainerBuilder } from 'discord.js'
 import { attrLabel } from '@revelio/core'
+import { clampLabel } from '../../data/cards'
 import type { CardBrowseHit } from '@revelio/search'
 import { t } from '../../i18n/t'
 import { cardThumbUrl, text } from './parts'
 
 export type CardRowOptions = { locale: string; imageBase: string }
 
-// "**Name** · set #number", then "Type · Lesson · Cost n" - whatever the card has.
+// "**Name** <dot> set #number", then "Type <dot> Lesson <dot> Cost n" (a middle
+// dot between parts) - whatever the card has.
 export function cardRowText(hit: CardBrowseHit, locale: string): string {
   const title = t(locale, 'search.line', { name: hit.name, setCode: hit.setCode, number: hit.number })
   const stats = [
@@ -32,4 +34,15 @@ export function addCardRow(view: ContainerBuilder, hit: CardBrowseHit, opts: Car
       .addTextDisplayComponents(text(content))
       .setThumbnailAccessory(new ThumbnailBuilder().setURL(thumb).setDescription(hit.name)),
   )
+}
+
+// A card as a select option, for "Open a card", the share picker and "View a
+// card": its name, and its printing to tell reprints apart.
+export function cardOption(hit: CardBrowseHit, selected = false) {
+  return {
+    label: clampLabel(hit.name),
+    description: `${hit.setCode} #${hit.number}`,
+    value: hit.id,
+    default: selected,
+  }
 }

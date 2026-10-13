@@ -1,10 +1,10 @@
 import {
-  ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
   SectionBuilder,
   SeparatorBuilder,
   StringSelectMenuBuilder,
+  type ActionRowBuilder,
   type ContainerBuilder,
   type MessageActionRowComponentBuilder,
 } from 'discord.js'
@@ -12,11 +12,11 @@ import { LESSONS, TYPES, attrLabel } from '@revelio/core'
 import { clampLabel, type CardPage } from '../../data/cards'
 import type { SetEntry } from '../../data/sets'
 import { t } from '../../i18n/t'
-import { searchUrl } from '../../links'
+import { browseUrl } from '../../links'
 import { encodeCustomId, type CardBrowseState } from '../components/custom-id'
 import { pagerRow } from './pager'
-import { BRAND_GOLD, container, linkButton, plain, text } from './parts'
-import { addCardRow } from './rows'
+import { actionRow, BRAND_GOLD, container, linkButton, plain, text } from './parts'
+import { addCardRow, cardOption } from './rows'
 
 export type SearchViewOptions = {
   locale: string
@@ -30,17 +30,13 @@ export type SearchViewOptions = {
 
 type FilterOption = { value: string; label: string }
 
+type Row = ActionRowBuilder<MessageActionRowComponentBuilder>
+
 // The select value meaning "no filter". Not a code any lesson, type or set uses.
 export const ANY = '-'
 
 // A select holds 25 options; one of them is "Any".
 const MAX_FILTER_OPTIONS = 24
-
-type Row = ActionRowBuilder<MessageActionRowComponentBuilder>
-
-function row(...components: MessageActionRowComponentBuilder[]): Row {
-  return new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(...components)
-}
 
 function filterSelect(
   kind: 'sl' | 'st' | 'ss',
@@ -54,7 +50,7 @@ function filterSelect(
   const active = options.find((o) => o.value === current)
   const listed = options.slice(0, MAX_FILTER_OPTIONS)
   const shown = active && !listed.includes(active) ? [active, ...listed.slice(0, -1)] : listed
-  return row(
+  return actionRow(
     new StringSelectMenuBuilder()
       .setCustomId(encodeCustomId({ kind, state }))
       .setPlaceholder(placeholder)
@@ -101,15 +97,11 @@ export function searchView(page: CardPage, state: CardBrowseState, opts: SearchV
     view.addSeparatorComponents(new SeparatorBuilder())
     for (const hit of page.hits) addCardRow(view, hit, opts)
     view.addSeparatorComponents(new SeparatorBuilder())
-    view.addActionRowComponents(row(
+    view.addActionRowComponents(actionRow(
       new StringSelectMenuBuilder()
         .setCustomId(encodeCustomId({ kind: 'co', state }))
         .setPlaceholder(t(locale, 'search.open.placeholder'))
-        .addOptions(page.hits.map((hit) => ({
-          label: clampLabel(hit.name),
-          description: `${hit.setCode} #${hit.number}`,
-          value: hit.id,
-        }))),
+        .addOptions(page.hits.map((hit) => cardOption(hit))),
     ))
   }
 
@@ -130,9 +122,7 @@ export function searchView(page: CardPage, state: CardBrowseState, opts: SearchV
       .setStyle(ButtonStyle.Primary))
   }
   trailing.push(linkButton(
-    searchUrl(opts.siteBase, state.query, locale, {
-      lesson: state.lesson, type: state.type, set: state.set, sort: state.query ? null : 'number',
-    }),
+    browseUrl(opts.siteBase, state, locale),
     t(locale, 'browse.site'),
   ))
   const hasNext = page.page < page.pages && page.hits.length === page.pageSize

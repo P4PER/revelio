@@ -1,18 +1,15 @@
 import {
-  ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
   StringSelectMenuBuilder,
   type ContainerBuilder,
-  type MessageActionRowComponentBuilder,
 } from 'discord.js'
 import type { CardBrowseHit } from '@revelio/search'
-import { clampLabel } from '../../data/cards'
 import { t } from '../../i18n/t'
-import { searchUrl } from '../../links'
+import { browseUrl } from '../../links'
 import { encodeCustomId, type CardBrowseState } from '../components/custom-id'
-import { BRAND_GOLD, container, linkButton, plain, text } from './parts'
-import { addCardRow } from './rows'
+import { actionRow, BRAND_GOLD, container, linkButton, plain, text } from './parts'
+import { addCardRow, cardOption } from './rows'
 
 export type ShareViewOptions = {
   locale: string
@@ -20,22 +17,6 @@ export type ShareViewOptions = {
   siteBase: string
   // Discord user id of whoever shared, for the attribution line.
   sharerId: string
-}
-
-type Row = ActionRowBuilder<MessageActionRowComponentBuilder>
-
-function row(...components: MessageActionRowComponentBuilder[]): Row {
-  return new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(...components)
-}
-
-// selected(i): whether the option for row i starts ticked.
-function cardOptions(hits: CardBrowseHit[], selected: (i: number) => boolean) {
-  return hits.map((hit, i) => ({
-    label: clampLabel(hit.name),
-    description: `${hit.setCode} #${hit.number}`,
-    value: hit.id,
-    default: selected(i),
-  }))
 }
 
 // The private step between Share and the post: which of this page's cards go.
@@ -52,13 +33,13 @@ export function sharePicker(
     container()
       .addTextDisplayComponents(text(t(locale, 'search.share.prompt')))
       .addActionRowComponents(
-        row(new StringSelectMenuBuilder()
+        actionRow(new StringSelectMenuBuilder()
           .setCustomId(encodeCustomId({ kind: 'sp', state }))
           .setPlaceholder(t(locale, 'search.share.placeholder'))
           .setMinValues(1)
           .setMaxValues(hits.length)
-          .addOptions(cardOptions(hits, (i) => ((mask >> i) & 1) === 1))),
-        row(
+          .addOptions(hits.map((hit, i) => cardOption(hit, ((mask >> i) & 1) === 1)))),
+        actionRow(
           new ButtonBuilder()
             .setCustomId(encodeCustomId({ kind: 'sx', mask, state }))
             .setLabel(t(locale, 'search.share.post'))
@@ -85,14 +66,12 @@ export function shareView(hits: CardBrowseHit[], state: CardBrowseState, opts: S
   const view = container(BRAND_GOLD).addTextDisplayComponents(text(lead))
   for (const hit of hits) addCardRow(view, hit, opts)
   view.addActionRowComponents(
-    row(new StringSelectMenuBuilder()
+    actionRow(new StringSelectMenuBuilder()
       .setCustomId(encodeCustomId({ kind: 'pk' }))
       .setPlaceholder(t(locale, 'share.view.placeholder'))
-      .addOptions(cardOptions(hits, () => false))),
-    row(linkButton(
-      searchUrl(opts.siteBase, state.query, locale, {
-        lesson: state.lesson, type: state.type, set: state.set, sort: state.query ? null : 'number',
-      }),
+      .addOptions(hits.map((hit) => cardOption(hit)))),
+    actionRow(linkButton(
+      browseUrl(opts.siteBase, state, locale),
       t(locale, 'share.site'),
     )),
   )

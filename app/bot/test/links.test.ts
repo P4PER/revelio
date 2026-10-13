@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cardUrl, deckUrl, searchUrl, settingsUrl, newDeckUrl } from '../src/links'
+import { browseUrl, cardUrl, deckUrl, searchUrl, settingsUrl, newDeckUrl } from '../src/links'
 
 describe('cardUrl', () => {
   it('omits the locale prefix for English', () => {
@@ -15,6 +15,17 @@ describe('cardUrl', () => {
   it('tolerates a trailing slash on the base', () => {
     expect(cardUrl('https://revelio.cards/', 'base-12', 'en'))
       .toBe('https://revelio.cards/card/base-12')
+  })
+})
+
+describe('browseUrl', () => {
+  const state = { query: '', lesson: null, type: null, set: null }
+  const url = (s: Partial<typeof state>) => browseUrl('https://revelio.cards', { ...state, ...s }, 'en')
+
+  it('opens the browser\'s search in the browser\'s order', () => {
+    expect(url({ query: 'lumos', set: 'base' })).toBe('https://revelio.cards/search?q=lumos&set=base')
+    expect(url({ set: 'base' })).toBe('https://revelio.cards/search?q=&set=base&sort=number')
+    expect(url({ lesson: 'charms' })).toBe('https://revelio.cards/search?q=&lesson=charms&sort=name')
   })
 })
 

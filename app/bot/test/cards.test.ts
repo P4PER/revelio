@@ -54,12 +54,24 @@ describe('findCards', () => {
 
   // With no words to rank by, Meilisearch returns index order; a set must
   // browse #1, #2, ... as the site's "number" sort does.
-  it('orders a search without a query by card number, and a query by relevance', async () => {
+  it('orders a set without a query by card number', async () => {
     const { client, search } = stubMeili([doc], 1)
-    await findCards(client, { query: '  ', locale: 'en' })
+    await findCards(client, { query: '  ', locale: 'en', filters: { setCode: ['base'] } })
     expect(search.mock.calls[0][1]).toMatchObject({ sort: ['numberSort:asc'] })
-    await findCards(client, { query: 'nimbus', locale: 'en' })
-    expect(search.mock.calls[1][1].sort).toBeUndefined()
+  })
+
+  // Card numbers restart in every set, so across sets they would interleave
+  // every set's #1, then every #2.
+  it('orders a search without a query or set by name', async () => {
+    const { client, search } = stubMeili([doc], 1)
+    await findCards(client, { query: '', locale: 'en', filters: { lesson: ['charms'] } })
+    expect(search.mock.calls[0][1]).toMatchObject({ sort: ['name:asc'] })
+  })
+
+  it('ranks a query by relevance', async () => {
+    const { client, search } = stubMeili([doc], 1)
+    await findCards(client, { query: 'nimbus', locale: 'en', filters: { setCode: ['base'] } })
+    expect(search.mock.calls[0][1].sort).toBeUndefined()
   })
 
   it('clamps a page below one', async () => {

@@ -1,4 +1,11 @@
-import { ButtonBuilder, ButtonStyle, ContainerBuilder, TextDisplayBuilder } from 'discord.js'
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ContainerBuilder,
+  TextDisplayBuilder,
+  type MessageActionRowComponentBuilder,
+} from 'discord.js'
 import { imageUrl, landscapeThumbKey, LESSONS, thumbKey } from '@revelio/core'
 import type { SearchDocument } from '@revelio/search'
 
@@ -26,6 +33,12 @@ export function container(accent: number | null = null): ContainerBuilder {
 
 export function text(content: string): TextDisplayBuilder {
   return new TextDisplayBuilder().setContent(content)
+}
+
+export function actionRow(
+  ...components: MessageActionRowComponentBuilder[]
+): ActionRowBuilder<MessageActionRowComponentBuilder> {
+  return new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(...components)
 }
 
 export function linkButton(url: string, label: string): ButtonBuilder {

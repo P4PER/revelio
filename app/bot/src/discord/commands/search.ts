@@ -7,7 +7,7 @@ import {
 import { LESSONS, TYPES, attrLabel } from '@revelio/core'
 import type { Deps } from '../../clients'
 import { clampLabel, MAX_CHOICES } from '../../data/cards'
-import { toRevelioLocale } from '../../i18n/locale'
+import { LOCALES, toRevelioLocale } from '../../i18n/locale'
 import { t } from '../../i18n/t'
 import { clampQuery, MAX_QUERY, type CardBrowseState } from '../components/custom-id'
 import { renderSearchBrowser } from '../components/search-browser'
@@ -60,12 +60,12 @@ export async function execute(
   const locale = toRevelioLocale(interaction.locale)
 
   // The set option autocompletes to a code but can be typed by hand, so it is
-  // resolved against the real list - by code or name, any case - before it can
-  // reach a custom id.
+  // resolved against the real list - by code or name in any language, any
+  // case - before it can reach a custom id.
   const typedSet = interaction.options.getString('set')?.trim().toLowerCase() ?? ''
   let set: string | null = null
   if (typedSet) {
-    const sets = await deps.sets.all(locale)
+    const sets = (await Promise.all(LOCALES.map((l) => deps.sets.all(l)))).flat()
     const match = sets.find((s) => s.code.toLowerCase() === typedSet || s.name.toLowerCase() === typedSet)
     if (!match) {
       await interaction.editReply(textEdit(t(locale, 'search.setUnknown')))

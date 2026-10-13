@@ -69,6 +69,16 @@ describe('/search', () => {
     expect(deps.search.mock.calls[0][1].filter).toContain('(setCode = "coc")')
   })
 
+  it('resolves a set typed by its name in another language', async () => {
+    const interaction = fakeCommand({ query: 'x', set: 'grundspiel' }, 'en')
+    const deps = fakeDeps(hits, 1)
+    deps.sets.all.mockImplementation(async (locale: string) => [
+      { code: 'base', name: locale === 'de' ? 'Grundspiel' : 'Base Set' },
+    ])
+    await COMMANDS.get('search')!.execute(interaction as never, deps as never)
+    expect(deps.search.mock.calls[0][1].filter).toContain('(setCode = "base")')
+  })
+
   it('says so when a typed set matches nothing, instead of failing', async () => {
     const interaction = fakeCommand({ query: 'x', set: 'no such set!' })
     await COMMANDS.get('search')!.execute(interaction as never, fakeDeps(hits, 1) as never)
@@ -248,6 +258,22 @@ describe('sharing results', () => {
     expect(textOf(c.editReply.mock.calls.at(-1)![0])).toContain('Cards found')
     expect(c.reply).not.toHaveBeenCalled()
     expect(c.followUp).not.toHaveBeenCalled()
+  })
+
+  it('reads the page once to post it and redraw the results', async () => {
+    const deps = fakeDeps(hits, 23)
+    await click(encodeCustomId({ kind: 'sx', mask: 0b00101, state }), deps).done
+    expect(deps.search).toHaveBeenCalledTimes(1)
+  })
+
+  // The page shrank since the picker was drawn: say nothing silently, show
+  // the picker again for what is there now.
+  it('offers the picker again when none of the ticked rows are left', async () => {
+    const deps = fakeDeps([card(1), card(2)], 2)
+    const { c, done } = click(encodeCustomId({ kind: 'sx', mask: 0b11000, state }), deps)
+    await done
+    expect(c.channel.send).not.toHaveBeenCalled()
+    expect(textOf(c.editReply.mock.calls[0][0])).toBe('Which cards should I post to the channel?')
   })
 
   it('refuses privately when the bot may not post there', async () => {

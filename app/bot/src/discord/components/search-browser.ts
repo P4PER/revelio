@@ -2,7 +2,6 @@ import { LESSONS, TYPES } from '@revelio/core'
 import {
   ButtonBuilder,
   ButtonStyle,
-  DiscordAPIError,
   LabelBuilder,
   MessageFlags,
   ModalBuilder,
@@ -12,7 +11,7 @@ import {
 } from 'discord.js'
 import type { Deps } from '../../clients'
 import { loadCardDetail } from '../../data/card-detail'
-import { findCardById, findCards } from '../../data/cards'
+import { findCardById, findCards, type CardPage } from '../../data/cards'
 import { toRevelioLocale } from '../../i18n/locale'
 import { t } from '../../i18n/t'
 import { postTarget, refusal } from '../channel-post'
@@ -23,6 +22,7 @@ import { sharePicker, shareView } from '../v2/share-view'
 import {
   clampQuery,
   encodeCustomId,
+  isCardKind,
   isEntityId,
   MAX_QUERY,
   type CardBrowseState,
@@ -39,8 +39,8 @@ const TYPE_CODES: readonly string[] = TYPES.map((ty) => ty.code)
 const QUERY_FIELD = 'query'
 const REFUSAL_KEYS = { unreachable: 'post.cannotPostHere', forbidden: 'post.cannotPostCards' } as const
 
-export function isCardState(id: CustomId): id is CardStateId {
-  return 'state' in id && !('scope' in id.state)
+function isCardState(id: CustomId): id is CardStateId {
+  return isCardKind(id.kind)
 }
 
 // The one select value a click carries, or null for "Any" and anything that is
@@ -51,9 +51,9 @@ function picked(interaction: MessageComponentInteraction): string | null {
   return value && value !== ANY ? value : null
 }
 
-// Share and the picker share one read of the page, so the picker offers exactly
-// the cards the caller was looking at.
-async function pageOf(deps: Deps, state: CardBrowseState, locale: string) {
+// The one Meilisearch read behind every view of a page: the browser, the share
+// picker and Post all draw from it, so they show the same cards.
+async function pageOf(deps: Deps, state: CardBrowseState, locale: string): Promise<CardPage> {
   return findCards(deps.meili, {
     query: state.query,
     locale,
@@ -71,18 +71,19 @@ function allRows(n: number): number {
   return (1 << n) - 1
 }
 
-export async function renderSearchBrowser(
+// The browser for a page already read.
+async function browserOf(
   deps: Deps,
+  page: CardPage,
   state: CardBrowseState,
   locale: string,
   canPost: boolean,
 ): Promise<V2Edit> {
-  const [page, sets] = await Promise.all([pageOf(deps, state, locale), deps.sets.all(locale)])
   return v2Edit(searchView(page, state, {
     locale,
     imageBase: deps.env.IMAGE_BASE_URL,
     siteBase: deps.env.SITE_BASE_URL,
-    sets,
+    sets: await deps.sets.all(locale),
     canPost,
   }))
 }
@@ -95,13 +96,36 @@ async function show(interaction: MessageComponentInteraction, deps: Deps, state:
   await interaction.editReply(await renderSearchBrowser(deps, state, locale, interaction.inGuild()))
 }
 
-// A filter value is client data: anything that is not a real lesson, type or
-// set clears the filter rather than reaching the Meilisearch query.
-const navigate: ComponentHandler = async (interaction, id, deps) => {
-  if (!isCardState(id)) return
-  await show(interaction, deps, id.state)
+function backButton(state: CardBrowseState, locale: string): ButtonBuilder {
+  return new ButtonBuilder().setCustomId(encodeCustomId({ kind: 'cb', state }))
+    .setLabel(t(locale, 'search.back')).setStyle(ButtonStyle.Secondary)
 }
 
+function postButton(cardId: string, locale: string): ButtonBuilder {
+  return new ButtonBuilder().setCustomId(encodeCustomId({ kind: 'cp', cardId }))
+    .setLabel(t(locale, 'search.post')).setStyle(ButtonStyle.Primary)
+}
+
+// Sends a finished message into the channel. The post is its own confirmation;
+// a refusal Discord answered is told to the caller privately. Anything else (a
+// timeout, a dropped socket) may have posted, so it is not retried but left to
+// the router's error path.
+async function sendToChannel(
+  interaction: MessageComponentInteraction,
+  send: () => Promise<unknown>,
+  locale: string,
+): Promise<void> {
+  try {
+    await send()
+  } catch (err) {
+    const refused = refusal(err)
+    if (!refused) throw err
+    await interaction.followUp({ ...textMessage(t(locale, REFUSAL_KEYS[refused])), flags: EPHEMERAL_V2 })
+  }
+}
+
+// A filter value is client data: anything that is not a real lesson, type or
+// set clears the filter rather than reaching the Meilisearch query.
 const filterLesson: ComponentHandler = async (interaction, id, deps) => {
   if (!isCardState(id)) return
   const value = picked(interaction)
@@ -130,35 +154,10 @@ const filterSet: ComponentHandler = async (interaction, id, deps) => {
   )
 }
 
-export function postRefusalKey(kind: 'unreachable' | 'forbidden'): string {
-  return REFUSAL_KEYS[kind]
-}
-
-function backButton(state: CardBrowseState, locale: string): ButtonBuilder {
-  return new ButtonBuilder().setCustomId(encodeCustomId({ kind: 'cb', state }))
-    .setLabel(t(locale, 'search.back')).setStyle(ButtonStyle.Secondary)
-}
-
-function postButton(cardId: string, locale: string): ButtonBuilder {
-  return new ButtonBuilder().setCustomId(encodeCustomId({ kind: 'cp', cardId }))
-    .setLabel(t(locale, 'search.post')).setStyle(ButtonStyle.Primary)
-}
-
-// Sends a finished message into the channel. A refusal Discord answered is
-// told to the caller privately; anything else (a timeout, a dropped socket)
-// may have posted, so it is not retried but left to the router's error path.
-async function sendToChannel(
-  interaction: MessageComponentInteraction,
-  send: () => Promise<unknown>,
-  locale: string,
-): Promise<void> {
-  try {
-    await send()
-  } catch (err) {
-    const refused = refusal(err)
-    if (!refused || !(err instanceof DiscordAPIError)) throw err
-    await interaction.followUp({ ...textMessage(t(locale, postRefusalKey(refused))), flags: EPHEMERAL_V2 })
-  }
+// A page turn, and Back from a card: the state in the id is the whole view.
+const navigate: ComponentHandler = async (interaction, id, deps) => {
+  if (!isCardState(id)) return
+  await show(interaction, deps, id.state)
 }
 
 const openCard: ComponentHandler = async (interaction, id, deps) => {
@@ -184,11 +183,6 @@ const openCard: ComponentHandler = async (interaction, id, deps) => {
   })))
 }
 
-const backToResults: ComponentHandler = async (interaction, id, deps) => {
-  if (!isCardState(id)) return
-  await show(interaction, deps, id.state)
-}
-
 // The private card view stays where it is; the channel gets its own copy with
 // a "shared by" line.
 const postCard: ComponentHandler = async (interaction, id, deps) => {
@@ -196,7 +190,7 @@ const postCard: ComponentHandler = async (interaction, id, deps) => {
   const locale = toRevelioLocale(interaction.locale)
   const target = postTarget(interaction, { needsFiles: false })
   if (target.kind !== 'ok') {
-    await interaction.reply({ ...textMessage(t(locale, postRefusalKey(target.kind))), flags: EPHEMERAL_V2 })
+    await interaction.reply({ ...textMessage(t(locale, REFUSAL_KEYS[target.kind])), flags: EPHEMERAL_V2 })
     return
   }
   await interaction.deferUpdate()
@@ -213,7 +207,6 @@ const postCard: ComponentHandler = async (interaction, id, deps) => {
     // Never pings: the client's allowedMentions parses none.
     lead: t(locale, 'post.sharedCard', { user: `<@${interaction.user.id}>` }),
   }))
-  // The post in the channel is its own confirmation: no private "posted".
   await sendToChannel(interaction, () => target.channel.send(message), locale)
 }
 
@@ -222,11 +215,9 @@ const share: ComponentHandler = async (interaction, id, deps) => {
   const locale = toRevelioLocale(interaction.locale)
   await interaction.deferUpdate()
   const page = await pageOf(deps, id.state, locale)
-  if (!page.hits.length) {
-    await interaction.editReply(await renderSearchBrowser(deps, id.state, locale, interaction.inGuild()))
-    return
-  }
-  await interaction.editReply(v2Edit(sharePicker(page.hits, id.state, allRows(page.hits.length), locale)))
+  await interaction.editReply(page.hits.length
+    ? v2Edit(sharePicker(page.hits, id.state, allRows(page.hits.length), locale))
+    : await browserOf(deps, page, id.state, locale, interaction.inGuild()))
 }
 
 // A new selection only redraws the picker, with the ticked rows as Post's mask.
@@ -239,7 +230,7 @@ const pickShared: ComponentHandler = async (interaction, id, deps) => {
   await interaction.deferUpdate()
   const page = await pageOf(deps, id.state, locale)
   if (!page.hits.length) {
-    await interaction.editReply(await renderSearchBrowser(deps, id.state, locale, interaction.inGuild()))
+    await interaction.editReply(await browserOf(deps, page, id.state, locale, interaction.inGuild()))
     return
   }
   const mask = page.hits.reduce((bits, hit, i) => (values.includes(hit.id) ? bits | (1 << i) : bits), 0)
@@ -247,19 +238,25 @@ const pickShared: ComponentHandler = async (interaction, id, deps) => {
 }
 
 // Post re-reads the page and takes the rows in the mask, so the channel gets
-// them in the order the caller saw. A page that changed since only shifts
-// which public cards go; nothing in the mask can reach a query.
+// them in the order the caller saw, and redraws the browser from that same
+// read. A page that shrank past every ticked row offers the picker again
+// rather than posting nothing silently; one that shifted only changes which
+// public cards go, and nothing in the mask can reach a query.
 const postShared: ComponentHandler = async (interaction, id, deps) => {
   if (id.kind !== 'sx') return
   const locale = toRevelioLocale(interaction.locale)
   const target = postTarget(interaction, { needsFiles: false })
   if (target.kind !== 'ok') {
-    await interaction.reply({ ...textMessage(t(locale, postRefusalKey(target.kind))), flags: EPHEMERAL_V2 })
+    await interaction.reply({ ...textMessage(t(locale, REFUSAL_KEYS[target.kind])), flags: EPHEMERAL_V2 })
     return
   }
   await interaction.deferUpdate()
   const page = await pageOf(deps, id.state, locale)
   const chosen = page.hits.filter((_, i) => ((id.mask >> i) & 1) === 1)
+  if (!chosen.length && page.hits.length) {
+    await interaction.editReply(v2Edit(sharePicker(page.hits, id.state, allRows(page.hits.length), locale)))
+    return
+  }
   if (chosen.length) {
     const message = v2Message(shareView(chosen, id.state, {
       locale,
@@ -267,10 +264,9 @@ const postShared: ComponentHandler = async (interaction, id, deps) => {
       siteBase: deps.env.SITE_BASE_URL,
       sharerId: interaction.user.id,
     }))
-    // The post in the channel is its own confirmation: no private "posted".
     await sendToChannel(interaction, () => target.channel.send(message), locale)
   }
-  await interaction.editReply(await renderSearchBrowser(deps, id.state, locale, interaction.inGuild()))
+  await interaction.editReply(await browserOf(deps, page, id.state, locale, interaction.inGuild()))
 }
 
 // On the public list: answered privately, in the clicker's own language, and
@@ -321,17 +317,13 @@ const submitSearch: ModalHandler = async (interaction, id, deps) => {
   )
 }
 
-export const SEARCH_MODALS: readonly (readonly [CustomId['kind'], ModalHandler])[] = [
-  ['sm', submitSearch],
-]
-
 export const SEARCH_HANDLERS: readonly (readonly [CustomId['kind'], ComponentHandler])[] = [
   ['s', navigate],
   ['sl', filterLesson],
   ['st', filterType],
   ['ss', filterSet],
   ['co', openCard],
-  ['cb', backToResults],
+  ['cb', navigate],
   ['cp', postCard],
   ['sh', share],
   ['sp', pickShared],
@@ -339,3 +331,17 @@ export const SEARCH_HANDLERS: readonly (readonly [CustomId['kind'], ComponentHan
   ['pk', viewShared],
   ['sq', openSearchForm],
 ]
+
+export const SEARCH_MODALS: readonly (readonly [CustomId['kind'], ModalHandler])[] = [
+  ['sm', submitSearch],
+]
+
+// One page of the private browser, for /search and every click that redraws it.
+export async function renderSearchBrowser(
+  deps: Deps,
+  state: CardBrowseState,
+  locale: string,
+  canPost: boolean,
+): Promise<V2Edit> {
+  return browserOf(deps, await pageOf(deps, state, locale), state, locale, canPost)
+}

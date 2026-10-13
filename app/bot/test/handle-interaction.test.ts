@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
+import { MessageFlags } from 'discord.js'
 import * as dbModule from '@revelio/db'
 import { handleInteraction } from '../src/discord/handle-interaction'
 
@@ -38,6 +39,8 @@ describe('handleInteraction', () => {
     const interaction = fakeCommand({ replied: false, deferred: false })
     await handleInteraction(interaction as never, { db: {} } as never)
     expect(interaction.editReply).not.toHaveBeenCalled()
-    expect(interaction.reply.mock.calls[0][0].flags).toBeDefined()
+    expect(interaction.reply).toHaveBeenCalledWith({
+      content: 'Something went wrong. Please try again in a moment.', flags: MessageFlags.Ephemeral,
+    })
   })
 })

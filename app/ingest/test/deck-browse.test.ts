@@ -87,6 +87,22 @@ describe('recordView', () => {
 })
 
 describe('listPublicDecks', () => {
+  // The browse page shares the bot's matching rule, escaping included.
+  it('matches %, _ and a backslash in the search literally', async () => {
+    const id = await createDeck(ctx.db, 'u2', { name: '100% Aggro_\\x', format: 'classic', visibility: 'public', cards: [] })
+    try {
+      const find = async (search: string) =>
+        (await listPublicDecks(ctx.db, { search })).entries.map((e) => e.id)
+      expect(await find('100%')).toEqual([id])
+      expect(await find('_\\x')).toEqual([id])
+      expect(await find('1_0')).toEqual([])
+      // A literal "%" finds only the one deck whose name contains it.
+      expect(await find('%')).toEqual([id])
+    } finally {
+      await ctx.db.delete(decks).where(eq(decks.id, id))
+    }
+  })
+
   it('returns only public decks with author, counts, lessons, and liked flag', async () => {
     const pub = await createDeck(ctx.db, 'u1', {
       name: 'Charms Aggro', format: 'revival', visibility: 'public',

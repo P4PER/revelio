@@ -84,6 +84,22 @@ describe('suggestDecks', () => {
     expect(await suggestDecks(ctx.db, { query: '@%', viewerId: null })).toEqual([])
   })
 
+  // The other half: escaping must not break a search for those characters.
+  // "1_0" is what an unescaped "_" would match against "100".
+  it('still finds a name containing %, _ and a backslash', async () => {
+    const id = await createDeck(ctx.db, 'u2', { name: '100% Aggro_\\x', format: 'classic', visibility: 'public', cards: [] })
+    try {
+      const find = async (query: string) =>
+        (await suggestDecks(ctx.db, { query, viewerId: null })).map((r) => r.id)
+      expect(await find('100%')).toEqual([id])
+      expect(await find('o_')).toEqual([id])
+      expect(await find('_\\x')).toEqual([id])
+      expect(await find('1_0')).toEqual([])
+    } finally {
+      await ctx.db.delete(decks).where(eq(decks.id, id))
+    }
+  })
+
   // Autocomplete and the "did you mean" menu run the same query moments apart;
   // two decks tied on every sort key must not swap places between them.
   it('breaks a full tie by deck id', async () => {

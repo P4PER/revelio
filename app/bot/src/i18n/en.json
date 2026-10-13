@@ -36,6 +36,7 @@
   "deck.prompt.expired": "This choice expired. Run /deck again.",
   "deck.loading": "Loading the deck...",
   "deck.posting": "Posting to the channel...",
+  "post.unconfirmed": "I couldn't confirm the post. Check the channel before you try again.",
   "post.sharedDeck": "{user} shared a deck.",
   "post.cannotPost": "I can't post in this channel. Revelio needs permission to view it, send messages, embed links and attach files here.",
   "deck.cannotPostHere": "I can't post here. Run /deck again and choose Only show me.",

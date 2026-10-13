@@ -68,6 +68,34 @@ function openedFrom(interaction: MessageComponentInteraction): DeckBrowseState |
   return null
 }
 
+// The deck view behind Open, with Back and (in a guild) Post.
+async function showDeck(
+  interaction: MessageComponentInteraction,
+  state: DeckBrowseState,
+  deps: Deps,
+  locale: string,
+  back: (notice: string) => Promise<V2Edit>,
+): Promise<void> {
+  const deckId = picked(interaction) ?? ''
+  const reader = await readAs(deps, interaction, deckId)
+  const deck = reader && await getDeckView(deps.db, deckId, reader.loadAs)
+  if (!deck) {
+    await interaction.editReply(await back(t(locale, 'deck.notFound')))
+    return
+  }
+  const actions = [
+    new ButtonBuilder().setCustomId(encodeCustomId({ kind: 'd', state }))
+      .setLabel(t(locale, 'deck.back')).setStyle(ButtonStyle.Secondary),
+    ...(interaction.inGuild()
+      ? [new ButtonBuilder().setCustomId(encodeCustomId({ kind: 'dp', deckId: deck.id }))
+          .setLabel(t(locale, 'deck.post')).setStyle(ButtonStyle.Primary)]
+      : []),
+  ]
+  await deliverDeck((c, f) => interaction.editReply(v2Edit(c, f)), deck, deps, locale, {
+    audience: 'caller', sendEdits: true, listOnly: false, actions,
+  })
+}
+
 const navigate: ComponentHandler = async (interaction, id, deps) => {
   if (!isDeckState(id)) return
   await show(interaction, deps, id.state)
@@ -97,31 +125,19 @@ const filterLesson: ComponentHandler = async (interaction, id, deps) => {
 // looks as if the click did nothing. A deck the clicker can no longer open
 // (made private, deleted, or gone between the access check and the read)
 // redraws the browser in place, which drops it from the menu, under a line
-// saying so.
+// saying so; so does a failure, since the loading line has already replaced
+// the browser and a bare error would lose its page and filters.
 const openDeck: ComponentHandler = async (interaction, id, deps) => {
   if (!isDeckState(id)) return
   const locale = toRevelioLocale(interaction.locale)
   await interaction.update(textEdit(t(locale, 'deck.loading')))
-  const deckId = picked(interaction) ?? ''
-  const reader = await readAs(deps, interaction, deckId)
-  const deck = reader && await getDeckView(deps.db, deckId, reader.loadAs)
-  if (!deck) {
-    await interaction.editReply(
-      await renderDeckBrowser(deps, id.state, locale, interaction.user.id, t(locale, 'deck.notFound')),
-    )
-    return
+  const back = (notice: string) => renderDeckBrowser(deps, id.state, locale, interaction.user.id, notice)
+  try {
+    await showDeck(interaction, id.state, deps, locale, back)
+  } catch (err) {
+    console.error(`deck open failed (${interaction.id}):`, err)
+    await interaction.editReply(await back(t(locale, 'error.generic')))
   }
-  const actions = [
-    new ButtonBuilder().setCustomId(encodeCustomId({ kind: 'd', state: id.state }))
-      .setLabel(t(locale, 'deck.back')).setStyle(ButtonStyle.Secondary),
-    ...(interaction.inGuild()
-      ? [new ButtonBuilder().setCustomId(encodeCustomId({ kind: 'dp', deckId: deck.id }))
-          .setLabel(t(locale, 'deck.post')).setStyle(ButtonStyle.Primary)]
-      : []),
-  ]
-  await deliverDeck((c, f) => interaction.editReply(v2Edit(c, f)), deck, deps, locale, {
-    audience: 'caller', sendEdits: true, listOnly: false, actions,
-  })
 }
 
 // Pressing Post on your own private deck is the owner's explicit say-so, the
@@ -141,6 +157,7 @@ const postDeck: ComponentHandler = async (interaction, id, deps) => {
   await interaction.deferUpdate()
   // Past deferUpdate the router would answer with editReply, replacing the
   // deck view the post came from, so every failure is answered here.
+  let posted = false
   try {
     const reader = await readAs(deps, interaction, id.deckId)
     const deck = reader && await getDeckView(deps.db, id.deckId, reader.loadAs)
@@ -149,18 +166,26 @@ const postDeck: ComponentHandler = async (interaction, id, deps) => {
       return
     }
     await target.channel.sendTyping().catch(() => {})
-    const posted = await sendToChannel(interaction, () => deliverDeck((c, f) => target.channel.send(v2Message(c, f)), deck, deps, locale, {
+    posted = await sendToChannel(interaction, () => deliverDeck((c, f) => target.channel.send(v2Message(c, f)), deck, deps, locale, {
       audience: 'channel',
       sendEdits: false,
       listOnly: false,
       lead: t(locale, 'post.sharedDeck', { user: `<@${interaction.user.id}>` }),
     }), locale, REFUSAL_KEYS)
-    // The channel shows the deck now; the private copy would only repeat it.
-    const from = posted ? openedFrom(interaction) : null
-    if (from) await interaction.editReply(await renderDeckBrowser(deps, from, locale, interaction.user.id))
   } catch (err) {
     console.error(`deck post failed (${interaction.id}):`, err)
     await interaction.followUp(ephemeralText(t(locale, 'error.generic')))
+    return
+  }
+  // The channel shows the deck now; the private copy would only repeat it.
+  // The deck is out, so a failed redraw only leaves that copy in place: an
+  // error line here would invite a second post.
+  const from = posted ? openedFrom(interaction) : null
+  if (!from) return
+  try {
+    await interaction.editReply(await renderDeckBrowser(deps, from, locale, interaction.user.id))
+  } catch (err) {
+    console.error(`deck browser redraw failed (${interaction.id}):`, err)
   }
 }
 

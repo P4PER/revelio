@@ -69,10 +69,9 @@ export type PublicDeckQuery = {
 
 type Sortable = Pick<DeckCardView, 'cost' | 'name'>
 
-// Five rows with art keep /decks at 32 of Discord's 40 components; /mydecks
-// draws the same rows, so it takes the same page.
+// Five rows with art keep both deck browsers at 32 of Discord's 40
+// components: /mydecks draws the same rows as /decks.
 export const DECK_PAGE_SIZE = 5
-export const OWN_PAGE_SIZE = 5
 
 function byCostThenName(a: Sortable, b: Sortable): number {
   const ac = a.cost ?? Number.MAX_SAFE_INTEGER
@@ -200,21 +199,25 @@ export async function resolveDeckRef(db: DB, input: string, viewerId: string | n
 
 // The web /decks page's own query, so the two can never disagree on what
 // matches - "@handle" included.
+// A page past the end (decks made private since it was drawn) reads the last
+// one, as pageOwnDecks does.
 export async function browsePublicDecks(db: DB, state: PublicDeckQuery): Promise<PublicDeckPage> {
-  const res = await listPublicDecks(db, {
+  const read = (page: number) => listPublicDecks(db, {
     search: state.query || undefined,
     lessons: state.lesson ? [state.lesson] : undefined,
     format: state.format,
     sort: state.sort,
-    page: state.page,
+    page,
     pageSize: DECK_PAGE_SIZE,
   })
+  const first = await read(state.page)
+  const res = first.page > first.pageCount ? await read(first.pageCount) : first
   return { entries: res.entries, total: res.total, page: res.page, pages: res.pageCount }
 }
 
 // One page in the database, newest edit first: a click costs ten rows, not
 // the owner's whole list.
 export async function pageOwnDecks(db: DB, userId: string, page: number): Promise<OwnDeckPage> {
-  const res = await pageDecksByUser(db, userId, { page, pageSize: OWN_PAGE_SIZE })
+  const res = await pageDecksByUser(db, userId, { page, pageSize: DECK_PAGE_SIZE })
   return { decks: res.decks, total: res.total, page: res.page, pages: res.pageCount }
 }

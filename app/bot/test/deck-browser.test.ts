@@ -108,6 +108,17 @@ describe('opening a deck', () => {
     expect(textOf(c.editReply.mock.calls[0][0])).toMatch(/^No deck matched that name, link or id\./)
   })
 
+  // The loading line has already replaced the browser; a bare error line
+  // would lose its page and filters.
+  it('brings the browser back under an error line when opening fails', async () => {
+    linkedAs(null)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(dbModule, 'getDeckAccess').mockRejectedValue(new Error('connection reset'))
+    const { c, done } = click(encodeCustomId({ kind: 'do', state }), { values: [ID] })
+    await done
+    expect(textOf(c.editReply.mock.calls.at(-1)![0])).toMatch(/^Something went wrong\. Please try again in a moment\.\nPublic decks: \*\*3\*\*/)
+  })
+
   it('goes back and drops the sheet', async () => {
     const { c, done } = click(encodeCustomId({ kind: 'd', state }))
     await done
@@ -145,6 +156,22 @@ describe('posting a deck', () => {
     expect(c.channel.send).toHaveBeenCalled()
     expect(vi.mocked(dbModule.listPublicDecks).mock.calls[0][1]).toMatchObject({ page: 2, format: 'revival' })
     expect(textOf(c.editReply.mock.calls[0][0])).toContain('Public decks: **3**')
+  })
+
+  it('says nothing more when the post went out but the browser cannot be redrawn', async () => {
+    linkedAs(null)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(dbModule, 'getDeckAccess').mockResolvedValue({ access: 'public', name: 'Charms Aggro' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stored('public') as never)
+    vi.mocked(dbModule.listPublicDecks).mockRejectedValue(new Error('connection reset'))
+    const c = fakeClick(encodeCustomId({ kind: 'dp', deckId: ID }))
+    Object.assign(c.message, {
+      components: [{ type: 2, custom_id: encodeCustomId({ kind: 'd', state }) }],
+    })
+    await handleInteraction(c as never, fakeDeps([], 0) as never)
+    expect(c.channel.send).toHaveBeenCalled()
+    expect(c.followUp).not.toHaveBeenCalled()
+    expect(c.editReply).not.toHaveBeenCalled()
   })
 
   // Pressing Post on your own private deck is the owner's say-so.
@@ -198,7 +225,8 @@ describe('posting a deck', () => {
     c.channel.send.mockRejectedValue(new Error('socket hang up'))
     await handleInteraction(c as never, fakeDeps([], 0) as never)
     expect(c.editReply).not.toHaveBeenCalled()
-    expect(textOf(c.followUp.mock.calls[0][0])).toBe('Something went wrong. Please try again in a moment.')
+    // A dropped socket may have posted: "try again" would invite a double post.
+    expect(textOf(c.followUp.mock.calls[0][0])).toMatch(/^I couldn't confirm the post\. Check the channel/)
     expect(c.followUp.mock.calls[0][0].flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
   })
 

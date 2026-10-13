@@ -59,7 +59,9 @@ export function refusal(err: unknown): 'unreachable' | 'forbidden' | null {
 // Sends a post the click has already acknowledged with deferUpdate. Every
 // failure is answered privately: past the acknowledgement the router would
 // answer with editReply, which replaces the private message the post came from.
-// True when the post went out.
+// Anything but a refusal (a timeout, a dropped socket) may still have posted,
+// so it asks the caller to check the channel rather than to try again, which
+// could post twice. True when the post went out.
 export async function sendToChannel(
   interaction: MessageComponentInteraction,
   send: () => Promise<unknown>,
@@ -72,7 +74,7 @@ export async function sendToChannel(
   } catch (err) {
     const refused = refusal(err)
     if (!refused) console.error(`post failed (${interaction.id}):`, err)
-    await interaction.followUp(ephemeralText(t(locale, refused ? keys[refused] : 'error.generic')))
+    await interaction.followUp(ephemeralText(t(locale, refused ? keys[refused] : 'post.unconfirmed')))
     return false
   }
 }

@@ -9,7 +9,7 @@ import {
 } from 'discord.js'
 import { DeckFormat, LESSONS, artCropKey, attrLabel, clampDeckName, imageUrl } from '@revelio/core'
 import { clampLabel } from '../../data/cards'
-import { DECK_PAGE_SIZE, OWN_PAGE_SIZE, type OwnDeckPage, type PublicDeckPage } from '../../data/decks'
+import { DECK_PAGE_SIZE, type OwnDeckPage, type PublicDeckPage } from '../../data/decks'
 import { t } from '../../i18n/t'
 import { decksUrl } from '../../links'
 import { DECK_SORTS, encodeCustomId, type DeckBrowseState } from '../components/custom-id'
@@ -122,12 +122,12 @@ function openMenu(state: DeckBrowseState, options: { id: string; label: string }
   )
 }
 
-function pager(state: DeckBrowseState, page: number, pages: number, shown: number, pageSize: number, opts: DeckBrowserOptions, siteLink: boolean): Row {
+function pager(state: DeckBrowseState, page: number, pages: number, shown: number, opts: DeckBrowserOptions, siteLink: boolean): Row {
   return pagerRow({
     locale: opts.locale,
     page,
     pages: Math.max(pages, page),
-    hasNext: page < pages && shown === pageSize,
+    hasNext: page < pages && shown === DECK_PAGE_SIZE,
     prevId: encodeCustomId({ kind: 'd', state: { ...state, page: Math.max(1, page - 1) } }),
     nextId: encodeCustomId({ kind: 'd', state: { ...state, page: page + 1 } }),
     indicatorId: encodeCustomId({ kind: 'pg', of: 'decks' }),
@@ -152,7 +152,7 @@ export function publicDecksView(page: PublicDeckPage, state: DeckBrowseState, op
       DECK_SORTS.map((s) => ({ value: s, label: t(locale, `decks.sort.${s}`) })), state.sort, false, locale),
     select('dl', state, t(locale, 'decks.filter.lesson'),
       LESSONS.map((l) => ({ value: l.code, label: attrLabel('lessons', l.code, locale) })), state.lesson, true, locale),
-    pager(state, page.page, page.pages, page.entries.length, DECK_PAGE_SIZE, opts, true),
+    pager(state, page.page, page.pages, page.entries.length, opts, true),
   )
   return [view]
 }
@@ -170,6 +170,6 @@ export function ownDecksView(page: OwnDeckPage, state: DeckBrowseState, opts: De
     addDeckRows(view, page.decks.map((d) => ({ ...d, author: null, isPrivate: d.visibility === 'private' })), opts)
     view.addActionRowComponents(openMenu(state, page.decks.map((d) => ({ id: d.id, label: d.name })), locale))
   }
-  view.addActionRowComponents(pager(state, page.page, page.pages, page.decks.length, OWN_PAGE_SIZE, opts, false))
+  view.addActionRowComponents(pager(state, page.page, page.pages, page.decks.length, opts, false))
   return [view]
 }

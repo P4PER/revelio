@@ -57,6 +57,15 @@ describe('searchView', () => {
     expect(lesson?.options.find((o) => o.value === 'charms')?.default).toBe(true)
   })
 
+  // A message select has no label: an unset filter selects nothing, so its
+  // placeholder names it instead of three identical "Any" boxes.
+  it('names an unset filter by its placeholder', () => {
+    const all = selects(render(page(5)))
+    const of = (kind: string) => all.find((s) => s.custom_id.startsWith(`v1:${kind}:`))!
+    expect([of('sl'), of('st'), of('ss')].map((s) => s.placeholder)).toEqual(['Any lesson', 'Any card type', 'Any set'])
+    for (const s of [of('sl'), of('st'), of('ss')]) expect(s.options.some((o) => o.default)).toBe(false)
+  })
+
   it('lists at most 25 sets and keeps the active one even past the cut', () => {
     const set = selects(render(page(5), { ...state, set: 's29' })).find((s) => s.custom_id.startsWith('v1:ss:'))
     expect(set?.options).toHaveLength(25)

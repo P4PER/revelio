@@ -58,7 +58,9 @@ function filterSelect(
       .setCustomId(encodeCustomId({ kind, state }))
       .setPlaceholder(placeholder)
       .addOptions(
-        { label: t(locale, 'browse.any'), value: ANY, default: current == null },
+        // Never preselected: an unset filter shows its placeholder, which is
+        // the only label a message select has.
+        { label: t(locale, 'browse.any'), value: ANY, default: false },
         ...shown.map((o) => ({ label: clampLabel(o.label), value: o.value, default: o.value === current })),
       ),
   )

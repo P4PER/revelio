@@ -29,9 +29,9 @@ describe('BOT_COMMANDS', () => {
     }
   })
 
-  it('keeps the personal commands and the search browser out of the channel', () => {
+  it('keeps the personal commands and the browsers out of the channel', () => {
     expect(BOT_COMMANDS.filter((c) => c.ephemeral).map((c) => c.name).sort())
-      .toEqual(['collection', 'mydecks', 'search'])
+      .toEqual(['collection', 'decks', 'mydecks', 'search'])
   })
 
   // `choices` names an attribute scope rather than listing values, so the

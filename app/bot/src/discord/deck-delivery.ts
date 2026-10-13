@@ -41,6 +41,7 @@ export async function deliverDeck(
   // link to one; the caller alone may be that owner.
   const base = {
     locale,
+    imageBase: deps.env.IMAGE_BASE_URL,
     siteBase: deps.env.SITE_BASE_URL,
     linkPage: opts.audience === 'caller' || deck.visibility === 'public',
     lead: opts.lead,

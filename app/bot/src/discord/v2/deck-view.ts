@@ -1,10 +1,12 @@
 import {
   MediaGalleryBuilder,
   MediaGalleryItemBuilder,
+  SectionBuilder,
+  ThumbnailBuilder,
   type ButtonBuilder,
   type ContainerBuilder,
 } from 'discord.js'
-import { clampDeckName } from '@revelio/core'
+import { artCropKey, clampDeckName, imageUrl } from '@revelio/core'
 import type { DeckEntryView, DeckView } from '../../data/decks'
 import { t } from '../../i18n/t'
 import { deckUrl } from '../../links'
@@ -12,6 +14,7 @@ import { actionRow, container, lessonColor, linkButton, plain, text } from './pa
 
 export type DeckViewOptions = {
   locale: string
+  imageBase: string
   siteBase: string
   // false leaves the page link off: a private deck posted to a channel would
   // otherwise link a page that answers "not found" for everyone but its owner.
@@ -58,23 +61,43 @@ function cardList(entries: DeckEntryView[], locale: string): string {
   return lines.join('\n')
 }
 
-function metaLine(deck: DeckView, locale: string): string {
-  return [
-    deck.ownerUsername
-      ? t(locale, 'deck.footer', { owner: plain(deck.ownerUsername) })
-      : t(locale, 'deck.footer.anonymous'),
+// The heading, as /decks draws a row: the name, the starting character under
+// it (its art beside the heading when there is no sheet), and who, format and legality on one
+// small line, since those are context rather than what a player reads for.
+function headingText(deck: DeckView, locale: string): string {
+  const owner = deck.ownerUsername
+    ? t(locale, 'deck.footer', { owner: plain(deck.ownerUsername) })
+    : t(locale, 'deck.footer.anonymous')
+  const facts = [
+    owner,
     t(locale, `deck.format.${deck.format}`),
-    t(locale, `deck.status.${deck.status}`),
-    deck.character ? t(locale, 'deck.characterLine', { name: deck.character.name }) : '',
-  ].filter(Boolean).join(' · ')
+    `${t(locale, `deck.statusMark.${deck.status}`)} ${t(locale, `deck.status.${deck.status}`)}`,
+  ].join(' · ')
+  // clampDeckName: a deck saved before the name bound can be any length.
+  return [
+    `## ${plain(clampDeckName(deck.name))}`,
+    deck.character ? `**${plain(deck.character.name)}**` : '',
+    `-# ${facts}`,
+  ].filter(Boolean).join('\n')
 }
 
 export function deckView(deck: DeckView, opts: DeckViewOptions): ContainerBuilder[] {
   const { locale } = opts
   const view = container(lessonColor(deck.topLesson))
-  // clampDeckName: a deck saved before the name bound can be any length.
-  const heading = `## ${plain(clampDeckName(deck.name))}\n${metaLine(deck, locale)}`
-  view.addTextDisplayComponents(text(opts.lead ? `${opts.lead}\n${heading}` : heading))
+  const heading = headingText(deck, locale)
+  const content = text(opts.lead ? `${opts.lead}\n${heading}` : heading)
+  // Only beside the text lists: the sheet already shows the starting character.
+  const starter = opts.imageName ? undefined : deck.entries.find((e) => e.zone === 'character')
+  if (deck.character && starter && starter.artCropVersion != null) {
+    view.addSectionComponents(new SectionBuilder().addTextDisplayComponents(content).setThumbnailAccessory(
+      new ThumbnailBuilder()
+        .setURL(imageUrl(opts.imageBase, artCropKey(starter.cardId, starter.artCropVersion)))
+        .setDescription(t(locale, 'deck.characterLine', { name: deck.character.name })),
+    ))
+  } else {
+    // A section must carry an accessory; no art, no section.
+    view.addTextDisplayComponents(content)
+  }
 
   if (opts.imageName) {
     // The picture shows every card, so the text lists would only repeat it.

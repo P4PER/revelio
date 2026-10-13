@@ -23,14 +23,31 @@ const deck: DeckView = {
   topLesson: 'charms',
   status: 'incomplete',
 }
-const opts: DeckViewOptions = { locale: 'en', siteBase: 'https://revelio.cards', linkPage: true }
+const opts: DeckViewOptions = { locale: 'en', imageBase: 'https://img.test', siteBase: 'https://revelio.cards', linkPage: true }
 const view = (d: DeckView = deck, o: Partial<DeckViewOptions> = {}) => ({ components: deckView(d, { ...opts, ...o }) })
 
 describe('deckView', () => {
-  it('heads with the deck name, owner, format, legality and character', () => {
-    expect(textOf(view())).toMatch(
-      /^## Charms Aggro\nby seeker · Classic · Incomplete · Starting character: Harry Potter/,
-    )
+  // The starting character sits under the name, with its art beside the
+  // heading; who, format and legality are one small line.
+  it('heads with the name, the starting character and a small facts line', () => {
+    expect(textOf(view())).toMatch(/^## Charms Aggro\n\*\*Harry Potter\*\*\n-# by @seeker · Classic · 🚧 Incomplete/)
+  })
+
+  it('shows the starting character\'s art beside the heading of the list view', () => {
+    const withArt = { ...deck, entries: [{ cardId: 'bs-harry', zone: 'character', artCropVersion: 3 }] as never }
+    expect(mediaUrls(view(withArt))).toEqual(['https://img.test/cards/art-crop/bs-harry.3.webp'])
+    expect(mediaUrls(view())).toEqual([])
+  })
+
+  // The sheet already shows the starting character.
+  it('leaves the art off when the sheet is shown', () => {
+    const withArt = { ...deck, entries: [{ cardId: 'bs-harry', zone: 'character', artCropVersion: 3 }] as never }
+    expect(mediaUrls(view(withArt, { imageName: 'deck.png' }))).toEqual(['attachment://deck.png'])
+  })
+
+  it('marks a legal and an illegal deck', () => {
+    expect(textOf(view({ ...deck, status: 'legal' }))).toContain('✅ Legal')
+    expect(textOf(view({ ...deck, status: 'illegal' }))).toContain('⛔ Illegal')
   })
 
   it('credits revelio.cards when the owner has no handle', () => {
@@ -68,7 +85,7 @@ describe('deckView', () => {
   it('renders a hostile deck name as text, not as a link', () => {
     const t = textOf(view({ ...deck, name: '[Click me](https://evil.example)', ownerUsername: '**boss**' }))
     expect(t).toContain('## \\[Click me\\]\\(https://evil.example\\)')
-    expect(t).toContain('by \\*\\*boss\\*\\*')
+    expect(t).toContain('by @\\*\\*boss\\*\\*')
   })
 
   it('stays inside the text budget for a legacy over-long name', () => {

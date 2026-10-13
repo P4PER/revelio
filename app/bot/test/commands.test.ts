@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { DiscordAPIError, MessageFlags, PermissionFlagsBits } from 'discord.js'
 import * as dbModule from '@revelio/db'
 import { COMMANDS } from '../src/discord/commands/index'
 import { requestDeckSheet } from '../src/data/sheet'
@@ -20,17 +21,66 @@ beforeEach(() => {
 })
 afterEach(() => { vi.restoreAllMocks() })
 
-function fakeInteraction(options: Record<string, string | number | null>, locale = 'en') {
+function fakeInteraction(
+  options: Record<string, string | number | null>,
+  locale = 'en',
+  awaitMessageComponent = vi.fn().mockRejectedValue(new Error('time')),
+) {
   return {
     locale,
+    user: { id: '111' },
+    inGuild: () => true,
     deferReply: vi.fn().mockResolvedValue(undefined),
     editReply: vi.fn().mockResolvedValue(undefined),
+    deleteReply: vi.fn().mockResolvedValue(undefined),
+    reply: vi.fn().mockResolvedValue({ resource: { message: { awaitMessageComponent } } }),
     options: {
       getString: (name: string) => (options[name] as string) ?? null,
       getInteger: (name: string) => (options[name] as number) ?? null,
     },
   }
 }
+
+// A button or select click on the prompt. message.awaitMessageComponent is
+// what a select pick hands on to the visibility prompt that replaces it.
+function fakeComponent(
+  customId: string,
+  values: string[] = [],
+  next = vi.fn().mockRejectedValue(new Error('time')),
+) {
+  return {
+    customId,
+    values,
+    user: { id: '111' },
+    isStringSelectMenu: () => values.length > 0,
+    deferReply: vi.fn().mockResolvedValue(undefined),
+    update: vi.fn().mockResolvedValue(undefined),
+    followUp: vi.fn().mockResolvedValue(undefined),
+    editReply: vi.fn().mockResolvedValue(undefined),
+    deleteReply: vi.fn().mockResolvedValue(undefined),
+    message: { awaitMessageComponent: next },
+    // A public post goes to the channel as a plain message, not as a reply to
+    // the click; appPermissions is what Discord says the bot may do there.
+    channel: {
+      isSendable: () => true,
+      isThread: () => false,
+      send: vi.fn().mockResolvedValue(undefined),
+      sendTyping: vi.fn().mockResolvedValue(undefined),
+    },
+    appPermissions: { has: vi.fn(() => true) },
+  }
+}
+
+const access = (value: dbModule.DeckAccess | null) =>
+  vi.spyOn(dbModule, 'getDeckAccess').mockResolvedValue(value)
+// Discord answering a send with an error: nothing was posted, so a retry is
+// safe. Any other failure (a timeout, a dropped socket) may have posted.
+const rejected = () => new DiscordAPIError(
+  { code: 40005, message: 'Request entity too large' }, 40005, 413, 'POST', '/messages', { body: undefined, files: undefined },
+)
+
+const viewer = (id: string | null) =>
+  vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockResolvedValue(id)
 
 // A relevance read leaves as a federated multi-search: a name-only query weighted
 // against the unrestricted one. The stub cannot rank, so it runs only the unrestricted
@@ -77,6 +127,7 @@ function fakeDeps(hits: unknown[], total: number) {
 function fakeAutocomplete(focused: string, locale = 'en') {
   return {
     locale,
+    user: { id: '111' },
     respond: vi.fn().mockResolvedValue(undefined),
     options: { getFocused: () => focused, getSubcommand: () => null },
   }
@@ -299,6 +350,11 @@ function stubDeck() {
 }
 
 describe('/deck', () => {
+  beforeEach(() => {
+    viewer(null)
+    access({ access: 'public', name: 'Charms Aggro' })
+  })
+
   it('replies with an embed for a public deck', async () => {
     vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
     const interaction = fakeInteraction({ deck: 'https://revelio.cards/decks/abc123' })
@@ -352,12 +408,38 @@ describe('/deck', () => {
     vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const interaction = fakeInteraction({ deck: 'abc123' })
-    interaction.editReply.mockRejectedValueOnce(new Error('Request entity too large'))
+    interaction.editReply.mockRejectedValueOnce(rejected())
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(interaction.editReply).toHaveBeenCalledTimes(2)
     const payload = interaction.editReply.mock.calls[1][0]
     expect(payload.files).toBeUndefined()
     expect(payload.embeds[0].toJSON().fields?.some((f: { name: string }) => f.name.startsWith('Main deck'))).toBe(true)
+  })
+
+  // An edit of the bot's own reply cannot post twice, so any failed picture
+  // edit - a timed-out upload included - still falls back to the list.
+  it('falls back to the list when the picture edit times out', async () => {
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const interaction = fakeInteraction({ deck: 'abc123' })
+    interaction.editReply.mockRejectedValueOnce(new Error('The operation was aborted'))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(interaction.editReply).toHaveBeenCalledTimes(2)
+    expect(interaction.editReply.mock.calls[1][0].files).toBeUndefined()
+  })
+
+  // In a DM with the bot nobody else can see anything, so there is nothing to
+  // choose: the owner's private deck is shown at once.
+  it('shows an own private deck in a DM without asking', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    const load = vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    const interaction = { ...fakeInteraction({ deck: 'abc123' }), inGuild: () => false }
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(interaction.reply).not.toHaveBeenCalled()
+    expect(interaction.deferReply).toHaveBeenCalledWith({ flags: MessageFlags.Ephemeral })
+    expect(load).toHaveBeenCalledWith({}, 'abc123', 'user-1')
+    expect(interaction.editReply.mock.calls[0][0].embeds[0].toJSON().title).toBe('Charms Aggro')
   })
 
   it('never asks for a sheet of an empty deck', async () => {
@@ -371,13 +453,406 @@ describe('/deck', () => {
     expect(interaction.editReply.mock.calls[0][0].files).toBeUndefined()
   })
 
-  it('replies with a localized miss for a private or unknown deck', async () => {
-    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(null)
+  it('answers an unknown deck ephemerally, without a public defer', async () => {
+    access(null)
+    vi.spyOn(dbModule, 'suggestDecks').mockResolvedValue([])
     const interaction = fakeInteraction({ deck: 'nope' })
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-    expect(interaction.editReply).toHaveBeenCalledWith(
-      expect.objectContaining({ content: expect.stringContaining('Private decks') }),
+    expect(interaction.deferReply).not.toHaveBeenCalled()
+    expect(interaction.reply).toHaveBeenCalledWith({
+      content: 'No deck matched that name, link or id.',
+      flags: MessageFlags.Ephemeral,
+    })
+  })
+
+  // Review focus 3: someone else's private deck is indistinguishable from a
+  // deck that does not exist.
+  it('answers another user\'s private deck exactly like an unknown one', async () => {
+    viewer('user-1')
+    access(null)
+    vi.spyOn(dbModule, 'suggestDecks').mockResolvedValue([])
+    const interaction = fakeInteraction({ deck: 'bobs-private-id' })
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(interaction.deferReply).not.toHaveBeenCalled()
+    expect(interaction.reply.mock.calls[0][0].content).toBe('No deck matched that name, link or id.')
+  })
+
+  // A deck posted without asking is loaded as nobody: if its owner made it
+  // private after the access check, it reads as not found instead of being
+  // posted on the owner's own authority.
+  it('loads an unprompted public deck as an anonymous viewer', async () => {
+    viewer('user-1')
+    const load = vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    const interaction = fakeInteraction({ deck: 'abc123' })
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(interaction.deferReply).toHaveBeenCalledWith()
+    expect(load).toHaveBeenCalledWith({}, 'abc123', null)
+  })
+
+  // The leak regression: an own private deck must never start with a public
+  // defer, whatever happens afterwards.
+  it('asks privately before showing an own private deck', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    const interaction = fakeInteraction({ deck: 'abc123' })
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(interaction.deferReply).not.toHaveBeenCalled()
+    const prompt = interaction.reply.mock.calls[0][0]
+    expect(prompt.flags).toBe(MessageFlags.Ephemeral)
+    expect(prompt.content).toContain('Secret Charms')
+    expect(prompt.components).toHaveLength(1)
+  })
+
+  // "Post publicly" sends a plain channel message: an interaction reply to the
+  // click would render as a reply to the private, deleted prompt.
+  it('posts publicly only after "Post publicly", as a plain channel message', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    const click = fakeComponent('deck:post')
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.update).toHaveBeenCalledWith({ content: 'Posting to the channel...', components: [] })
+    expect(click.channel.sendTyping).toHaveBeenCalled()
+    const posted = click.channel.send.mock.calls[0][0]
+    expect(posted.content).toBe('<@111> shared a deck.')
+    expect(posted.embeds[0].toJSON().title).toBe('Charms Aggro')
+    expect(click.deferReply).not.toHaveBeenCalled()
+    expect(click.followUp).not.toHaveBeenCalled()
+    expect(interaction.deleteReply).toHaveBeenCalled()
+  })
+
+  // A thread has its own send permission; plain Send Messages does not count
+  // there, and asking for it would wrongly refuse a thread the bot can post in.
+  it('checks the thread send permission inside a thread', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    const click = fakeComponent('deck:post')
+    click.channel.isThread = () => true
+    click.appPermissions.has.mockImplementation(((wanted: bigint[]) =>
+      !wanted.includes(PermissionFlagsBits.SendMessages)) as never)
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.appPermissions.has.mock.calls[0][0]).toContain(PermissionFlagsBits.SendMessagesInThreads)
+    expect(click.channel.send).toHaveBeenCalled()
+  })
+
+  // No cached channel: a guild where only the user installed the app, or an
+  // archived thread. Moderators cannot fix that, so the reply does not ask them.
+  it('says it cannot post here when the channel is out of reach', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    const click = fakeComponent('deck:post')
+    ;(click as { channel: unknown }).channel = null
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.update).toHaveBeenCalledWith({
+      content: "I can't post here. Run /deck again and choose Only show me.", components: [],
+    })
+  })
+
+  it('says so privately when the bot may not post in the channel', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    const click = fakeComponent('deck:post')
+    click.appPermissions.has.mockReturnValue(false)
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.channel.send).not.toHaveBeenCalled()
+    expect(click.update.mock.calls[0][0].content).toMatch(/can't post in this channel/)
+    expect(click.update.mock.calls[0][0].components).toEqual([])
+  })
+
+  it('never posts publicly for "Only show me"', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    const click = fakeComponent('deck:self')
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    // The prompt itself becomes the deck: a progress line at once, then the
+    // deck in the same message. No second message, nothing to delete.
+    expect(click.update).toHaveBeenCalledWith({ content: 'Loading the deck...', components: [] })
+    expect(click.deferReply).not.toHaveBeenCalled()
+    expect(click.followUp).not.toHaveBeenCalled()
+    const shown = click.editReply.mock.calls[0][0]
+    expect(shown.content).toBe('')
+    expect(shown.embeds[0].toJSON().title).toBe('Charms Aggro')
+    expect(interaction.deleteReply).not.toHaveBeenCalled()
+  })
+
+  const privateDeck = () => {
+    const d = stubDeck()
+    return { ...d, deck: { ...d.deck, visibility: 'private' } }
+  }
+
+  it('posts a private deck without a link to its page, which others cannot open', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(privateDeck() as never)
+    const click = fakeComponent('deck:post')
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.channel.send.mock.calls[0][0].embeds[0].toJSON().url).toBeUndefined()
+  })
+
+  it('keeps the page link when a private deck is shown to its owner alone', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(privateDeck() as never)
+    const click = fakeComponent('deck:self')
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.editReply.mock.calls[0][0].embeds[0].toJSON().url).toBe('https://revelio.cards/decks/abc123')
+  })
+
+  // Review focus 4: the deck vanished or went private between prompt and click.
+  // Only the one-row access check runs before the click is acknowledged, so
+  // "not found" stays in the private prompt and no public "thinking" message
+  // ever appears.
+  it('reports a deck that disappeared before the click, and posts nothing', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' }).mockResolvedValueOnce(
+      { access: 'own-private', name: 'Secret Charms' },
+    ).mockResolvedValueOnce(null)
+    const load = vi.spyOn(dbModule, 'getDeckForViewer')
+    const click = fakeComponent('deck:post')
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.deferReply).not.toHaveBeenCalled()
+    expect(load).not.toHaveBeenCalled()
+    expect(click.update).toHaveBeenCalledWith({
+      content: 'No deck matched that name, link or id.', components: [],
+    })
+  })
+
+  // The full load runs after the click is acknowledged; a deck gone in that gap
+  // is reported in the private prompt, and nothing reaches the channel.
+  it('reports a deck gone after the click in the prompt, and posts nothing', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(null)
+    const click = fakeComponent('deck:post')
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.channel.send).not.toHaveBeenCalled()
+    expect(click.editReply).toHaveBeenCalledWith({
+      content: 'No deck matched that name, link or id.', components: [],
+    })
+  })
+
+  // Bans are enforced in resolveLinkedUser, so a confirmed click asks again
+  // rather than trusting the id read when /deck started: a ban or unlink in
+  // the prompt's 60 s must not still let the deck out.
+  it('re-checks the linked account on the click', async () => {
+    viewer('user-1').mockResolvedValueOnce('user-1').mockResolvedValueOnce(null)
+    const check = access({ access: 'own-private', name: 'Secret Charms' })
+    const click = fakeComponent('deck:post')
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(check).toHaveBeenLastCalledWith({}, 'abc123', null)
+  })
+
+  // A failure before the click is acknowledged must answer the click itself;
+  // the top-level handler only knows the slash command's interaction.
+  it('turns the prompt into the error when the click cannot be served', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' }).mockResolvedValueOnce(
+      { access: 'own-private', name: 'Secret Charms' },
+    ).mockRejectedValueOnce(new Error('db down'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const click = fakeComponent('deck:self')
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await expect(
+      COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never),
+    ).resolves.toBeUndefined()
+    expect(click.deferReply).not.toHaveBeenCalled()
+    expect(click.update).toHaveBeenCalledWith({
+      content: 'Something went wrong. Please try again in a moment.', components: [],
+    })
+  })
+
+  // "Only show me" has no public placeholder to withdraw: the error replaces
+  // the private "thinking" message instead of sitting next to it.
+  it('puts a private failure into the private placeholder', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockRejectedValue(new Error('db down'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const click = fakeComponent('deck:self')
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.deleteReply).not.toHaveBeenCalled()
+    expect(click.editReply).toHaveBeenCalledWith({
+      content: 'Something went wrong. Please try again in a moment.', embeds: [], files: [], components: [],
+    })
+  })
+
+  // A send that failed without Discord's answer may still have posted, so it is
+  // not retried as the list: that could post the deck twice.
+  it('reports a failed post in the prompt without retrying it', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const click = fakeComponent('deck:post')
+    click.channel.send.mockRejectedValue(new Error('socket hang up'))
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.channel.send).toHaveBeenCalledTimes(1)
+    expect(click.editReply).toHaveBeenCalledWith({
+      content: 'Something went wrong. Please try again in a moment.', components: [],
+    })
+    // The prompt carries the error now; deleting it would hide the failure.
+    expect(interaction.deleteReply).not.toHaveBeenCalled()
+  })
+
+  it('reports a post whose list fallback also failed, and posts nothing more', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const click = fakeComponent('deck:post')
+    click.channel.send.mockRejectedValueOnce(rejected()).mockRejectedValueOnce(new Error('socket hang up'))
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.channel.send).toHaveBeenCalledTimes(2)
+    expect(click.editReply.mock.calls.at(-1)![0].content).toBe('Something went wrong. Please try again in a moment.')
+    expect(interaction.deleteReply).not.toHaveBeenCalled()
+  })
+
+  // A private thread the bot is not in: app_permissions can still read as
+  // allowed, and Discord refuses the send itself with Missing Access.
+  it('says it cannot post here when Discord refuses access to the channel', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const click = fakeComponent('deck:post')
+    const missingAccess = new DiscordAPIError(
+      { code: 50001, message: 'Missing Access' }, 50001, 403, 'POST', '/messages', { body: undefined, files: undefined },
     )
+    click.channel.send.mockRejectedValue(missingAccess)
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.editReply.mock.calls.at(-1)![0].content).toBe(
+      "I can't post here. Run /deck again and choose Only show me.",
+    )
+  })
+
+  it('posts the list when Discord rejects the picture', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const click = fakeComponent('deck:post')
+    click.channel.send.mockRejectedValueOnce(rejected())
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.channel.send).toHaveBeenCalledTimes(2)
+    expect(click.channel.send.mock.calls[1][0].files).toBeUndefined()
+    expect(interaction.deleteReply).toHaveBeenCalled()
+  })
+
+  it('strips the buttons when the prompt times out', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    const interaction = fakeInteraction({ deck: 'abc123' })
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(interaction.editReply).toHaveBeenCalledWith({
+      content: 'This choice expired. Run /deck again.', components: [],
+    })
+  })
+
+  // Review focus 5: the user dismissed the ephemeral prompt, so the expiry
+  // edit has nothing left to edit.
+  it('survives a dismissed prompt at timeout', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    const interaction = fakeInteraction({ deck: 'abc123' })
+    interaction.editReply.mockRejectedValue(new Error('Unknown Message'))
+    await expect(
+      COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never),
+    ).resolves.toBeUndefined()
+  })
+
+  describe('an ambiguous name', () => {
+    const options: dbModule.DeckSuggestion[] = [
+      { id: 'pub', name: 'Aggro One', format: 'classic', author: 'seeker', visibility: 'public', isOwn: false, exactName: false },
+      { id: 'mine', name: 'Aggro Two', format: 'classic', author: 'me', visibility: 'private', isOwn: true, exactName: false },
+    ]
+    beforeEach(() => {
+      viewer('user-1')
+      // The typed text is no id; the click re-checks the picked deck by its id.
+      vi.spyOn(dbModule, 'getDeckAccess').mockImplementation(async (_db, id) =>
+        id === 'pub' ? { access: 'public', name: 'Aggro One' }
+        : id === 'mine' ? { access: 'own-private', name: 'Aggro Two' }
+        : null)
+      vi.spyOn(dbModule, 'suggestDecks').mockResolvedValue(options)
+      vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    })
+
+    it('asks which deck was meant, privately', async () => {
+      const interaction = fakeInteraction({ deck: 'aggro' })
+      await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+      expect(interaction.deferReply).not.toHaveBeenCalled()
+      const prompt = interaction.reply.mock.calls[0][0]
+      expect(prompt.flags).toBe(MessageFlags.Ephemeral)
+      expect(prompt.content).toBe('Several decks match. Which one did you mean?')
+    })
+
+    it('posts a picked public deck to the channel', async () => {
+      const pick = fakeComponent('deck:pick', ['pub'])
+      const interaction = fakeInteraction({ deck: 'aggro' }, 'en', vi.fn().mockResolvedValue(pick))
+      await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+      expect(pick.channel.send.mock.calls[0][0].embeds[0].toJSON().title).toBe('Charms Aggro')
+      expect(pick.deferReply).not.toHaveBeenCalled()
+      expect(interaction.deleteReply).toHaveBeenCalled()
+    })
+
+    // Review finding: the menu was built while the deck was public. If it went
+    // private before the pick, an unprompted post must not go out on the
+    // owner's authority.
+    it('loads a picked public deck as an anonymous viewer', async () => {
+      const load = vi.mocked(dbModule.getDeckForViewer)
+      const pick = fakeComponent('deck:pick', ['pub'])
+      const interaction = fakeInteraction({ deck: 'aggro' }, 'en', vi.fn().mockResolvedValue(pick))
+      await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+      expect(load).toHaveBeenCalledWith({}, 'pub', null)
+    })
+
+    it('loads a confirmed private deck as its owner', async () => {
+      const load = vi.mocked(dbModule.getDeckForViewer)
+      const click = fakeComponent('deck:self')
+      const pick = fakeComponent('deck:pick', ['mine'], vi.fn().mockResolvedValue(click))
+      const interaction = fakeInteraction({ deck: 'aggro' }, 'en', vi.fn().mockResolvedValue(pick))
+      await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+      expect(load).toHaveBeenCalledWith({}, 'mine', 'user-1')
+    })
+
+    it('shows a picked private deck at once in a DM', async () => {
+      const pick = fakeComponent('deck:pick', ['mine'])
+      const interaction = {
+        ...fakeInteraction({ deck: 'aggro' }, 'en', vi.fn().mockResolvedValue(pick)),
+        inGuild: () => false,
+      }
+      await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+      expect(pick.update).toHaveBeenCalledWith({ content: 'Loading the deck...', components: [] })
+      expect(pick.editReply.mock.calls[0][0].embeds[0].toJSON().title).toBe('Charms Aggro')
+      expect(pick.channel.send).not.toHaveBeenCalled()
+    })
+
+    it('asks again before showing a picked private deck', async () => {
+      const click = fakeComponent('deck:self')
+      const pick = fakeComponent('deck:pick', ['mine'], vi.fn().mockResolvedValue(click))
+      const interaction = fakeInteraction({ deck: 'aggro' }, 'en', vi.fn().mockResolvedValue(pick))
+      await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+      expect(pick.followUp).not.toHaveBeenCalled()
+      expect(pick.update.mock.calls[0][0].content).toContain('Aggro Two')
+      expect(click.followUp).not.toHaveBeenCalled()
+      expect(click.editReply.mock.calls[0][0].embeds[0].toJSON().title).toBe('Charms Aggro')
+    })
   })
 
   it('never records a view', async () => {
@@ -386,5 +861,43 @@ describe('/deck', () => {
     const interaction = fakeInteraction({ deck: 'abc123' })
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(record).not.toHaveBeenCalled()
+  })
+})
+
+describe('/deck autocomplete', () => {
+  const row = (over: Partial<dbModule.DeckSuggestion>): dbModule.DeckSuggestion => ({
+    id: 'd1', name: 'Gryffindor Aggro', format: 'classic', author: 'seeker',
+    visibility: 'public', isOwn: false, exactName: false, ...over,
+  })
+
+  it('suggests decks for the linked viewer, valued by deck id', async () => {
+    vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockResolvedValue('user-1')
+    const search = vi.spyOn(dbModule, 'suggestDecks').mockResolvedValue([
+      row({ id: 'mine', name: 'Secret', visibility: 'private', isOwn: true }),
+      row({ id: 'pub' }),
+    ])
+    const interaction = fakeAutocomplete('gry')
+    await COMMANDS.get('deck')!.autocomplete!(interaction as never, fakeDeps([], 0) as never)
+    expect(search).toHaveBeenCalledWith({}, { query: 'gry', viewerId: 'user-1', limit: 25 })
+    expect(interaction.respond).toHaveBeenCalledWith([
+      { name: '🔒 Secret · @seeker · Classic', value: 'mine' },
+      { name: 'Gryffindor Aggro · @seeker · Classic', value: 'pub' },
+    ])
+  })
+
+  it('searches public decks only for an unlinked user', async () => {
+    vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockResolvedValue(null)
+    const search = vi.spyOn(dbModule, 'suggestDecks').mockResolvedValue([])
+    await COMMANDS.get('deck')!.autocomplete!(fakeAutocomplete('') as never, fakeDeps([], 0) as never)
+    expect(search).toHaveBeenCalledWith({}, { query: '', viewerId: null, limit: 25 })
+  })
+
+  it('answers an empty list rather than throwing when the query fails', async () => {
+    vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockResolvedValue(null)
+    vi.spyOn(dbModule, 'suggestDecks').mockRejectedValue(new Error('db down'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const interaction = fakeAutocomplete('x')
+    await COMMANDS.get('deck')!.autocomplete!(interaction as never, fakeDeps([], 0) as never)
+    expect(interaction.respond).toHaveBeenCalledWith([])
   })
 })

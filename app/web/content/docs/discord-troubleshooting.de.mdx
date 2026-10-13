@@ -34,13 +34,29 @@ gesperrtes Konto wird in Discord also genauso abgewiesen wie auf der Website.
 
 ## Ein Deck wird nicht gefunden
 
-`/deck` schlägt ausschließlich öffentliche Decks nach. Ein privates Deck wird so
-auch dann nicht gefunden, wenn es deines ist - nimm dafür `/mydecks`, das deine
-eigenen Decks auflistet, private eingeschlossen, und privat antwortet.
+`/deck` findet öffentliche Decks und, sobald dein Discord-Konto verknüpft ist,
+auch deine eigenen privaten. Das private Deck von jemand anderem wird nicht
+gefunden, und die Antwort verrät nicht, ob es existiert.
 
-Ansonsten liegt es meist an der ID. Füge lieber den ganzen Deck-Link ein, statt
-die ID von Hand abzutippen; der Befehl nimmt beides an, und beim vollständigen
-Link kann man sich nicht vertippen.
+Hast du einen Namen getippt, wähle ihn aus den Vorschlägen, statt den Text
+abzuschicken: Ein gewählter Vorschlag ist immer genau das Deck. Ansonsten füge
+lieber den ganzen Deck-Link ein, statt die ID von Hand abzutippen; beim
+vollständigen Link kann man sich nicht vertippen.
+
+## "Ich kann in diesem Kanal nicht posten"
+
+**Öffentlich posten** schickt das Deck als normale Nachricht in den Kanal, also
+muss der Bot das dürfen: den Kanal sehen, Nachrichten senden (in einem Thread:
+Nachrichten in Threads senden), Links einbetten und Dateien anhängen. Die
+Moderation eines Servers kann das der Revelio-Rolle oder in den Berechtigungen
+des Kanals selbst erlauben. Bis dahin funktioniert dort **Nur mir zeigen**
+weiterhin.
+
+Heißt es stattdessen "Hier kann ich nicht posten", gibt es keinen Kanal, den der
+Bot erreichen kann: etwa auf einem Server, auf dem nur du Revelio hinzugefügt
+hast, nicht der Server selbst. Führe `/deck` erneut aus und wähle **Nur mir
+zeigen**. In einer Direktnachricht an den Bot werden dir deine eigenen privaten
+Decks direkt gezeigt, ohne Nachfrage.
 
 ## Eine Ergebnisseite ist leer
 

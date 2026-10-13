@@ -1,8 +1,8 @@
-import { eq, desc, sql, inArray, and, or, ilike, count, arrayOverlaps } from 'drizzle-orm'
+import { eq, asc, desc, sql, inArray, and, or, ilike, count, arrayOverlaps, type SQL } from 'drizzle-orm'
 import type { DB } from '../client'
 import { cards, decks, deckCards, deckLikes, deckViews } from '../schema'
 import { user } from '../auth-schema'
-import type { DeckFormat } from '@revelio/core'
+import type { DeckFormat, DeckVisibility } from '@revelio/core'
 
 export type PublicDeckSort = 'likes' | 'views' | 'newest' | 'updated'
 
@@ -19,7 +19,44 @@ export type ListPublicDecksInput = {
   sort?: PublicDeckSort; page?: number; viewerId?: string | null
 }
 
+export type DeckSuggestion = {
+  id: string; name: string; format: DeckFormat; author: string
+  visibility: DeckVisibility; isOwn: boolean
+  // The deck's name equals the query, case-insensitively, by Postgres lower():
+  // the same test the ordering uses, so a caller never compares names itself
+  // with a JS lowercasing that can disagree outside ASCII.
+  exactName: boolean
+}
+
+export type SuggestDecksInput = { query: string; viewerId: string | null; limit?: number }
+
+// What a viewer may do with one deck id. Never a third "exists but private"
+// state: someone else's private deck reads as null, exactly like a deck that
+// does not exist, so a caller cannot use it to probe ids.
+export type DeckAccess = { access: 'public' | 'own-private'; name: string }
+
 const PUBLIC_PAGE_SIZE = 24
+
+// Discord's autocomplete ceiling, and the default for the bot's suggestions.
+const SUGGEST_LIMIT = 25
+
+// The user's text is matched literally: "%" and "_" are ILIKE wildcards and
+// "\" its default escape, so all three are escaped. Otherwise a query of "%"
+// would match every visible deck.
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, '\\$&')
+}
+
+// The browse page's matching rule, shared so the web and the bot can never
+// disagree on what a search finds: "@handle" narrows to the author, anything
+// else matches the deck name or the author.
+function deckSearchCondition(search: string): SQL | undefined {
+  const s = search.trim()
+  if (!s) return undefined
+  if (s.startsWith('@')) return ilike(user.username, `%${escapeLike(s.slice(1))}%`)
+  const q = `%${escapeLike(s)}%`
+  return or(ilike(decks.name, q), ilike(user.username, q))
+}
 
 export async function toggleLike(db: DB, deckId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
   return db.transaction(async (tx) => {
@@ -67,16 +104,8 @@ export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Prom
   const page = input.page && input.page >= 1 ? Math.floor(input.page) : 1
   const conds = [eq(decks.visibility, 'public')]
 
-  const search = input.search?.trim()
-  if (search) {
-    if (search.startsWith('@')) {
-      const handle = `%${search.slice(1)}%`
-      conds.push(ilike(user.username, handle))
-    } else {
-      const q = `%${search}%`
-      conds.push(or(ilike(decks.name, q), ilike(user.username, q))!)
-    }
-  }
+  const match = deckSearchCondition(input.search ?? '')
+  if (match) conds.push(match)
   if (input.lessons?.length) conds.push(arrayOverlaps(decks.lessons, input.lessons))
   if (input.format) conds.push(eq(decks.format, input.format))
   const where = and(...conds)
@@ -132,4 +161,67 @@ export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Prom
     starterArtCropVersion: starterCropByDeck.get(r.id) ?? null,
   }))
   return { entries, total, page, pageCount, pageSize: PUBLIC_PAGE_SIZE }
+}
+
+export async function suggestDecks(db: DB, input: SuggestDecksInput): Promise<DeckSuggestion[]> {
+  const { viewerId } = input
+  const own = viewerId ? sql<boolean>`${decks.userId} = ${viewerId}` : sql<boolean>`false`
+  const visible = viewerId
+    ? or(eq(decks.visibility, 'public'), eq(decks.userId, viewerId))!
+    : eq(decks.visibility, 'public')
+  const match = deckSearchCondition(input.query)
+  // An exact name first: the bot resolves typed free text by exact name among
+  // these rows, so a poorly liked exact match must not fall past the limit.
+  // Then own decks, most recently edited first; then public decks by likes.
+  // NULLS LAST matters: Postgres sorts NULL first under DESC, which would put
+  // every public deck's null "own updated" key ahead of the own decks. A null
+  // viewer skips the own keys: Postgres rejects a bare constant in ORDER BY.
+  const name = input.query.trim()
+  const exact = name && !name.startsWith('@')
+    ? sql<boolean>`lower(${decks.name}) = lower(${name})`
+    : null
+  const order = [
+    ...(exact ? [sql`${exact} desc`] : []),
+    ...(viewerId ? [
+      sql`${own} desc`,
+      sql`case when ${own} then ${decks.updatedAt} end desc nulls last`,
+    ] : []),
+    desc(decks.likeCount),
+    desc(decks.createdAt),
+    // A total order: autocomplete and the "did you mean" menu run this query
+    // moments apart, and two tied decks must not swap places between them.
+    asc(decks.id),
+  ]
+
+  const rows = await db.select({
+    id: decks.id, name: decks.name, format: decks.format, visibility: decks.visibility,
+    displayUsername: user.displayUsername, username: user.username, displayName: user.name,
+    isOwn: own,
+    exactName: exact ?? sql<boolean>`false`,
+  }).from(decks).innerJoin(user, eq(user.id, decks.userId))
+    .where(match ? and(visible, match) : visible)
+    .orderBy(...order)
+    .limit(input.limit ?? SUGGEST_LIMIT)
+
+  return rows.map((r) => ({
+    id: r.id, name: r.name, format: r.format as DeckFormat,
+    visibility: r.visibility as DeckVisibility,
+    author: r.displayUsername ?? r.username ?? r.displayName ?? '—',
+    isOwn: Boolean(r.isOwn),
+    exactName: Boolean(r.exactName),
+  }))
+}
+
+// One primary-key read, cheap enough to run before a Discord interaction is
+// acknowledged: /deck needs the answer to decide whether its first reply is
+// public or ephemeral.
+export async function getDeckAccess(
+  db: DB, id: string, viewerId: string | null,
+): Promise<DeckAccess | null> {
+  const [row] = await db.select({ name: decks.name, visibility: decks.visibility, userId: decks.userId })
+    .from(decks).where(eq(decks.id, id)).limit(1)
+  if (!row) return null
+  if (row.visibility === 'public') return { access: 'public', name: row.name }
+  if (viewerId && row.userId === viewerId) return { access: 'own-private', name: row.name }
+  return null
 }

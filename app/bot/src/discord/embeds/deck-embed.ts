@@ -1,18 +1,23 @@
 import { EmbedBuilder, type APIEmbedField } from 'discord.js'
 import { LESSONS } from '@revelio/core'
-import type { DeckEntryView, PublicDeck } from '../../data/decks'
+import type { DeckEntryView, DeckView } from '../../data/decks'
 import { t } from '../../i18n/t'
 import { deckUrl } from '../../links'
 import { inlineGrid } from './inline-grid'
 
-// The image view carries the attachment's file name because that is the only
-// handle an embed has on an upload, and the render service picks the format it
-// settled on - PNG, or WebP when the PNG overshot the attachment ceiling. A
-// single constant here used to be enough, back when one painter picked one
-// format for every sheet.
+// linkPage: false leaves the title unlinked. A private deck posted to a channel
+// would otherwise link a page that answers "not found" for everyone but its
+// owner. Required, so a new caller has to decide rather than link by default.
+type DeckEmbedBase = { locale: string; siteBase: string; linkPage: boolean }
+
 export type DeckEmbedOptions =
-  | { locale: string; siteBase: string; view: 'list' }
-  | { locale: string; siteBase: string; view: 'image'; imageName: string }
+  | DeckEmbedBase & { view: 'list' }
+  // The image view carries the attachment's file name because that is the
+  // only handle an embed has on an upload, and the render service picks the
+  // format it settled on - PNG, or WebP when the PNG overshot the attachment
+  // ceiling. A single constant here used to be enough, back when one painter
+  // picked one format for every sheet.
+  | DeckEmbedBase & { view: 'image'; imageName: string }
 
 const FIELD_LIMIT = 1024
 const FALLBACK_COLOR = 0x2b2d31
@@ -51,11 +56,11 @@ function cardList(entries: DeckEntryView[], locale: string): string {
   return lines.join('\n')
 }
 
-export function deckEmbed(deck: PublicDeck, opts: DeckEmbedOptions): EmbedBuilder {
+export function deckEmbed(deck: DeckView, opts: DeckEmbedOptions): EmbedBuilder {
   const { locale } = opts
   const embed = new EmbedBuilder()
     .setTitle(deck.name)
-    .setURL(deckUrl(opts.siteBase, deck.id, locale))
+    .setURL(opts.linkPage ? deckUrl(opts.siteBase, deck.id, locale) : null)
     .setColor(lessonColor(deck.topLesson))
     .setFooter({
       text: deck.ownerUsername

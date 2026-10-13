@@ -69,7 +69,7 @@ export const BOT_COMMANDS: readonly BotCommandSpec[] = [
     ephemeral: false,
     linkRequired: false,
     options: [
-      { name: 'deck', type: 'string', required: true, autocomplete: false },
+      { name: 'deck', type: 'string', required: true, autocomplete: true },
       { name: 'view', type: 'string', required: false, autocomplete: false, values: ['image', 'list'] },
     ],
   },

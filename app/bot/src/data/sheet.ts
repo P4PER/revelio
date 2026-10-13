@@ -1,6 +1,6 @@
 import { SHEET_LOCALES, pickSheetEntries, type DeckSheetRequest } from '@revelio/core'
 import type { BotEnv } from '../env'
-import type { PublicDeck } from './decks'
+import type { DeckView } from './decks'
 
 // The rendered sheet and the file name it has to be uploaded under. Discord
 // sniffs the content, but media.discordapp.net keys its transcoding off the
@@ -58,7 +58,7 @@ async function readBounded(res: Response, limit: number): Promise<Buffer> {
  * - because /deck answers a throw with the list embed it can always draw from
  * data already in hand.
  */
-export async function requestDeckSheet(deck: PublicDeck, locale: string, env: BotEnv): Promise<DeckSheet> {
+export async function requestDeckSheet(deck: DeckView, locale: string, env: BotEnv): Promise<DeckSheet> {
   const body: DeckSheetRequest = {
     locale: sheetLocale(locale),
     maxBytes: MAX_ATTACHMENT_BYTES,

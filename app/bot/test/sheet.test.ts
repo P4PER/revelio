@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import type { DeckCardView } from '@revelio/core'
 import { requestDeckSheet } from '../src/data/sheet'
-import type { PublicDeck } from '../src/data/decks'
+import type { DeckView } from '../src/data/decks'
 import type { BotEnv } from '../src/env'
 
 afterEach(() => { vi.unstubAllGlobals() })
@@ -19,7 +19,7 @@ const deck = {
   id: 'abc', name: 'Charms Aggro', format: 'classic', ownerUsername: 'seeker',
   character: null, main: [], sideboard: [], entries: [view('harry')],
   mainCount: 2, sideboardCount: 0, topLesson: null, status: 'legal',
-} as unknown as PublicDeck
+} as unknown as DeckView
 
 const env = {
   SHEET_SERVICE_URL: 'http://sheet:8080',

@@ -11,8 +11,9 @@ What it actually reads is what you type into a slash command's options - a card
 name, a search query, a deck link. Nothing else about the conversation reaches
 it.
 
-For `/collection` and `/mydecks` it also reads your own Revelio data, resolved
-through the Discord account you linked yourself. It reaches that data directly
+For `/collection` and `/mydecks`, and for your own private decks in `/deck`, it
+also reads your own Revelio data, resolved through the Discord account you
+linked yourself. It reaches that data directly
 over a private network connection, with a read-only search key: the bot cannot
 write to the card index, and it never sees the keys that could.
 
@@ -34,6 +35,10 @@ filter applied per command, so it cannot be forgotten in a new one.
 
 `/card`, `/search` and `/deck` answer in the channel, visibly to everyone. They
 are about the game, not about you.
+
+The one exception is your own private deck. `/deck` first asks you, privately,
+whether to post it to the channel or show it only to you, and nothing reaches
+the channel until you choose.
 
 `/collection` and `/mydecks` answer privately - only you see the reply, even in a
 busy channel. That is decided before the command does any work at all, so there

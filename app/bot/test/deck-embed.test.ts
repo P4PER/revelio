@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import { deckEmbed } from '../src/discord/embeds/deck-embed'
-import type { PublicDeck } from '../src/data/decks'
+import type { DeckView } from '../src/data/decks'
 
-const deck: PublicDeck = {
+const deck: DeckView = {
   id: 'abc123',
   name: 'Charms Aggro',
   format: 'classic',
   ownerUsername: 'seeker',
+  visibility: 'public',
   character: { name: 'Harry Potter', quantity: 1, cost: null, lesson: null, setCode: 'BS', number: '1' },
   main: [
     { name: 'Charms Lesson', quantity: 8, cost: 0, lesson: 'charms', setCode: 'BS', number: '112' },
@@ -20,13 +21,21 @@ const deck: PublicDeck = {
   status: 'incomplete',
 }
 
-const opts = { locale: 'en', siteBase: 'https://revelio.cards', view: 'list' } as const
+const opts = { locale: 'en', siteBase: 'https://revelio.cards', linkPage: true, view: 'list' } as const
 
 describe('deckEmbed', () => {
   it('titles with the deck name and links to the deck page', () => {
     const json = deckEmbed(deck, opts).toJSON()
     expect(json.title).toBe('Charms Aggro')
     expect(json.url).toBe('https://revelio.cards/decks/abc123')
+  })
+
+  // A private deck posted to a channel would otherwise link a page that
+  // answers "not found" for everyone but its owner.
+  it('drops the page link when told the page cannot be opened', () => {
+    const json = deckEmbed(deck, { ...opts, linkPage: false }).toJSON()
+    expect(json.title).toBe('Charms Aggro')
+    expect(json.url).toBeUndefined()
   })
 
   it('pads Format and Legality to a full row when there is no character', () => {

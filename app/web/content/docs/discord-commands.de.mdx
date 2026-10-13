@@ -27,15 +27,26 @@ sich kombinieren: Lektion und Set zusammen schränken auf beides ein.
 
 ## Deck nachschlagen
 
-Zeigt ein öffentliches Deck per Link oder ID als Bild seiner Karten - dasselbe
+Findet ein Deck per Name und zeigt es als Bild seiner Karten - dasselbe
 Deck-Blatt, das im Deck-Builder unter "PNG exportieren" herauskommt, nach
 Kartentyp gruppiert und mit der Anzahl auf jeder Karte. Das Embed darüber nennt
 Charakter, Format und Legalität. Mit `view:list` kommt stattdessen eine
 Textliste, die sich auf einer langsamen Verbindung besser liest und kopieren
-lässt. So lassen sich nur öffentliche Decks nachschlagen - deine eigenen
-privaten Decks listet `/mydecks` auf.
+lässt.
+
+Beim Tippen schlägt Discord passende Decks vor: alle öffentlichen und, wenn dein
+Konto verknüpft ist, auch deine eigenen privaten, mit einem Schloss markiert.
+Mit `@` am Anfang suchst du nach Autor. Ein eingefügter Deck-Link oder eine ID
+funktioniert ebenfalls. Schickst du einen Namen ab, ohne einen Vorschlag zu
+wählen, und passen mehrere Decks, fragt der Bot dich privat, welches du meinst.
+
+Deine eigenen privaten Decks werden nie ohne Nachfrage gepostet. Der Bot
+antwortet zuerst nur dir, mit **Öffentlich posten** und **Nur mir zeigen**; die
+Buttons funktionieren eine Minute lang.
 
 <CommandTable name="deck" />
+
+<CommandExample>/deck deck:Gryffindor Aggro</CommandExample>
 
 <CommandExample>/deck deck:https://revelio.cards/decks/abc123</CommandExample>
 

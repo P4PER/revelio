@@ -82,5 +82,12 @@
   "post.sharedCard": "{user} hat eine Karte geteilt.",
   "post.done": "Im Kanal gepostet.",
   "post.cannotPostCards": "Ich kann in diesem Kanal nicht posten. Revelio braucht hier die Berechtigung, den Kanal zu sehen, Nachrichten zu senden und Links einzubetten.",
-  "post.cannotPostHere": "Hier kann ich nicht posten, zum Beispiel in einem Server, in dem nur du Revelio hinzugefügt hast."
+  "post.cannotPostHere": "Hier kann ich nicht posten, zum Beispiel in einem Server, in dem nur du Revelio hinzugefügt hast.",
+  "search.share.prompt": "Welche Karten soll ich im Kanal posten?",
+  "search.share.placeholder": "Karten auswählen",
+  "search.share.cancel": "Abbrechen",
+  "post.sharedCards": "{user} hat {count} Karten geteilt.",
+  "post.sharedCards.query": "{user} hat {count} Karten aus einer Suche nach „{query}“ geteilt.",
+  "share.view.placeholder": "Karte ansehen ...",
+  "share.site": "Ganze Suche auf revelio.cards"
 }

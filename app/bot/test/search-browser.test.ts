@@ -195,3 +195,57 @@ describe('posting one card', () => {
     expect(textOf(c.followUp.mock.calls[0][0])).toContain("I can't post here")
   })
 })
+
+describe('sharing results', () => {
+  it('asks which cards, privately', async () => {
+    const deps = fakeDeps(hits, 23)
+    const { c, done } = click(encodeCustomId({ kind: 'sh', state }), deps)
+    await done
+    expect(textOf(c.editReply.mock.calls[0][0])).toBe('Which cards should I post to the channel?')
+    expect(c.channel.send).not.toHaveBeenCalled()
+  })
+
+  it('posts the picked cards and returns to the results', async () => {
+    const deps = fakeDeps([card(1), card(3)], 2)
+    const { c, done } = click(encodeCustomId({ kind: 'sp', state }), deps, { values: ['base-1', 'base-3'] })
+    await done
+    expect(deps.search.mock.calls[0][1].filter).toContain('id IN ["base-1","base-3"]')
+    expect(textOf(c.channel.send.mock.calls[0][0])).toMatch(/^<@111> shared 2 cards/)
+    expect(textOf(c.editReply.mock.calls.at(-1)![0])).toContain('Cards found')
+    expect(c.reply).not.toHaveBeenCalled()
+  })
+
+  it('drops a tampered value before it reaches the search', async () => {
+    const deps = fakeDeps([card(1)], 1)
+    await click(encodeCustomId({ kind: 'sp', state }), deps, { values: ['base-1', 'x"] OR id EXISTS'] }).done
+    expect(deps.search.mock.calls[0][1].filter).toContain('id IN ["base-1"]')
+  })
+
+  it('refuses privately when the bot may not post there', async () => {
+    const deps = fakeDeps(hits, 23)
+    const { c, done } = click(encodeCustomId({ kind: 'sp', state }), deps, { values: ['base-1'], allowed: false })
+    await done
+    expect(c.channel.send).not.toHaveBeenCalled()
+    expect(c.reply.mock.calls[0][0].flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
+  })
+})
+
+describe('View a card, on a shared list', () => {
+  it('answers whoever picks, privately and in their language, and leaves the list alone', async () => {
+    const deps = fakeDeps([card(1)], 1)
+    const { c, done } = click('v1:pk', deps, { values: ['base-1'], ephemeral: false, locale: 'de' })
+    await done
+    expect(c.deferReply).toHaveBeenCalledWith({ flags: MessageFlags.Ephemeral })
+    expect(c.update).not.toHaveBeenCalled()
+    expect(c.deferUpdate).not.toHaveBeenCalled()
+    const payload = c.editReply.mock.calls[0][0]
+    expect(textOf(payload)).toMatch(/## Card 1/)
+    expect(buttonsOf(payload).map((b) => b.label)).toEqual(['Auf revelio.cards öffnen'])
+  })
+
+  it('says a vanished card is gone', async () => {
+    const { c, done } = click('v1:pk', fakeDeps([], 0), { values: ['base-9'], ephemeral: false })
+    await done
+    expect(textOf(c.editReply.mock.calls[0][0])).toBe('That card is no longer in the database.')
+  })
+})

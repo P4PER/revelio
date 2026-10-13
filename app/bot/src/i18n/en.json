@@ -82,5 +82,12 @@
   "post.sharedCard": "{user} shared a card.",
   "post.done": "Posted to the channel.",
   "post.cannotPostCards": "I can't post in this channel. Revelio needs permission to view it, send messages and embed links here.",
-  "post.cannotPostHere": "I can't post here, for example in a server where only you added Revelio."
+  "post.cannotPostHere": "I can't post here, for example in a server where only you added Revelio.",
+  "search.share.prompt": "Which cards should I post to the channel?",
+  "search.share.placeholder": "Pick cards",
+  "search.share.cancel": "Cancel",
+  "post.sharedCards": "{user} shared {count} cards.",
+  "post.sharedCards.query": "{user} shared {count} cards from a search for \"{query}\".",
+  "share.view.placeholder": "View a card...",
+  "share.site": "Full search on revelio.cards"
 }

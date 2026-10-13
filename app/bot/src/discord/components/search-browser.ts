@@ -3,6 +3,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   DiscordAPIError,
+  MessageFlags,
   type MessageComponentInteraction,
 } from 'discord.js'
 import type { Deps } from '../../clients'
@@ -13,7 +14,8 @@ import { t } from '../../i18n/t'
 import { postTarget, refusal } from '../channel-post'
 import { cardView } from '../v2/card-view'
 import { searchView, ANY } from '../v2/search-view'
-import { EPHEMERAL_V2, textMessage, v2Edit, v2Message, type V2Edit } from '../v2/send'
+import { EPHEMERAL_V2, textEdit, textMessage, v2Edit, v2Message, type V2Edit } from '../v2/send'
+import { sharePicker, shareView } from '../v2/share-view'
 import {
   encodeCustomId,
   isEntityId,
@@ -41,25 +43,28 @@ function picked(interaction: MessageComponentInteraction): string | null {
   return value && value !== ANY ? value : null
 }
 
+// Share and the picker share one read of the page, so the picker offers exactly
+// the cards the caller was looking at.
+async function pageOf(deps: Deps, state: CardBrowseState, locale: string) {
+  return findCards(deps.meili, {
+    query: state.query,
+    locale,
+    page: state.page,
+    filters: {
+      ...(state.lesson ? { lesson: [state.lesson] } : {}),
+      ...(state.type ? { types: [state.type] } : {}),
+      ...(state.set ? { setCode: [state.set] } : {}),
+    },
+  })
+}
+
 export async function renderSearchBrowser(
   deps: Deps,
   state: CardBrowseState,
   locale: string,
   canPost: boolean,
 ): Promise<V2Edit> {
-  const [page, sets] = await Promise.all([
-    findCards(deps.meili, {
-      query: state.query,
-      locale,
-      page: state.page,
-      filters: {
-        ...(state.lesson ? { lesson: [state.lesson] } : {}),
-        ...(state.type ? { types: [state.type] } : {}),
-        ...(state.set ? { setCode: [state.set] } : {}),
-      },
-    }),
-    deps.sets.all(locale),
-  ])
+  const [page, sets] = await Promise.all([pageOf(deps, state, locale), deps.sets.all(locale)])
   return v2Edit(searchView(page, state, {
     locale,
     imageBase: deps.env.IMAGE_BASE_URL,
@@ -196,6 +201,67 @@ const postCard: ComponentHandler = async (interaction, id, deps) => {
   }
 }
 
+const share: ComponentHandler = async (interaction, id, deps) => {
+  if (!isCardState(id)) return
+  const locale = toRevelioLocale(interaction.locale)
+  await interaction.deferUpdate()
+  const page = await pageOf(deps, id.state, locale)
+  if (!page.hits.length) {
+    await interaction.editReply(await renderSearchBrowser(deps, id.state, locale, interaction.inGuild()))
+    return
+  }
+  await interaction.editReply(v2Edit(sharePicker(page.hits, id.state, locale)))
+}
+
+// The picked cards are read again by id: the values are client data, so an
+// invalid one is dropped before the query and a card gone since simply drops
+// out of the result.
+const sharePicked: ComponentHandler = async (interaction, id, deps) => {
+  if (!isCardState(id)) return
+  const locale = toRevelioLocale(interaction.locale)
+  const target = postTarget(interaction, { needsFiles: false })
+  if (target.kind !== 'ok') {
+    await interaction.reply({ ...textMessage(t(locale, postRefusalKey(target.kind))), flags: EPHEMERAL_V2 })
+    return
+  }
+  const ids = interaction.isStringSelectMenu() ? interaction.values.filter(isEntityId) : []
+  await interaction.deferUpdate()
+  const chosen = ids.length
+    ? await findCards(deps.meili, { query: '', locale, filters: { ids }, pageSize: ids.length })
+    : null
+  if (chosen?.hits.length) {
+    const message = v2Message(shareView(chosen.hits, id.state, {
+      locale,
+      imageBase: deps.env.IMAGE_BASE_URL,
+      siteBase: deps.env.SITE_BASE_URL,
+      sharerId: interaction.user.id,
+    }))
+    if (await sendToChannel(interaction, () => target.channel.send(message), locale)) {
+      await interaction.followUp({ ...textMessage(t(locale, 'post.done')), flags: EPHEMERAL_V2 })
+    }
+  }
+  await interaction.editReply(await renderSearchBrowser(deps, id.state, locale, interaction.inGuild()))
+}
+
+// On the public list: answered privately, in the clicker's own language, and
+// never by touching the list itself (see components/index.ts).
+const viewShared: ComponentHandler = async (interaction, _id, deps) => {
+  const cardId = picked(interaction)
+  const locale = toRevelioLocale(interaction.locale)
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral })
+  const doc = cardId && isEntityId(cardId) ? await findCardById(deps.meili, cardId, locale) : null
+  if (!doc) {
+    await interaction.editReply(textEdit(t(locale, 'card.gone')))
+    return
+  }
+  const detail = await loadCardDetail(deps, doc, locale)
+  await interaction.editReply(v2Edit(cardView(detail, {
+    locale,
+    imageBase: deps.env.IMAGE_BASE_URL,
+    siteBase: deps.env.SITE_BASE_URL,
+  })))
+}
+
 export const SEARCH_HANDLERS: readonly (readonly [CustomId['kind'], ComponentHandler])[] = [
   ['s', navigate],
   ['sl', filterLesson],
@@ -204,4 +270,7 @@ export const SEARCH_HANDLERS: readonly (readonly [CustomId['kind'], ComponentHan
   ['co', openCard],
   ['cb', backToResults],
   ['cp', postCard],
+  ['sh', share],
+  ['sp', sharePicked],
+  ['pk', viewShared],
 ]

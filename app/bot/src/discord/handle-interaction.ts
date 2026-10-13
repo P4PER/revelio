@@ -87,7 +87,9 @@ export async function handleInteraction(interaction: Interaction, deps: Deps): P
     console.error(`command ${interaction.commandName} failed (${interaction.id}):`, err)
     const content = t(toRevelioLocale(interaction.locale), 'error.generic')
     if (interaction.deferred) {
-      // Every deferred reply is V2, and a content edit on one is a 400.
+      // A deferred placeholder takes a V2 edit, and a content edit on a V2
+      // reply is a 400. /search, /mydecks and /deck still edit V1 until phases
+      // 2 and 3, but each makes that edit last, so nothing throws after it.
       await interaction.editReply(textEdit(content)).catch(() => {})
     } else if (interaction.replied) {
       // Only /deck replies without deferring, with a V1 prompt (until phase 3

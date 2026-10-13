@@ -1,11 +1,14 @@
 import {
   AttachmentBuilder,
+  DiscordAPIError,
   MessageFlags,
+  PermissionFlagsBits,
   SlashCommandBuilder,
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
   type EmbedBuilder,
   type MessageComponentInteraction,
+  type SendableChannels,
 } from 'discord.js'
 import { getDeckAccess, type DeckSuggestion } from '@revelio/db'
 import type { Deps } from '../../clients'
@@ -41,6 +44,14 @@ type Delivery = 'post' | 'self'
 // sent, so the page link is decided from data rather than defaulted.
 type Audience = 'channel' | 'caller'
 
+// What a plain channel post of a deck needs: the embed and the sheet are an
+// embed and an attachment. A thread takes its own send permission.
+const POST_PERMISSIONS = [
+  PermissionFlagsBits.ViewChannel,
+  PermissionFlagsBits.EmbedLinks,
+  PermissionFlagsBits.AttachFiles,
+]
+
 export const data = new SlashCommandBuilder()
   .setName('deck')
   .setDescription(t('en', 'command.deck.description'))
@@ -69,8 +80,8 @@ export const data = new SlashCommandBuilder()
 // be had must not cost the answer: both fall back to the list the embed can
 // always draw from the data already in hand. The bot draws nothing itself -
 // @revelio/sheet is the only process that paints a deck. `send` is whichever
-// call puts the answer where it belongs: the command's deferred reply, or the
-// deferred reply to a click on a prompt.
+// call puts the answer where it belongs: the command's deferred reply, the
+// deferred reply to a click, or a plain message in the channel.
 async function deliverDeck(
   send: (payload: DeckPayload) => Promise<unknown>,
   deck: DeckView,
@@ -83,36 +94,63 @@ async function deliverDeck(
   const linkPage = audience === 'caller' || deck.visibility === 'public'
   const siteBase = ctx.deps.env.SITE_BASE_URL
   if (!ctx.listOnly && deck.entries.length > 0) {
-    try {
-      const sheet = await requestDeckSheet(deck, locale, ctx.deps.env)
-      await send({
-        embeds: [deckEmbed(deck, { locale, siteBase, linkPage, view: 'image', imageName: sheet.name })],
-        files: [new AttachmentBuilder(sheet.body, { name: sheet.name })],
-        components: [],
-      })
-      return
-    } catch (err) {
+    const sheet = await requestDeckSheet(deck, locale, ctx.deps.env).catch((err: unknown) => {
       console.error('deck sheet render failed:', err)
+      return null
+    })
+    if (sheet) {
+      try {
+        await send({
+          embeds: [deckEmbed(deck, { locale, siteBase, linkPage, view: 'image', imageName: sheet.name })],
+          files: [new AttachmentBuilder(sheet.body, { name: sheet.name })],
+          components: [],
+        })
+        return
+      } catch (err) {
+        // Discord can reject the upload itself (an attachment it will not
+        // take), which must cost the picture rather than the answer. Only a
+        // rejection Discord answered proves nothing was posted, though: a
+        // timeout or a dropped socket may have reached the channel, and a
+        // retry as the list could then post the deck twice.
+        if (!(err instanceof DiscordAPIError)) throw err
+        console.error('deck sheet upload rejected:', err)
+      }
     }
   }
   await send({ embeds: [deckEmbed(deck, { locale, siteBase, linkPage, view: 'list' })], components: [] })
 }
 
-// Answers a click on the prompt with the deck's own message. Whether the deck
-// may be shown is checked again here rather than carried from before the
-// prompt: it may have been deleted or made private in the meantime. `asOwner`
-// says whose eyes both checks use: the clicker's linked account only once they
-// have confirmed through the visibility prompt, nobody for a deck posted
-// unprompted. That account is resolved again on the click rather than reused
-// from the command's start, because resolveLinkedUser is where a ban or an
-// unlink is enforced, and either can land inside the prompt's 60 s.
+// The channel a deck may be posted to as a plain message, or null. Discord
+// sends the bot's permissions in that channel with every interaction, so this
+// needs no request of its own.
+function postableChannel(component: MessageComponentInteraction): SendableChannels | null {
+  const channel = component.channel
+  if (!channel?.isSendable()) return null
+  const send = channel.isThread()
+    ? PermissionFlagsBits.SendMessagesInThreads
+    : PermissionFlagsBits.SendMessages
+  return component.appPermissions.has([...POST_PERMISSIONS, send]) ? channel : null
+}
+
+// Answers a click on the prompt. Whether the deck may be shown is checked
+// again here rather than carried from before the prompt: it may have been
+// deleted or made private in the meantime. `asOwner` says whose eyes both
+// checks use: the clicker's linked account only once they have confirmed
+// through the visibility prompt, nobody for a deck posted unprompted. That
+// account is resolved again on the click rather than reused from the command's
+// start, because resolveLinkedUser is where a ban or an unlink is enforced,
+// and either can land inside the prompt's 60 s.
 //
 // Before the click is acknowledged, only those two indexed reads run, so the
-// 3 s budget holds, and a miss stays in the private prompt
-// instead of opening a public "thinking" message that has to be taken back.
-// Then deferReply, which gives Discord's native loading state on the new
-// message (deferUpdate would show nothing while the sheet renders), and only
-// then the full load, which is several queries.
+// 3 s budget holds and a miss stays in the private prompt. Then:
+// - 'post' goes to the channel as a plain message. An interaction reply to
+//   the click would render as a reply to the private, deleted prompt. The
+//   prompt turns into a progress line at once, the channel shows the bot
+//   typing while the sheet renders, and the prompt is deleted once the deck
+//   is up.
+// - 'self' answers with an ephemeral deferReply, Discord's native loading
+//   state on the deck's own message, and the prompt is deleted.
+// The full load, several queries, only runs after that.
 async function deliverChoice(
   prompt: ChatInputCommandInteraction,
   component: MessageComponentInteraction,
@@ -121,42 +159,48 @@ async function deliverChoice(
   ctx: DeckContext,
   asOwner: boolean,
 ): Promise<void> {
-  const isPublic = delivery === 'post'
+  const { locale } = ctx
   let loadAs: string | null = null
+  let channel: SendableChannels | null = null
   try {
     if (asOwner) loadAs = await resolveLinkedUser(ctx.deps.db, component.user.id)
     const access = await getDeckAccess(ctx.deps.db, deckId, loadAs)
     if (!access) {
-      await component.update({ content: t(ctx.locale, 'deck.notFound'), components: [] })
+      await component.update({ content: t(locale, 'deck.notFound'), components: [] })
       return
     }
-    await (isPublic ? component.deferReply() : component.deferReply({ flags: MessageFlags.Ephemeral }))
+    if (delivery === 'post') {
+      channel = postableChannel(component)
+      if (!channel) {
+        await component.update({ content: t(locale, 'deck.cannotPost'), components: [] })
+        return
+      }
+      await component.update({ content: t(locale, 'deck.posting'), components: [] })
+    } else {
+      await component.deferReply({ flags: MessageFlags.Ephemeral })
+      // Answered: the deck's own message replaces the prompt. A prompt the
+      // user already dismissed has nothing left to delete.
+      await prompt.deleteReply().catch(() => {})
+    }
   } catch (err) {
     // The click itself has to be answered. The top-level handler only knows
     // the slash command's interaction, so an error left to it would edit the
     // prompt while the clicker still sees "This interaction failed".
     console.error('deck prompt failed:', err)
     await component
-      .update({ content: t(ctx.locale, 'error.generic'), components: [] })
+      .update({ content: t(locale, 'error.generic'), components: [] })
       .catch(() => {})
     return
   }
 
-  // Answered: the deck's own message replaces the prompt. A prompt the user
-  // already dismissed has nothing left to delete.
-  await prompt.deleteReply().catch(() => {})
-
-  // An empty public placeholder must not linger in the channel, so a failure
-  // there is withdrawn and told to the caller alone; a private one simply
-  // becomes the message.
+  // A failure from here on is told to the caller alone: in the prompt for a
+  // post, which never reached the channel, or in the private deck message.
   const fail = async (key: string): Promise<void> => {
-    const content = t(ctx.locale, key)
-    if (isPublic) {
-      await component.deleteReply().catch(() => {})
-      await component.followUp({ content, flags: MessageFlags.Ephemeral }).catch(() => {})
-    } else {
-      await component.editReply({ content, embeds: [], files: [], components: [] }).catch(() => {})
-    }
+    const content = t(locale, key)
+    const payload = channel
+      ? { content, components: [] }
+      : { content, embeds: [], files: [], components: [] }
+    await component.editReply(payload).catch(() => {})
   }
   try {
     const deck = await getDeckView(ctx.deps.db, deckId, loadAs)
@@ -164,7 +208,17 @@ async function deliverChoice(
       await fail('deck.notFound')
       return
     }
-    await deliverDeck((p) => component.editReply(p), deck, ctx, isPublic ? 'channel' : 'caller')
+    if (channel) {
+      const target = channel
+      await target.sendTyping().catch(() => {})
+      // The mention names who shared it - a plain message carries no "used
+      // /deck" line - and never pings: the client's allowedMentions parses none.
+      const content = t(locale, 'deck.sharedBy', { user: `<@${component.user.id}>` })
+      await deliverDeck((p) => target.send({ ...p, content }), deck, ctx, 'channel')
+      await prompt.deleteReply().catch(() => {})
+    } else {
+      await deliverDeck((p) => component.editReply(p), deck, ctx, 'caller')
+    }
   } catch (err) {
     console.error('deck prompt failed:', err)
     await fail('error.generic')

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { MessageFlags } from 'discord.js'
+import { DiscordAPIError, MessageFlags, PermissionFlagsBits } from 'discord.js'
 import * as dbModule from '@revelio/db'
 import { COMMANDS } from '../src/discord/commands/index'
 import { requestDeckSheet } from '../src/data/sheet'
@@ -58,11 +58,26 @@ function fakeComponent(
     editReply: vi.fn().mockResolvedValue(undefined),
     deleteReply: vi.fn().mockResolvedValue(undefined),
     message: { awaitMessageComponent: next },
+    // A public post goes to the channel as a plain message, not as a reply to
+    // the click; appPermissions is what Discord says the bot may do there.
+    channel: {
+      isSendable: () => true,
+      isThread: () => false,
+      send: vi.fn().mockResolvedValue(undefined),
+      sendTyping: vi.fn().mockResolvedValue(undefined),
+    },
+    appPermissions: { has: vi.fn(() => true) },
   }
 }
 
 const access = (value: dbModule.DeckAccess | null) =>
   vi.spyOn(dbModule, 'getDeckAccess').mockResolvedValue(value)
+// Discord answering a send with an error: nothing was posted, so a retry is
+// safe. Any other failure (a timeout, a dropped socket) may have posted.
+const rejected = () => new DiscordAPIError(
+  { code: 40005, message: 'Request entity too large' }, 40005, 413, 'POST', '/messages', { body: undefined, files: undefined },
+)
+
 const viewer = (id: string | null) =>
   vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockResolvedValue(id)
 
@@ -392,7 +407,7 @@ describe('/deck', () => {
     vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const interaction = fakeInteraction({ deck: 'abc123' })
-    interaction.editReply.mockRejectedValueOnce(new Error('Request entity too large'))
+    interaction.editReply.mockRejectedValueOnce(rejected())
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(interaction.editReply).toHaveBeenCalledTimes(2)
     const payload = interaction.editReply.mock.calls[1][0]
@@ -463,17 +478,51 @@ describe('/deck', () => {
 
   // The click opens the deck's own message with deferReply, so Discord shows
   // its native "thinking" state at once; the answered prompt is deleted.
-  it('posts publicly only after "Post publicly"', async () => {
+  // "Post publicly" sends a plain channel message: an interaction reply to the
+  // click would render as a reply to the private, deleted prompt.
+  it('posts publicly only after "Post publicly", as a plain channel message', async () => {
     viewer('user-1')
     access({ access: 'own-private', name: 'Secret Charms' })
     vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
     const click = fakeComponent('deck:post')
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-    expect(click.deferReply).toHaveBeenCalledWith()
-    expect(click.editReply.mock.calls[0][0].embeds[0].toJSON().title).toBe('Charms Aggro')
+    expect(click.update).toHaveBeenCalledWith({ content: 'Posting to the channel...', components: [] })
+    expect(click.channel.sendTyping).toHaveBeenCalled()
+    const posted = click.channel.send.mock.calls[0][0]
+    expect(posted.content).toBe('<@111> shared a deck.')
+    expect(posted.embeds[0].toJSON().title).toBe('Charms Aggro')
+    expect(click.deferReply).not.toHaveBeenCalled()
     expect(click.followUp).not.toHaveBeenCalled()
     expect(interaction.deleteReply).toHaveBeenCalled()
+  })
+
+  // A thread has its own send permission; plain Send Messages does not count
+  // there, and asking for it would wrongly refuse a thread the bot can post in.
+  it('checks the thread send permission inside a thread', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    const click = fakeComponent('deck:post')
+    click.channel.isThread = () => true
+    click.appPermissions.has.mockImplementation(((wanted: bigint[]) =>
+      !wanted.includes(PermissionFlagsBits.SendMessages)) as never)
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.appPermissions.has.mock.calls[0][0]).toContain(PermissionFlagsBits.SendMessagesInThreads)
+    expect(click.channel.send).toHaveBeenCalled()
+  })
+
+  it('says so privately when the bot may not post in the channel', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    const click = fakeComponent('deck:post')
+    click.appPermissions.has.mockReturnValue(false)
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.channel.send).not.toHaveBeenCalled()
+    expect(click.update.mock.calls[0][0].content).toMatch(/can't post in this channel/)
+    expect(click.update.mock.calls[0][0].components).toEqual([])
   })
 
   it('never posts publicly for "Only show me"', async () => {
@@ -501,7 +550,7 @@ describe('/deck', () => {
     const click = fakeComponent('deck:post')
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-    expect(click.editReply.mock.calls[0][0].embeds[0].toJSON().url).toBeUndefined()
+    expect(click.channel.send.mock.calls[0][0].embeds[0].toJSON().url).toBeUndefined()
   })
 
   it('keeps the page link when a private deck is shown to its owner alone', async () => {
@@ -536,16 +585,18 @@ describe('/deck', () => {
 
   // The full deck load runs after the defer; a deck gone in that gap takes the
   // public placeholder back and tells the caller alone.
-  it('withdraws the public placeholder for a deck gone after the defer', async () => {
+  // The full load runs after the click is acknowledged; a deck gone in that gap
+  // is reported in the private prompt, and nothing reaches the channel.
+  it('reports a deck gone after the click in the prompt, and posts nothing', async () => {
     viewer('user-1')
     access({ access: 'own-private', name: 'Secret Charms' })
     vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(null)
     const click = fakeComponent('deck:post')
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-    expect(click.deleteReply).toHaveBeenCalled()
-    expect(click.followUp).toHaveBeenCalledWith({
-      content: 'No deck matched that name, link or id.', flags: MessageFlags.Ephemeral,
+    expect(click.channel.send).not.toHaveBeenCalled()
+    expect(click.editReply).toHaveBeenCalledWith({
+      content: 'No deck matched that name, link or id.', components: [],
     })
   })
 
@@ -598,19 +649,35 @@ describe('/deck', () => {
 
   // Discord rejecting the deck message itself, after the public defer: the
   // empty public placeholder is taken back and the error goes to the caller.
-  it('withdraws the public placeholder when the post fails', async () => {
+  // A send that failed without Discord's answer may still have posted, so it is
+  // not retried as the list: that could post the deck twice.
+  it('reports a failed post in the prompt without retrying it', async () => {
     viewer('user-1')
     access({ access: 'own-private', name: 'Secret Charms' })
     vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const click = fakeComponent('deck:post')
-    click.editReply.mockRejectedValue(new Error('Request entity too large'))
+    click.channel.send.mockRejectedValue(new Error('socket hang up'))
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-    expect(click.deleteReply).toHaveBeenCalled()
-    expect(click.followUp).toHaveBeenCalledWith({
-      content: expect.any(String), flags: MessageFlags.Ephemeral,
+    expect(click.channel.send).toHaveBeenCalledTimes(1)
+    expect(click.editReply).toHaveBeenCalledWith({
+      content: 'Something went wrong. Please try again in a moment.', components: [],
     })
+  })
+
+  it('posts the list when Discord rejects the picture', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const click = fakeComponent('deck:post')
+    click.channel.send.mockRejectedValueOnce(rejected())
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.channel.send).toHaveBeenCalledTimes(2)
+    expect(click.channel.send.mock.calls[1][0].files).toBeUndefined()
+    expect(interaction.deleteReply).toHaveBeenCalled()
   })
 
   it('strips the buttons when the prompt times out', async () => {
@@ -664,8 +731,8 @@ describe('/deck', () => {
       const pick = fakeComponent('deck:pick', ['pub'])
       const interaction = fakeInteraction({ deck: 'aggro' }, 'en', vi.fn().mockResolvedValue(pick))
       await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-      expect(pick.deferReply).toHaveBeenCalledWith()
-      expect(pick.editReply.mock.calls[0][0].embeds[0].toJSON().title).toBe('Charms Aggro')
+      expect(pick.channel.send.mock.calls[0][0].embeds[0].toJSON().title).toBe('Charms Aggro')
+      expect(pick.deferReply).not.toHaveBeenCalled()
       expect(interaction.deleteReply).toHaveBeenCalled()
     })
 

@@ -31,13 +31,14 @@ const worstDeck: DeckBrowseState = {
 }
 
 const ALL: CustomId[] = [
-  ...(['s', 'sl', 'st', 'ss', 'co', 'cb', 'sh', 'sp'] as const).map((kind) => ({ kind, state: card })),
+  ...(['s', 'sl', 'st', 'ss', 'co', 'cb', 'sh', 'sp', 'sq', 'sm'] as const).map((kind) => ({ kind, state: card })),
   ...(['d', 'dl', 'df', 'ds', 'do'] as const).map((kind) => ({ kind, state: deck })),
   { kind: 'cp', cardId: 'chamber-of-secrets-12' },
   { kind: 'dp', deckId: '6f1c2a5e-9a8b-4c3d-8e7f-0a1b2c3d4e5f' },
   { kind: 'pk' },
   { kind: 'pg', of: 'cards' },
   { kind: 'pg', of: 'decks' },
+  { kind: 'sx', mask: 0b10110, state: card },
 ]
 
 describe('custom ids', () => {
@@ -47,10 +48,11 @@ describe('custom ids', () => {
 
   it('stays inside 100 characters for the worst case of every kind', () => {
     const worst: CustomId[] = [
-      ...(['s', 'sl', 'st', 'ss', 'co', 'cb', 'sh', 'sp'] as const).map((kind) => ({ kind, state: worstCard })),
+      ...(['s', 'sl', 'st', 'ss', 'co', 'cb', 'sh', 'sp', 'sq', 'sm'] as const).map((kind) => ({ kind, state: worstCard })),
       ...(['d', 'dl', 'df', 'ds', 'do'] as const).map((kind) => ({ kind, state: worstDeck })),
       { kind: 'cp', cardId: 'x'.repeat(64) },
       { kind: 'dp', deckId: 'x'.repeat(64) },
+      { kind: 'sx', mask: 31, state: worstCard },
     ]
     for (const id of worst) expect(encodeCustomId(id).length).toBeLessThanOrEqual(MAX_CUSTOM_ID)
   })
@@ -77,6 +79,9 @@ describe('custom ids', () => {
     ['an unknown deck scope', 'v1:d:x:1:-:0:-:q'],
     ['a card id with a space', 'v1:cp:a b'],
     ['an extra field on pk', 'v1:pk:1'],
+    ['an empty share mask', 'v1:sx:0:1:-:-:-:q'],
+    ['a share mask past five rows', 'v1:sx:w:1:-:-:-:q'],
+    ['a two-character share mask', 'v1:sx:1f:1:-:-:-:q'],
   ])('rejects %s', (_label, raw) => {
     expect(decodeCustomId(raw)).toBeNull()
   })

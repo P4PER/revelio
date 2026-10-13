@@ -1,10 +1,10 @@
 import type { MeiliSearch } from 'meilisearch'
 import {
+  searchCardBrowseRows,
   searchCardSuggestions,
-  searchCardSummaries,
   searchCards,
+  type CardBrowseHit,
   type CardFilters,
-  type CardSummaryHit,
   type SearchDocument,
 } from '@revelio/search'
 import { getCardRulings, type DB } from '@revelio/db'
@@ -12,7 +12,7 @@ import { getCardRulings, type DB } from '@revelio/db'
 export type CardRuling = { date: string | null; source: string | null; text: string }
 
 export type CardPage = {
-  hits: CardSummaryHit[]
+  hits: CardBrowseHit[]
   total: number
   page: number
   pageSize: number
@@ -29,24 +29,37 @@ export type CardSearchInput = {
 
 export type CardSuggestion = { id: string; label: string }
 
-export const DEFAULT_PAGE_SIZE = 10
+// Five rows with thumbnails keep the browser at 35 of Discord's 40 components.
+export const DEFAULT_PAGE_SIZE = 5
 
 // Discord's hard ceilings for an autocomplete response. Exceeding either one
 // makes the whole suggestion list silently disappear for the user.
 export const MAX_CHOICES = 25
 const MAX_LABEL = 100
+// The site's "number" and "name" sorts (web/src/lib/search-params.ts). With no
+// words to rank by, Meilisearch would return index order: a set browses #1,
+// #2, ..., and anything wider by name, since numbers restart in every set.
+// links.ts browseUrl mirrors this choice for the site link.
+const NUMBER_SORT = 'numberSort:asc'
+const NAME_SORT = 'name:asc'
+
+function browseSort(input: CardSearchInput): string[] | undefined {
+  if (input.query.trim()) return undefined
+  return [input.filters?.setCode?.length ? NUMBER_SORT : NAME_SORT]
+}
 
 export function clampLabel(value: string): string {
   return value.length <= MAX_LABEL ? value : `${value.slice(0, MAX_LABEL - 1)}…`
 }
 
-// The result embed renders one "name (set #number)" line per hit, so this asks
-// for that slice rather than whole documents - see searchCardSummaries.
+// Reads browse rows (identity, thumbnail and stats fields) rather than whole
+// documents - see searchCardBrowseRows.
 export async function findCards(meili: MeiliSearch, input: CardSearchInput): Promise<CardPage> {
   const pageSize = input.pageSize ?? DEFAULT_PAGE_SIZE
   const page = Math.max(1, Math.floor(input.page ?? 1))
-  const res = await searchCardSummaries(meili, input.locale, input.query, {
+  const res = await searchCardBrowseRows(meili, input.locale, input.query, {
     filters: input.filters,
+    sort: browseSort(input),
     page,
     hitsPerPage: pageSize,
   })

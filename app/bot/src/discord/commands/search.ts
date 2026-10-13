@@ -1,15 +1,17 @@
 import {
+  MessageFlags,
   SlashCommandBuilder,
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
 } from 'discord.js'
 import { LESSONS, TYPES, attrLabel } from '@revelio/core'
-import type { CardFilters } from '@revelio/search'
 import type { Deps } from '../../clients'
-import { clampLabel, findCards, MAX_CHOICES } from '../../data/cards'
-import { toRevelioLocale } from '../../i18n/locale'
+import { clampLabel, MAX_CHOICES } from '../../data/cards'
+import { LOCALES, toRevelioLocale } from '../../i18n/locale'
 import { t } from '../../i18n/t'
-import { searchEmbed } from '../embeds/search-embed'
+import { clampQuery, MAX_QUERY, type CardBrowseState } from '../components/custom-id'
+import { renderSearchBrowser } from '../components/search-browser'
+import { textEdit } from '../v2/send'
 
 export const data = new SlashCommandBuilder()
   .setName('search')
@@ -19,7 +21,7 @@ export const data = new SlashCommandBuilder()
     o.setName('query')
       .setDescription(t('en', 'command.search.option.query'))
       .setDescriptionLocalizations({ de: t('de', 'command.search.option.query') })
-      .setRequired(true),
+      .setMaxLength(MAX_QUERY),
   )
   .addStringOption((o) =>
     o.setName('lesson')
@@ -47,54 +49,39 @@ export const data = new SlashCommandBuilder()
       .setDescriptionLocalizations({ de: t('de', 'command.search.option.set') })
       .setAutocomplete(true),
   )
-  .addIntegerOption((o) =>
-    o.setName('page')
-      .setDescription(t('en', 'command.search.option.page'))
-      .setDescriptionLocalizations({ de: t('de', 'command.search.option.page') })
-      .setMinValue(1),
-  )
 
 export async function execute(
   interaction: ChatInputCommandInteraction,
   deps: Deps,
 ): Promise<void> {
-  await interaction.deferReply()
+  // Private before anything else: a result list is the caller's to browse.
+  // Only what they choose to share reaches the channel.
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral })
   const locale = toRevelioLocale(interaction.locale)
-  const query = interaction.options.getString('query') ?? ''
-  const lesson = interaction.options.getString('lesson')
-  const type = interaction.options.getString('type')
-  const set = interaction.options.getString('set')
-  const requestedPage = interaction.options.getInteger('page') ?? 1
 
-  const filters: CardFilters = {}
-  if (lesson) filters.lesson = [lesson]
-  if (type) filters.types = [type]
-  if (set) filters.setCode = [set]
-
-  const page = await findCards(deps.meili, { query, locale, filters, page: requestedPage })
-
-  if (page.total === 0) {
-    await interaction.editReply({ content: t(locale, 'search.noResults') })
-    return
-  }
-  // `pages` is derived from Meilisearch's estimatedTotalHits, which over-estimates,
-  // so a page can sit inside `pages` and still come back empty. Both cases are the
-  // same thing to the user: the page they asked for is not there.
-  if (page.page > page.pages || page.hits.length === 0) {
-    await interaction.editReply({
-      content: t(locale, 'search.pageOutOfRange', { pages: page.pages }),
-    })
-    return
+  // The set option autocompletes to a code but can be typed by hand, so it is
+  // resolved against the real list - by code or name in any language, any
+  // case - before it can reach a custom id.
+  const typedSet = interaction.options.getString('set')?.trim().toLowerCase() ?? ''
+  let set: string | null = null
+  if (typedSet) {
+    const sets = (await Promise.all(LOCALES.map((l) => deps.sets.all(l)))).flat()
+    const match = sets.find((s) => s.code.toLowerCase() === typedSet || s.name.toLowerCase() === typedSet)
+    if (!match) {
+      await interaction.editReply(textEdit(t(locale, 'search.setUnknown')))
+      return
+    }
+    set = match.code
   }
 
-  await interaction.editReply({
-    embeds: [searchEmbed(page, {
-      locale,
-      query,
-      siteBase: deps.env.SITE_BASE_URL,
-      filters: { lesson, type, set },
-    })],
-  })
+  const state: CardBrowseState = {
+    page: 1,
+    lesson: interaction.options.getString('lesson'),
+    type: interaction.options.getString('type'),
+    set,
+    query: clampQuery(interaction.options.getString('query') ?? ''),
+  }
+  await interaction.editReply(await renderSearchBrowser(deps, state, locale, interaction.inGuild()))
 }
 
 // Only one option on /search autocompletes, so this does not branch on which

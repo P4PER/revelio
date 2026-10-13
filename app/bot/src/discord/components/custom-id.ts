@@ -25,13 +25,16 @@ export type DeckBrowseState = {
 
 // One kind per control on a view, so no two controls of one message share an
 // id (Discord rejects duplicates): s page change, sl/st/ss lesson/type/set
-// select, co open a card, cb back to results, sh Share, sp the share picker.
-export type CardKind = 's' | 'sl' | 'st' | 'ss' | 'co' | 'cb' | 'sh' | 'sp'
+// select, co open a card, cb back to results, sh Share, sp the share picker,
+// sq the Search button and sm the search form it opens.
+export type CardKind = 's' | 'sl' | 'st' | 'ss' | 'co' | 'cb' | 'sh' | 'sp' | 'sq' | 'sm'
 // d page change, dl/df/ds lesson/format/sort select, do open a deck.
 export type DeckKind = 'd' | 'dl' | 'df' | 'ds' | 'do'
 
 // cp/dp post a card/deck, pk "View a card" on a shared list, pg the disabled
-// page indicator (a non-link button needs an id even when it does nothing).
+// page indicator (a non-link button needs an id even when it does nothing),
+// sx the share picker's Post button: the selection as a bitmask of page rows,
+// since five card ids do not fit in 100 characters.
 export type CustomId =
   | { kind: CardKind; state: CardBrowseState }
   | { kind: DeckKind; state: DeckBrowseState }
@@ -39,6 +42,7 @@ export type CustomId =
   | { kind: 'dp'; deckId: string }
   | { kind: 'pk' }
   | { kind: 'pg'; of: 'cards' | 'decks' }
+  | { kind: 'sx'; mask: number; state: CardBrowseState }
 
 // A layout change bumps the version; decode answers null for any other one,
 // which the router turns into "these results are out of date".
@@ -49,11 +53,13 @@ export const MAX_CUSTOM_ID = 100
 // makes. The worst-case test in custom-id.test.ts is what proves it fits.
 export const MAX_QUERY = 50
 export const MAX_PAGE = 9999
+// One bit per row of a five-row page; one base-36 character.
+export const MAX_MASK = 0b11111
 // Mirrors @revelio/db's PublicDeckSort; the index into it is what the id
 // carries, so the order here is part of the id format.
 export const DECK_SORTS = ['likes', 'views', 'newest', 'updated'] as const
 
-const CARD_KINDS: readonly string[] = ['s', 'sl', 'st', 'ss', 'co', 'cb', 'sh', 'sp']
+const CARD_KINDS: readonly string[] = ['s', 'sl', 'st', 'ss', 'co', 'cb', 'sh', 'sp', 'sq', 'sm']
 const DECK_KINDS: readonly string[] = ['d', 'dl', 'df', 'ds', 'do']
 // Lessons, types and formats go in as a one-character index into these lists:
 // 'care_of_magical_creatures' alone is 25 characters. Their order is therefore
@@ -142,10 +148,23 @@ export function clampQuery(query: string): string {
   return out
 }
 
+// Whether a decoded id carries a card browser's state as a CardKind. The share
+// picker's Post (sx) carries one too, but is not a browser control.
+export function isCardKind(kind: string): kind is CardKind {
+  return CARD_KINDS.includes(kind)
+}
+
+// A card or deck id as it may appear in an id or a select value. Select values
+// come back from the client, so this runs before one reaches a query.
+export function isEntityId(value: string): boolean {
+  return ENTITY_ID.test(value)
+}
+
 export function encodeCustomId(id: CustomId): string {
   let body: string
   switch (id.kind) {
     case 's': case 'sl': case 'st': case 'ss': case 'co': case 'cb': case 'sh': case 'sp':
+    case 'sq': case 'sm':
       body = encodeCard(id.state)
       break
     case 'd': case 'dl': case 'df': case 'ds': case 'do':
@@ -162,6 +181,12 @@ export function encodeCustomId(id: CustomId): string {
       break
     case 'pg':
       body = id.of === 'cards' ? 'c' : 'd'
+      break
+    case 'sx':
+      if (!Number.isInteger(id.mask) || id.mask < 1 || id.mask > MAX_MASK) {
+        throw new Error(`cannot encode share mask ${id.mask}`)
+      }
+      body = `${id.mask.toString(36)}:${encodeCard(id.state)}`
       break
   }
   const out = body ? `${ID_VERSION}:${id.kind}:${body}` : `${ID_VERSION}:${id.kind}`
@@ -188,6 +213,12 @@ export function decodeCustomId(raw: string): CustomId | null {
     return kind === 'cp' ? { kind, cardId: fields[0] } : { kind, deckId: fields[0] }
   }
   if (kind === 'pk') return fields.length === 0 ? { kind } : null
+  if (kind === 'sx') {
+    const [maskRaw, ...rest] = fields
+    const mask = maskRaw && /^[0-9a-z]$/.test(maskRaw) ? parseInt(maskRaw, 36) : 0
+    const state = decodeCard(rest)
+    return mask >= 1 && mask <= MAX_MASK && state ? { kind, mask, state } : null
+  }
   if (kind === 'pg' && fields.length === 1 && (fields[0] === 'c' || fields[0] === 'd')) {
     return { kind, of: fields[0] === 'c' ? 'cards' : 'decks' }
   }

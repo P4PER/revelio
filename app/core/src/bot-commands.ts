@@ -22,6 +22,8 @@ export type CommandOptionSpec = {
    */
   values?: readonly string[]
   min?: number
+  /** Discord's max_length; only applies to a string option. */
+  maxLength?: number
 }
 
 /**
@@ -54,14 +56,13 @@ export const BOT_COMMANDS: readonly BotCommandSpec[] = [
   },
   {
     name: 'search',
-    ephemeral: false,
+    ephemeral: true,
     linkRequired: false,
     options: [
-      { name: 'query', type: 'string', required: true, autocomplete: false },
+      { name: 'query', type: 'string', required: false, autocomplete: false, maxLength: 50 },
       { name: 'lesson', type: 'string', required: false, autocomplete: false, choices: 'lessons' },
       { name: 'type', type: 'string', required: false, autocomplete: false, choices: 'types' },
       { name: 'set', type: 'string', required: false, autocomplete: true },
-      { name: 'page', type: 'integer', required: false, autocomplete: false, min: 1 },
     ],
   },
   {

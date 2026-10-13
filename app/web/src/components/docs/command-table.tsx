@@ -108,6 +108,8 @@ export function CommandTable({ name }: { name: BotCommandName }) {
                       {t(`commands.${command.name}.options.${option.name}`)}
                       {option.min !== undefined &&
                         ` ${t('commandTable.minimum', { min: option.min })}`}
+                      {option.maxLength !== undefined &&
+                        ` ${t('commandTable.maxLength', { max: option.maxLength })}`}
                       {option.autocomplete && (
                         <span className="mt-1.5 flex">
                           <span className="rounded border border-secondary-ink/45 px-1.5 py-0.5 text-[0.68rem] font-medium text-secondary-ink">

@@ -1,47 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
-import type { MeiliSearch } from 'meilisearch'
 import * as dbModule from '@revelio/db'
 import { findCards, findOneCard, resolveCardRulings } from '../src/data/cards'
-
-// The stub honours attributesToRetrieve the way Meilisearch does. Handing back
-// whole fixtures regardless would let a caller narrow its projection and still
-// look correct here, while the real server sent the renderer nothing.
-// A relevance read leaves as a federated multi-search: a name-only query weighted
-// against the unrestricted one. The stub cannot rank, so it runs only the unrestricted
-// query - the one a federated read draws its full hit list from - through the same
-// `index` and `search` mocks, with the federated window folded back in. Routing it
-// through `index` matters: the index uid rides inside the sub-query rather than in an
-// `index()` call, and a test that asserts which locale index was read must hold
-// whichever transport the read used.
-function federatedToSearch(index: (uid: string) => { search: ReturnType<typeof vi.fn> }) {
-  return async (req: {
-    federation: Record<string, unknown>
-    queries: Record<string, unknown>[]
-  }) => {
-    const { indexUid, q, federationOptions: _opts, ...rest } =
-      req.queries[req.queries.length - 1] as Record<string, unknown> & {
-        indexUid: string
-        q: string
-      }
-    return index(indexUid).search(q, { ...rest, ...req.federation })
-  }
-}
-
-function stubMeili(hits: unknown[], estimatedTotalHits: number) {
-  const search = vi.fn().mockImplementation(
-    async (_query: string, opts: { attributesToRetrieve?: string[] } = {}) => {
-      const keep = opts.attributesToRetrieve
-      if (!keep) return { hits, estimatedTotalHits }
-      const projected = hits.map((hit) => Object.fromEntries(
-        Object.entries(hit as Record<string, unknown>).filter(([key]) => keep.includes(key)),
-      ))
-      return { hits: projected, estimatedTotalHits }
-    },
-  )
-  const index = vi.fn().mockReturnValue({ search })
-  const multiSearch = vi.fn().mockImplementation(federatedToSearch(index))
-  return { client: { index, multiSearch } as unknown as MeiliSearch, index, search, multiSearch }
-}
+import { stubMeili } from './helpers/meili'
 
 const doc = {
   id: 'base-12', name: 'Nimbus 2000', setCode: 'base', number: '12',
@@ -70,8 +30,48 @@ describe('findCards', () => {
     const { client, search } = stubMeili([doc], 1)
     await findCards(client, { query: 'nimbus', locale: 'en' })
     expect(search).toHaveBeenCalledWith('nimbus', expect.objectContaining({
-      attributesToRetrieve: ['id', 'name', 'setCode', 'number'],
+      attributesToRetrieve: [
+        'id', 'name', 'setCode', 'number', 'types', 'lesson', 'cost',
+        'imageVersion', 'imageLang', 'defaultLanguage', 'orientation',
+      ],
     }))
+  })
+
+  // A browse row draws a thumbnail and a stats line, so the read must carry the
+  // image and stat fields - and still not the rules text.
+  it('reads the browse projection, five to a page', async () => {
+    const full = {
+      ...doc, lesson: 'quidditch', cost: 4, imageVersion: 3, imageLang: 'en',
+      defaultLanguage: 'en', orientation: null, flavorText: 'Fast.',
+    }
+    const { client, search } = stubMeili([full], 1)
+    const page = await findCards(client, { query: 'nimbus', locale: 'en' })
+    expect(search).toHaveBeenCalledWith('nimbus', expect.objectContaining({ limit: 5 }))
+    expect(page.hits[0]).toMatchObject({ imageVersion: 3, lesson: 'quidditch', cost: 4, types: ['item'] })
+    expect(page.hits[0]).not.toHaveProperty('text')
+    expect(page.hits[0]).not.toHaveProperty('flavorText')
+  })
+
+  // With no words to rank by, Meilisearch returns index order; a set must
+  // browse #1, #2, ... as the site's "number" sort does.
+  it('orders a set without a query by card number', async () => {
+    const { client, search } = stubMeili([doc], 1)
+    await findCards(client, { query: '  ', locale: 'en', filters: { setCode: ['base'] } })
+    expect(search.mock.calls[0][1]).toMatchObject({ sort: ['numberSort:asc'] })
+  })
+
+  // Card numbers restart in every set, so across sets they would interleave
+  // every set's #1, then every #2.
+  it('orders a search without a query or set by name', async () => {
+    const { client, search } = stubMeili([doc], 1)
+    await findCards(client, { query: '', locale: 'en', filters: { lesson: ['charms'] } })
+    expect(search.mock.calls[0][1]).toMatchObject({ sort: ['name:asc'] })
+  })
+
+  it('ranks a query by relevance', async () => {
+    const { client, search } = stubMeili([doc], 1)
+    await findCards(client, { query: 'nimbus', locale: 'en', filters: { setCode: ['base'] } })
+    expect(search.mock.calls[0][1].sort).toBeUndefined()
   })
 
   it('clamps a page below one', async () => {

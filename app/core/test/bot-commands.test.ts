@@ -21,15 +21,17 @@ describe('BOT_COMMANDS', () => {
   // A command that answers about the asker rather than about the game needs an
   // account to answer from, and its answer is nobody else's business. The two
   // properties travel together; splitting them is how one gets forgotten.
-  it('marks personal commands as both ephemeral and link-required', () => {
-    for (const command of BOT_COMMANDS) {
-      expect(command.ephemeral).toBe(command.linkRequired)
+  // A linked command reads someone's own data, so its answer is private. The
+  // converse does not hold: /search is private but needs no account.
+  it('answers every link-required command privately', () => {
+    for (const command of BOT_COMMANDS.filter((c) => c.linkRequired)) {
+      expect(command.ephemeral).toBe(true)
     }
   })
 
-  it('keeps exactly the two personal commands out of the channel', () => {
-    expect(BOT_COMMANDS.filter((c) => c.ephemeral).map((c) => c.name))
-      .toEqual(['collection', 'mydecks'])
+  it('keeps the personal commands and the search browser out of the channel', () => {
+    expect(BOT_COMMANDS.filter((c) => c.ephemeral).map((c) => c.name).sort())
+      .toEqual(['collection', 'mydecks', 'search'])
   })
 
   // `choices` names an attribute scope rather than listing values, so the
@@ -56,7 +58,7 @@ describe('BOT_COMMANDS', () => {
   it('describes the search options in the order Discord shows them', () => {
     const search = BOT_COMMANDS.find((c) => c.name === 'search')
     expect(search?.options.map((o) => o.name))
-      .toEqual(['query', 'lesson', 'type', 'set', 'page'])
+      .toEqual(['query', 'lesson', 'type', 'set'])
   })
 
   it('takes no options for mydecks', () => {

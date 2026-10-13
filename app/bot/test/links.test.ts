@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cardUrl, deckUrl, searchUrl, settingsUrl, newDeckUrl } from '../src/links'
+import { browseUrl, cardUrl, deckUrl, searchUrl, settingsUrl, newDeckUrl } from '../src/links'
 
 describe('cardUrl', () => {
   it('omits the locale prefix for English', () => {
@@ -18,7 +18,23 @@ describe('cardUrl', () => {
   })
 })
 
+describe('browseUrl', () => {
+  const state = { query: '', lesson: null, type: null, set: null }
+  const url = (s: Partial<typeof state>) => browseUrl('https://revelio.cards', { ...state, ...s }, 'en')
+
+  it('opens the browser\'s search in the browser\'s order', () => {
+    expect(url({ query: 'lumos', set: 'base' })).toBe('https://revelio.cards/search?q=lumos&set=base')
+    expect(url({ set: 'base' })).toBe('https://revelio.cards/search?q=&set=base&sort=number')
+    expect(url({ lesson: 'charms' })).toBe('https://revelio.cards/search?q=&lesson=charms&sort=name')
+  })
+})
+
 describe('searchUrl', () => {
+  it('carries the number sort when asked to', () => {
+    expect(searchUrl('https://revelio.cards', '', 'en', { set: 'base', sort: 'number' }))
+      .toBe('https://revelio.cards/search?q=&set=base&sort=number')
+  })
+
   it('encodes the query', () => {
     expect(searchUrl('https://revelio.cards', 'harry potter', 'en'))
       .toBe('https://revelio.cards/search?q=harry+potter')

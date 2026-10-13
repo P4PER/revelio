@@ -4,6 +4,15 @@ export type SearchLinkFilters = {
   lesson?: string | null
   type?: string | null
   set?: string | null
+  sort?: 'number' | 'name' | null
+}
+
+// What a bot browser or a shared list searched for.
+export type BrowseSearch = {
+  query: string
+  lesson: string | null
+  type: string | null
+  set: string | null
 }
 
 // web/i18n/routing.ts uses localePrefix 'as-needed' with 'en' as the default,
@@ -31,6 +40,7 @@ export function searchUrl(
   if (filters.lesson) params.append('lesson', filters.lesson)
   if (filters.type) params.append('type', filters.type)
   if (filters.set) params.set('set', filters.set)
+  if (filters.sort) params.set('sort', filters.sort)
   return `${localeRoot(siteBase, locale)}/search?${params.toString()}`
 }
 
@@ -44,4 +54,13 @@ export function settingsUrl(siteBase: string, locale: string): string {
 
 export function newDeckUrl(siteBase: string, locale: string): string {
   return `${localeRoot(siteBase, locale)}/decks/new`
+}
+
+// The site's view of a bot search, in the order the bot listed it: relevance
+// for a query, else card number within a set, else name (data/cards.ts).
+export function browseUrl(siteBase: string, search: BrowseSearch, locale: string): string {
+  const sort = search.query ? null : search.set ? 'number' : 'name'
+  return searchUrl(siteBase, search.query, locale, {
+    lesson: search.lesson, type: search.type, set: search.set, sort,
+  })
 }

@@ -7,11 +7,11 @@ import {
   type ContainerBuilder,
   type MessageActionRowComponentBuilder,
 } from 'discord.js'
-import { attrLabel, humanize, imageUrl, landscapeThumbKey, thumbKey } from '@revelio/core'
+import { attrLabel, humanize } from '@revelio/core'
 import type { CardDetail } from '../../data/card-detail'
 import { t } from '../../i18n/t'
 import { cardUrl } from '../../links'
-import { container, lessonColor, linkButton, text } from './parts'
+import { cardThumbUrl, container, lessonColor, linkButton, text } from './parts'
 
 // The card.field.* labels the header uses, typed so a misspelt one fails to
 // compile instead of showing its raw catalog key in a channel.
@@ -24,6 +24,8 @@ export type CardViewOptions = {
   // Buttons that lead the link button in the view's one row: Back and Post in
   // the browser. At most four, since a row holds five.
   actions?: ButtonBuilder[]
+  // A line above the heading: who shared the card, on a post to a channel.
+  lead?: string
 }
 
 // Per-part ceilings that keep a wordy card inside the message's 4000-character
@@ -68,15 +70,13 @@ export function cardView(detail: CardDetail, opts: CardViewOptions): ContainerBu
   const { locale } = opts
   const view = container(lessonColor(doc.lesson))
 
-  view.addTextDisplayComponents(text([`## ${doc.name}`, ...headerLines(detail, locale)].join('\n')))
+  const heading = [`## ${doc.name}`, ...headerLines(detail, locale)].join('\n')
+  view.addTextDisplayComponents(text(opts.lead ? `${opts.lead}\n${heading}` : heading))
 
-  // Card faces are stored portrait, so a horizontal card uses its pre-baked
-  // landscape thumb to read upright. The 300px thumb, never the full image.
-  if (doc.imageLang && doc.imageVersion != null) {
-    const keyOf = doc.orientation === 'horizontal' ? landscapeThumbKey : thumbKey
-    const url = imageUrl(opts.imageBase, keyOf(doc.id, doc.imageVersion, doc.imageLang, doc.defaultLanguage))
+  const image = cardThumbUrl(doc, opts.imageBase)
+  if (image) {
     view.addMediaGalleryComponents(
-      new MediaGalleryBuilder().addItems(new MediaGalleryItemBuilder().setURL(url).setDescription(doc.name)),
+      new MediaGalleryBuilder().addItems(new MediaGalleryItemBuilder().setURL(image).setDescription(doc.name)),
     )
   }
 

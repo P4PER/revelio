@@ -8,6 +8,7 @@ import {
   type DeckSuggestion,
   type DeckSummary,
   type PublicDeckEntry,
+  type PublicDeckSort,
 } from '@revelio/db'
 import {
   evaluateDeck,
@@ -17,7 +18,6 @@ import {
   type DeckStatus,
   type DeckVisibility,
 } from '@revelio/core'
-import type { DeckBrowseState } from '../discord/components/custom-id'
 import { t } from '../i18n/t'
 import { clampLabel, MAX_CHOICES } from './cards'
 
@@ -60,6 +60,12 @@ export type DeckRef =
 
 export type PublicDeckPage = { entries: PublicDeckEntry[]; total: number; page: number; pages: number }
 export type OwnDeckPage = { decks: DeckSummary[]; total: number; page: number; pages: number }
+
+// What /decks filters on. The browser's custom-id state satisfies it, but data
+// takes plain fields so it never depends on how a Discord id is encoded.
+export type PublicDeckQuery = {
+  query: string; lesson: string | null; format: DeckFormat | null; sort: PublicDeckSort; page: number
+}
 
 type Sortable = Pick<DeckCardView, 'cost' | 'name'>
 
@@ -194,7 +200,7 @@ export async function resolveDeckRef(db: DB, input: string, viewerId: string | n
 
 // The web /decks page's own query, so the two can never disagree on what
 // matches - "@handle" included.
-export async function browsePublicDecks(db: DB, state: DeckBrowseState): Promise<PublicDeckPage> {
+export async function browsePublicDecks(db: DB, state: PublicDeckQuery): Promise<PublicDeckPage> {
   const res = await listPublicDecks(db, {
     search: state.query || undefined,
     lessons: state.lesson ? [state.lesson] : undefined,

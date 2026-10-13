@@ -66,7 +66,6 @@
   "decks.title": "Your decks ({count})",
   "decks.empty": "You have no decks yet. Build one at {url}",
   "decks.privateRow": "🔒 {line}",
-  "decks.cards": "{count} cards",
   "decks.header": "Public decks: **{total}**",
   "decks.header.query": "Public decks for \"{query}\": **{total}**",
   "decks.noResults": "No public deck matched.",

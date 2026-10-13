@@ -72,16 +72,19 @@ describe('publicDecksView', () => {
 describe('ownDecksView', () => {
   const own = (n: number, over: Partial<DeckSummary> = {}): DeckSummary => ({
     id: `d${n}`, name: `Mine ${n}`, format: 'classic', visibility: 'private', cardCount: 61,
-    mainCount: 60, hasCharacter: true, characterName: 'Harry', updatedAt: '2026-10-01T00:00:00.000Z', ...over,
+    mainCount: 60, hasCharacter: true, characterName: 'Harry', updatedAt: '2026-10-01T00:00:00.000Z',
+    likeCount: 3, lessons: ['charms'], starterCardId: 'base-1', starterArtCropVersion: 2, ...over,
   })
   const mine: DeckBrowseState = { ...state, scope: 'mine', sort: 'updated' }
 
-  it('lists the page of own decks, private ones marked, with an open menu', () => {
+  // Drawn as /decks draws a row, without the author: they are all yours.
+  it('lists the page of own decks like /decks rows, private ones marked, with an open menu', () => {
     const v = { components: ownDecksView({ decks: [own(1), own(2, { visibility: 'public' })], total: 2, page: 1, pages: 1 }, mine, opts) }
     expect(textOf(v)).toContain('Your decks (2)')
-    expect(textOf(v)).toContain('🔒 **Mine 1** · Classic · 60 cards')
-    expect(textOf(v)).toContain('**Mine 2** · Classic · 60 cards')
+    expect(textOf(v)).toContain('🔒 **Mine 1** · Classic\n3 likes · 61 cards · Charms')
+    expect(textOf(v)).toContain('**Mine 2** · Classic\n3 likes · 61 cards · Charms')
     expect(textOf(v)).not.toContain('🔒 **Mine 2**')
+    expect(mediaUrls(v)).toEqual(['https://img.test/cards/art-crop/base-1.2.webp', 'https://img.test/cards/art-crop/base-1.2.webp'])
     expect(ids(v).some((id) => id.startsWith('v1:do:m:'))).toBe(true)
   })
 
@@ -89,9 +92,14 @@ describe('ownDecksView', () => {
   // not push the owner's whole list past Discord's text budget.
   it('stays inside the text budget with legacy over-long names', () => {
     const long = '*'.repeat(600)
-    const decks = Array.from({ length: 10 }, (_, i) => own(i, { id: `d${i}`, name: `${i}${long}` }))
-    const view = ownDecksView({ decks, total: 10, page: 1, pages: 1 }, mine, opts)
+    const decks = Array.from({ length: 5 }, (_, i) => own(i, { id: `d${i}`, name: `${i}${long}` }))
+    const view = ownDecksView({ decks, total: 5, page: 1, pages: 1 }, mine, opts)
     expect(measure(view).text).toBeLessThanOrEqual(4000)
+  })
+
+  it('stays inside the component limit at its fullest', () => {
+    const decks = Array.from({ length: 5 }, (_, i) => own(i, { id: `d${i}` }))
+    expect(measure(ownDecksView({ decks, total: 50, page: 2, pages: 10 }, mine, opts)).components).toBeLessThanOrEqual(40)
   })
 
   // The count and the page are two reads; decks deleted between them leave

@@ -8,7 +8,6 @@ import {
   type MessageActionRowComponentBuilder,
 } from 'discord.js'
 import { DeckFormat, LESSONS, artCropKey, attrLabel, clampDeckName, imageUrl } from '@revelio/core'
-import type { PublicDeckEntry } from '@revelio/db'
 import { clampLabel } from '../../data/cards'
 import { DECK_PAGE_SIZE, OWN_PAGE_SIZE, type OwnDeckPage, type PublicDeckPage } from '../../data/decks'
 import { t } from '../../i18n/t'
@@ -27,6 +26,20 @@ export type DeckBrowserOptions = {
 }
 
 type Row = ActionRowBuilder<MessageActionRowComponentBuilder>
+
+// One deck row as both browsers draw it. author is null on /mydecks, where
+// every deck is the caller's own.
+type DeckRow = {
+  name: string
+  format: DeckFormat
+  author: string | null
+  isPrivate: boolean
+  likeCount: number
+  cardCount: number
+  lessons: string[]
+  starterCardId: string | null
+  starterArtCropVersion: number | null
+}
 
 type FilterOption = { value: string; label: string }
 
@@ -53,13 +66,37 @@ function select(
   )
 }
 
-function deckRowText(entry: PublicDeckEntry, locale: string): string {
-  const title = `**${plain(clampDeckName(entry.name))}** · @${plain(entry.author)} · ${t(locale, `deck.format.${entry.format}`)}`
+function deckRowText(row: DeckRow, locale: string): string {
+  const line = [
+    `**${plain(clampDeckName(row.name))}**`,
+    row.author !== null ? `@${plain(row.author)}` : '',
+    t(locale, `deck.format.${row.format}`),
+  ].filter(Boolean).join(' · ')
+  const title = row.isPrivate ? t(locale, 'decks.privateRow', { line }) : line
   const stats = [
-    t(locale, 'decks.row.stats', { likes: entry.likeCount, cards: entry.cardCount }),
-    entry.lessons.map((code) => attrLabel('lessons', code, locale)).join(', '),
+    t(locale, 'decks.row.stats', { likes: row.likeCount, cards: row.cardCount }),
+    row.lessons.map((code) => attrLabel('lessons', code, locale)).join(', '),
   ].filter(Boolean).join(' · ')
   return `${title}\n${stats}`
+}
+
+// The rows between two separators, each with its starter's art beside it.
+function addDeckRows(view: ContainerBuilder, rows: DeckRow[], opts: DeckBrowserOptions): void {
+  view.addSeparatorComponents(new SeparatorBuilder())
+  for (const row of rows) {
+    const content = deckRowText(row, opts.locale)
+    if (row.starterCardId && row.starterArtCropVersion != null) {
+      view.addSectionComponents(new SectionBuilder()
+        .addTextDisplayComponents(text(content))
+        .setThumbnailAccessory(new ThumbnailBuilder()
+          .setURL(imageUrl(opts.imageBase, artCropKey(row.starterCardId, row.starterArtCropVersion)))
+          .setDescription(clampDeckName(row.name))))
+    } else {
+      // A section must carry an accessory; no starter, no picture.
+      view.addTextDisplayComponents(text(content))
+    }
+  }
+  view.addSeparatorComponents(new SeparatorBuilder())
 }
 
 function header(page: PublicDeckPage, state: DeckBrowseState, locale: string): string {
@@ -105,21 +142,7 @@ export function publicDecksView(page: PublicDeckPage, state: DeckBrowseState, op
   const head = header(page, state, locale)
   const view = container().addTextDisplayComponents(text(opts.notice ? `${opts.notice}\n${head}` : head))
   if (page.entries.length) {
-    view.addSeparatorComponents(new SeparatorBuilder())
-    for (const entry of page.entries) {
-      const content = deckRowText(entry, locale)
-      if (entry.starterCardId && entry.starterArtCropVersion != null) {
-        view.addSectionComponents(new SectionBuilder()
-          .addTextDisplayComponents(text(content))
-          .setThumbnailAccessory(new ThumbnailBuilder()
-            .setURL(imageUrl(opts.imageBase, artCropKey(entry.starterCardId, entry.starterArtCropVersion)))
-            .setDescription(clampDeckName(entry.name))))
-      } else {
-        // A section must carry an accessory; no starter, no picture.
-        view.addTextDisplayComponents(text(content))
-      }
-    }
-    view.addSeparatorComponents(new SeparatorBuilder())
+    addDeckRows(view, page.entries.map((e) => ({ ...e, isPrivate: false })), opts)
     view.addActionRowComponents(openMenu(state, page.entries.map((e) => ({ id: e.id, label: e.name })), locale))
   }
   view.addActionRowComponents(
@@ -134,20 +157,17 @@ export function publicDecksView(page: PublicDeckPage, state: DeckBrowseState, op
   return [view]
 }
 
-// /mydecks: the caller's own decks as text rows, private ones marked, an open
-// menu and the pager. No filters: a user's own list is short.
+// /mydecks: the caller's own decks drawn as /decks rows, private ones marked,
+// an open menu and the pager. No filters: a user's own list is short.
 export function ownDecksView(page: OwnDeckPage, state: DeckBrowseState, opts: DeckBrowserOptions): ContainerBuilder[] {
   const { locale } = opts
-  const lines = page.decks.map((d) => {
-    const line = `**${plain(clampDeckName(d.name))}** · ${t(locale, `deck.format.${d.format}`)} · ${t(locale, 'decks.cards', { count: d.mainCount })}`
-    return d.visibility === 'private' ? t(locale, 'decks.privateRow', { line }) : line
-  })
   const view = container().addTextDisplayComponents(
-    text([opts.notice, t(locale, 'decks.title', { count: page.total }), ...lines].filter(Boolean).join('\n')),
+    text([opts.notice, t(locale, 'decks.title', { count: page.total })].filter(Boolean).join('\n')),
   )
   // Decks deleted between the count and the page read can leave it empty,
   // and Discord rejects a select with no options.
   if (page.decks.length) {
+    addDeckRows(view, page.decks.map((d) => ({ ...d, author: null, isPrivate: d.visibility === 'private' })), opts)
     view.addActionRowComponents(openMenu(state, page.decks.map((d) => ({ id: d.id, label: d.name })), locale))
   }
   view.addActionRowComponents(pager(state, page.page, page.pages, page.decks.length, OWN_PAGE_SIZE, opts, false))

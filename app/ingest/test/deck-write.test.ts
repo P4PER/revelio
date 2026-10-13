@@ -67,6 +67,8 @@ describe('deck queries', () => {
     const list = await listDecksByUser(ctx.db, 'u1')
     expect(list).toHaveLength(1)
     expect(list[0].cardCount).toBe(5) // 1 char + 4 main
+    // What the bot's /mydecks row draws, as a /decks row does.
+    expect(list[0]).toMatchObject({ likeCount: 0, lessons: [], starterCardId: 'bs-harry', starterArtCropVersion: null })
 
     await updateDeck(ctx.db, id, {
       name: 'Renamed', format: 'classic', visibility: 'public',

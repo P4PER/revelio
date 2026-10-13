@@ -130,7 +130,8 @@ describe('/mydecks', () => {
   const deck = (over: Record<string, unknown> = {}) => ({
     id: 'd1', name: 'Secret Brew', format: 'classic', visibility: 'private',
     mainCount: 60, cardCount: 61, hasCharacter: true, characterName: 'Harry',
-    updatedAt: '2026-01-01T00:00:00.000Z', ...over,
+    updatedAt: '2026-01-01T00:00:00.000Z', likeCount: 0, lessons: [], starterCardId: null,
+    starterArtCropVersion: null, ...over,
   })
   const paged = (decks: unknown[]) => ({ decks: decks as never, total: decks.length, page: 1, pageCount: 1 })
 
@@ -150,16 +151,16 @@ describe('/mydecks', () => {
     expect(textOf(interaction.editReply.mock.calls[0][0])).toContain('🔒 **Secret Brew**')
   })
 
-  it('pages ten decks at a time', async () => {
+  it('pages five decks at a time', async () => {
     linked()
-    const ten = Array.from({ length: 10 }, (_, i) => deck({ id: `d${i}`, name: `Deck ${i}` }))
-    vi.spyOn(dbModule, 'pageDecksByUser').mockResolvedValue({ ...paged(ten), total: 25, pageCount: 3 })
+    const five = Array.from({ length: 5 }, (_, i) => deck({ id: `d${i}`, name: `Deck ${i}` }))
+    const page = vi.spyOn(dbModule, 'pageDecksByUser').mockResolvedValue({ ...paged(five), total: 25, pageCount: 5 })
     const interaction = fakeInteraction()
     await run('mydecks', interaction, fakeDeps())
+    expect(page).toHaveBeenCalledWith(expect.anything(), expect.anything(), { page: 1, pageSize: 5 })
     const text = textOf(interaction.editReply.mock.calls[0][0])
     expect(text).toContain('Your decks (25)')
-    expect(text).toContain('Deck 9')
-    expect(text).not.toContain('Deck 10')
+    expect(text).toContain('Deck 4')
   })
 
   it('offers the builder link when the user has no decks', async () => {

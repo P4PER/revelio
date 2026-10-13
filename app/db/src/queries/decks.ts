@@ -18,6 +18,9 @@ export type DeckSummary = {
   id: string; name: string; format: DeckFormat; visibility: DeckVisibility
   cardCount: number; mainCount: number; hasCharacter: boolean
   characterName: string | null; updatedAt: string
+  // For the bot's /mydecks rows, drawn like a /decks row.
+  likeCount: number; lessons: string[]
+  starterCardId: string | null; starterArtCropVersion: number | null
 }
 
 export type DeckPage = { decks: DeckSummary[]; total: number; page: number; pageCount: number }
@@ -117,16 +120,19 @@ async function summarize(db: DB, rows: (typeof decks.$inferSelect)[]): Promise<D
   }
   // The starting character's display name for each deck (if one is set).
   const charRows = await db
-    .select({ deckId: deckCards.deckId, name: cards.name })
+    .select({ deckId: deckCards.deckId, cardId: cards.id, name: cards.name, artCropVersion: cards.artCropVersion })
     .from(deckCards)
     .innerJoin(cards, eq(deckCards.cardId, cards.id))
     .where(and(inArray(deckCards.deckId, ids), eq(deckCards.zone, 'character')))
-  const charByDeck = new Map(charRows.map((c) => [c.deckId, c.name]))
+  const charByDeck = new Map(charRows.map((c) => [c.deckId, c]))
   return rows.map((r) => ({
     id: r.id, name: r.name, format: r.format as DeckFormat, visibility: r.visibility as DeckVisibility,
     cardCount: totalByDeck.get(r.id) ?? 0, mainCount: mainByDeck.get(r.id) ?? 0,
-    hasCharacter: hasCharacter.has(r.id), characterName: charByDeck.get(r.id) ?? null,
+    hasCharacter: hasCharacter.has(r.id), characterName: charByDeck.get(r.id)?.name ?? null,
     updatedAt: r.updatedAt.toISOString(),
+    likeCount: r.likeCount, lessons: r.lessons ?? [],
+    starterCardId: charByDeck.get(r.id)?.cardId ?? null,
+    starterArtCropVersion: charByDeck.get(r.id)?.artCropVersion ?? null,
   }))
 }
 

@@ -69,10 +69,10 @@ export type PublicDeckQuery = {
 
 type Sortable = Pick<DeckCardView, 'cost' | 'name'>
 
-// Five rows with art keep /decks at 32 of Discord's 40 components; own decks
-// are text rows, so ten fit.
+// Five rows with art keep /decks at 32 of Discord's 40 components; /mydecks
+// draws the same rows, so it takes the same page.
 export const DECK_PAGE_SIZE = 5
-export const OWN_PAGE_SIZE = 10
+export const OWN_PAGE_SIZE = 5
 
 function byCostThenName(a: Sortable, b: Sortable): number {
   const ac = a.cost ?? Number.MAX_SAFE_INTEGER

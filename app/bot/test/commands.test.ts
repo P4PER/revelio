@@ -3,6 +3,7 @@ import { DiscordAPIError, MessageFlags, PermissionFlagsBits } from 'discord.js'
 import * as dbModule from '@revelio/db'
 import { COMMANDS } from '../src/discord/commands/index'
 import { requestDeckSheet } from '../src/data/sheet'
+import { textOf } from './helpers/v2'
 
 // The render service is exercised by sheet.test.ts and the service's own suite;
 // here it is a seam, so /deck's two views and its fallback can be told apart
@@ -142,22 +143,21 @@ const doc = {
 }
 
 describe('/card', () => {
-  it('defers, then replies with an embed for the best hit', async () => {
+  it('defers, then replies with the card view for the best hit', async () => {
     const interaction = fakeInteraction({ name: 'nimbus' })
     const deps = fakeDeps([doc], 1)
     await COMMANDS.get('card')!.execute(interaction as never, deps as never)
 
     expect(interaction.deferReply).toHaveBeenCalled()
     const payload = interaction.editReply.mock.calls[0][0]
-    expect(payload.embeds[0].toJSON().title).toBe('Nimbus 2000')
+    expect(payload.flags).toBe(MessageFlags.IsComponentsV2)
+    expect(textOf(payload)).toMatch(/^## Nimbus 2000/)
   })
 
   it('replies with a localized miss when nothing matches', async () => {
     const interaction = fakeInteraction({ name: 'zzz' }, 'de')
     await COMMANDS.get('card')!.execute(interaction as never, fakeDeps([], 0) as never)
-    expect(interaction.editReply).toHaveBeenCalledWith(
-      expect.objectContaining({ content: 'Keine Karte passt zu "zzz".' }),
-    )
+    expect(textOf(interaction.editReply.mock.calls[0][0])).toBe('Keine Karte passt zu "zzz".')
   })
 
   it('never lets the echoed name ping anyone', async () => {
@@ -270,8 +270,7 @@ describe('/card id fast path', () => {
     await COMMANDS.get('card')!.execute(interaction as never, fastPathDeps(search) as never)
     expect(search).toHaveBeenCalledTimes(2)
     expect(search).toHaveBeenLastCalledWith('nimbus', expect.anything())
-    const payload = interaction.editReply.mock.calls[0][0]
-    expect(payload.embeds[0].toJSON().title).toBe('Nimbus 2000')
+    expect(textOf(interaction.editReply.mock.calls[0][0])).toMatch(/^## Nimbus 2000/)
   })
 })
 

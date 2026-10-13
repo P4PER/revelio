@@ -3,12 +3,13 @@ import {
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
 } from 'discord.js'
-import { getSubTypeLabels } from '@revelio/db'
 import type { Deps } from '../../clients'
-import { findCardById, findOneCard, resolveCardRulings, suggestCards } from '../../data/cards'
+import { findCardById, findOneCard, suggestCards } from '../../data/cards'
+import { loadCardDetail } from '../../data/card-detail'
 import { toRevelioLocale } from '../../i18n/locale'
 import { t } from '../../i18n/t'
-import { cardEmbed } from '../embeds/card-embed'
+import { cardView } from '../v2/card-view'
+import { textEdit, v2Edit } from '../v2/send'
 
 export const data = new SlashCommandBuilder()
   .setName('card')
@@ -37,28 +38,18 @@ export async function execute(
     // The raw option value is echoed back, so mentions must be inert: without
     // this, `/card name:@everyone` turns the bot into a mass ping.
     await interaction.editReply({
-      content: t(locale, 'card.notFound', { name }),
+      ...textEdit(t(locale, 'card.notFound', { name })),
       allowedMentions: { parse: [] },
     })
     return
   }
 
-  const [setName, rulings, subTypeLabels] = await Promise.all([
-    deps.sets.name(doc.setCode, locale),
-    resolveCardRulings(deps.db, doc.id, locale),
-    getSubTypeLabels(deps.db, locale),
-  ])
-
-  await interaction.editReply({
-    embeds: [cardEmbed(doc, {
-      locale,
-      setName,
-      rulings,
-      subTypeLabels,
-      imageBase: deps.env.IMAGE_BASE_URL,
-      siteBase: deps.env.SITE_BASE_URL,
-    })],
-  })
+  const detail = await loadCardDetail(deps, doc, locale)
+  await interaction.editReply(v2Edit(cardView(detail, {
+    locale,
+    imageBase: deps.env.IMAGE_BASE_URL,
+    siteBase: deps.env.SITE_BASE_URL,
+  })))
 }
 
 export async function autocomplete(

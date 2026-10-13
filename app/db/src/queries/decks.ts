@@ -1,4 +1,4 @@
-import { eq, desc, sql, inArray, and, isNotNull } from 'drizzle-orm'
+import { eq, desc, sql, inArray, and, isNotNull, count } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import type { DB } from '../client'
 import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, decks, deckCards } from '../schema'
@@ -19,6 +19,8 @@ export type DeckSummary = {
   cardCount: number; mainCount: number; hasCharacter: boolean
   characterName: string | null; updatedAt: string
 }
+
+export type DeckPage = { decks: DeckSummary[]; total: number; page: number; pageCount: number }
 
 // Small helper: group junction rows into a code[] per parent id.
 function groupCodes<T>(rows: T[], key: (r: T) => string, code: (r: T) => string): Map<string, string[]> {
@@ -90,8 +92,11 @@ async function replaceDeckCards(tx: Tx, id: string, cardsIn: DeckWriteInput['car
   await tx.update(decks).set({ lessons: deckLessons }).where(eq(decks.id, id))
 }
 
-export async function listDecksByUser(db: DB, userId: string): Promise<DeckSummary[]> {
-  const rows = await db.select().from(decks).where(eq(decks.userId, userId)).orderBy(desc(decks.updatedAt))
+// Newest edit first; the id breaks ties so a page boundary never shifts
+// between two reads of the same list.
+const BY_UPDATED = [desc(decks.updatedAt), desc(decks.id)]
+
+async function summarize(db: DB, rows: (typeof decks.$inferSelect)[]): Promise<DeckSummary[]> {
   if (rows.length === 0) return []
   const ids = rows.map((r) => r.id)
   // Per-zone quantity sums, so the summary can show the main-deck count against
@@ -123,6 +128,24 @@ export async function listDecksByUser(db: DB, userId: string): Promise<DeckSumma
     hasCharacter: hasCharacter.has(r.id), characterName: charByDeck.get(r.id) ?? null,
     updatedAt: r.updatedAt.toISOString(),
   }))
+}
+
+export async function listDecksByUser(db: DB, userId: string): Promise<DeckSummary[]> {
+  return summarize(db, await db.select().from(decks).where(eq(decks.userId, userId)).orderBy(...BY_UPDATED))
+}
+
+// One page of listDecksByUser, cut in SQL so a click costs a page of rows. A
+// page past the end (decks deleted since it was asked for) answers the last.
+export async function pageDecksByUser(
+  db: DB, userId: string, input: { page: number; pageSize: number },
+): Promise<DeckPage> {
+  const where = eq(decks.userId, userId)
+  const [{ total }] = await db.select({ total: count() }).from(decks).where(where)
+  const pageCount = Math.max(1, Math.ceil(total / input.pageSize))
+  const page = Math.min(Math.max(1, Math.floor(input.page)), pageCount)
+  const rows = await db.select().from(decks).where(where).orderBy(...BY_UPDATED)
+    .limit(input.pageSize).offset((page - 1) * input.pageSize)
+  return { decks: await summarize(db, rows), total, page, pageCount }
 }
 
 // Updates only name/visibility (+ updatedAt) — never touches deck_cards. Used

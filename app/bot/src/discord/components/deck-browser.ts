@@ -78,13 +78,16 @@ const filterLesson: ComponentHandler = async (interaction, id, deps) => {
   await show(interaction, deps, { ...id.state, lesson: value && LESSON_CODES.includes(value) ? value : null, page: 1 })
 }
 
-// A deck the clicker can no longer open (made private, deleted, or gone
-// between the access check and the read) redraws the browser in place, which
-// drops it from the menu, under a line saying so.
+// The click is answered with a loading line at once, as /deck's "Only show
+// me" is: the sheet render can take seconds, and a browser that stays put
+// looks as if the click did nothing. A deck the clicker can no longer open
+// (made private, deleted, or gone between the access check and the read)
+// redraws the browser in place, which drops it from the menu, under a line
+// saying so.
 const openDeck: ComponentHandler = async (interaction, id, deps) => {
   if (!isDeckState(id)) return
-  await interaction.deferUpdate()
   const locale = toRevelioLocale(interaction.locale)
+  await interaction.update(textEdit(t(locale, 'deck.loading')))
   const deckId = picked(interaction) ?? ''
   const reader = await readAs(deps, interaction, deckId)
   const deck = reader && await getDeckView(deps.db, deckId, reader.loadAs)

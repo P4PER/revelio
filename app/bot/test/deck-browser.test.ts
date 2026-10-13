@@ -69,11 +69,23 @@ describe('opening a deck', () => {
     vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stored('public') as never)
     const { c, done } = click(encodeCustomId({ kind: 'do', state }), { values: [ID] })
     await done
-    expect(c.deferUpdate).toHaveBeenCalled()
     const payload = c.editReply.mock.calls[0][0]
     expect(titleOf(payload)).toBe('Charms Aggro')
     expect(mediaUrls(payload)).toEqual(['attachment://deck.png'])
     expect(buttonsOf(payload).map((b) => b.label)).toEqual(['Back to decks', 'Post to channel', 'Open on revelio.cards'])
+  })
+
+  // The sheet render takes a while; the browser must not sit there looking
+  // as if the click did nothing.
+  it('turns the browser into a loading line at once, before the deck is read', async () => {
+    linkedAs(null)
+    vi.spyOn(dbModule, 'getDeckAccess').mockResolvedValue({ access: 'public', name: 'Charms Aggro' })
+    const read = vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stored('public') as never)
+    const { c, done } = click(encodeCustomId({ kind: 'do', state }), { values: [ID] })
+    await done
+    expect(textOf(c.update.mock.calls[0][0])).toBe('Loading the deck...')
+    expect(c.update.mock.invocationCallOrder[0]).toBeLessThan(read.mock.invocationCallOrder[0])
+    expect(c.deferUpdate).not.toHaveBeenCalled()
   })
 
   // Made private or deleted since the browser was drawn: the browser is
@@ -84,7 +96,6 @@ describe('opening a deck', () => {
     const { c, done } = click(encodeCustomId({ kind: 'do', state }), { values: [ID] })
     await done
     expect(c.reply).not.toHaveBeenCalled()
-    expect(c.deferUpdate).toHaveBeenCalled()
     expect(textOf(c.editReply.mock.calls[0][0])).toMatch(/^No deck matched that name, link or id\.\nPublic decks: \*\*3\*\*/)
   })
 

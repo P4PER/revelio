@@ -38,6 +38,11 @@ describe('shareView', () => {
     expect(textOf(view())).toMatch(/^<@111> shared 5 cards from a search for "lumos"\./)
   })
 
+  it('says "a card" when one card is shared', () => {
+    expect(textOf(view([hit(1)]))).toMatch(/^<@111> shared a card from a search for "lumos"\./)
+    expect(textOf(view([hit(1)], { ...state, query: '' }))).toMatch(/^<@111> shared a card\./)
+  })
+
   it('escapes markdown in the query it echoes to the channel', () => {
     expect(textOf(view(hits, { ...state, query: '[x](https://evil.example)' })))
       .toContain('\\[x\\]\\(https://evil.example\\)')

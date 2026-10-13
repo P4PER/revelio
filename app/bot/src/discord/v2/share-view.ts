@@ -62,9 +62,11 @@ export function sharePicker(hits: CardBrowseHit[], state: CardBrowseState, local
 export function shareView(hits: CardBrowseHit[], state: CardBrowseState, opts: ShareViewOptions): ContainerBuilder[] {
   const { locale } = opts
   const user = `<@${opts.sharerId}>`
+  // One card reads "shared a card", not "shared 1 cards".
+  const key = hits.length === 1 ? 'post.sharedCard' : 'post.sharedCards'
   const lead = state.query
-    ? t(locale, 'post.sharedCards.query', { user, count: hits.length, query: plain(state.query) })
-    : t(locale, 'post.sharedCards', { user, count: hits.length })
+    ? t(locale, `${key}.query`, { user, count: hits.length, query: plain(state.query) })
+    : t(locale, key, { user, count: hits.length })
   const view = container(BRAND_GOLD).addTextDisplayComponents(text(lead))
   for (const hit of hits) addCardRow(view, hit, opts)
   view.addActionRowComponents(

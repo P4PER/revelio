@@ -89,5 +89,6 @@
   "post.sharedCards": "{user} shared {count} cards.",
   "post.sharedCards.query": "{user} shared {count} cards from a search for \"{query}\".",
   "share.view.placeholder": "View a card...",
-  "share.site": "Full search on revelio.cards"
+  "share.site": "Full search on revelio.cards",
+  "post.sharedCard.query": "{user} shared a card from a search for \"{query}\"."
 }

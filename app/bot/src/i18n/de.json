@@ -89,5 +89,6 @@
   "post.sharedCards": "{user} hat {count} Karten geteilt.",
   "post.sharedCards.query": "{user} hat {count} Karten aus einer Suche nach „{query}“ geteilt.",
   "share.view.placeholder": "Karte ansehen ...",
-  "share.site": "Ganze Suche auf revelio.cards"
+  "share.site": "Ganze Suche auf revelio.cards",
+  "post.sharedCard.query": "{user} hat eine Karte aus einer Suche nach „{query}“ geteilt."
 }

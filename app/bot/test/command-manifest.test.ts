@@ -51,7 +51,8 @@ function deferOf(name: string) {
     user: { id: '111' },
     deferReply: vi.fn().mockResolvedValue(undefined),
     editReply: vi.fn().mockResolvedValue(undefined),
-    options: { getString: () => null, getInteger: () => null },
+    reply: vi.fn().mockResolvedValue(undefined),
+    options: { getString: (n: string) => (n === 'deck' ? 'abc123' : null), getInteger: () => null },
   }
   const deps = {
     meili: {},
@@ -104,6 +105,13 @@ describe('BOT_COMMANDS matches what the bot registers with Discord', () => {
   // checked against the handler rather than trusted.
   for (const command of BOT_COMMANDS) {
     it(`/${command.name} defers ${command.ephemeral ? 'ephemerally' : 'in the channel'}`, async () => {
+      // /deck's first reply depends on the deck. A public one is what the
+      // manifest's "in the channel" claim is about.
+      if (command.name === 'deck') {
+        vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockResolvedValue(null)
+        vi.spyOn(dbModule, 'getDeckAccess').mockResolvedValue({ access: 'public', name: 'D' })
+        vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(null)
+      }
       const { interaction, done } = deferOf(command.name)
       await done
       expect(interaction.deferReply).toHaveBeenCalledWith(

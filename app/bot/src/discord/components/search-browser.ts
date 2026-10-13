@@ -1,17 +1,33 @@
 import { LESSONS, TYPES } from '@revelio/core'
-import type { MessageComponentInteraction } from 'discord.js'
+import {
+  ButtonBuilder,
+  ButtonStyle,
+  DiscordAPIError,
+  type MessageComponentInteraction,
+} from 'discord.js'
 import type { Deps } from '../../clients'
-import { findCards } from '../../data/cards'
+import { loadCardDetail } from '../../data/card-detail'
+import { findCardById, findCards } from '../../data/cards'
 import { toRevelioLocale } from '../../i18n/locale'
+import { t } from '../../i18n/t'
+import { postTarget, refusal } from '../channel-post'
+import { cardView } from '../v2/card-view'
 import { searchView, ANY } from '../v2/search-view'
-import { v2Edit, type V2Edit } from '../v2/send'
-import type { CardBrowseState, CardKind, CustomId } from './custom-id'
+import { EPHEMERAL_V2, textMessage, v2Edit, v2Message, type V2Edit } from '../v2/send'
+import {
+  encodeCustomId,
+  isEntityId,
+  type CardBrowseState,
+  type CardKind,
+  type CustomId,
+} from './custom-id'
 import type { ComponentHandler } from './types'
 
 type CardStateId = { kind: CardKind; state: CardBrowseState }
 
 const LESSON_CODES: readonly string[] = LESSONS.map((l) => l.code)
 const TYPE_CODES: readonly string[] = TYPES.map((ty) => ty.code)
+const REFUSAL_KEYS = { unreachable: 'post.cannotPostHere', forbidden: 'post.cannotPostCards' } as const
 
 export function isCardState(id: CustomId): id is CardStateId {
   return 'state' in id && !('scope' in id.state)
@@ -90,9 +106,102 @@ const filterSet: ComponentHandler = async (interaction, id, deps) => {
   await show(interaction, deps, { ...id.state, set, page: 1 })
 }
 
+export function postRefusalKey(kind: 'unreachable' | 'forbidden'): string {
+  return REFUSAL_KEYS[kind]
+}
+
+function backButton(state: CardBrowseState, locale: string): ButtonBuilder {
+  return new ButtonBuilder().setCustomId(encodeCustomId({ kind: 'cb', state }))
+    .setLabel(t(locale, 'search.back')).setStyle(ButtonStyle.Secondary)
+}
+
+function postButton(cardId: string, locale: string): ButtonBuilder {
+  return new ButtonBuilder().setCustomId(encodeCustomId({ kind: 'cp', cardId }))
+    .setLabel(t(locale, 'search.post')).setStyle(ButtonStyle.Primary)
+}
+
+// Sends a finished message into the channel. A refusal Discord answered is
+// told to the caller privately; anything else (a timeout, a dropped socket)
+// may have posted, so it is not retried but left to the router's error path.
+async function sendToChannel(
+  interaction: MessageComponentInteraction,
+  send: () => Promise<unknown>,
+  locale: string,
+): Promise<boolean> {
+  try {
+    await send()
+    return true
+  } catch (err) {
+    const refused = refusal(err)
+    if (!refused || !(err instanceof DiscordAPIError)) throw err
+    await interaction.followUp({ ...textMessage(t(locale, postRefusalKey(refused))), flags: EPHEMERAL_V2 })
+    return false
+  }
+}
+
+const openCard: ComponentHandler = async (interaction, id, deps) => {
+  if (!isCardState(id)) return
+  const cardId = picked(interaction)
+  const locale = toRevelioLocale(interaction.locale)
+  await interaction.deferUpdate()
+  const doc = cardId && isEntityId(cardId) ? await findCardById(deps.meili, cardId, locale) : null
+  if (!doc) {
+    // Gone since the page was drawn, or not an id at all: the results again.
+    await interaction.editReply(await renderSearchBrowser(deps, id.state, locale, interaction.inGuild()))
+    return
+  }
+  const detail = await loadCardDetail(deps, doc, locale)
+  await interaction.editReply(v2Edit(cardView(detail, {
+    locale,
+    imageBase: deps.env.IMAGE_BASE_URL,
+    siteBase: deps.env.SITE_BASE_URL,
+    actions: [
+      backButton(id.state, locale),
+      ...(interaction.inGuild() ? [postButton(doc.id, locale)] : []),
+    ],
+  })))
+}
+
+const backToResults: ComponentHandler = async (interaction, id, deps) => {
+  if (!isCardState(id)) return
+  await show(interaction, deps, id.state)
+}
+
+// The private card view stays where it is; the channel gets its own copy with
+// a "shared by" line, and the caller a private "posted".
+const postCard: ComponentHandler = async (interaction, id, deps) => {
+  if (id.kind !== 'cp') return
+  const locale = toRevelioLocale(interaction.locale)
+  const target = postTarget(interaction, { needsFiles: false })
+  if (target.kind !== 'ok') {
+    await interaction.reply({ ...textMessage(t(locale, postRefusalKey(target.kind))), flags: EPHEMERAL_V2 })
+    return
+  }
+  await interaction.deferUpdate()
+  const doc = await findCardById(deps.meili, id.cardId, locale)
+  if (!doc) {
+    await interaction.followUp({ ...textMessage(t(locale, 'card.gone')), flags: EPHEMERAL_V2 })
+    return
+  }
+  const detail = await loadCardDetail(deps, doc, locale)
+  const message = v2Message(cardView(detail, {
+    locale,
+    imageBase: deps.env.IMAGE_BASE_URL,
+    siteBase: deps.env.SITE_BASE_URL,
+    // Never pings: the client's allowedMentions parses none.
+    lead: t(locale, 'post.sharedCard', { user: `<@${interaction.user.id}>` }),
+  }))
+  if (await sendToChannel(interaction, () => target.channel.send(message), locale)) {
+    await interaction.followUp({ ...textMessage(t(locale, 'post.done')), flags: EPHEMERAL_V2 })
+  }
+}
+
 export const SEARCH_HANDLERS: readonly (readonly [CustomId['kind'], ComponentHandler])[] = [
   ['s', navigate],
   ['sl', filterLesson],
   ['st', filterType],
   ['ss', filterSet],
+  ['co', openCard],
+  ['cb', backToResults],
+  ['cp', postCard],
 ]

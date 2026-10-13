@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
-import { MessageFlags } from 'discord.js'
+import { DiscordAPIError, MessageFlags, RESTJSONErrorCodes } from 'discord.js'
 import * as dbModule from '@revelio/db'
 import { COMMANDS } from '../src/discord/commands/index'
 import { handleInteraction } from '../src/discord/handle-interaction'
@@ -122,5 +122,76 @@ describe('browsing', () => {
     const { c, done } = click(encodeCustomId({ kind: 's', state }), deps, { inGuild: false })
     await done
     expect(buttonsOf(c.editReply.mock.calls[0][0]).some((b) => b.label === 'Share')).toBe(false)
+  })
+})
+
+describe('a card from the results', () => {
+  const open = (deps: ReturnType<typeof fakeDeps>, opts: ClickOptions = {}) =>
+    click(encodeCustomId({ kind: 'co', state }), deps, { values: ['base-1'], ...opts })
+
+  it('opens in place with Back and Post', async () => {
+    const deps = fakeDeps([card(1)], 1)
+    const { c, done } = open(deps)
+    await done
+    const payload = c.editReply.mock.calls[0][0]
+    expect(textOf(payload)).toMatch(/## Card 1/)
+    expect(buttonsOf(payload).map((b) => b.label)).toEqual(['Back to results', 'Post to channel', 'Open on revelio.cards'])
+  })
+
+  it('has no Post outside a server', async () => {
+    const { c, done } = open(fakeDeps([card(1)], 1), { inGuild: false })
+    await done
+    expect(buttonsOf(c.editReply.mock.calls[0][0]).some((b) => b.label === 'Post to channel')).toBe(false)
+  })
+
+  it('goes back to the page it came from', async () => {
+    const deps = fakeDeps(hits, 23)
+    const { c, done } = click(encodeCustomId({ kind: 'cb', state: { ...state, page: 3 } }), deps)
+    await done
+    expect(deps.search).toHaveBeenCalledWith('lumos', expect.objectContaining({ offset: 10 }))
+    expect(textOf(c.editReply.mock.calls[0][0])).toContain('Cards found')
+  })
+
+  it('shows the results again for a card id that is not an id', async () => {
+    const deps = fakeDeps(hits, 23)
+    const { c, done } = click(encodeCustomId({ kind: 'co', state }), deps, { values: ['x" OR 1'] })
+    await done
+    expect(textOf(c.editReply.mock.calls[0][0])).toContain('Cards found')
+  })
+})
+
+describe('posting one card', () => {
+  const post = (deps: ReturnType<typeof fakeDeps>, opts: ClickOptions = {}) =>
+    click(encodeCustomId({ kind: 'cp', cardId: 'base-1' }), deps, opts)
+
+  it('posts it as a plain channel message naming who shared it', async () => {
+    const { c, done } = post(fakeDeps([card(1)], 1))
+    await done
+    const sent = c.channel.send.mock.calls[0][0]
+    expect(sent.flags).toBe(MessageFlags.IsComponentsV2)
+    expect(textOf(sent)).toMatch(/^<@111> shared a card\.\n## Card 1/)
+    expect(buttonsOf(sent).map((b) => b.label)).toEqual(['Open on revelio.cards'])
+    expect(c.followUp).toHaveBeenCalledWith(expect.objectContaining({ flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral }))
+    expect(c.reply).not.toHaveBeenCalled()
+  })
+
+  it('says privately when the bot may not post there, and sends nothing', async () => {
+    const { c, done } = post(fakeDeps([card(1)], 1), { allowed: false })
+    await done
+    expect(c.channel.send).not.toHaveBeenCalled()
+    const payload = c.reply.mock.calls[0][0]
+    expect(payload.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
+    expect(textOf(payload)).toContain("I can't post in this channel")
+  })
+
+  it('reads a refusal from Discord as the same answer', async () => {
+    const deps = fakeDeps([card(1)], 1)
+    const c = fakeClick(encodeCustomId({ kind: 'cp', cardId: 'base-1' }))
+    c.channel.send.mockRejectedValue(new DiscordAPIError(
+      { code: RESTJSONErrorCodes.MissingAccess, message: 'Missing Access' },
+      RESTJSONErrorCodes.MissingAccess, 403, 'POST', '/x', { body: undefined, files: undefined },
+    ))
+    await handleInteraction(c as never, deps as never)
+    expect(textOf(c.followUp.mock.calls[0][0])).toContain("I can't post here")
   })
 })

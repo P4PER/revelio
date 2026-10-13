@@ -142,6 +142,12 @@ export function clampQuery(query: string): string {
   return out
 }
 
+// A card or deck id as it may appear in an id or a select value. Select values
+// come back from the client, so this runs before one reaches a query.
+export function isEntityId(value: string): boolean {
+  return ENTITY_ID.test(value)
+}
+
 export function encodeCustomId(id: CustomId): string {
   let body: string
   switch (id.kind) {

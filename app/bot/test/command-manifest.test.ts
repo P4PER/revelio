@@ -119,7 +119,7 @@ describe('BOT_COMMANDS matches what the bot registers with Discord', () => {
       await done
       const [reply] = interaction.editReply.mock.calls[0] as [{ content?: string; components?: unknown[] }]
       // /collection answers in V2, /mydecks still in content until phase 3.
-      expect(reply.content ?? textOf(reply)).toContain('/settings')
+      expect(textOf(reply)).toContain('/settings')
     })
   }
 })

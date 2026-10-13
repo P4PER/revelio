@@ -137,3 +137,16 @@ describe('posting a deck', () => {
     expect(textOf(c.reply.mock.calls[0][0])).toMatch(/can't post in this channel/)
   })
 })
+
+describe('an open /mydecks browser', () => {
+  // Unlinked or banned since the browser was drawn: the next click must stop
+  // showing private decks.
+  it('re-resolves the account on every click', async () => {
+    linkedAs(null)
+    const list = vi.spyOn(dbModule, 'listDecksByUser')
+    const { c, done } = click(encodeCustomId({ kind: 'd', state: { ...state, scope: 'mine', sort: 'updated', page: 2 } }))
+    await done
+    expect(list).not.toHaveBeenCalled()
+    expect(textOf(c.editReply.mock.calls[0][0])).toContain('/settings/connections')
+  })
+})

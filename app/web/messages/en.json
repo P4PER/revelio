@@ -932,6 +932,17 @@
           }
         }
       },
+      "decks": {
+        "options": {
+          "query": "Part of a deck name, or @ and part of an author's handle. Leave it out to browse every public deck.",
+          "format": "Only decks of this format. The format menu on the reply changes it later.",
+          "sort": "The order to browse in. Most liked by default."
+        },
+        "choices": {
+          "format": { "classic": "Classic", "revival": "Revival" },
+          "sort": { "likes": "Most liked", "views": "Most viewed", "newest": "Newest", "updated": "Recently updated" }
+        }
+      },
       "collection": {
         "options": {
           "set": "Narrows the summary to one set instead of your whole collection. Suggestions cover the set names."

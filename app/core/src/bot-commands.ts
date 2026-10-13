@@ -1,4 +1,4 @@
-export type BotCommandName = 'card' | 'search' | 'deck' | 'collection' | 'mydecks'
+export type BotCommandName = 'card' | 'search' | 'deck' | 'decks' | 'collection' | 'mydecks'
 
 /**
  * One option on one slash command, as Discord sees it.
@@ -72,6 +72,16 @@ export const BOT_COMMANDS: readonly BotCommandSpec[] = [
     options: [
       { name: 'deck', type: 'string', required: true, autocomplete: true },
       { name: 'view', type: 'string', required: false, autocomplete: false, values: ['image', 'list'] },
+    ],
+  },
+  {
+    name: 'decks',
+    ephemeral: true,
+    linkRequired: false,
+    options: [
+      { name: 'query', type: 'string', required: false, autocomplete: false, maxLength: 50 },
+      { name: 'format', type: 'string', required: false, autocomplete: false, values: ['classic', 'revival'] },
+      { name: 'sort', type: 'string', required: false, autocomplete: false, values: ['likes', 'views', 'newest', 'updated'] },
     ],
   },
   {

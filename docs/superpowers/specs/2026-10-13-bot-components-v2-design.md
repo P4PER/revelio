@@ -407,6 +407,11 @@ correct in every phase by construction.
   checklist is rewritten against `v2/card-view.ts` and `v2/share-view.ts`.
 - The page's tests (`command-grid.test.tsx`, `command-channel.test.tsx`) follow.
 
+**Terms of service:** `web/content/legal/terms.{en,de}.mdx` section 9 (2) says replies to
+`/search` are visible to everyone in the channel, which stops being true. The new wording (private
+until you post or share; what you share names you) is a legal text change, so it lands only with
+the user's explicit go-ahead, and may need a new effective date.
+
 **Repo docs:**
 
 - CLAUDE.md "Discord bot specifics":

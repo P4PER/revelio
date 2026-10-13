@@ -130,7 +130,7 @@ The `view` option (image/list) carries through every path.
 ### 5. Component handling
 
 Both prompts use a collector on the prompt message (`awaitMessageComponent`), not a global
-component router in `main.ts`:
+component router in the bot's interaction handler (`discord/handle-interaction.ts`):
 
 - Filtered to `i.user.id === interaction.user.id`. The prompt is ephemeral, but the filter is
   the guarantee, not the visibility.
@@ -145,8 +145,8 @@ component router in `main.ts`:
 
 - The sheet render keeps its list fallback on every path.
 - A failure before a click is acknowledged `update`s the prompt to `error.generic` with no
-  components, so the top-level handler in `main.ts`, which only knows the original
-  interaction and would leave dead buttons up, is not relied on for it.
+  components. It has to: the top-level handler (`discord/handle-interaction.ts`) only knows
+  the slash command's interaction, so the click itself would otherwise go unanswered.
 - A failure after the click's `deferReply` withdraws a public placeholder and tells the caller
   ephemerally; a private placeholder is edited to the error.
 - An unlinked user or a banned user resolves to `viewerId = null` and sees public decks only.

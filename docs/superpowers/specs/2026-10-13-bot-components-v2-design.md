@@ -82,7 +82,7 @@ written into section 2 of this spec and into CLAUDE.md before phase 2 starts.
 |---|---|---|
 | 1 | Nested components count toward 40 | yes: 40 accepted, 41 rejected with "50035 COMPONENT_MAX_TOTAL_COMPONENTS_EXCEEDED: Total number of components cannot exceed 40" |
 | 2 | 4000-character total across text displays | yes: 2000 + 2000 accepted, 2000 + 2001 rejected with "50035 COMPONENT_DISPLAYABLE_TEXT_SIZE_EXCEEDED: Components displayable text size exceeds maximum size of 4000" |
-| 3 | Deferred reply editable into V2 | pending the `/card` hand check |
+| 3 | Deferred reply editable into V2 | yes: `/collection set:` (ephemeral `deferReply`, then `editReply` with the V2 flag) rendered as a container |
 | 4 | V1 message editable into V2 | yes: a `content` message patched to `content: ''` plus the V2 flag and a container was accepted |
 | 5 | V2 thumbnail without Embed Links | not tested (no channel with Embed Links denied); with Embed Links allowed it posted and rendered |
 

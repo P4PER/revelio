@@ -102,6 +102,20 @@ describe('browsing', () => {
     for (const call of deps.search.mock.calls) expect(call[1].filter ?? []).not.toContain('(lesson = "charms")')
   })
 
+  // A cold set cache is a Postgres read; it must not eat the 3 s budget.
+  it('acknowledges a set pick before reading the set list', async () => {
+    const deps = fakeDeps(hits, 23)
+    const c = fakeClick(encodeCustomId({ kind: 'ss', state }), { values: ['coc'] })
+    const ackedFirst: boolean[] = []
+    deps.sets.all.mockImplementation(async () => {
+      ackedFirst.push(c.deferred)
+      return [{ code: 'coc', name: 'Chamber of Secrets' }]
+    })
+    await handleInteraction(c as never, deps as never)
+    expect(ackedFirst.length).toBeGreaterThan(0)
+    expect(ackedFirst.every(Boolean)).toBe(true)
+  })
+
   it('applies a set from the set menu', async () => {
     const deps = fakeDeps(hits, 23)
     await click(encodeCustomId({ kind: 'ss', state }), deps, { values: ['coc'] }).done

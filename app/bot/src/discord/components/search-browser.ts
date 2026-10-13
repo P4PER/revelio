@@ -103,12 +103,18 @@ const filterType: ComponentHandler = async (interaction, id, deps) => {
   await show(interaction, deps, { ...id.state, type, page: 1 })
 }
 
+// Acknowledged before the set list is read: a cold cache is a Postgres query,
+// which must not run inside Discord's 3 second budget.
 const filterSet: ComponentHandler = async (interaction, id, deps) => {
   if (!isCardState(id)) return
+  await interaction.deferUpdate()
+  const locale = toRevelioLocale(interaction.locale)
   const value = picked(interaction)
-  const sets = await deps.sets.all(toRevelioLocale(interaction.locale))
+  const sets = await deps.sets.all(locale)
   const set = value && sets.some((s) => s.code === value) ? value : null
-  await show(interaction, deps, { ...id.state, set, page: 1 })
+  await interaction.editReply(
+    await renderSearchBrowser(deps, { ...id.state, set, page: 1 }, locale, interaction.inGuild()),
+  )
 }
 
 export function postRefusalKey(kind: 'unreachable' | 'forbidden'): string {

@@ -64,6 +64,18 @@ describe('suggestDecks', () => {
     expect(row.author).toBe('Alice_HP')
   })
 
+  // Typed free text resolves by exact name among at most 25 rows, so an exact
+  // match must not be cut off by better-liked partial matches.
+  it('ranks an exact name above every partial match', async () => {
+    const id = await createDeck(ctx.db, 'u2', { name: 'Hufflepuff', format: 'classic', visibility: 'public', cards: [] })
+    try {
+      const [row] = await suggestDecks(ctx.db, { query: 'HUFFLEPUFF', viewerId: 'u1', limit: 1 })
+      expect(row.id).toBe(id)
+    } finally {
+      await ctx.db.delete(decks).where(eq(decks.id, id))
+    }
+  })
+
   it('respects the limit', async () => {
     expect(await suggestDecks(ctx.db, { query: '', viewerId: null, limit: 2 })).toHaveLength(2)
   })

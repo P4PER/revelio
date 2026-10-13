@@ -159,11 +159,15 @@ export async function suggestDecks(db: DB, input: SuggestDecksInput): Promise<De
     ? or(eq(decks.visibility, 'public'), eq(decks.userId, viewerId))!
     : eq(decks.visibility, 'public')
   const match = deckSearchCondition(input.query)
-  // Own decks first, most recently edited first; then public decks by likes.
+  // An exact name first: the bot resolves typed free text by exact name among
+  // these rows, so a poorly liked exact match must not fall past the limit.
+  // Then own decks, most recently edited first; then public decks by likes.
   // NULLS LAST matters: Postgres sorts NULL first under DESC, which would put
   // every public deck's null "own updated" key ahead of the own decks. A null
   // viewer skips the own keys: Postgres rejects a bare constant in ORDER BY.
+  const name = input.query.trim()
   const order = [
+    ...(name && !name.startsWith('@') ? [sql`lower(${decks.name}) = lower(${name}) desc`] : []),
     ...(viewerId ? [
       sql`${own} desc`,
       sql`case when ${own} then ${decks.updatedAt} end desc nulls last`,

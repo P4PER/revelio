@@ -1,6 +1,12 @@
-import { AttachmentBuilder, SlashCommandBuilder, type ChatInputCommandInteraction } from 'discord.js'
+import {
+  AttachmentBuilder,
+  SlashCommandBuilder,
+  type AutocompleteInteraction,
+  type ChatInputCommandInteraction,
+} from 'discord.js'
 import type { Deps } from '../../clients'
-import { getDeckView } from '../../data/decks'
+import { findDecks, getDeckView, suggestionLabel } from '../../data/decks'
+import { resolveLinkedUser } from '../../data/link'
 import { toRevelioLocale } from '../../i18n/locale'
 import { t } from '../../i18n/t'
 import { requestDeckSheet } from '../../data/sheet'
@@ -14,7 +20,8 @@ export const data = new SlashCommandBuilder()
     o.setName('deck')
       .setDescription(t('en', 'command.deck.option.deck'))
       .setDescriptionLocalizations({ de: t('de', 'command.deck.option.deck') })
-      .setRequired(true),
+      .setRequired(true)
+      .setAutocomplete(true),
   )
   .addStringOption((o) =>
     o.setName('view')
@@ -66,4 +73,23 @@ export async function execute(
   }
 
   await interaction.editReply({ embeds: [deckEmbed(deck, { locale, siteBase, view: 'list' })] })
+}
+
+// Runs on every keystroke inside a 3 second budget with no defer, so a failure
+// degrades to an empty list - free text still works - rather than an error.
+// resolveLinkedUser is one indexed read and also enforces a ban: a banned
+// user is treated as unlinked and sees public decks only.
+export async function autocomplete(
+  interaction: AutocompleteInteraction,
+  deps: Deps,
+): Promise<void> {
+  const locale = toRevelioLocale(interaction.locale)
+  try {
+    const viewerId = await resolveLinkedUser(deps.db, interaction.user.id)
+    const decks = await findDecks(deps.db, interaction.options.getFocused(), viewerId)
+    await interaction.respond(decks.map((d) => ({ name: suggestionLabel(d, locale), value: d.id })))
+  } catch (err) {
+    console.error('deck autocomplete failed:', err)
+    await interaction.respond([]).catch(() => {})
+  }
 }

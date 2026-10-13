@@ -77,6 +77,7 @@ function fakeDeps(hits: unknown[], total: number) {
 function fakeAutocomplete(focused: string, locale = 'en') {
   return {
     locale,
+    user: { id: '111' },
     respond: vi.fn().mockResolvedValue(undefined),
     options: { getFocused: () => focused, getSubcommand: () => null },
   }
@@ -386,5 +387,43 @@ describe('/deck', () => {
     const interaction = fakeInteraction({ deck: 'abc123' })
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(record).not.toHaveBeenCalled()
+  })
+})
+
+describe('/deck autocomplete', () => {
+  const row = (over: Partial<dbModule.DeckSuggestion>): dbModule.DeckSuggestion => ({
+    id: 'd1', name: 'Gryffindor Aggro', format: 'classic', author: 'seeker',
+    visibility: 'public', isOwn: false, ...over,
+  })
+
+  it('suggests decks for the linked viewer, valued by deck id', async () => {
+    vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockResolvedValue('user-1')
+    const search = vi.spyOn(dbModule, 'suggestDecks').mockResolvedValue([
+      row({ id: 'mine', name: 'Secret', visibility: 'private', isOwn: true }),
+      row({ id: 'pub' }),
+    ])
+    const interaction = fakeAutocomplete('gry')
+    await COMMANDS.get('deck')!.autocomplete!(interaction as never, fakeDeps([], 0) as never)
+    expect(search).toHaveBeenCalledWith({}, { query: 'gry', viewerId: 'user-1', limit: 25 })
+    expect(interaction.respond).toHaveBeenCalledWith([
+      { name: '🔒 Secret · @seeker · Classic', value: 'mine' },
+      { name: 'Gryffindor Aggro · @seeker · Classic', value: 'pub' },
+    ])
+  })
+
+  it('searches public decks only for an unlinked user', async () => {
+    vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockResolvedValue(null)
+    const search = vi.spyOn(dbModule, 'suggestDecks').mockResolvedValue([])
+    await COMMANDS.get('deck')!.autocomplete!(fakeAutocomplete('') as never, fakeDeps([], 0) as never)
+    expect(search).toHaveBeenCalledWith({}, { query: '', viewerId: null, limit: 25 })
+  })
+
+  it('answers an empty list rather than throwing when the query fails', async () => {
+    vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockResolvedValue(null)
+    vi.spyOn(dbModule, 'suggestDecks').mockRejectedValue(new Error('db down'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const interaction = fakeAutocomplete('x')
+    await COMMANDS.get('deck')!.autocomplete!(interaction as never, fakeDeps([], 0) as never)
+    expect(interaction.respond).toHaveBeenCalledWith([])
   })
 })

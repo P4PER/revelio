@@ -33,24 +33,28 @@ function clamp(value: string, limit: number): string {
   return value.length <= limit ? value : `${value.slice(0, limit - ELLIPSIS.length)}${ELLIPSIS}`
 }
 
-// Two lines in place of the embed's inline-field grid, which needed blank
-// padding fields to keep its columns: what the card is (types, sub-types,
-// lesson), then what it costs and how it plays. One line ran the two together.
-// Sub-types are not curated in attributes.ts, so they resolve like the card
-// page: a translation from the DB, else the humanized code.
+// Labelled pairs on two lines, in place of the embed's inline-field grid
+// (which needed blank padding fields to keep its columns): what the card is,
+// then what it costs and how it plays. A pair with no value is dropped, and a
+// line with no pairs. Sub-types are not curated in attributes.ts, so they
+// resolve like the card page: a translation from the DB, else the humanized code.
 function headerLines(detail: CardDetail, locale: string): string[] {
   const { doc } = detail
+  const pair = (key: string, value: string | number | null | undefined): string =>
+    value == null || value === '' ? '' : `**${t(locale, `card.field.${key}`)}** ${value}`
   const types = [
     ...doc.types.map((code) => attrLabel('types', code, locale)),
     ...doc.subTypes.map((code) => detail.subTypeLabels[code] ?? humanize(code)),
   ].join(', ')
-  const tags = [types, doc.lesson ? attrLabel('lessons', doc.lesson, locale) : '']
+  const tags = [
+    pair('type', types),
+    pair('lesson', doc.lesson && attrLabel('lessons', doc.lesson, locale)),
+  ]
   const stats = [
-    doc.cost != null ? t(locale, 'card.stat.cost', { value: doc.cost }) : '',
-    doc.damage != null ? t(locale, 'card.stat.damage', { value: doc.damage }) : '',
-    doc.rarity ? attrLabel('rarities', doc.rarity, locale) : '',
-    // Without field labels, a bare "Unknown" would not say what is.
-    doc.legality && doc.legality !== 'unknown' ? attrLabel('legalities', doc.legality, locale) : '',
+    pair('cost', doc.cost),
+    pair('damage', doc.damage),
+    pair('rarity', doc.rarity && attrLabel('rarities', doc.rarity, locale)),
+    pair('legality', doc.legality && attrLabel('legalities', doc.legality, locale)),
   ]
   return [tags, stats].map((parts) => parts.filter(Boolean).join(' · ')).filter(Boolean)
 }

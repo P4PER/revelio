@@ -52,18 +52,24 @@ describe('cardView', () => {
     expect(cardView(detail(), opts)[0].toJSON().accent_color).toBe(0xe2ae37)
   })
 
-  // Two lines, so what the card is never runs into what it costs.
-  it('puts the tags on one line and the stats on the next', () => {
-    expect(textOf(view(detail()))).toContain('## Nimbus 2000\nItem, Broom · Quidditch\nCost 4 · Rare · Legal\n')
+  // Labelled pairs, two lines: what the card is, then what it costs.
+  it('labels each fact, tags on one line and stats on the next', () => {
+    expect(textOf(view(detail()))).toContain(
+      '## Nimbus 2000\n**Type** Item, Broom · **Lesson** Quidditch\n**Cost** 4 · **Rarity** Rare · **Legality** Legal\n',
+    )
+  })
+
+  it('labels damage per turn', () => {
+    expect(textOf(view(detail({ damage: 2 })))).toContain('**Cost** 4 · **Damage per turn** 2 · **Rarity** Rare')
   })
 
   it('leaves the stats line out when the card has no stats', () => {
     const t = textOf(view(detail({ cost: null, rarity: null, legality: null })))
-    expect(t).toMatch(/^## Nimbus 2000\nItem, Broom · Quidditch\n[^\n]*Whenever/)
+    expect(t).toMatch(/^## Nimbus 2000\n\*\*Type\*\* Item, Broom · \*\*Lesson\*\* Quidditch\nWhenever/)
   })
 
   it('localizes the stats line and humanizes an untranslated sub-type', () => {
-    expect(textOf(view(detail(), { locale: 'de' }))).toContain('Gegenstand, Broom · Quidditch\nKosten 4')
+    expect(textOf(view(detail(), { locale: 'de' }))).toContain('**Typ** Gegenstand, Broom · **Lektion** Quidditch\n**Kosten** 4')
   })
 
   it('prefers a translated sub-type label', () => {
@@ -71,15 +77,15 @@ describe('cardView', () => {
     expect(textOf(v)).toContain('Character, Wizard, Death Eater')
   })
 
-  // Without the embed's field label a bare "Unknown" says nothing.
-  it('leaves an unknown legality off the stats line', () => {
-    expect(textOf(view(detail({ legality: 'unknown' })))).toContain('Quidditch\nCost 4 · Rare\n')
+  // With its label, an unknown legality says something again, as the embed did.
+  it('shows an unknown legality under its label', () => {
+    expect(textOf(view(detail({ legality: 'unknown' })))).toContain('**Legality** Unknown')
   })
 
   it('drops what the card has no value for', () => {
     const t = textOf(view(detail({ cost: null, damage: null })))
     expect(t).not.toContain('Cost')
-    expect(t).not.toContain('damage per turn')
+    expect(t).not.toContain('Damage per turn')
   })
 
   it('ends with the set and number as a footer line', () => {

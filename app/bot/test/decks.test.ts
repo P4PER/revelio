@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import * as dbModule from '@revelio/db'
-import { parseDeckRef, getDeckView, resolveDeckRef, suggestionLabel, findDecks } from '../src/data/decks'
+import {
+  browsePublicDecks, findDecks, getDeckView, pageOwnDecks, parseDeckRef, resolveDeckRef, suggestionLabel,
+} from '../src/data/decks'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -259,5 +261,28 @@ describe('resolveDeckRef', () => {
     expect(await resolveDeckRef({} as never, '   ', null)).toEqual({ kind: 'none' })
     expect(access).not.toHaveBeenCalled()
     expect(search).not.toHaveBeenCalled()
+  })
+})
+
+describe('deck pages', () => {
+  it('asks listPublicDecks for five, with the browser state as its filters', async () => {
+    const list = vi.spyOn(dbModule, 'listPublicDecks').mockResolvedValue({
+      entries: [], total: 12, page: 2, pageCount: 3, pageSize: 5,
+    })
+    const page = await browsePublicDecks({} as never, {
+      scope: 'public', page: 2, format: 'revival', sort: 'views', lesson: 'charms', query: '@ann',
+    })
+    expect(list).toHaveBeenCalledWith({}, {
+      search: '@ann', lessons: ['charms'], format: 'revival', sort: 'views', page: 2, pageSize: 5,
+    })
+    expect(page).toMatchObject({ total: 12, page: 2, pages: 3 })
+  })
+
+  it('pages the owner\'s decks ten at a time, newest edit first as listed', async () => {
+    const decks = Array.from({ length: 23 }, (_, i) => ({ id: `d${i}` }))
+    vi.spyOn(dbModule, 'listDecksByUser').mockResolvedValue(decks as never)
+    const page = await pageOwnDecks({} as never, 'u1', 3)
+    expect(page.decks.map((d) => d.id)).toEqual(['d20', 'd21', 'd22'])
+    expect(page).toMatchObject({ total: 23, page: 3, pages: 3 })
   })
 })

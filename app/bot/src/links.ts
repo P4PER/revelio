@@ -15,6 +15,9 @@ export type BrowseSearch = {
   set: string | null
 }
 
+// The deck browser state a link to the web /decks page carries.
+export type DecksLinkState = { query: string; format: string | null; sort: string; lesson: string | null }
+
 // web/i18n/routing.ts uses localePrefix 'as-needed' with 'en' as the default,
 // so English URLs carry no prefix and every other locale does.
 function localeRoot(siteBase: string, locale: string): string {
@@ -63,4 +66,16 @@ export function browseUrl(siteBase: string, search: BrowseSearch, locale: string
   return searchUrl(siteBase, search.query, locale, {
     lesson: search.lesson, type: search.type, set: search.set, sort,
   })
+}
+
+// The web's public deck browser (web/src/lib/browse-params.ts): q, lesson,
+// format and sort, each only when it differs from the default.
+export function decksUrl(siteBase: string, locale: string, state: DecksLinkState): string {
+  const params = new URLSearchParams()
+  if (state.query) params.set('q', state.query)
+  if (state.lesson) params.set('lesson', state.lesson)
+  if (state.format) params.set('format', state.format)
+  if (state.sort !== 'likes') params.set('sort', state.sort)
+  const qs = params.toString()
+  return `${localeRoot(siteBase, locale)}/decks${qs ? `?${qs}` : ''}`
 }

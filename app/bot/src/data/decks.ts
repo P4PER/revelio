@@ -1,9 +1,13 @@
 import {
   getDeckAccess,
   getDeckForViewer,
+  listDecksByUser,
+  listPublicDecks,
   suggestDecks,
   type DB,
   type DeckSuggestion,
+  type DeckSummary,
+  type PublicDeckEntry,
 } from '@revelio/db'
 import {
   evaluateDeck,
@@ -13,6 +17,7 @@ import {
   type DeckStatus,
   type DeckVisibility,
 } from '@revelio/core'
+import type { DeckBrowseState } from '../discord/components/custom-id'
 import { t } from '../i18n/t'
 import { clampLabel, MAX_CHOICES } from './cards'
 
@@ -53,7 +58,15 @@ export type DeckRef =
   | { kind: 'ambiguous'; options: DeckSuggestion[] }
   | { kind: 'none' }
 
+export type PublicDeckPage = { entries: PublicDeckEntry[]; total: number; page: number; pages: number }
+export type OwnDeckPage = { decks: DeckSummary[]; total: number; page: number; pages: number }
+
 type Sortable = Pick<DeckCardView, 'cost' | 'name'>
+
+// Five rows with art keep /decks at 32 of Discord's 40 components; own decks
+// are text rows, so ten fit.
+export const DECK_PAGE_SIZE = 5
+export const OWN_PAGE_SIZE = 10
 
 function byCostThenName(a: Sortable, b: Sortable): number {
   const ac = a.cost ?? Number.MAX_SAFE_INTEGER
@@ -177,4 +190,28 @@ export async function resolveDeckRef(db: DB, input: string, viewerId: string | n
   const one = matches.length === 1 ? matches[0] : exact.length === 1 ? exact[0] : null
   if (one) return { kind: 'deck', id: one.id, name: one.name, access: accessOf(one) }
   return { kind: 'ambiguous', options: matches }
+}
+
+// The web /decks page's own query, so the two can never disagree on what
+// matches - "@handle" included.
+export async function browsePublicDecks(db: DB, state: DeckBrowseState): Promise<PublicDeckPage> {
+  const res = await listPublicDecks(db, {
+    search: state.query || undefined,
+    lessons: state.lesson ? [state.lesson] : undefined,
+    format: state.format,
+    sort: state.sort,
+    page: state.page,
+    pageSize: DECK_PAGE_SIZE,
+  })
+  return { entries: res.entries, total: res.total, page: res.page, pages: res.pageCount }
+}
+
+// listDecksByUser returns every deck, newest edit first; a user's own list is
+// small enough to page in memory.
+export async function pageOwnDecks(db: DB, userId: string, page: number): Promise<OwnDeckPage> {
+  const all = await listDecksByUser(db, userId)
+  const pages = Math.max(1, Math.ceil(all.length / OWN_PAGE_SIZE))
+  const current = Math.min(Math.max(1, page), pages)
+  const start = (current - 1) * OWN_PAGE_SIZE
+  return { decks: all.slice(start, start + OWN_PAGE_SIZE), total: all.length, page: current, pages }
 }

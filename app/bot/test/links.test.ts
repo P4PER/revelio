@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { browseUrl, cardUrl, deckUrl, searchUrl, settingsUrl, newDeckUrl } from '../src/links'
+import { browseUrl, cardUrl, deckUrl, decksUrl, searchUrl, settingsUrl, newDeckUrl } from '../src/links'
 
 describe('cardUrl', () => {
   it('omits the locale prefix for English', () => {
@@ -95,5 +95,14 @@ describe('newDeckUrl', () => {
   it('prefixes non-default locales', () => {
     expect(newDeckUrl('https://revelio.cards', 'de'))
       .toBe('https://revelio.cards/de/decks/new')
+  })
+})
+
+describe('decksUrl', () => {
+  it('links the public deck browser with only non-default state', () => {
+    expect(decksUrl('https://revelio.cards', 'de', { query: 'aggro', format: null, sort: 'likes', lesson: 'charms' }))
+      .toBe('https://revelio.cards/de/decks?q=aggro&lesson=charms')
+    expect(decksUrl('https://revelio.cards', 'en', { query: '', format: 'classic', sort: 'views', lesson: null }))
+      .toBe('https://revelio.cards/decks?format=classic&sort=views')
   })
 })

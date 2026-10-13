@@ -7,6 +7,7 @@ const deck: DeckView = {
   name: 'Charms Aggro',
   format: 'classic',
   ownerUsername: 'seeker',
+  visibility: 'public',
   character: { name: 'Harry Potter', quantity: 1, cost: null, lesson: null, setCode: 'BS', number: '1' },
   main: [
     { name: 'Charms Lesson', quantity: 8, cost: 0, lesson: 'charms', setCode: 'BS', number: '112' },
@@ -27,6 +28,14 @@ describe('deckEmbed', () => {
     const json = deckEmbed(deck, opts).toJSON()
     expect(json.title).toBe('Charms Aggro')
     expect(json.url).toBe('https://revelio.cards/decks/abc123')
+  })
+
+  // A private deck posted to a channel would otherwise link a page that
+  // answers "not found" for everyone but its owner.
+  it('drops the page link when told the page cannot be opened', () => {
+    const json = deckEmbed(deck, { ...opts, linkPage: false }).toJSON()
+    expect(json.title).toBe('Charms Aggro')
+    expect(json.url).toBeUndefined()
   })
 
   it('pads Format and Legality to a full row when there is no character', () => {

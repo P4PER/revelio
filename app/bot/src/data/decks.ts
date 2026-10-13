@@ -11,6 +11,7 @@ import {
   type DeckCardView,
   type DeckFormat,
   type DeckStatus,
+  type DeckVisibility,
 } from '@revelio/core'
 import { t } from '../i18n/t'
 import { clampLabel, MAX_CHOICES } from './cards'
@@ -31,6 +32,7 @@ export type DeckView = {
   name: string
   format: DeckFormat
   ownerUsername: string | null
+  visibility: DeckVisibility
   character: DeckEntryView | null
   main: DeckEntryView[]
   sideboard: DeckEntryView[]
@@ -127,6 +129,7 @@ export async function getDeckView(db: DB, ref: string, viewerId: string | null):
     name: deck.name,
     format: deck.format,
     ownerUsername,
+    visibility: deck.visibility,
     character: character ? toEntry(character) : null,
     main,
     sideboard,

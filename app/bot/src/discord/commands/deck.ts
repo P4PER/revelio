@@ -71,6 +71,7 @@ async function deliverDeck(
   send: (payload: DeckPayload) => Promise<unknown>,
   deck: DeckView,
   ctx: DeckContext,
+  linkPage = true,
 ): Promise<void> {
   const { locale } = ctx
   const siteBase = ctx.deps.env.SITE_BASE_URL
@@ -78,7 +79,7 @@ async function deliverDeck(
     try {
       const sheet = await requestDeckSheet(deck, locale, ctx.deps.env)
       await send({
-        embeds: [deckEmbed(deck, { locale, siteBase, view: 'image', imageName: sheet.name })],
+        embeds: [deckEmbed(deck, { locale, siteBase, linkPage, view: 'image', imageName: sheet.name })],
         files: [new AttachmentBuilder(sheet.body, { name: sheet.name })],
         components: [],
       })
@@ -87,7 +88,7 @@ async function deliverDeck(
       console.error('deck sheet render failed:', err)
     }
   }
-  await send({ embeds: [deckEmbed(deck, { locale, siteBase, view: 'list' })], components: [] })
+  await send({ embeds: [deckEmbed(deck, { locale, siteBase, linkPage, view: 'list' })], components: [] })
 }
 
 // Answers a click on the prompt with the deck's own message. Whether the deck
@@ -150,7 +151,10 @@ async function deliverChoice(
       await fail('deck.notFound')
       return
     }
-    await deliverDeck((p) => component.editReply(p), deck, ctx)
+    // Only the owner can open a private deck's page, so a channel post of one
+    // goes out unlinked.
+    const linkPage = !isPublic || deck.visibility === 'public'
+    await deliverDeck((p) => component.editReply(p), deck, ctx, linkPage)
   } catch (err) {
     console.error('deck prompt failed:', err)
     await fail('error.generic')

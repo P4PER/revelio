@@ -489,6 +489,31 @@ describe('/deck', () => {
     expect(interaction.deleteReply).toHaveBeenCalled()
   })
 
+  const privateDeck = () => {
+    const d = stubDeck()
+    return { ...d, deck: { ...d.deck, visibility: 'private' } }
+  }
+
+  it('posts a private deck without a link to its page, which others cannot open', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(privateDeck() as never)
+    const click = fakeComponent('deck:post')
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.editReply.mock.calls[0][0].embeds[0].toJSON().url).toBeUndefined()
+  })
+
+  it('keeps the page link when a private deck is shown to its owner alone', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(privateDeck() as never)
+    const click = fakeComponent('deck:self')
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.editReply.mock.calls[0][0].embeds[0].toJSON().url).toBe('https://revelio.cards/decks/abc123')
+  })
+
   // Review focus 4: the deck vanished or went private between prompt and click.
   // Only the one-row access check runs before the click is acknowledged, so
   // "not found" stays in the private prompt and no public "thinking" message

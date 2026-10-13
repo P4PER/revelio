@@ -52,6 +52,11 @@ export function stubDeck() {
 }
 
 describe('getDeckView', () => {
+  it('carries the deck\'s visibility', async () => {
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    expect((await getDeckView({} as never, 'abc123', null))!.visibility).toBe('public')
+  })
+
   it('carries each entry\'s set code and number for the list view', async () => {
     vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
     const deck = await getDeckView({} as never, 'abc123', null)

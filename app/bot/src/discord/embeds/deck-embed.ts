@@ -10,9 +10,14 @@ import { inlineGrid } from './inline-grid'
 // settled on - PNG, or WebP when the PNG overshot the attachment ceiling. A
 // single constant here used to be enough, back when one painter picked one
 // format for every sheet.
+// linkPage: false leaves the title unlinked. A private deck posted to a channel
+// would otherwise link a page that answers "not found" for everyone but its
+// owner.
+type DeckEmbedBase = { locale: string; siteBase: string; linkPage?: boolean }
+
 export type DeckEmbedOptions =
-  | { locale: string; siteBase: string; view: 'list' }
-  | { locale: string; siteBase: string; view: 'image'; imageName: string }
+  | DeckEmbedBase & { view: 'list' }
+  | DeckEmbedBase & { view: 'image'; imageName: string }
 
 const FIELD_LIMIT = 1024
 const FALLBACK_COLOR = 0x2b2d31
@@ -55,7 +60,7 @@ export function deckEmbed(deck: DeckView, opts: DeckEmbedOptions): EmbedBuilder 
   const { locale } = opts
   const embed = new EmbedBuilder()
     .setTitle(deck.name)
-    .setURL(deckUrl(opts.siteBase, deck.id, locale))
+    .setURL(opts.linkPage === false ? null : deckUrl(opts.siteBase, deck.id, locale))
     .setColor(lessonColor(deck.topLesson))
     .setFooter({
       text: deck.ownerUsername

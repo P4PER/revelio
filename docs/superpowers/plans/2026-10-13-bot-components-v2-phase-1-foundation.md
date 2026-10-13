@@ -1468,6 +1468,11 @@ git -c gpg.program=/opt/homebrew/bin/gpg commit -m "refactor(bot): share the cha
 
 ### Task 7: `/card` on Components V2
 
+> **Superseded after the dev-guild check (commit 0d6d83d5):** the header below is one unlabelled
+> stats line with `card.stat.cost` / `card.stat.damage`. It shipped as labelled pairs on two lines
+> (`**Type** ... · **Lesson** ...` / `**Cost** ... · **Rarity** ... · **Legality** ...`) using the
+> restored `card.field.*` keys; spec section 4 has the final layout.
+
 **Files:**
 - Create: `app/bot/src/data/card-detail.ts`
 - Create: `app/bot/src/discord/v2/card-view.ts`

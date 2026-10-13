@@ -12,6 +12,7 @@ import { deliverDeck } from '../deck-delivery'
 import { ownDecksView, publicDecksView } from '../v2/deck-browser-view'
 import { ephemeralText, textEdit, v2Edit, v2Message, type V2Edit } from '../v2/send'
 import {
+  decodeCustomId,
   DECK_SORTS,
   encodeCustomId,
   isEntityId,
@@ -24,6 +25,9 @@ import { picked } from './select'
 import type { ComponentHandler } from './types'
 
 type DeckStateId = { kind: DeckKind; state: DeckBrowseState }
+
+// A received component as its JSON: only what openedFrom walks.
+type ComponentJson = { custom_id?: string; components?: ComponentJson[]; accessory?: ComponentJson }
 
 const REFUSAL_KEYS = { unreachable: 'post.cannotPostHere', forbidden: 'post.cannotPost' } as const
 
@@ -46,6 +50,22 @@ async function readAs(deps: Deps, interaction: MessageComponentInteraction, deck
   const access = await getDeckAccess(deps.db, deckId, viewer)
   if (!access) return null
   return { loadAs: access.access === 'own-private' ? viewer : null }
+}
+
+// The browser page a deck view was opened from, read off its Back button.
+// Client data like any id: decodeCustomId validates it, and it only chooses
+// which page of the caller's own browser is drawn.
+function openedFrom(interaction: MessageComponentInteraction): DeckBrowseState | null {
+  const queue = [...((interaction.message.components ?? []) as unknown[])].map((c) => {
+    const encodable = c as { toJSON?: () => ComponentJson }
+    return typeof encodable.toJSON === 'function' ? encodable.toJSON() : (c as ComponentJson)
+  })
+  for (let node = queue.shift(); node; node = queue.shift()) {
+    const id = node.custom_id ? decodeCustomId(node.custom_id) : null
+    if (id?.kind === 'd') return id.state
+    queue.push(...(node.components ?? []), ...(node.accessory ? [node.accessory] : []))
+  }
+  return null
 }
 
 const navigate: ComponentHandler = async (interaction, id, deps) => {
@@ -129,12 +149,15 @@ const postDeck: ComponentHandler = async (interaction, id, deps) => {
       return
     }
     await target.channel.sendTyping().catch(() => {})
-    await sendToChannel(interaction, () => deliverDeck((c, f) => target.channel.send(v2Message(c, f)), deck, deps, locale, {
+    const posted = await sendToChannel(interaction, () => deliverDeck((c, f) => target.channel.send(v2Message(c, f)), deck, deps, locale, {
       audience: 'channel',
       sendEdits: false,
       listOnly: false,
       lead: t(locale, 'post.sharedDeck', { user: `<@${interaction.user.id}>` }),
     }), locale, REFUSAL_KEYS)
+    // The channel shows the deck now; the private copy would only repeat it.
+    const from = posted ? openedFrom(interaction) : null
+    if (from) await interaction.editReply(await renderDeckBrowser(deps, from, locale, interaction.user.id))
   } catch (err) {
     console.error(`deck post failed (${interaction.id}):`, err)
     await interaction.followUp(ephemeralText(t(locale, 'error.generic')))

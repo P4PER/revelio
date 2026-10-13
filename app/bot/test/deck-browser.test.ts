@@ -129,6 +129,24 @@ describe('posting a deck', () => {
     expect(c.followUp).not.toHaveBeenCalled()
   })
 
+  // The channel now shows the deck, so the private copy would only repeat it;
+  // the caller lands back on the browser page they opened it from, read from
+  // the Back button of the message they clicked.
+  it('goes back to the browser page the deck was opened from once posted', async () => {
+    linkedAs(null)
+    vi.spyOn(dbModule, 'getDeckAccess').mockResolvedValue({ access: 'public', name: 'Charms Aggro' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stored('public') as never)
+    const c = fakeClick(encodeCustomId({ kind: 'dp', deckId: ID }))
+    const back = encodeCustomId({ kind: 'd', state: { ...state, page: 2, format: 'revival' } })
+    Object.assign(c.message, {
+      components: [{ type: 17, components: [{ type: 1, components: [{ type: 2, custom_id: back }] }] }],
+    })
+    await handleInteraction(c as never, fakeDeps([], 0) as never)
+    expect(c.channel.send).toHaveBeenCalled()
+    expect(vi.mocked(dbModule.listPublicDecks).mock.calls[0][1]).toMatchObject({ page: 2, format: 'revival' })
+    expect(textOf(c.editReply.mock.calls[0][0])).toContain('Public decks: **3**')
+  })
+
   // Pressing Post on your own private deck is the owner's say-so.
   it('posts the owner\'s own private deck as its owner, without a page link', async () => {
     linkedAs('user-1')

@@ -172,40 +172,6 @@ describe('/card', () => {
   })
 })
 
-describe('/search', () => {
-  it('replies with a result page', async () => {
-    const interaction = fakeInteraction({ query: 'nimbus', page: 1 })
-    await COMMANDS.get('search')!.execute(interaction as never, fakeDeps([doc], 1) as never)
-    const payload = interaction.editReply.mock.calls[0][0]
-    expect(payload.embeds[0].toJSON().description).toContain('Nimbus 2000')
-  })
-
-  it('tells the user when the requested page is past the end', async () => {
-    const interaction = fakeInteraction({ query: 'nimbus', page: 9 })
-    await COMMANDS.get('search')!.execute(interaction as never, fakeDeps([doc], 1) as never)
-    expect(interaction.editReply).toHaveBeenCalledWith(
-      expect.objectContaining({ content: expect.stringContaining('1 page') }),
-    )
-  })
-
-  it('treats an in-range but empty page as out of range', async () => {
-    // estimatedTotalHits can over-estimate: 25 estimated, 12 real, page 3 asked.
-    const interaction = fakeInteraction({ query: 'nimbus', page: 3 })
-    await COMMANDS.get('search')!.execute(interaction as never, fakeDeps([], 25) as never)
-    expect(interaction.editReply).toHaveBeenCalledWith(
-      expect.objectContaining({ content: expect.stringContaining('does not exist') }),
-    )
-  })
-
-  it('replies with a localized empty state', async () => {
-    const interaction = fakeInteraction({ query: 'zzz' })
-    await COMMANDS.get('search')!.execute(interaction as never, fakeDeps([], 0) as never)
-    expect(interaction.editReply).toHaveBeenCalledWith(
-      expect.objectContaining({ content: 'Nothing matched that search.' }),
-    )
-  })
-})
-
 describe('the command registry', () => {
   it('keys each command by its own builder name', () => {
     for (const [key, command] of COMMANDS) {
@@ -280,7 +246,7 @@ describe('/search set filter', () => {
     const deps = {
       meili: fakeMeili(search),
       db: {},
-      sets: { name: vi.fn(), all: vi.fn() },
+      sets: { name: vi.fn(), all: vi.fn().mockResolvedValue([{ code: 'base', name: 'Base Set' }]) },
       env: {
         IMAGE_BASE_URL: 'https://img.test',
         SITE_BASE_URL: 'https://revelio.cards',

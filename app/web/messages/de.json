@@ -855,7 +855,8 @@
       "minimum": "Mindestens {min}.",
       "ephemeral": "Nur du siehst es",
       "public": "Antwortet im Kanal",
-      "linkRequired": "Braucht ein verknüpftes Konto"
+      "linkRequired": "Braucht ein verknüpftes Konto",
+      "maxLength": "Höchstens {max} Zeichen."
     },
     "commands": {
       "card": {
@@ -865,11 +866,10 @@
       },
       "search": {
         "options": {
-          "query": "Suchbegriffe. Ein Treffer im Kartennamen steht immer vor einem Treffer im Kartentext oder im Flavour-Text.",
+          "query": "Suchbegriffe. Optional: Die Filter allein durchsuchen eine Lektion, einen Kartentyp oder ein Set. Ein Treffer im Kartennamen steht immer vor einem Treffer im Text oder Flavourtext.",
           "lesson": "Schränkt auf eine Lektion ein.",
           "type": "Schränkt auf einen Kartentyp ein.",
-          "set": "Schränkt auf ein Set ein. Die Vorschläge umfassen die Set-Namen.",
-          "page": "Welche Ergebnisseite angezeigt wird. Die Gesamtzahl ist geschätzt, deshalb kann eine Seite innerhalb der angegebenen Anzahl leer bleiben."
+          "set": "Schränkt auf ein Set ein. Die Vorschläge umfassen die Set-Namen."
         }
       },
       "deck": {

@@ -30,11 +30,21 @@ describe('CommandTable', () => {
   })
 
   it('marks required and optional options differently', () => {
-    renderTable('search')
-    const row = screen.getByText('query').closest('tr')!
+    renderTable('card')
+    const row = screen.getByText('name').closest('tr')!
     expect(within(row).getByText('Required')).toBeInTheDocument()
+  })
+
+  it('marks an optional option as optional', () => {
+    renderTable('search')
     const optional = screen.getByText('set').closest('tr')!
     expect(within(optional).getByText('Optional')).toBeInTheDocument()
+  })
+
+  it('states the length cap of a capped option', () => {
+    renderTable('search')
+    const row = screen.getByText('query').closest('tr')!
+    expect(within(row).getByText(/At most 50 characters\./)).toBeInTheDocument()
   })
 
   it('calls an option with choices a choice, not text', () => {
@@ -69,12 +79,6 @@ describe('CommandTable', () => {
     expect(within(plain).queryByText('Autocompletes')).toBeNull()
   })
 
-  it('states the floor on an option that has one', () => {
-    renderTable('search')
-    const row = screen.getByText('page').closest('tr')!
-    expect(within(row).getByText(/Minimum 1/)).toBeInTheDocument()
-  })
-
   // A personal command's answer is nobody else's business, and the page must
   // not imply it lands in the channel.
   it('marks a personal command as private and account-linked', () => {
@@ -96,9 +100,8 @@ describe('CommandTable', () => {
 
   it('renders German labels and German notes', () => {
     renderTable('search', 'de', de)
-    // "Pflicht" is both the column heading and the cell value on a required
-    // option, and /search has two choice options, so neither is unique.
-    expect(screen.getAllByText('Pflicht').length).toBeGreaterThan(1)
+    // /search has two choice options, so "Auswahl" is not unique.
+    expect(screen.getByText(/Höchstens 50 Zeichen\./)).toBeInTheDocument()
     expect(screen.getAllByText('Auswahl')).toHaveLength(2)
     expect(screen.getByText(/Schränkt auf eine Lektion ein/)).toBeInTheDocument()
     // Option names stay untranslated: this is what a German user types.

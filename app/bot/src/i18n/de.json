@@ -6,7 +6,6 @@
   "command.search.option.lesson": "Lektion",
   "command.search.option.type": "Kartentyp",
   "command.search.option.set": "Set",
-  "command.search.option.page": "Seitenzahl",
   "card.notFound": "Keine Karte passt zu \"{name}\".",
   "card.field.type": "Typ",
   "card.field.lesson": "Lektion",
@@ -18,10 +17,7 @@
   "card.footer": "{setName} · #{number}",
   "card.openSite": "Auf revelio.cards öffnen",
   "search.noResults": "Zu dieser Suche gibt es keine Treffer.",
-  "search.title": "{total} Karten",
-  "search.footer": "Seite {page} von {pages} · alle Treffer auf revelio.cards",
   "search.line": "**{name}** · {setCode} #{number}",
-  "search.pageOutOfRange": "Diese Seite gibt es nicht. Diese Suche hat {pages} Seite(n).",
   "command.deck.description": "Ein Deck per Name finden oder seinen Link einfügen",
   "command.deck.option.deck": "Deckname, Link oder ID",
   "command.deck.option.view": "Das Deck als Bild oder als Textliste zeigen",
@@ -78,5 +74,6 @@
   "search.filter.lesson": "Lektion",
   "search.filter.type": "Kartentyp",
   "search.filter.set": "Set",
-  "search.share": "Teilen"
+  "search.share": "Teilen",
+  "search.setUnknown": "Dazu passt kein Set."
 }

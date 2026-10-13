@@ -5,9 +5,11 @@ import { handleInteraction } from '../src/discord/handle-interaction'
 import { COMPONENTS } from '../src/discord/components/index'
 import { textOf } from './helpers/v2'
 
+const REGISTERED = new Map(COMPONENTS)
 afterEach(() => {
   vi.restoreAllMocks()
   COMPONENTS.clear()
+  for (const [kind, handler] of REGISTERED) COMPONENTS.set(kind, handler)
 })
 
 const ERROR = 'Something went wrong. Please try again in a moment.'
@@ -108,7 +110,7 @@ describe('handleInteraction: components', () => {
   })
 
   it('treats a valid id with no handler yet as out of date', async () => {
-    const click = fakeClick('v1:pk')
+    const click = fakeClick('v1:pg:c')
     await run(click)
     expect(textOf(click.update.mock.calls[0][0])).toBe(EXPIRED)
   })

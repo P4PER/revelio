@@ -1,4 +1,5 @@
 import type { CustomId } from './custom-id'
+import { SEARCH_HANDLERS } from './search-browser'
 import type { ComponentHandler } from './types'
 
 // The twin of COMMANDS: handle-interaction.ts routes a click by its custom id's
@@ -6,4 +7,4 @@ import type { ComponentHandler } from './types'
 // handler acting on a public message acknowledges only with an ephemeral
 // reply, never update/deferUpdate, so that neither it nor the router's error
 // answer can rewrite a message the whole channel sees.
-export const COMPONENTS: Map<CustomId['kind'], ComponentHandler> = new Map()
+export const COMPONENTS: Map<CustomId['kind'], ComponentHandler> = new Map([...SEARCH_HANDLERS])

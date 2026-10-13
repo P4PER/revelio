@@ -903,7 +903,8 @@
       "minimum": "Minimum {min}.",
       "ephemeral": "Only you see it",
       "public": "Posts to the channel",
-      "linkRequired": "Needs a linked account"
+      "linkRequired": "Needs a linked account",
+      "maxLength": "At most {max} characters."
     },
     "commands": {
       "card": {
@@ -913,11 +914,10 @@
       },
       "search": {
         "options": {
-          "query": "Search terms. A match on a card's name always ranks above a match in its text or flavour.",
+          "query": "Search terms. Optional: the filters alone browse a lesson, type or set. A match on a card's name always ranks above a match in its text or flavour.",
           "lesson": "Narrows to one lesson.",
           "type": "Narrows to one card type.",
-          "set": "Narrows to one set. Suggestions cover the set names.",
-          "page": "Which page of results to show. Totals are estimated, so a page inside the reported count can still come back empty."
+          "set": "Narrows to one set. Suggestions cover the set names."
         }
       },
       "deck": {

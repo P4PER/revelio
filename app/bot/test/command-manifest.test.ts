@@ -33,6 +33,7 @@ function optionsOf(name: string) {
       required?: boolean
       autocomplete?: boolean
       choices?: { value: string | number }[]
+      max_length?: number
     }[]
   }
   return (json.options ?? []).map((option) => ({
@@ -41,6 +42,7 @@ function optionsOf(name: string) {
     required: option.required ?? false,
     autocomplete: option.autocomplete ?? false,
     choices: option.choices?.map((choice) => choice.value) ?? null,
+    maxLength: option.max_length ?? null,
   }))
 }
 
@@ -50,6 +52,7 @@ function deferOf(name: string) {
   const interaction = {
     locale: 'en',
     user: { id: '111' },
+    inGuild: () => true,
     deferReply: vi.fn().mockResolvedValue(undefined),
     editReply: vi.fn().mockResolvedValue(undefined),
     reply: vi.fn().mockResolvedValue(undefined),
@@ -83,23 +86,11 @@ describe('BOT_COMMANDS matches what the bot registers with Discord', () => {
           choices: option.choices
             ? SCOPE_VALUES[option.choices]
             : option.values ? [...option.values] : null,
+          maxLength: option.maxLength ?? null,
         })),
       )
     })
   }
-
-  // Page 0 is not a page. Discord enforces the floor client-side, so losing it
-  // turns a typo into an empty embed rather than a validation message.
-  it('keeps the page floor on /search in step with the manifest', () => {
-    const json = COMMANDS.get('search')!.data.toJSON() as {
-      options: { name: string; min_value?: number }[]
-    }
-    const page = json.options.find((option) => option.name === 'page')
-    const spec = BOT_COMMANDS.find((c) => c.name === 'search')!
-      .options.find((option) => option.name === 'page')
-    expect(page?.min_value).toBe(spec?.min)
-    expect(spec?.min).toBe(1)
-  })
 
   // The docs state, per command, whether the answer is private and whether it
   // needs a linked account. Both are claims about the handler, so both are

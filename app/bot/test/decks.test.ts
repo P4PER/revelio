@@ -216,6 +216,16 @@ describe('resolveDeckRef', () => {
     expect(await resolveDeckRef({} as never, 'nothing', null)).toEqual({ kind: 'none' })
   })
 
+  // parseDeckRef strips from the first "/", "?" or "#", so a name that starts
+  // with one parses to an empty id. It is still a name worth searching for.
+  it('searches a name that parses to no id', async () => {
+    const access = vi.spyOn(dbModule, 'getDeckAccess')
+    vi.spyOn(dbModule, 'suggestDecks').mockResolvedValue([suggestion({ id: 'd7', name: '#1 Aggro' })])
+    expect(await resolveDeckRef({} as never, '#1 Aggro', null))
+      .toEqual({ kind: 'deck', id: 'd7', name: '#1 Aggro', access: 'public' })
+    expect(access).not.toHaveBeenCalled()
+  })
+
   // An empty query matches every visible deck, so a blank input reaching the
   // name search would come back as a 25-deck menu of everything.
   it('treats blank input as none without reading anything', async () => {

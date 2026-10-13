@@ -157,14 +157,17 @@ export function suggestionLabel(s: DeckSuggestion, locale: string): string {
 }
 
 export async function resolveDeckRef(db: DB, input: string, viewerId: string | null): Promise<DeckRef> {
-  const id = parseDeckRef(input)
-  if (!id) return { kind: 'none' }
-  const hit = await getDeckAccess(db, id, viewerId)
-  if (hit) return { kind: 'deck', id, ...hit }
-
   // The whole input, not the parsed id: parseDeckRef cuts at the first "/",
-  // which would turn a deck called "Aggro/Control" into "Aggro".
+  // which would turn a deck called "Aggro/Control" into "Aggro", and a name
+  // starting with "#" into no id at all.
   const query = input.trim()
+  if (!query) return { kind: 'none' }
+  const id = parseDeckRef(query)
+  if (id) {
+    const hit = await getDeckAccess(db, id, viewerId)
+    if (hit) return { kind: 'deck', id, ...hit }
+  }
+
   const matches = await findDecks(db, query, viewerId)
   if (matches.length === 0) return { kind: 'none' }
   const wanted = query.toLowerCase()

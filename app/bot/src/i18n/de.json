@@ -68,5 +68,15 @@
   "browse.expired": "Diese Ergebnisse sind veraltet. Führe den Befehl erneut aus.",
   "browse.prev": "Zurück",
   "browse.next": "Weiter",
-  "browse.page": "{page} / {pages}"
+  "browse.page": "{page} / {pages}",
+  "browse.any": "Alle",
+  "browse.site": "revelio.cards",
+  "search.header": "Gefundene Karten: **{total}**",
+  "search.header.query": "Gefundene Karten für „{query}“: **{total}**",
+  "search.pageEmpty": "Auf dieser Seite gibt es keine weiteren Ergebnisse. Geh eine zurück.",
+  "search.open.placeholder": "Karte öffnen ...",
+  "search.filter.lesson": "Lektion",
+  "search.filter.type": "Kartentyp",
+  "search.filter.set": "Set",
+  "search.share": "Teilen"
 }

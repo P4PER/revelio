@@ -68,5 +68,15 @@
   "browse.expired": "These results are out of date. Run the command again.",
   "browse.prev": "Previous",
   "browse.next": "Next",
-  "browse.page": "{page} / {pages}"
+  "browse.page": "{page} / {pages}",
+  "browse.any": "Any",
+  "browse.site": "revelio.cards",
+  "search.header": "Cards found: **{total}**",
+  "search.header.query": "Cards found for \"{query}\": **{total}**",
+  "search.pageEmpty": "No more results on this page. Go back one.",
+  "search.open.placeholder": "Open a card...",
+  "search.filter.lesson": "Lesson",
+  "search.filter.type": "Card type",
+  "search.filter.set": "Set",
+  "search.share": "Share"
 }

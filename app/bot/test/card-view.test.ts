@@ -65,6 +65,11 @@ describe('cardView', () => {
     expect(textOf(v)).toContain('Character, Wizard, Death Eater')
   })
 
+  // Without the embed's field label a bare "Unknown" says nothing.
+  it('leaves an unknown legality off the stats line', () => {
+    expect(textOf(view(detail({ legality: 'unknown' })))).toContain('Item, Broom · Quidditch · Cost 4 · Rare\n')
+  })
+
   it('drops what the card has no value for', () => {
     const t = textOf(view(detail({ cost: null, damage: null })))
     expect(t).not.toContain('Cost')

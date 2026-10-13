@@ -49,7 +49,8 @@ function statsLine(detail: CardDetail, locale: string): string {
     doc.cost != null ? t(locale, 'card.stat.cost', { value: doc.cost }) : '',
     doc.damage != null ? t(locale, 'card.stat.damage', { value: doc.damage }) : '',
     doc.rarity ? attrLabel('rarities', doc.rarity, locale) : '',
-    doc.legality ? attrLabel('legalities', doc.legality, locale) : '',
+    // The line has no field labels, and a bare "Unknown" would not say what is.
+    doc.legality && doc.legality !== 'unknown' ? attrLabel('legalities', doc.legality, locale) : '',
   ].filter(Boolean).join(' · ')
 }
 

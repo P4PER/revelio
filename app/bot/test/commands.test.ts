@@ -600,8 +600,8 @@ describe('/deck', () => {
 
   describe('an ambiguous name', () => {
     const options: dbModule.DeckSuggestion[] = [
-      { id: 'pub', name: 'Aggro One', format: 'classic', author: 'seeker', visibility: 'public', isOwn: false },
-      { id: 'mine', name: 'Aggro Two', format: 'classic', author: 'me', visibility: 'private', isOwn: true },
+      { id: 'pub', name: 'Aggro One', format: 'classic', author: 'seeker', visibility: 'public', isOwn: false, exactName: false },
+      { id: 'mine', name: 'Aggro Two', format: 'classic', author: 'me', visibility: 'private', isOwn: true, exactName: false },
     ]
     beforeEach(() => {
       viewer('user-1')
@@ -676,7 +676,7 @@ describe('/deck', () => {
 describe('/deck autocomplete', () => {
   const row = (over: Partial<dbModule.DeckSuggestion>): dbModule.DeckSuggestion => ({
     id: 'd1', name: 'Gryffindor Aggro', format: 'classic', author: 'seeker',
-    visibility: 'public', isOwn: false, ...over,
+    visibility: 'public', isOwn: false, exactName: false, ...over,
   })
 
   it('suggests decks for the linked viewer, valued by deck id', async () => {

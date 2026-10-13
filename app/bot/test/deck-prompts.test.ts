@@ -5,7 +5,7 @@ import {
 } from '../src/discord/components/deck-prompts'
 
 const suggestion = (id: string): DeckSuggestion => ({
-  id, name: `Deck ${id}`, format: 'classic', author: 'seeker', visibility: 'public', isOwn: false,
+  id, name: `Deck ${id}`, format: 'classic', author: 'seeker', visibility: 'public', isOwn: false, exactName: false,
 })
 
 describe('visibilityPrompt', () => {

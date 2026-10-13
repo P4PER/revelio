@@ -22,6 +22,10 @@ export type ListPublicDecksInput = {
 export type DeckSuggestion = {
   id: string; name: string; format: DeckFormat; author: string
   visibility: DeckVisibility; isOwn: boolean
+  // The deck's name equals the query, case-insensitively, by Postgres lower():
+  // the same test the ordering uses, so a caller never compares names itself
+  // with a JS lowercasing that can disagree outside ASCII.
+  exactName: boolean
 }
 
 export type SuggestDecksInput = { query: string; viewerId: string | null; limit?: number }
@@ -173,8 +177,11 @@ export async function suggestDecks(db: DB, input: SuggestDecksInput): Promise<De
   // every public deck's null "own updated" key ahead of the own decks. A null
   // viewer skips the own keys: Postgres rejects a bare constant in ORDER BY.
   const name = input.query.trim()
+  const exact = name && !name.startsWith('@')
+    ? sql<boolean>`lower(${decks.name}) = lower(${name})`
+    : null
   const order = [
-    ...(name && !name.startsWith('@') ? [sql`lower(${decks.name}) = lower(${name}) desc`] : []),
+    ...(exact ? [sql`${exact} desc`] : []),
     ...(viewerId ? [
       sql`${own} desc`,
       sql`case when ${own} then ${decks.updatedAt} end desc nulls last`,
@@ -190,6 +197,7 @@ export async function suggestDecks(db: DB, input: SuggestDecksInput): Promise<De
     id: decks.id, name: decks.name, format: decks.format, visibility: decks.visibility,
     displayUsername: user.displayUsername, username: user.username, displayName: user.name,
     isOwn: own,
+    exactName: exact ?? sql<boolean>`false`,
   }).from(decks).innerJoin(user, eq(user.id, decks.userId))
     .where(match ? and(visible, match) : visible)
     .orderBy(...order)
@@ -200,6 +208,7 @@ export async function suggestDecks(db: DB, input: SuggestDecksInput): Promise<De
     visibility: r.visibility as DeckVisibility,
     author: r.displayUsername ?? r.username ?? r.displayName ?? '—',
     isOwn: Boolean(r.isOwn),
+    exactName: Boolean(r.exactName),
   }))
 }
 

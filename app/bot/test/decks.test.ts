@@ -145,7 +145,7 @@ describe('getDeckView lesson tiebreak', () => {
 
 const suggestion = (over: Partial<dbModule.DeckSuggestion> = {}): dbModule.DeckSuggestion => ({
   id: 'd1', name: 'Gryffindor Aggro', format: 'classic', author: 'seeker',
-  visibility: 'public', isOwn: false, ...over,
+  visibility: 'public', isOwn: false, exactName: false, ...over,
 })
 
 describe('suggestionLabel', () => {
@@ -197,10 +197,30 @@ describe('resolveDeckRef', () => {
     vi.spyOn(dbModule, 'getDeckAccess').mockResolvedValue(null)
     vi.spyOn(dbModule, 'suggestDecks').mockResolvedValue([
       suggestion({ id: 'a', name: 'Aggro Deluxe' }),
-      suggestion({ id: 'b', name: 'aggro', visibility: 'private', isOwn: true }),
+      suggestion({ id: 'b', name: 'aggro', visibility: 'private', isOwn: true, exactName: true }),
     ])
     expect(await resolveDeckRef({} as never, 'Aggro', 'u1'))
       .toEqual({ kind: 'deck', id: 'b', name: 'aggro', access: 'own-private' })
+  })
+
+  // The database decides what an exact name is, with the same lower() it ranks
+  // by: JS toLowerCase and Postgres lower() can disagree outside ASCII, which
+  // could rank one deck first and then fail to pick it.
+  it('takes the exact name from the database, not from a JS comparison', async () => {
+    vi.spyOn(dbModule, 'getDeckAccess').mockResolvedValue(null)
+    vi.spyOn(dbModule, 'suggestDecks').mockResolvedValue([
+      suggestion({ id: 'a', name: 'ÄRGER', exactName: true }),
+      suggestion({ id: 'b', name: 'Ärger Deluxe' }),
+    ])
+    expect(await resolveDeckRef({} as never, 'ärger', null))
+      .toEqual({ kind: 'deck', id: 'a', name: 'ÄRGER', access: 'public' })
+  })
+
+  it('does not treat a JS-equal name as exact unless the database says so', async () => {
+    vi.spyOn(dbModule, 'getDeckAccess').mockResolvedValue(null)
+    const options = [suggestion({ id: 'a', name: 'Aggro' }), suggestion({ id: 'b', name: 'Aggro Deluxe' })]
+    vi.spyOn(dbModule, 'suggestDecks').mockResolvedValue(options)
+    expect(await resolveDeckRef({} as never, 'aggro', null)).toEqual({ kind: 'ambiguous', options })
   })
 
   it('reports several matches as ambiguous', async () => {

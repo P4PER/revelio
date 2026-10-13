@@ -170,8 +170,7 @@ export async function resolveDeckRef(db: DB, input: string, viewerId: string | n
 
   const matches = await findDecks(db, query, viewerId)
   if (matches.length === 0) return { kind: 'none' }
-  const wanted = query.toLowerCase()
-  const exact = matches.filter((m) => m.name.toLowerCase() === wanted)
+  const exact = matches.filter((m) => m.exactName)
   const one = matches.length === 1 ? matches[0] : exact.length === 1 ? exact[0] : null
   if (one) return { kind: 'deck', id: one.id, name: one.name, access: accessOf(one) }
   return { kind: 'ambiguous', options: matches }

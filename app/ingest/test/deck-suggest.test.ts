@@ -102,6 +102,15 @@ describe('suggestDecks', () => {
     }
   })
 
+  it('flags the exact name match, case-insensitively', async () => {
+    const rows = await suggestDecks(ctx.db, { query: 'gryffindor AGGRO', viewerId: null })
+    expect(rows.map((r) => [r.id, r.exactName])).toEqual([[ids.alicePublic, true]])
+    const partial = await suggestDecks(ctx.db, { query: 'aggro', viewerId: null })
+    expect(partial.every((r) => !r.exactName)).toBe(true)
+    const byHandle = await suggestDecks(ctx.db, { query: '@alice', viewerId: null })
+    expect(byHandle.every((r) => !r.exactName)).toBe(true)
+  })
+
   it('respects the limit', async () => {
     expect(await suggestDecks(ctx.db, { query: '', viewerId: null, limit: 2 })).toHaveLength(2)
   })

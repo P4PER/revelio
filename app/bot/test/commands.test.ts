@@ -3,7 +3,7 @@ import { DiscordAPIError, MessageFlags, PermissionFlagsBits } from 'discord.js'
 import * as dbModule from '@revelio/db'
 import { COMMANDS } from '../src/discord/commands/index'
 import { requestDeckSheet } from '../src/data/sheet'
-import { textOf } from './helpers/v2'
+import { buttonsOf, mediaUrls, textOf, titleOf } from './helpers/v2'
 
 // The render service is exercised by sheet.test.ts and the service's own suite;
 // here it is a seam, so /deck's two views and its fallback can be told apart
@@ -325,7 +325,7 @@ describe('/deck', () => {
     const interaction = fakeInteraction({ deck: 'https://revelio.cards/decks/abc123' })
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     const payload = interaction.editReply.mock.calls[0][0]
-    expect(payload.embeds[0].toJSON().title).toBe('Charms Aggro')
+    expect(titleOf(payload)).toBe('Charms Aggro')
   })
 
   // getString returns null for an option nobody passed, which is exactly what
@@ -337,8 +337,8 @@ describe('/deck', () => {
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     const payload = interaction.editReply.mock.calls[0][0]
     expect(payload.files[0].name).toBe('deck.webp')
-    expect(payload.embeds[0].toJSON().image?.url).toBe('attachment://deck.webp')
-    expect(payload.embeds[0].toJSON().fields?.some((f: { name: string }) => f.name.startsWith('Main deck'))).toBe(false)
+    expect(mediaUrls(payload)).toEqual(['attachment://deck.webp'])
+    expect(textOf(payload).includes('Main deck')).toBe(false)
   })
 
   it('sends the text list, and no file, for view:list', async () => {
@@ -346,8 +346,8 @@ describe('/deck', () => {
     const interaction = fakeInteraction({ deck: 'abc123', view: 'list' })
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     const payload = interaction.editReply.mock.calls[0][0]
-    expect(payload.files).toBeUndefined()
-    expect(payload.embeds[0].toJSON().fields?.some((f: { name: string }) => f.name.startsWith('Main deck'))).toBe(true)
+    expect(payload.files).toEqual([])
+    expect(textOf(payload).includes('Main deck')).toBe(true)
   })
 
   // A deck the user can see is worth more than the picture of it.
@@ -358,9 +358,9 @@ describe('/deck', () => {
     const interaction = fakeInteraction({ deck: 'abc123' })
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     const payload = interaction.editReply.mock.calls[0][0]
-    expect(payload.files).toBeUndefined()
-    expect(payload.embeds[0].toJSON().image).toBeUndefined()
-    expect(payload.embeds[0].toJSON().fields?.some((f: { name: string }) => f.name.startsWith('Main deck'))).toBe(true)
+    expect(payload.files).toEqual([])
+    expect(mediaUrls(payload)).toEqual([])
+    expect(textOf(payload).includes('Main deck')).toBe(true)
     expect(console.error).toHaveBeenCalled()
   })
 
@@ -377,8 +377,8 @@ describe('/deck', () => {
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(interaction.editReply).toHaveBeenCalledTimes(2)
     const payload = interaction.editReply.mock.calls[1][0]
-    expect(payload.files).toBeUndefined()
-    expect(payload.embeds[0].toJSON().fields?.some((f: { name: string }) => f.name.startsWith('Main deck'))).toBe(true)
+    expect(payload.files).toEqual([])
+    expect(textOf(payload).includes('Main deck')).toBe(true)
   })
 
   // An edit of the bot's own reply cannot post twice, so any failed picture
@@ -390,7 +390,7 @@ describe('/deck', () => {
     interaction.editReply.mockRejectedValueOnce(new Error('The operation was aborted'))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(interaction.editReply).toHaveBeenCalledTimes(2)
-    expect(interaction.editReply.mock.calls[1][0].files).toBeUndefined()
+    expect(interaction.editReply.mock.calls[1][0].files).toEqual([])
   })
 
   // In a DM with the bot nobody else can see anything, so there is nothing to
@@ -404,7 +404,7 @@ describe('/deck', () => {
     expect(interaction.reply).not.toHaveBeenCalled()
     expect(interaction.deferReply).toHaveBeenCalledWith({ flags: MessageFlags.Ephemeral })
     expect(load).toHaveBeenCalledWith({}, 'abc123', 'user-1')
-    expect(interaction.editReply.mock.calls[0][0].embeds[0].toJSON().title).toBe('Charms Aggro')
+    expect(titleOf(interaction.editReply.mock.calls[0][0])).toBe('Charms Aggro')
   })
 
   it('never asks for a sheet of an empty deck', async () => {
@@ -415,7 +415,7 @@ describe('/deck', () => {
     const interaction = fakeInteraction({ deck: 'abc123' })
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(vi.mocked(requestDeckSheet)).not.toHaveBeenCalled()
-    expect(interaction.editReply.mock.calls[0][0].files).toBeUndefined()
+    expect(interaction.editReply.mock.calls[0][0].files).toEqual([])
   })
 
   it('answers an unknown deck ephemerally, without a public defer', async () => {
@@ -424,10 +424,8 @@ describe('/deck', () => {
     const interaction = fakeInteraction({ deck: 'nope' })
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(interaction.deferReply).not.toHaveBeenCalled()
-    expect(interaction.reply).toHaveBeenCalledWith({
-      content: 'No deck matched that name, link or id.',
-      flags: MessageFlags.Ephemeral,
-    })
+    expect(textOf(interaction.reply.mock.calls[0][0])).toBe('No deck matched that name, link or id.')
+    expect(interaction.reply.mock.calls[0][0].flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
   })
 
   // Review focus 3: someone else's private deck is indistinguishable from a
@@ -439,7 +437,7 @@ describe('/deck', () => {
     const interaction = fakeInteraction({ deck: 'bobs-private-id' })
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(interaction.deferReply).not.toHaveBeenCalled()
-    expect(interaction.reply.mock.calls[0][0].content).toBe('No deck matched that name, link or id.')
+    expect(textOf(interaction.reply.mock.calls[0][0])).toBe('No deck matched that name, link or id.')
   })
 
   // A deck posted without asking is loaded as nobody: if its owner made it
@@ -463,8 +461,8 @@ describe('/deck', () => {
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(interaction.deferReply).not.toHaveBeenCalled()
     const prompt = interaction.reply.mock.calls[0][0]
-    expect(prompt.flags).toBe(MessageFlags.Ephemeral)
-    expect(prompt.content).toContain('Secret Charms')
+    expect(prompt.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
+    expect(textOf(prompt)).toContain('Secret Charms')
     expect(prompt.components).toHaveLength(1)
   })
 
@@ -477,11 +475,10 @@ describe('/deck', () => {
     const click = fakeComponent('deck:post')
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-    expect(click.update).toHaveBeenCalledWith({ content: 'Posting to the channel...', components: [] })
+    expect(textOf(click.update.mock.calls[0][0])).toBe('Posting to the channel...')
     expect(click.channel.sendTyping).toHaveBeenCalled()
     const posted = click.channel.send.mock.calls[0][0]
-    expect(posted.content).toBe('<@111> shared a deck.')
-    expect(posted.embeds[0].toJSON().title).toBe('Charms Aggro')
+    expect(textOf(posted)).toMatch(/^<@111> shared a deck\.\n## Charms Aggro/)
     expect(click.deferReply).not.toHaveBeenCalled()
     expect(click.followUp).not.toHaveBeenCalled()
     expect(interaction.deleteReply).toHaveBeenCalled()
@@ -512,9 +509,7 @@ describe('/deck', () => {
     ;(click as { channel: unknown }).channel = null
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-    expect(click.update).toHaveBeenCalledWith({
-      content: "I can't post here. Run /deck again and choose Only show me.", components: [],
-    })
+    expect(textOf(click.update.mock.calls[0][0])).toBe("I can't post here. Run /deck again and choose Only show me.")
   })
 
   it('says so privately when the bot may not post in the channel', async () => {
@@ -525,8 +520,8 @@ describe('/deck', () => {
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(click.channel.send).not.toHaveBeenCalled()
-    expect(click.update.mock.calls[0][0].content).toMatch(/can't post in this channel/)
-    expect(click.update.mock.calls[0][0].components).toEqual([])
+    expect(textOf(click.update.mock.calls[0][0])).toMatch(/can't post in this channel/)
+    expect(buttonsOf(click.update.mock.calls[0][0])).toEqual([])
   })
 
   it('never posts publicly for "Only show me"', async () => {
@@ -538,12 +533,12 @@ describe('/deck', () => {
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     // The prompt itself becomes the deck: a progress line at once, then the
     // deck in the same message. No second message, nothing to delete.
-    expect(click.update).toHaveBeenCalledWith({ content: 'Loading the deck...', components: [] })
+    expect(textOf(click.update.mock.calls[0][0])).toBe('Loading the deck...')
     expect(click.deferReply).not.toHaveBeenCalled()
     expect(click.followUp).not.toHaveBeenCalled()
     const shown = click.editReply.mock.calls[0][0]
-    expect(shown.content).toBe('')
-    expect(shown.embeds[0].toJSON().title).toBe('Charms Aggro')
+    expect(shown.flags).toBe(MessageFlags.IsComponentsV2)
+    expect(titleOf(shown)).toBe('Charms Aggro')
     expect(interaction.deleteReply).not.toHaveBeenCalled()
   })
 
@@ -559,7 +554,7 @@ describe('/deck', () => {
     const click = fakeComponent('deck:post')
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-    expect(click.channel.send.mock.calls[0][0].embeds[0].toJSON().url).toBeUndefined()
+    expect(buttonsOf(click.channel.send.mock.calls[0][0]).some((b) => b.url)).toBe(false)
   })
 
   it('keeps the page link when a private deck is shown to its owner alone', async () => {
@@ -569,7 +564,7 @@ describe('/deck', () => {
     const click = fakeComponent('deck:self')
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-    expect(click.editReply.mock.calls[0][0].embeds[0].toJSON().url).toBe('https://revelio.cards/decks/abc123')
+    expect(buttonsOf(click.editReply.mock.calls[0][0]).find((b) => b.url)?.url).toBe('https://revelio.cards/decks/abc123')
   })
 
   // Review focus 4: the deck vanished or went private between prompt and click.
@@ -587,9 +582,7 @@ describe('/deck', () => {
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(click.deferReply).not.toHaveBeenCalled()
     expect(load).not.toHaveBeenCalled()
-    expect(click.update).toHaveBeenCalledWith({
-      content: 'No deck matched that name, link or id.', components: [],
-    })
+    expect(textOf(click.update.mock.calls[0][0])).toBe('No deck matched that name, link or id.')
   })
 
   // The full load runs after the click is acknowledged; a deck gone in that gap
@@ -602,9 +595,7 @@ describe('/deck', () => {
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(click.channel.send).not.toHaveBeenCalled()
-    expect(click.editReply).toHaveBeenCalledWith({
-      content: 'No deck matched that name, link or id.', components: [],
-    })
+    expect(textOf(click.editReply.mock.calls[0][0])).toBe('No deck matched that name, link or id.')
   })
 
   // Bans are enforced in resolveLinkedUser, so a confirmed click asks again
@@ -633,9 +624,7 @@ describe('/deck', () => {
       COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never),
     ).resolves.toBeUndefined()
     expect(click.deferReply).not.toHaveBeenCalled()
-    expect(click.update).toHaveBeenCalledWith({
-      content: 'Something went wrong. Please try again in a moment.', components: [],
-    })
+    expect(textOf(click.update.mock.calls[0][0])).toBe('Something went wrong. Please try again in a moment.')
   })
 
   // "Only show me" has no public placeholder to withdraw: the error replaces
@@ -649,9 +638,7 @@ describe('/deck', () => {
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(click.deleteReply).not.toHaveBeenCalled()
-    expect(click.editReply).toHaveBeenCalledWith({
-      content: 'Something went wrong. Please try again in a moment.', embeds: [], files: [], components: [],
-    })
+    expect(textOf(click.editReply.mock.calls.at(-1)![0])).toBe('Something went wrong. Please try again in a moment.')
   })
 
   // A send that failed without Discord's answer may still have posted, so it is
@@ -666,9 +653,7 @@ describe('/deck', () => {
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(click.channel.send).toHaveBeenCalledTimes(1)
-    expect(click.editReply).toHaveBeenCalledWith({
-      content: 'Something went wrong. Please try again in a moment.', components: [],
-    })
+    expect(textOf(click.editReply.mock.calls.at(-1)![0])).toBe('Something went wrong. Please try again in a moment.')
     // The prompt carries the error now; deleting it would hide the failure.
     expect(interaction.deleteReply).not.toHaveBeenCalled()
   })
@@ -683,7 +668,7 @@ describe('/deck', () => {
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(click.channel.send).toHaveBeenCalledTimes(2)
-    expect(click.editReply.mock.calls.at(-1)![0].content).toBe('Something went wrong. Please try again in a moment.')
+    expect(textOf(click.editReply.mock.calls.at(-1)![0])).toBe('Something went wrong. Please try again in a moment.')
     expect(interaction.deleteReply).not.toHaveBeenCalled()
   })
 
@@ -701,7 +686,7 @@ describe('/deck', () => {
     click.channel.send.mockRejectedValue(missingAccess)
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-    expect(click.editReply.mock.calls.at(-1)![0].content).toBe(
+    expect(textOf(click.editReply.mock.calls.at(-1)![0])).toBe(
       "I can't post here. Run /deck again and choose Only show me.",
     )
   })
@@ -716,7 +701,7 @@ describe('/deck', () => {
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(click.channel.send).toHaveBeenCalledTimes(2)
-    expect(click.channel.send.mock.calls[1][0].files).toBeUndefined()
+    expect(click.channel.send.mock.calls[1][0].files).toEqual([])
     expect(interaction.deleteReply).toHaveBeenCalled()
   })
 
@@ -725,9 +710,7 @@ describe('/deck', () => {
     access({ access: 'own-private', name: 'Secret Charms' })
     const interaction = fakeInteraction({ deck: 'abc123' })
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-    expect(interaction.editReply).toHaveBeenCalledWith({
-      content: 'This choice expired. Run /deck again.', components: [],
-    })
+    expect(textOf(interaction.editReply.mock.calls[0][0])).toBe('This choice expired. Run /deck again.')
   })
 
   // Review focus 5: the user dismissed the ephemeral prompt, so the expiry
@@ -763,15 +746,15 @@ describe('/deck', () => {
       await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
       expect(interaction.deferReply).not.toHaveBeenCalled()
       const prompt = interaction.reply.mock.calls[0][0]
-      expect(prompt.flags).toBe(MessageFlags.Ephemeral)
-      expect(prompt.content).toBe('Several decks match. Which one did you mean?')
+      expect(prompt.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
+      expect(textOf(prompt)).toBe('Several decks match. Which one did you mean?')
     })
 
     it('posts a picked public deck to the channel', async () => {
       const pick = fakeComponent('deck:pick', ['pub'])
       const interaction = fakeInteraction({ deck: 'aggro' }, 'en', vi.fn().mockResolvedValue(pick))
       await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-      expect(pick.channel.send.mock.calls[0][0].embeds[0].toJSON().title).toBe('Charms Aggro')
+      expect(titleOf(pick.channel.send.mock.calls[0][0])).toBe('Charms Aggro')
       expect(pick.deferReply).not.toHaveBeenCalled()
       expect(interaction.deleteReply).toHaveBeenCalled()
     })
@@ -803,8 +786,8 @@ describe('/deck', () => {
         inGuild: () => false,
       }
       await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-      expect(pick.update).toHaveBeenCalledWith({ content: 'Loading the deck...', components: [] })
-      expect(pick.editReply.mock.calls[0][0].embeds[0].toJSON().title).toBe('Charms Aggro')
+      expect(textOf(pick.update.mock.calls[0][0])).toBe('Loading the deck...')
+      expect(titleOf(pick.editReply.mock.calls[0][0])).toBe('Charms Aggro')
       expect(pick.channel.send).not.toHaveBeenCalled()
     })
 
@@ -814,9 +797,9 @@ describe('/deck', () => {
       const interaction = fakeInteraction({ deck: 'aggro' }, 'en', vi.fn().mockResolvedValue(pick))
       await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
       expect(pick.followUp).not.toHaveBeenCalled()
-      expect(pick.update.mock.calls[0][0].content).toContain('Aggro Two')
+      expect(textOf(pick.update.mock.calls[0][0])).toContain('Aggro Two')
       expect(click.followUp).not.toHaveBeenCalled()
-      expect(click.editReply.mock.calls[0][0].embeds[0].toJSON().title).toBe('Charms Aggro')
+      expect(titleOf(click.editReply.mock.calls[0][0])).toBe('Charms Aggro')
     })
   })
 

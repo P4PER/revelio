@@ -1,11 +1,8 @@
 import {
-  AttachmentBuilder,
-  DiscordAPIError,
   MessageFlags,
   SlashCommandBuilder,
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
-  type EmbedBuilder,
   type MessageComponentInteraction,
   type SendableChannels,
 } from 'discord.js'
@@ -17,10 +14,8 @@ import {
   getDeckView,
   resolveDeckRef,
   suggestionLabel,
-  type DeckView,
 } from '../../data/decks'
 import { resolveLinkedUser } from '../../data/link'
-import { requestDeckSheet } from '../../data/sheet'
 import { toRevelioLocale } from '../../i18n/locale'
 import { t } from '../../i18n/t'
 import {
@@ -30,19 +25,14 @@ import {
   visibilityPrompt,
 } from '../components/deck-prompts'
 import { postTarget, refusal } from '../channel-post'
-import { deckEmbed } from '../embeds/deck-embed'
-
-type DeckPayload = { embeds: EmbedBuilder[]; files?: AttachmentBuilder[]; components: [] }
+import { deliverDeck } from '../deck-delivery'
+import { EPHEMERAL_V2, textEdit, textMessage, v2Edit, v2Message } from '../v2/send'
 
 type DeckContext = { deps: Deps; locale: string; listOnly: boolean }
 
 // Where the deck's own message goes once a prompt is answered: 'post' to the
 // channel, 'self' to the caller alone.
 type Delivery = 'post' | 'self'
-
-// Who reads the message a deck is delivered in. Required wherever a deck is
-// sent, so the page link is decided from data rather than defaulted.
-type Audience = 'channel' | 'caller'
 
 // /deck's wording for a post that cannot happen. "Here" carries a /deck hint
 // that only makes sense in this command.
@@ -71,52 +61,6 @@ export const data = new SlashCommandBuilder()
         })),
       ),
   )
-
-// A deck with no cards has no picture worth posting, and a sheet that cannot
-// be had must not cost the answer: both fall back to the list the embed can
-// always draw from the data already in hand. The bot draws nothing itself -
-// @revelio/sheet is the only process that paints a deck. `send` is whichever
-// call puts the answer where it belongs: the command's deferred reply, the
-// deferred reply to a click, or a plain message in the channel.
-async function deliverDeck(
-  send: (payload: DeckPayload) => Promise<unknown>,
-  deck: DeckView,
-  ctx: DeckContext,
-  audience: Audience,
-  sendEdits: boolean,
-): Promise<void> {
-  const { locale } = ctx
-  // Only the owner can open a private deck's page, so a channel never gets a
-  // link to one; the caller alone may be that owner.
-  const linkPage = audience === 'caller' || deck.visibility === 'public'
-  const siteBase = ctx.deps.env.SITE_BASE_URL
-  if (!ctx.listOnly && deck.entries.length > 0) {
-    const sheet = await requestDeckSheet(deck, locale, ctx.deps.env).catch((err: unknown) => {
-      console.error('deck sheet render failed:', err)
-      return null
-    })
-    if (sheet) {
-      try {
-        await send({
-          embeds: [deckEmbed(deck, { locale, siteBase, linkPage, view: 'image', imageName: sheet.name })],
-          files: [new AttachmentBuilder(sheet.body, { name: sheet.name })],
-          components: [],
-        })
-        return
-      } catch (err) {
-        // Discord can reject the upload itself (an attachment it will not
-        // take), which must cost the picture rather than the answer. An edit
-        // of the bot's own message can always be retried as the list. A new
-        // message only after a rejection Discord answered, which proves
-        // nothing was posted: a timeout or a dropped socket may have reached
-        // the channel, and a retry could then post the deck twice.
-        if (!sendEdits && !(err instanceof DiscordAPIError)) throw err
-        console.error('deck sheet upload failed:', err)
-      }
-    }
-  }
-  await send({ embeds: [deckEmbed(deck, { locale, siteBase, linkPage, view: 'list' })], components: [] })
-}
 
 // Answers a click on the prompt. Whether the deck may be shown is checked
 // again here rather than carried from before the prompt: it may have been
@@ -152,42 +96,37 @@ async function deliverChoice(
     if (asOwner) loadAs = await resolveLinkedUser(ctx.deps.db, component.user.id)
     const access = await getDeckAccess(ctx.deps.db, deckId, loadAs)
     if (!access) {
-      await component.update({ content: t(locale, 'deck.notFound'), components: [] })
+      await component.update(textEdit(t(locale, 'deck.notFound')))
       return
     }
     if (delivery === 'post') {
       const target = postTarget(component, { needsFiles: true })
       if (target.kind !== 'ok') {
         const key = REFUSAL_KEYS[target.kind]
-        await component.update({ content: t(locale, key), components: [] })
+        await component.update(textEdit(t(locale, key)))
         return
       }
       channel = target.channel
-      await component.update({ content: t(locale, 'deck.posting'), components: [] })
+      await component.update(textEdit(t(locale, 'deck.posting')))
     } else {
       // The prompt itself becomes the deck: a progress line at once, then the
       // deck in the same private message.
-      await component.update({ content: t(locale, 'deck.loading'), components: [] })
+      await component.update(textEdit(t(locale, 'deck.loading')))
     }
   } catch (err) {
     // The click itself has to be answered. The top-level handler only knows
     // the slash command's interaction, so an error left to it would edit the
     // prompt while the clicker still sees "This interaction failed".
     console.error('deck prompt failed:', err)
-    await component
-      .update({ content: t(locale, 'error.generic'), components: [] })
-      .catch(() => {})
+    await component.update(textEdit(t(locale, 'error.generic'))).catch(() => {})
     return
   }
 
   // A failure from here on is told to the caller alone: in the prompt for a
   // post, which never reached the channel, or in the private deck message.
   const fail = async (key: string): Promise<void> => {
-    const content = t(locale, key)
-    const payload = channel
-      ? { content, components: [] }
-      : { content, embeds: [], files: [], components: [] }
-    await component.editReply(payload).catch(() => {})
+    // textEdit also drops any sheet an earlier edit attached.
+    await component.editReply(textEdit(t(locale, key))).catch(() => {})
   }
   try {
     const deck = await getDeckView(ctx.deps.db, deckId, loadAs)
@@ -200,11 +139,15 @@ async function deliverChoice(
       await target.sendTyping().catch(() => {})
       // The mention names who shared it - a plain message carries no "used
       // /deck" line - and never pings: the client's allowedMentions parses none.
-      const content = t(locale, 'deck.sharedBy', { user: `<@${component.user.id}>` })
-      await deliverDeck((p) => target.send({ ...p, content }), deck, ctx, 'channel', false)
+      const lead = t(locale, 'post.sharedDeck', { user: `<@${component.user.id}>` })
+      await deliverDeck((c, f) => target.send(v2Message(c, f)), deck, ctx.deps, locale, {
+        audience: 'channel', sendEdits: false, listOnly: ctx.listOnly, lead,
+      })
       await prompt.deleteReply().catch(() => {})
     } else {
-      await deliverDeck((p) => component.editReply({ ...p, content: '' }), deck, ctx, 'caller', true)
+      await deliverDeck((c, f) => component.editReply(v2Edit(c, f)), deck, ctx.deps, locale, {
+        audience: 'caller', sendEdits: true, listOnly: ctx.listOnly,
+      })
     }
   } catch (err) {
     console.error('deck prompt failed:', err)
@@ -216,9 +159,7 @@ async function deliverChoice(
 async function expire(interaction: ChatInputCommandInteraction, locale: string): Promise<void> {
   // The user may have dismissed the ephemeral prompt already, in which case
   // there is nothing left to edit and nothing to report.
-  await interaction
-    .editReply({ content: t(locale, 'deck.prompt.expired'), components: [] })
-    .catch(() => {})
+  await interaction.editReply(textEdit(t(locale, 'deck.prompt.expired'))).catch(() => {})
 }
 
 async function answerPick(
@@ -229,7 +170,7 @@ async function answerPick(
 ): Promise<void> {
   const chosen = pick.isStringSelectMenu() ? options.find((o) => o.id === pick.values[0]) : undefined
   if (!chosen) {
-    await pick.update({ content: t(ctx.locale, 'deck.notFound'), components: [] })
+    await pick.update(textEdit(t(ctx.locale, 'deck.notFound')))
     return
   }
   if (accessOf(chosen) === 'public') {
@@ -269,7 +210,7 @@ export async function execute(
   if (ref.kind === 'none') {
     // One message for "no such deck" and "someone else's private deck":
     // telling them apart would confirm a deck its owner chose not to share.
-    await interaction.reply({ content: t(locale, 'deck.notFound'), flags: MessageFlags.Ephemeral })
+    await interaction.reply({ ...textMessage(t(locale, 'deck.notFound')), flags: EPHEMERAL_V2 })
     return
   }
 
@@ -279,10 +220,12 @@ export async function execute(
     // private since the access check must read as not found, not be posted.
     const deck = await getDeckView(deps.db, ref.id, null)
     if (!deck) {
-      await interaction.editReply({ content: t(locale, 'deck.notFound') })
+      await interaction.editReply(textEdit(t(locale, 'deck.notFound')))
       return
     }
-    await deliverDeck((p) => interaction.editReply(p), deck, ctx, 'channel', true)
+    await deliverDeck((c, f) => interaction.editReply(v2Edit(c, f)), deck, deps, locale, {
+      audience: 'channel', sendEdits: true, listOnly: ctx.listOnly,
+    })
     return
   }
 
@@ -293,10 +236,12 @@ export async function execute(
     await interaction.deferReply({ flags: MessageFlags.Ephemeral })
     const deck = await getDeckView(deps.db, ref.id, viewerId)
     if (!deck) {
-      await interaction.editReply({ content: t(locale, 'deck.notFound') })
+      await interaction.editReply(textEdit(t(locale, 'deck.notFound')))
       return
     }
-    await deliverDeck((p) => interaction.editReply(p), deck, ctx, 'caller', true)
+    await deliverDeck((c, f) => interaction.editReply(v2Edit(c, f)), deck, deps, locale, {
+      audience: 'caller', sendEdits: true, listOnly: ctx.listOnly,
+    })
     return
   }
 
@@ -305,7 +250,7 @@ export async function execute(
   const prompt = ref.kind === 'ambiguous'
     ? pickPrompt(ref.options, locale)
     : visibilityPrompt(ref.name, locale)
-  const response = await interaction.reply({ ...prompt, flags: MessageFlags.Ephemeral, withResponse: true })
+  const response = await interaction.reply({ ...prompt, flags: EPHEMERAL_V2, withResponse: true })
   const message = response.resource?.message
   if (!message) {
     console.warn(`deck prompt has no message to collect on (${interaction.id})`)

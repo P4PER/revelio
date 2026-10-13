@@ -54,12 +54,14 @@ const run = (interaction: unknown) => handleInteraction(interaction as never, { 
 
 describe('handleInteraction: commands', () => {
   // /deck's prompt is a V1 message until phase 3: an edit there keeps content.
-  it('strips components when a command fails after replying', async () => {
+  it('replaces a /deck prompt with a V2 status line when the command fails after replying', async () => {
     vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockRejectedValue(new Error('db down'))
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const interaction = fakeCommand({ replied: true, deferred: false })
     await run(interaction)
-    expect(interaction.editReply).toHaveBeenCalledWith({ content: ERROR, components: [] })
+    const payload = interaction.editReply.mock.calls[0][0]
+    expect(payload.flags).toBe(MessageFlags.IsComponentsV2)
+    expect(textOf(payload)).toBe(ERROR)
   })
 
   // A deferred reply is V2; a content edit would be a 400 and leave the user

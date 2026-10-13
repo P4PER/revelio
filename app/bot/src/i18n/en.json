@@ -48,6 +48,8 @@
   "deck.format.classic": "Classic",
   "deck.format.revival": "Revival",
   "deck.more": "... and {count} more",
+  "deck.openSite": "Open on revelio.cards",
+  "deck.characterLine": "Starting character: {name}",
   "command.collection.description": "Show your collection progress",
   "command.collection.option.set": "Limit to one set",
   "command.mydecks.description": "List your decks",

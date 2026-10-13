@@ -1,0 +1,83 @@
+import { describe, it, expect } from 'vitest'
+import { ButtonBuilder, ButtonStyle } from 'discord.js'
+import { deckView, type DeckViewOptions } from '../src/discord/v2/deck-view'
+import type { DeckView } from '../src/data/decks'
+import { measure } from '../src/discord/v2/limits'
+import { buttonsOf, mediaUrls, textOf } from './helpers/v2'
+
+const deck: DeckView = {
+  id: 'abc123',
+  name: 'Charms Aggro',
+  format: 'classic',
+  ownerUsername: 'seeker',
+  visibility: 'public',
+  character: { name: 'Harry Potter', quantity: 1, cost: null, lesson: null, setCode: 'BS', number: '1' },
+  main: [
+    { name: 'Charms Lesson', quantity: 8, cost: 0, lesson: 'charms', setCode: 'BS', number: '112' },
+    { name: 'Alohomora', quantity: 4, cost: 2, lesson: 'charms', setCode: 'BS', number: '75' },
+  ],
+  sideboard: [{ name: 'Nimbus 2000', quantity: 2, cost: 4, lesson: 'quidditch', setCode: 'QC', number: '8' }],
+  entries: [],
+  mainCount: 12,
+  sideboardCount: 2,
+  topLesson: 'charms',
+  status: 'incomplete',
+}
+const opts: DeckViewOptions = { locale: 'en', siteBase: 'https://revelio.cards', linkPage: true }
+const view = (d: DeckView = deck, o: Partial<DeckViewOptions> = {}) => ({ components: deckView(d, { ...opts, ...o }) })
+
+describe('deckView', () => {
+  it('heads with the deck name, owner, format, legality and character', () => {
+    expect(textOf(view())).toMatch(
+      /^## Charms Aggro\nby seeker · Classic · Incomplete · Starting character: Harry Potter/,
+    )
+  })
+
+  it('credits revelio.cards when the owner has no handle', () => {
+    expect(textOf(view({ ...deck, ownerUsername: null }))).toContain('shared on revelio.cards')
+  })
+
+  it('tints the container with the top lesson', () => {
+    expect(deckView(deck, opts)[0].toJSON().accent_color).toBe(0x0069a9)
+  })
+
+  it('lists each zone with the printing of every card', () => {
+    const t = textOf(view())
+    expect(t).toContain('**Main deck (12)**\n8x Charms Lesson (BS 112)\n4x Alohomora (BS 75)')
+    expect(t).toContain('**Sideboard (2)**\n2x Nimbus 2000 (QC 8)')
+  })
+
+  it('shows the sheet instead of the lists when it has one', () => {
+    const v = view(deck, { imageName: 'deck.webp' })
+    expect(mediaUrls(v)).toEqual(['attachment://deck.webp'])
+    expect(textOf(v)).not.toContain('Main deck')
+  })
+
+  it('links the deck page only when allowed', () => {
+    expect(buttonsOf(view()).find((b) => b.url)?.url).toBe('https://revelio.cards/decks/abc123')
+    expect(buttonsOf(view(deck, { linkPage: false }))).toHaveLength(0)
+  })
+
+  it('puts a lead line first and actions ahead of the link', () => {
+    const back = new ButtonBuilder().setCustomId('v1:d:p:1:-:0:-:').setLabel('Back').setStyle(ButtonStyle.Secondary)
+    const v = view(deck, { lead: '<@1> shared a deck.', actions: [back] })
+    expect(textOf(v)).toMatch(/^<@1> shared a deck\.\n## Charms Aggro/)
+    expect(buttonsOf(v).map((b) => b.label)).toEqual(['Back', 'Open on revelio.cards'])
+  })
+
+  it('renders a hostile deck name as text, not as a link', () => {
+    const t = textOf(view({ ...deck, name: '[Click me](https://evil.example)', ownerUsername: '**boss**' }))
+    expect(t).toContain('## \\[Click me\\]\\(https://evil.example\\)')
+    expect(t).toContain('by \\*\\*boss\\*\\*')
+  })
+
+  it('stays inside the text budget for a huge deck, saying how many it left out', () => {
+    const main = Array.from({ length: 120 }, (_, i) => ({
+      name: `A long card name number ${i}`, quantity: 1, cost: i, lesson: null, setCode: 'BS', number: String(i),
+    }))
+    const big = { ...deck, main, sideboard: main, mainCount: 120, sideboardCount: 120 }
+    const v = view(big)
+    expect(measure(v.components).text).toBeLessThanOrEqual(4000)
+    expect(textOf(v)).toMatch(/\.\.\. and \d+ more/)
+  })
+})

@@ -1,9 +1,9 @@
 import { EmbedBuilder, type APIEmbedField } from 'discord.js'
-import { LESSONS } from '@revelio/core'
 import type { DeckEntryView, DeckView } from '../../data/decks'
 import { t } from '../../i18n/t'
 import { deckUrl } from '../../links'
 import { inlineGrid } from './inline-grid'
+import { lessonColor } from '../v2/parts'
 
 // linkPage: false leaves the title unlinked. A private deck posted to a channel
 // would otherwise link a page that answers "not found" for everyone but its
@@ -20,12 +20,6 @@ export type DeckEmbedOptions =
   | DeckEmbedBase & { view: 'image'; imageName: string }
 
 const FIELD_LIMIT = 1024
-const FALLBACK_COLOR = 0x2b2d31
-
-function lessonColor(lesson: string | null): number {
-  const hex = LESSONS.find((l) => l.code === lesson)?.color
-  return hex ? parseInt(hex.slice(1), 16) : FALLBACK_COLOR
-}
 
 // "(BS 75)" names the printing, since the same card name can recur across sets.
 // Left off when the card row did not resolve rather than printing "( )".

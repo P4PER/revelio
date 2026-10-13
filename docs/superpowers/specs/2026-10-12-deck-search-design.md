@@ -101,15 +101,25 @@ still runs after a defer.
    options labelled like the autocomplete). The pick continues as step 4 or 5 on that
    component interaction.
 4. **`deck`, access `public`:** public `deferReply`, then load and send exactly as today
-   (image with list fallback). If it came from the select menu: `deferUpdate`, post with a
-   public `followUp`, and update the prompt to `deck.posted`.
+   (image with list fallback). If it came from the select menu, it is answered like
+   **Post publicly** below.
 5. **`deck`, access `own-private`:** an ephemeral prompt (`deck.private.prompt`) with two
    buttons, **Post publicly** and **Only show me**.
-   - Only show me: `deferUpdate`, then the embed and image replace the prompt in the same
-     ephemeral message.
-   - Post publicly: `deferUpdate`, a public `followUp` with the embed and image, and the prompt
-     becomes `deck.posted`.
+   - A click first re-checks access with `getDeckAccess` (one primary-key read, inside the
+     3 s budget). A miss is `update`d into the prompt as `deck.notFound`; nothing public opens.
+   - Otherwise the click answers with `deferReply`: public for Post publicly, ephemeral for
+     Only show me. Discord shows its native loading state on that new message, the answered
+     prompt is deleted, and the full load and sheet render then fill the message.
    - Reached from the select menu, the prompt replaces the menu in the same message.
+
+A deck delivered without the prompt (a public id, or a public pick from the menu) loads with
+a `null` viewer, so a deck its owner made private since the access check reads as not
+found instead of being posted on the owner's authority. Only a deck confirmed through the
+prompt loads as the owner.
+
+Revised 2026-10-13 after the manual run: the first version answered clicks with
+`deferUpdate` and posted with a public `followUp`, which showed nothing while the sheet
+rendered.
 
 The deck loader takes the viewer: `getPublicDeck` becomes `getDeckView(db, id, viewerId)`
 calling `getDeckForViewer(db, id, viewerId)`, so the owner check stays in the one place that
@@ -133,10 +143,12 @@ component router in `main.ts`:
 
 ### 6. Errors
 
-- The sheet render keeps its list fallback on every path, including follow-ups.
-- A failure after a component `deferUpdate` edits the prompt to `error.generic`, so the
-  existing top-level handler in `main.ts`, which only knows the original interaction, is not
-  relied on for it.
+- The sheet render keeps its list fallback on every path.
+- A failure before a click is acknowledged `update`s the prompt to `error.generic` with no
+  components, so the top-level handler in `main.ts`, which only knows the original
+  interaction and would leave dead buttons up, is not relied on for it.
+- A failure after the click's `deferReply` withdraws a public placeholder and tells the caller
+  ephemerally; a private placeholder is edited to the error.
 - An unlinked user or a banned user resolves to `viewerId = null` and sees public decks only.
   Nothing tells them why their private deck is missing: `resolveLinkedUser` returning null
   for a ban must not be distinguishable from "not linked".
@@ -145,7 +157,7 @@ component router in `main.ts`:
 
 New or changed keys: `command.deck.description` ("Find a deck by name, or paste its link"),
 `command.deck.option.deck`, `deck.notFound`, `deck.ambiguous`, `deck.private.prompt`,
-`deck.private.post`, `deck.private.self`, `deck.posted`, `deck.prompt.expired`. Labels for
+`deck.private.post`, `deck.private.self`, `deck.pick.placeholder`, `deck.prompt.expired`. Labels for
 format reuse `deck.format.*`. The parity test covers both catalogs.
 
 ## Testing
@@ -164,7 +176,7 @@ format reuse `deck.format.*`. The parity test covers both catalogs.
   - an own private deck replies ephemerally with both buttons and does **not** defer publicly
     first. This is the leak regression, the same weight as the ephemeral assertions on
     `/collection` and `/mydecks`;
-  - "Post publicly" sends a non-ephemeral `followUp`, and "Only show me" never does;
+  - "Post publicly" defers a public reply, and "Only show me" an ephemeral one;
   - the collector filter rejects another user;
   - timeout strips the components.
 - **`bot/test/catalog-parity.test.ts`** picks up the new keys unchanged.

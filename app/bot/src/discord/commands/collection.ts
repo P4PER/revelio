@@ -11,6 +11,7 @@ import { resolveLinkedUser } from '../../data/link'
 import { toRevelioLocale } from '../../i18n/locale'
 import { t } from '../../i18n/t'
 import { settingsUrl } from '../../links'
+import { textEdit } from '../v2/send'
 
 export const data = new SlashCommandBuilder()
   .setName('collection')
@@ -33,9 +34,9 @@ export async function execute(
 
   const userId = await resolveLinkedUser(deps.db, interaction.user.id)
   if (!userId) {
-    await interaction.editReply({
-      content: t(locale, 'link.required', { url: settingsUrl(deps.env.SITE_BASE_URL, locale) }),
-    })
+    await interaction.editReply(
+      textEdit(t(locale, 'link.required', { url: settingsUrl(deps.env.SITE_BASE_URL, locale) })),
+    )
     return
   }
 
@@ -43,11 +44,11 @@ export async function execute(
   if (setCode) {
     const progress = await getSetProgress(deps.db, userId, setCode)
     if (!progress) {
-      await interaction.editReply({ content: t(locale, 'collection.setUnknown') })
+      await interaction.editReply(textEdit(t(locale, 'collection.setUnknown')))
       return
     }
-    await interaction.editReply({
-      content: t(locale, 'collection.set', {
+    await interaction.editReply(textEdit(
+      t(locale, 'collection.set', {
         // The canonical code from the row, not the one the user typed: the
         // name cache is keyed by the real code, so a lowercase "bs" would
         // otherwise fall back to echoing "bs" instead of "Base".
@@ -56,19 +57,19 @@ export async function execute(
         total: progress.total,
         percent: progress.percent,
       }),
-    })
+    ))
     return
   }
 
   const report = await getCollectionReport(deps.db, userId)
-  await interaction.editReply({
-    content: t(locale, 'collection.summary', {
+  await interaction.editReply(textEdit(
+    t(locale, 'collection.summary', {
       owned: report.distinctOwned,
       total: report.totalCards,
       percent: report.percent,
       copies: report.totalCopies,
     }),
-  })
+  ))
 }
 
 // The same set suggestions /search offers, against the cached list rather than

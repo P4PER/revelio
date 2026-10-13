@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { MessageFlags } from 'discord.js'
 import * as dbModule from '@revelio/db'
 import { COMMANDS } from '../src/discord/commands/index'
+import { textOf } from './helpers/v2'
 
 afterEach(() => { vi.restoreAllMocks() })
 
@@ -35,6 +36,16 @@ const linked = () => vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockResolve
 const unlinked = () => vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockResolvedValue(null)
 
 describe('/collection', () => {
+  it('answers as a components v2 message', async () => {
+    linked()
+    vi.spyOn(dbModule, 'getCollectionSummary').mockResolvedValue({
+      distinctOwned: 1, totalCards: 2, totalCopies: 1,
+    })
+    const interaction = fakeInteraction()
+    await run('collection', interaction, fakeDeps())
+    expect(interaction.editReply.mock.calls[0][0].flags).toBe(MessageFlags.IsComponentsV2)
+  })
+
   it('always replies ephemerally', async () => {
     linked()
     vi.spyOn(dbModule, 'getCollectionSummary').mockResolvedValue({
@@ -52,7 +63,7 @@ describe('/collection', () => {
     })
     const interaction = fakeInteraction()
     await run('collection', interaction, fakeDeps())
-    const { content } = interaction.editReply.mock.calls[0][0]
+    const content = textOf(interaction.editReply.mock.calls[0][0])
     expect(content).toContain('50')
     expect(content).toContain('200')
     expect(content).toContain('25')
@@ -63,7 +74,7 @@ describe('/collection', () => {
     unlinked()
     const interaction = fakeInteraction()
     await run('collection', interaction, fakeDeps())
-    expect(interaction.editReply.mock.calls[0][0].content)
+    expect(textOf(interaction.editReply.mock.calls[0][0]))
       .toContain('https://revelio.cards/settings/connections')
   })
 
@@ -74,7 +85,7 @@ describe('/collection', () => {
     })
     const interaction = fakeInteraction()
     await run('collection', interaction, fakeDeps())
-    expect(interaction.editReply.mock.calls[0][0].content).not.toContain('NaN')
+    expect(textOf(interaction.editReply.mock.calls[0][0])).not.toContain('NaN')
   })
 
   it('reports one set when asked for one', async () => {
@@ -84,7 +95,7 @@ describe('/collection', () => {
     ])
     const interaction = fakeInteraction({ set: 'base' })
     await run('collection', interaction, fakeDeps())
-    const { content } = interaction.editReply.mock.calls[0][0]
+    const content = textOf(interaction.editReply.mock.calls[0][0])
     expect(content).toContain('Base Set')
     expect(content).toContain('30')
     expect(content).toContain('116')
@@ -101,7 +112,7 @@ describe('/collection', () => {
     const interaction = fakeInteraction({ set: 'bs' })
     await run('collection', interaction, deps)
     expect(deps.sets.name).toHaveBeenCalledWith('BS', 'en')
-    expect(interaction.editReply.mock.calls[0][0].content).toContain('Base Set')
+    expect(textOf(interaction.editReply.mock.calls[0][0])).toContain('Base Set')
   })
 
   it('says so when the set code matches nothing', async () => {
@@ -111,7 +122,7 @@ describe('/collection', () => {
     ])
     const interaction = fakeInteraction({ set: 'zzz' })
     await run('collection', interaction, fakeDeps())
-    expect(interaction.editReply.mock.calls[0][0].content).toContain('No set matched')
+    expect(textOf(interaction.editReply.mock.calls[0][0])).toContain('No set matched')
   })
 })
 

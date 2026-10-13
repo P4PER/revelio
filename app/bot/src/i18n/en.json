@@ -33,6 +33,7 @@
   "deck.private.post": "Post publicly",
   "deck.private.self": "Only show me",
   "deck.prompt.expired": "This choice expired. Run /deck again.",
+  "deck.loading": "Loading the deck...",
   "deck.posting": "Posting to the channel...",
   "deck.sharedBy": "{user} shared a deck.",
   "deck.cannotPost": "I can't post in this channel. Revelio needs permission to send messages, embed links and attach files here.",

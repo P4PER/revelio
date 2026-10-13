@@ -33,6 +33,7 @@
   "deck.private.post": "Öffentlich posten",
   "deck.private.self": "Nur mir zeigen",
   "deck.prompt.expired": "Diese Auswahl ist abgelaufen. Führe /deck erneut aus.",
+  "deck.loading": "Deck wird geladen ...",
   "deck.posting": "Wird im Kanal gepostet ...",
   "deck.sharedBy": "{user} hat ein Deck geteilt.",
   "deck.cannotPost": "Ich kann in diesem Kanal nicht posten. Revelio braucht hier die Berechtigung, Nachrichten zu senden, Links einzubetten und Dateien anzuhängen.",

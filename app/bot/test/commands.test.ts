@@ -532,10 +532,15 @@ describe('/deck', () => {
     const click = fakeComponent('deck:self')
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-    expect(click.deferReply).toHaveBeenCalledWith({ flags: MessageFlags.Ephemeral })
+    // The prompt itself becomes the deck: a progress line at once, then the
+    // deck in the same message. No second message, nothing to delete.
+    expect(click.update).toHaveBeenCalledWith({ content: 'Loading the deck...', components: [] })
+    expect(click.deferReply).not.toHaveBeenCalled()
     expect(click.followUp).not.toHaveBeenCalled()
-    expect(click.editReply.mock.calls[0][0].embeds[0].toJSON().title).toBe('Charms Aggro')
-    expect(interaction.deleteReply).toHaveBeenCalled()
+    const shown = click.editReply.mock.calls[0][0]
+    expect(shown.content).toBe('')
+    expect(shown.embeds[0].toJSON().title).toBe('Charms Aggro')
+    expect(interaction.deleteReply).not.toHaveBeenCalled()
   })
 
   const privateDeck = () => {

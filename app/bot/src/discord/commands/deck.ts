@@ -148,8 +148,8 @@ function postableChannel(component: MessageComponentInteraction): SendableChanne
 //   prompt turns into a progress line at once, the channel shows the bot
 //   typing while the sheet renders, and the prompt is deleted once the deck
 //   is up.
-// - 'self' answers with an ephemeral deferReply, Discord's native loading
-//   state on the deck's own message, and the prompt is deleted.
+// - 'self' turns the private prompt into a progress line at once and then
+//   into the deck itself, in the same message.
 // The full load, several queries, only runs after that.
 async function deliverChoice(
   prompt: ChatInputCommandInteraction,
@@ -177,10 +177,9 @@ async function deliverChoice(
       }
       await component.update({ content: t(locale, 'deck.posting'), components: [] })
     } else {
-      await component.deferReply({ flags: MessageFlags.Ephemeral })
-      // Answered: the deck's own message replaces the prompt. A prompt the
-      // user already dismissed has nothing left to delete.
-      await prompt.deleteReply().catch(() => {})
+      // The prompt itself becomes the deck: a progress line at once, then the
+      // deck in the same private message.
+      await component.update({ content: t(locale, 'deck.loading'), components: [] })
     }
   } catch (err) {
     // The click itself has to be answered. The top-level handler only knows
@@ -217,7 +216,7 @@ async function deliverChoice(
       await deliverDeck((p) => target.send({ ...p, content }), deck, ctx, 'channel')
       await prompt.deleteReply().catch(() => {})
     } else {
-      await deliverDeck((p) => component.editReply(p), deck, ctx, 'caller')
+      await deliverDeck((p) => component.editReply({ ...p, content: '' }), deck, ctx, 'caller')
     }
   } catch (err) {
     console.error('deck prompt failed:', err)

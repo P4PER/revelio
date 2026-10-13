@@ -1,4 +1,4 @@
-import { eq, desc, sql, inArray, and, or, ilike, count, arrayOverlaps, type SQL } from 'drizzle-orm'
+import { eq, asc, desc, sql, inArray, and, or, ilike, count, arrayOverlaps, type SQL } from 'drizzle-orm'
 import type { DB } from '../client'
 import { cards, decks, deckCards, deckLikes, deckViews } from '../schema'
 import { user } from '../auth-schema'
@@ -181,6 +181,9 @@ export async function suggestDecks(db: DB, input: SuggestDecksInput): Promise<De
     ] : []),
     desc(decks.likeCount),
     desc(decks.createdAt),
+    // A total order: autocomplete and the "did you mean" menu run this query
+    // moments apart, and two tied decks must not swap places between them.
+    asc(decks.id),
   ]
 
   const rows = await db.select({

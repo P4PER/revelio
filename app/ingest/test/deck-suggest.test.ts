@@ -84,6 +84,24 @@ describe('suggestDecks', () => {
     expect(await suggestDecks(ctx.db, { query: '@%', viewerId: null })).toEqual([])
   })
 
+  // Autocomplete and the "did you mean" menu run the same query moments apart;
+  // two decks tied on every sort key must not swap places between them.
+  it('breaks a full tie by deck id', async () => {
+    const a = await createDeck(ctx.db, 'u2', { name: 'Tie Deck', format: 'classic', visibility: 'public', cards: [] })
+    const b = await createDeck(ctx.db, 'u2', { name: 'Tie Deck', format: 'classic', visibility: 'public', cards: [] })
+    const at = new Date('2026-01-01T00:00:00Z')
+    // Rewritten in reverse id order, so the physical row order is the opposite
+    // of the expected one.
+    await ctx.db.update(decks).set({ id: 'tie-b', createdAt: at }).where(eq(decks.id, a))
+    await ctx.db.update(decks).set({ id: 'tie-a', createdAt: at }).where(eq(decks.id, b))
+    try {
+      const rows = await suggestDecks(ctx.db, { query: 'tie deck', viewerId: null })
+      expect(rows.map((r) => r.id)).toEqual(['tie-a', 'tie-b'])
+    } finally {
+      await ctx.db.delete(decks).where(eq(decks.name, 'Tie Deck'))
+    }
+  })
+
   it('respects the limit', async () => {
     expect(await suggestDecks(ctx.db, { query: '', viewerId: null, limit: 2 })).toHaveLength(2)
   })

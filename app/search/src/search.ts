@@ -39,6 +39,10 @@ export type IdWindowOptions = {
 // documents, and typing them as such would be a lie.
 export type CardSummaryHit = Pick<SearchDocument, (typeof SUMMARY_FIELDS)[number]>
 
+// A browse row: the summary plus what a thumbnail and a one-line stats label
+// need. Still no rules text or flavour: a page of rows renders neither.
+export type CardBrowseHit = Pick<SearchDocument, (typeof BROWSE_FIELDS)[number]>
+
 export type SearchResult = {
   hits: SearchDocument[]
   total: number
@@ -67,6 +71,10 @@ type ReadParams = {
 type HitWindow = { hits: unknown[]; total: number }
 
 const SUMMARY_FIELDS = ['id', 'name', 'setCode', 'number'] as const
+const BROWSE_FIELDS = [
+  'id', 'name', 'setCode', 'number', 'types', 'lesson', 'cost',
+  'imageVersion', 'imageLang', 'defaultLanguage', 'orientation',
+] as const
 
 const ARRAY_FACETS: (keyof CardFilters)[] = [
   'setCode', 'types', 'subTypes', 'lesson', 'rarity', 'finishes', 'legality',
@@ -223,6 +231,16 @@ export async function searchCardSummaries(
   opts: SearchOptions = {},
 ): Promise<CardSummaryResult> {
   return searchCardFields(client, lang, query, SUMMARY_FIELDS, opts)
+}
+
+// The Discord bot's result rows: identity, a thumbnail and a stats line.
+export async function searchCardBrowseRows(
+  client: MeiliSearch,
+  lang: string,
+  query: string,
+  opts: SearchOptions = {},
+): Promise<CardProjection<(typeof BROWSE_FIELDS)[number]>> {
+  return searchCardFields(client, lang, query, BROWSE_FIELDS, opts)
 }
 
 // Ids-only search over a raw window. Neighbor walks need order and identity,

@@ -4,6 +4,7 @@ import {
   type ButtonBuilder,
   type ContainerBuilder,
 } from 'discord.js'
+import { clampDeckName } from '@revelio/core'
 import type { DeckEntryView, DeckView } from '../../data/decks'
 import { t } from '../../i18n/t'
 import { deckUrl } from '../../links'
@@ -71,7 +72,8 @@ function metaLine(deck: DeckView, locale: string): string {
 export function deckView(deck: DeckView, opts: DeckViewOptions): ContainerBuilder[] {
   const { locale } = opts
   const view = container(lessonColor(deck.topLesson))
-  const heading = `## ${plain(deck.name)}\n${metaLine(deck, locale)}`
+  // clampDeckName: a deck saved before the name bound can be any length.
+  const heading = `## ${plain(clampDeckName(deck.name))}\n${metaLine(deck, locale)}`
   view.addTextDisplayComponents(text(opts.lead ? `${opts.lead}\n${heading}` : heading))
 
   if (opts.imageName) {

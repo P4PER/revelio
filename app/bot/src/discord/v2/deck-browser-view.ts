@@ -7,7 +7,7 @@ import {
   type ContainerBuilder,
   type MessageActionRowComponentBuilder,
 } from 'discord.js'
-import { DeckFormat, LESSONS, artCropKey, attrLabel, imageUrl } from '@revelio/core'
+import { DeckFormat, LESSONS, artCropKey, attrLabel, clampDeckName, imageUrl } from '@revelio/core'
 import type { PublicDeckEntry } from '@revelio/db'
 import { clampLabel } from '../../data/cards'
 import { DECK_PAGE_SIZE, OWN_PAGE_SIZE, type OwnDeckPage, type PublicDeckPage } from '../../data/decks'
@@ -48,7 +48,7 @@ function select(
 }
 
 function deckRowText(entry: PublicDeckEntry, locale: string): string {
-  const title = `**${plain(entry.name)}** · @${plain(entry.author)} · ${t(locale, `deck.format.${entry.format}`)}`
+  const title = `**${plain(clampDeckName(entry.name))}** · @${plain(entry.author)} · ${t(locale, `deck.format.${entry.format}`)}`
   const stats = [
     t(locale, 'decks.row.stats', { likes: entry.likeCount, cards: entry.cardCount }),
     entry.lessons.map((code) => attrLabel('lessons', code, locale)).join(', '),
@@ -132,7 +132,7 @@ export function publicDecksView(page: PublicDeckPage, state: DeckBrowseState, op
 export function ownDecksView(page: OwnDeckPage, state: DeckBrowseState, opts: DeckBrowserOptions): ContainerBuilder[] {
   const { locale } = opts
   const lines = page.decks.map((d) => {
-    const line = `**${plain(d.name)}** · ${t(locale, `deck.format.${d.format}`)} · ${t(locale, 'decks.cards', { count: d.mainCount })}`
+    const line = `**${plain(clampDeckName(d.name))}** · ${t(locale, `deck.format.${d.format}`)} · ${t(locale, 'decks.cards', { count: d.mainCount })}`
     return d.visibility === 'private' ? `🔒 ${line}` : line
   })
   const view = container().addTextDisplayComponents(

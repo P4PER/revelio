@@ -78,6 +78,15 @@ describe('ownDecksView', () => {
     expect(ids(v).some((id) => id.startsWith('v1:do:m:'))).toBe(true)
   })
 
+  // A deck saved before the name bound can carry any length; ten of them must
+  // not push the owner's whole list past Discord's text budget.
+  it('stays inside the text budget with legacy over-long names', () => {
+    const long = '*'.repeat(600)
+    const decks = Array.from({ length: 10 }, (_, i) => own(i, { id: `d${i}`, name: `${i}${long}` }))
+    const view = ownDecksView({ decks, total: 10, page: 1, pages: 1 }, mine, opts)
+    expect(measure(view).text).toBeLessThanOrEqual(4000)
+  })
+
   it('has no filter menus', () => {
     const v = { components: ownDecksView({ decks: [own(1)], total: 1, page: 1, pages: 1 }, mine, opts) }
     expect(ids(v).some((id) => /^v1:d[fsl]:/.test(id))).toBe(false)

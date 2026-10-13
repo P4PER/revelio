@@ -71,6 +71,14 @@ describe('deckView', () => {
     expect(t).toContain('by \\*\\*boss\\*\\*')
   })
 
+  it('stays inside the text budget for a legacy over-long name', () => {
+    const main = Array.from({ length: 120 }, (_, i) => ({
+      name: `A long card name number ${i}`, quantity: 1, cost: i, lesson: null, setCode: 'BS', number: String(i),
+    }))
+    const big = { ...deck, name: '*'.repeat(1500), main, sideboard: main, mainCount: 120, sideboardCount: 120 }
+    expect(measure(view(big).components).text).toBeLessThanOrEqual(4000)
+  })
+
   it('stays inside the text budget for a huge deck, saying how many it left out', () => {
     const main = Array.from({ length: 120 }, (_, i) => ({
       name: `A long card name number ${i}`, quantity: 1, cost: i, lesson: null, setCode: 'BS', number: String(i),

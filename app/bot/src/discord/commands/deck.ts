@@ -2,8 +2,6 @@ import {
   AttachmentBuilder,
   DiscordAPIError,
   MessageFlags,
-  PermissionFlagsBits,
-  RESTJSONErrorCodes,
   SlashCommandBuilder,
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
@@ -31,6 +29,7 @@ import {
   POST_ID,
   visibilityPrompt,
 } from '../components/deck-prompts'
+import { postTarget, refusal } from '../channel-post'
 import { deckEmbed } from '../embeds/deck-embed'
 
 type DeckPayload = { embeds: EmbedBuilder[]; files?: AttachmentBuilder[]; components: [] }
@@ -45,22 +44,9 @@ type Delivery = 'post' | 'self'
 // sent, so the page link is decided from data rather than defaulted.
 type Audience = 'channel' | 'caller'
 
-// Whether a deck can go to the interaction's channel as a plain message.
-// 'unreachable' is a channel the bot has no hold on at all (not cached: a
-// guild where only the user installed the app, an archived thread), which no
-// moderator can fix; 'forbidden' is a missing permission, which one can.
-type PostTarget =
-  | { kind: 'ok'; channel: SendableChannels }
-  | { kind: 'unreachable' }
-  | { kind: 'forbidden' }
-
-// What a plain channel post of a deck needs: the embed and the sheet are an
-// embed and an attachment. A thread takes its own send permission.
-const POST_PERMISSIONS = [
-  PermissionFlagsBits.ViewChannel,
-  PermissionFlagsBits.EmbedLinks,
-  PermissionFlagsBits.AttachFiles,
-]
+// /deck's wording for a post that cannot happen. "Here" carries a /deck hint
+// that only makes sense in this command.
+const REFUSAL_KEYS = { unreachable: 'deck.cannotPostHere', forbidden: 'post.cannotPost' } as const
 
 export const data = new SlashCommandBuilder()
   .setName('deck')
@@ -132,30 +118,6 @@ async function deliverDeck(
   await send({ embeds: [deckEmbed(deck, { locale, siteBase, linkPage, view: 'list' })], components: [] })
 }
 
-// Where a deck may be posted as a plain message. Discord sends the bot's
-// permissions in that channel with every interaction, so this needs no
-// request of its own.
-function postTarget(component: MessageComponentInteraction): PostTarget {
-  const channel = component.channel
-  if (!channel?.isSendable()) return { kind: 'unreachable' }
-  const send = channel.isThread()
-    ? PermissionFlagsBits.SendMessagesInThreads
-    : PermissionFlagsBits.SendMessages
-  return component.appPermissions.has([...POST_PERMISSIONS, send])
-    ? { kind: 'ok', channel }
-    : { kind: 'forbidden' }
-}
-
-// Discord's own refusal of a post, read as the same answers postTarget gives
-// up front. A private thread the bot is not in can pass the permission check
-// and still be refused with Missing Access.
-function refusalKey(err: unknown): string | null {
-  if (!(err instanceof DiscordAPIError)) return null
-  if (err.code === RESTJSONErrorCodes.MissingAccess) return 'deck.cannotPostHere'
-  if (err.code === RESTJSONErrorCodes.MissingPermissions) return 'deck.cannotPost'
-  return null
-}
-
 // Answers a click on the prompt. Whether the deck may be shown is checked
 // again here rather than carried from before the prompt: it may have been
 // deleted or made private in the meantime. `asOwner` says whose eyes both
@@ -194,9 +156,9 @@ async function deliverChoice(
       return
     }
     if (delivery === 'post') {
-      const target = postTarget(component)
+      const target = postTarget(component, { needsFiles: true })
       if (target.kind !== 'ok') {
-        const key = target.kind === 'unreachable' ? 'deck.cannotPostHere' : 'deck.cannotPost'
+        const key = REFUSAL_KEYS[target.kind]
         await component.update({ content: t(locale, key), components: [] })
         return
       }
@@ -246,7 +208,8 @@ async function deliverChoice(
     }
   } catch (err) {
     console.error('deck prompt failed:', err)
-    await fail(refusalKey(err) ?? 'error.generic')
+    const refused = refusal(err)
+    await fail(refused ? REFUSAL_KEYS[refused] : 'error.generic')
   }
 }
 

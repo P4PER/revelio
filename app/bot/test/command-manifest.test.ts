@@ -3,6 +3,7 @@ import { ApplicationCommandOptionType, MessageFlags } from 'discord.js'
 import * as dbModule from '@revelio/db'
 import { BOT_COMMANDS, LESSONS, TYPES } from '@revelio/core'
 import { COMMANDS } from '../src/discord/commands/index'
+import { textOf } from './helpers/v2'
 
 // The manifest speaks in domain words; Discord's JSON speaks in numbers.
 const OPTION_TYPE = {
@@ -125,8 +126,9 @@ describe('BOT_COMMANDS matches what the bot registers with Discord', () => {
       vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockResolvedValue(null)
       const { interaction, done } = deferOf(command.name)
       await done
-      const [reply] = interaction.editReply.mock.calls[0] as [{ content: string }]
-      expect(reply.content).toContain('/settings')
+      const [reply] = interaction.editReply.mock.calls[0] as [{ content?: string; components?: unknown[] }]
+      // /collection answers in V2, /mydecks still in content until phase 3.
+      expect(reply.content ?? textOf(reply)).toContain('/settings')
     })
   }
 })

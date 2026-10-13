@@ -16,6 +16,7 @@
   "card.field.legality": "Legalität",
   "card.field.rulings": "Regelklärungen",
   "card.footer": "{setName} · #{number}",
+  "card.openSite": "Auf revelio.cards öffnen",
   "search.noResults": "Zu dieser Suche gibt es keine Treffer.",
   "search.title": "{total} Karten",
   "search.footer": "Seite {page} von {pages} · alle Treffer auf revelio.cards",
@@ -36,7 +37,7 @@
   "deck.loading": "Deck wird geladen ...",
   "deck.posting": "Wird im Kanal gepostet ...",
   "deck.sharedBy": "{user} hat ein Deck geteilt.",
-  "deck.cannotPost": "Ich kann in diesem Kanal nicht posten. Revelio braucht hier die Berechtigung, den Kanal zu sehen, Nachrichten zu senden, Links einzubetten und Dateien anzuhängen.",
+  "post.cannotPost": "Ich kann in diesem Kanal nicht posten. Revelio braucht hier die Berechtigung, den Kanal zu sehen, Nachrichten zu senden, Links einzubetten und Dateien anzuhängen.",
   "deck.cannotPostHere": "Hier kann ich nicht posten. Führe /deck erneut aus und wähle Nur mir zeigen.",
   "deck.field.character": "Startcharakter",
   "deck.field.main": "Hauptdeck ({count})",
@@ -63,5 +64,6 @@
   "decks.empty": "Du hast noch keine Decks. Baue eins auf {url}",
   "decks.visibility.public": "öffentlich",
   "decks.visibility.private": "privat",
-  "error.generic": "Da ist etwas schiefgelaufen. Bitte versuche es gleich noch einmal."
+  "error.generic": "Da ist etwas schiefgelaufen. Bitte versuche es gleich noch einmal.",
+  "browse.expired": "Diese Ergebnisse sind veraltet. Führe den Befehl erneut aus."
 }

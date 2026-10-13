@@ -1,8 +1,51 @@
-import { MessageFlags, type Interaction } from 'discord.js'
+import { MessageFlags, type Interaction, type MessageComponentInteraction } from 'discord.js'
 import type { Deps } from '../clients'
 import { COMMANDS } from './commands/index'
+import { COMPONENTS } from './components/index'
+import { decodeCustomId } from './components/custom-id'
+import { EPHEMERAL_V2, textEdit, textMessage } from './v2/send'
 import { toRevelioLocale } from '../i18n/locale'
 import { t } from '../i18n/t'
+
+// The ids the router owns. /deck's prompt ids (deck:post, deck:self,
+// deck:pick) do not match: their awaitMessageComponent collector answers
+// them, and a second answer from here would throw.
+const ROUTED_ID = /^v\d+:/
+
+// A status line in answer to a click. A private browser is replaced by it; a
+// public message is never touched, the clicker gets a private reply instead.
+// Once the handler has acknowledged, its acknowledgement is what gets edited.
+async function answerClick(interaction: MessageComponentInteraction, content: string): Promise<void> {
+  if (interaction.deferred || interaction.replied) {
+    await interaction.editReply(textEdit(content))
+    return
+  }
+  if (interaction.message.flags.has(MessageFlags.Ephemeral)) {
+    await interaction.update(textEdit(content))
+    return
+  }
+  await interaction.reply({ ...textMessage(content), flags: EPHEMERAL_V2 })
+}
+
+async function handleComponent(interaction: MessageComponentInteraction, deps: Deps): Promise<void> {
+  if (!ROUTED_ID.test(interaction.customId)) return
+  const locale = toRevelioLocale(interaction.locale)
+  const id = decodeCustomId(interaction.customId)
+  const handler = id ? COMPONENTS.get(id.kind) : undefined
+  if (!id || !handler) {
+    // Another version, a tampered id, or a control from a build that had a
+    // handler this one lacks: all read as results gone stale.
+    await answerClick(interaction, t(locale, 'browse.expired')).catch(() => {})
+    return
+  }
+  try {
+    await handler(interaction, id, deps)
+  } catch (err) {
+    // The kind, never the raw id: it carries the user's query.
+    console.error(`component ${id.kind} failed (${interaction.id}):`, err)
+    await answerClick(interaction, t(locale, 'error.generic')).catch(() => {})
+  }
+}
 
 // The gateway's interactionCreate handler. Its own module, with no top-level
 // side effects, so tests can import it: main.ts starts the bot on import.
@@ -21,6 +64,10 @@ export async function handleInteraction(interaction: Interaction, deps: Deps): P
     await command.autocomplete(interaction, deps)
     return
   }
+  if (interaction.isMessageComponent()) {
+    await handleComponent(interaction, deps)
+    return
+  }
   if (!interaction.isChatInputCommand()) return
   const command = COMMANDS.get(interaction.commandName)
   if (!command) {
@@ -29,8 +76,7 @@ export async function handleInteraction(interaction: Interaction, deps: Deps): P
     // respond", which reads as the bot being down.
     console.warn(`unknown command ${interaction.commandName} (${interaction.id})`)
     await interaction
-      .reply({ content: t(toRevelioLocale(interaction.locale), 'error.generic'),
-               flags: MessageFlags.Ephemeral })
+      .reply({ ...textMessage(t(toRevelioLocale(interaction.locale), 'error.generic')), flags: EPHEMERAL_V2 })
       .catch(() => {})
     return
   }
@@ -40,13 +86,18 @@ export async function handleInteraction(interaction: Interaction, deps: Deps): P
     // Log the command and interaction id, never the token or the raw options.
     console.error(`command ${interaction.commandName} failed (${interaction.id}):`, err)
     const content = t(toRevelioLocale(interaction.locale), 'error.generic')
-    // The command may or may not have deferred before throwing. An answer it
-    // already sent may carry buttons or a menu whose collector is gone with
-    // the error, so they are stripped rather than left up, dead.
-    if (interaction.deferred || interaction.replied) {
+    if (interaction.deferred) {
+      // A deferred placeholder takes a V2 edit, and a content edit on a V2
+      // reply is a 400. /search, /mydecks and /deck still edit V1 until phases
+      // 2 and 3, but each makes that edit last, so nothing throws after it.
+      await interaction.editReply(textEdit(content)).catch(() => {})
+    } else if (interaction.replied) {
+      // Only /deck replies without deferring, with a V1 prompt (until phase 3
+      // moves it to V2). Its collector is gone with the error, so the buttons
+      // are stripped rather than left up, dead.
       await interaction.editReply({ content, components: [] }).catch(() => {})
     } else {
-      await interaction.reply({ content, flags: MessageFlags.Ephemeral }).catch(() => {})
+      await interaction.reply({ ...textMessage(content), flags: EPHEMERAL_V2 }).catch(() => {})
     }
   }
 }

@@ -16,6 +16,7 @@
   "card.field.legality": "Legality",
   "card.field.rulings": "Rulings",
   "card.footer": "{setName} · #{number}",
+  "card.openSite": "Open on revelio.cards",
   "search.noResults": "Nothing matched that search.",
   "search.title": "{total} cards",
   "search.footer": "Page {page} of {pages} · view all on revelio.cards",
@@ -36,7 +37,7 @@
   "deck.loading": "Loading the deck...",
   "deck.posting": "Posting to the channel...",
   "deck.sharedBy": "{user} shared a deck.",
-  "deck.cannotPost": "I can't post in this channel. Revelio needs permission to view it, send messages, embed links and attach files here.",
+  "post.cannotPost": "I can't post in this channel. Revelio needs permission to view it, send messages, embed links and attach files here.",
   "deck.cannotPostHere": "I can't post here. Run /deck again and choose Only show me.",
   "deck.field.character": "Starting character",
   "deck.field.main": "Main deck ({count})",
@@ -63,5 +64,6 @@
   "decks.empty": "You have no decks yet. Build one at {url}",
   "decks.visibility.public": "public",
   "decks.visibility.private": "private",
-  "error.generic": "Something went wrong. Please try again in a moment."
+  "error.generic": "Something went wrong. Please try again in a moment.",
+  "browse.expired": "These results are out of date. Run the command again."
 }

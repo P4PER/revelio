@@ -129,9 +129,18 @@ Revised 2026-10-13 after the manual run: the first version answered clicks with
 rendered; the next answered with a public `deferReply`, which Discord renders as a reply to the
 deleted prompt.
 
-A picture Discord rejects falls back to the list only on a `DiscordAPIError`: then nothing was
-posted. Any other send failure may have reached the channel, so it is reported to the caller
-instead of retried, which could post the deck twice.
+A picture that fails to go out falls back to the list. For a `channel.send` only on a
+`DiscordAPIError`, which proves nothing was posted; any other failure may have reached the
+channel, so it is reported to the caller instead of retried, which could post the deck twice.
+An `editReply` is always retried, since an edit cannot post twice. Discord refusing the post
+itself (Missing Access in a private thread the bot is not in, Missing Permissions) is reported
+as `deck.cannotPostHere` / `deck.cannotPost`, like the up-front check. A channel the bot has
+no hold on at all (not cached) is `deck.cannotPostHere`, which tells the user to choose Only
+show me rather than asking moderators for a permission they cannot grant.
+
+Outside a guild (a DM with the bot, or a user-installed app in a DM) there is no channel to
+post to, so an own private deck - typed or picked from the menu - is shown ephemerally
+without the visibility prompt.
 
 The deck loader takes the viewer: `getPublicDeck` becomes `getDeckView(db, id, viewerId)`
 calling `getDeckForViewer(db, id, viewerId)`, so the owner check stays in the one place that

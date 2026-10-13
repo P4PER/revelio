@@ -90,5 +90,8 @@
   "share.view.placeholder": "Karte ansehen ...",
   "share.site": "Ganze Suche auf revelio.cards",
   "post.sharedCard.query": "{user} hat eine Karte aus einer Suche nach „{query}“ geteilt.",
-  "search.share.post": "Posten"
+  "search.share.post": "Posten",
+  "search.edit": "Suchen",
+  "search.modal.title": "Karten suchen",
+  "search.modal.label": "Suchbegriffe"
 }

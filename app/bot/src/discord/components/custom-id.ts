@@ -25,8 +25,9 @@ export type DeckBrowseState = {
 
 // One kind per control on a view, so no two controls of one message share an
 // id (Discord rejects duplicates): s page change, sl/st/ss lesson/type/set
-// select, co open a card, cb back to results, sh Share, sp the share picker.
-export type CardKind = 's' | 'sl' | 'st' | 'ss' | 'co' | 'cb' | 'sh' | 'sp'
+// select, co open a card, cb back to results, sh Share, sp the share picker,
+// sq the Search button and sm the search form it opens.
+export type CardKind = 's' | 'sl' | 'st' | 'ss' | 'co' | 'cb' | 'sh' | 'sp' | 'sq' | 'sm'
 // d page change, dl/df/ds lesson/format/sort select, do open a deck.
 export type DeckKind = 'd' | 'dl' | 'df' | 'ds' | 'do'
 
@@ -58,7 +59,7 @@ export const MAX_MASK = 0b11111
 // carries, so the order here is part of the id format.
 export const DECK_SORTS = ['likes', 'views', 'newest', 'updated'] as const
 
-const CARD_KINDS: readonly string[] = ['s', 'sl', 'st', 'ss', 'co', 'cb', 'sh', 'sp']
+const CARD_KINDS: readonly string[] = ['s', 'sl', 'st', 'ss', 'co', 'cb', 'sh', 'sp', 'sq', 'sm']
 const DECK_KINDS: readonly string[] = ['d', 'dl', 'df', 'ds', 'do']
 // Lessons, types and formats go in as a one-character index into these lists:
 // 'care_of_magical_creatures' alone is 25 characters. Their order is therefore
@@ -157,6 +158,7 @@ export function encodeCustomId(id: CustomId): string {
   let body: string
   switch (id.kind) {
     case 's': case 'sl': case 'st': case 'ss': case 'co': case 'cb': case 'sh': case 'sp':
+    case 'sq': case 'sm':
       body = encodeCard(id.state)
       break
     case 'd': case 'dl': case 'df': case 'ds': case 'do':

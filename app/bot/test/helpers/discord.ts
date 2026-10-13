@@ -41,6 +41,7 @@ export function fakeClick(customId: string, opts: ClickOptions = {}) {
     followUp: vi.fn().mockResolvedValue(undefined),
     deferUpdate: vi.fn(async () => { click.deferred = true }),
     deferReply: vi.fn(async () => { click.deferred = true }),
+    showModal: vi.fn().mockResolvedValue(undefined),
   }
   return click
 }
@@ -62,4 +63,27 @@ export function fakeDeps(hits: unknown[], total: number) {
       SHEET_TOKEN: 'a-token-at-least-16-chars',
     },
   }
+}
+
+// A modal's submit, as discord.js hands it over: the text inputs come back
+// through `fields`, keyed by their custom id.
+export function fakeModalSubmit(customId: string, values: Record<string, string>, opts: ClickOptions = {}) {
+  const submit = {
+    id: 'submit-1',
+    customId,
+    locale: opts.locale ?? 'en',
+    user: { id: '111' },
+    deferred: false,
+    replied: false,
+    inGuild: () => opts.inGuild ?? true,
+    isAutocomplete: () => false,
+    isMessageComponent: () => false,
+    isModalSubmit: () => true,
+    isChatInputCommand: () => false,
+    fields: { getTextInputValue: (key: string) => values[key] ?? '' },
+    reply: vi.fn().mockResolvedValue(undefined),
+    editReply: vi.fn().mockResolvedValue(undefined),
+    deferUpdate: vi.fn(async () => { submit.deferred = true }),
+  }
+  return submit
 }

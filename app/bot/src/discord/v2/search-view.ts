@@ -2,6 +2,7 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  SectionBuilder,
   SeparatorBuilder,
   StringSelectMenuBuilder,
   type ContainerBuilder,
@@ -82,10 +83,19 @@ function header(page: CardPage, state: CardBrowseState, opts: SearchViewOptions)
 }
 
 // The private browser: header, up to five rows, an open menu, three filter
-// menus and the pager. 33 components at its fullest (spec section 5).
+// menus and the pager. 35 components at its fullest (spec section 5).
 export function searchView(page: CardPage, state: CardBrowseState, opts: SearchViewOptions): ContainerBuilder[] {
   const { locale } = opts
-  const view = container(BRAND_GOLD).addTextDisplayComponents(text(header(page, state, opts)))
+  // A message cannot hold a text input, so the query is changed through a
+  // form that this button opens; it sits beside the header on every page.
+  const view = container(BRAND_GOLD).addSectionComponents(
+    new SectionBuilder()
+      .addTextDisplayComponents(text(header(page, state, opts)))
+      .setButtonAccessory(new ButtonBuilder()
+        .setCustomId(encodeCustomId({ kind: 'sq', state }))
+        .setLabel(t(locale, 'search.edit'))
+        .setStyle(ButtonStyle.Secondary)),
+  )
 
   if (page.hits.length) {
     view.addSeparatorComponents(new SeparatorBuilder())

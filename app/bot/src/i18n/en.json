@@ -90,5 +90,8 @@
   "share.view.placeholder": "View a card...",
   "share.site": "Full search on revelio.cards",
   "post.sharedCard.query": "{user} shared a card from a search for \"{query}\".",
-  "search.share.post": "Post"
+  "search.share.post": "Post",
+  "search.edit": "Search",
+  "search.modal.title": "Search cards",
+  "search.modal.label": "Search terms"
 }

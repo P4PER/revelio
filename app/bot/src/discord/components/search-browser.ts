@@ -3,7 +3,11 @@ import {
   ButtonBuilder,
   ButtonStyle,
   DiscordAPIError,
+  LabelBuilder,
   MessageFlags,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
   type MessageComponentInteraction,
 } from 'discord.js'
 import type { Deps } from '../../clients'
@@ -17,18 +21,22 @@ import { searchView, ANY } from '../v2/search-view'
 import { EPHEMERAL_V2, textEdit, textMessage, v2Edit, v2Message, type V2Edit } from '../v2/send'
 import { sharePicker, shareView } from '../v2/share-view'
 import {
+  clampQuery,
   encodeCustomId,
   isEntityId,
+  MAX_QUERY,
   type CardBrowseState,
   type CardKind,
   type CustomId,
 } from './custom-id'
-import type { ComponentHandler } from './types'
+import type { ComponentHandler, ModalHandler } from './types'
 
 type CardStateId = { kind: CardKind; state: CardBrowseState }
 
 const LESSON_CODES: readonly string[] = LESSONS.map((l) => l.code)
 const TYPE_CODES: readonly string[] = TYPES.map((ty) => ty.code)
+// The search form's one text input.
+const QUERY_FIELD = 'query'
 const REFUSAL_KEYS = { unreachable: 'post.cannotPostHere', forbidden: 'post.cannotPostCards' } as const
 
 export function isCardState(id: CustomId): id is CardStateId {
@@ -284,6 +292,39 @@ const viewShared: ComponentHandler = async (interaction, _id, deps) => {
   })))
 }
 
+// The form a message cannot hold: one text input, prefilled with the query.
+// Showing a modal is the click's acknowledgement, so nothing is deferred.
+const openSearchForm: ComponentHandler = async (interaction, id) => {
+  if (!isCardState(id)) return
+  const locale = toRevelioLocale(interaction.locale)
+  const input = new TextInputBuilder()
+    .setCustomId(QUERY_FIELD)
+    .setStyle(TextInputStyle.Short)
+    .setRequired(false)
+    .setMaxLength(MAX_QUERY)
+  // Discord rejects an empty prefill, so a search without a query leaves it unset.
+  if (id.state.query) input.setValue(id.state.query)
+  await interaction.showModal(new ModalBuilder()
+    .setCustomId(encodeCustomId({ kind: 'sm', state: id.state }))
+    .setTitle(t(locale, 'search.modal.title'))
+    .addLabelComponents(new LabelBuilder().setLabel(t(locale, 'search.modal.label')).setTextInputComponent(input)))
+}
+
+// The submitted form redraws the browser it came from, filters kept, page 1.
+const submitSearch: ModalHandler = async (interaction, id, deps) => {
+  if (!isCardState(id)) return
+  const locale = toRevelioLocale(interaction.locale)
+  await interaction.deferUpdate()
+  const query = clampQuery(interaction.fields.getTextInputValue(QUERY_FIELD))
+  await interaction.editReply(
+    await renderSearchBrowser(deps, { ...id.state, query, page: 1 }, locale, interaction.inGuild()),
+  )
+}
+
+export const SEARCH_MODALS: readonly (readonly [CustomId['kind'], ModalHandler])[] = [
+  ['sm', submitSearch],
+]
+
 export const SEARCH_HANDLERS: readonly (readonly [CustomId['kind'], ComponentHandler])[] = [
   ['s', navigate],
   ['sl', filterLesson],
@@ -296,4 +337,5 @@ export const SEARCH_HANDLERS: readonly (readonly [CustomId['kind'], ComponentHan
   ['sp', pickShared],
   ['sx', postShared],
   ['pk', viewShared],
+  ['sq', openSearchForm],
 ]

@@ -1,7 +1,12 @@
-import { MessageFlags, type Interaction, type MessageComponentInteraction } from 'discord.js'
+import {
+  MessageFlags,
+  type Interaction,
+  type MessageComponentInteraction,
+  type ModalSubmitInteraction,
+} from 'discord.js'
 import type { Deps } from '../clients'
 import { COMMANDS } from './commands/index'
-import { COMPONENTS } from './components/index'
+import { COMPONENTS, MODALS } from './components/index'
 import { decodeCustomId } from './components/custom-id'
 import { EPHEMERAL_V2, textEdit, textMessage } from './v2/send'
 import { toRevelioLocale } from '../i18n/locale'
@@ -47,6 +52,30 @@ async function handleComponent(interaction: MessageComponentInteraction, deps: D
   }
 }
 
+// The component path's twin for a submitted form. A form only exists once a
+// click opened it, so an answer before the handler acknowledged is a private
+// reply; after, it edits what the handler acknowledged.
+async function handleModal(interaction: ModalSubmitInteraction, deps: Deps): Promise<void> {
+  if (!ROUTED_ID.test(interaction.customId)) return
+  const locale = toRevelioLocale(interaction.locale)
+  const answer = (content: string) => interaction.deferred || interaction.replied
+    ? interaction.editReply(textEdit(content))
+    : interaction.reply({ ...textMessage(content), flags: EPHEMERAL_V2 })
+  const id = decodeCustomId(interaction.customId)
+  const handler = id ? MODALS.get(id.kind) : undefined
+  if (!id || !handler) {
+    await answer(t(locale, 'browse.expired')).catch(() => {})
+    return
+  }
+  try {
+    await handler(interaction, id, deps)
+  } catch (err) {
+    // The kind, never the raw id or the typed text.
+    console.error(`modal ${id.kind} failed (${interaction.id}):`, err)
+    await answer(t(locale, 'error.generic')).catch(() => {})
+  }
+}
+
 // The gateway's interactionCreate handler. Its own module, with no top-level
 // side effects, so tests can import it: main.ts starts the bot on import.
 export async function handleInteraction(interaction: Interaction, deps: Deps): Promise<void> {
@@ -66,6 +95,10 @@ export async function handleInteraction(interaction: Interaction, deps: Deps): P
   }
   if (interaction.isMessageComponent()) {
     await handleComponent(interaction, deps)
+    return
+  }
+  if (interaction.isModalSubmit()) {
+    await handleModal(interaction, deps)
     return
   }
   if (!interaction.isChatInputCommand()) return

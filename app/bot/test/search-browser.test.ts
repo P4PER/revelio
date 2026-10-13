@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
-import { DiscordAPIError, MessageFlags, RESTJSONErrorCodes } from 'discord.js'
+import { ComponentType, DiscordAPIError, MessageFlags, RESTJSONErrorCodes } from 'discord.js'
 import * as dbModule from '@revelio/db'
 import { COMMANDS } from '../src/discord/commands/index'
 import { handleInteraction } from '../src/discord/handle-interaction'
 import { decodeCustomId, encodeCustomId, type CardBrowseState } from '../src/discord/components/custom-id'
-import { fakeClick, fakeDeps, type ClickOptions } from './helpers/discord'
+import { fakeClick, fakeDeps, fakeModalSubmit, type ClickOptions } from './helpers/discord'
 import { buttonsOf, textOf } from './helpers/v2'
 
 beforeEach(() => {
@@ -276,5 +276,58 @@ describe('View a card, on a shared list', () => {
     const { c, done } = click('v1:pk', fakeDeps([], 0), { values: ['base-9'], ephemeral: false })
     await done
     expect(textOf(c.editReply.mock.calls[0][0])).toBe('That card is no longer in the database.')
+  })
+})
+
+describe('changing the search', () => {
+  type Node = { type?: number; custom_id?: string; value?: string; max_length?: number; required?: boolean; component?: Node; components?: Node[] }
+  const inputs = (n: Node): Node[] =>
+    [n, ...(n.component ? inputs(n.component) : []), ...(n.components ?? []).flatMap(inputs)]
+      .filter((x) => x.type === ComponentType.TextInput)
+
+  it('opens a form with the query filled in', async () => {
+    const deps = fakeDeps(hits, 23)
+    const { c, done } = click(encodeCustomId({ kind: 'sq', state: { ...state, lesson: 'charms' } }), deps)
+    await done
+    const modal = (c.showModal.mock.calls[0][0] as { toJSON(): Node & { custom_id: string } }).toJSON()
+    expect(decodeCustomId(modal.custom_id)).toEqual({ kind: 'sm', state: { ...state, lesson: 'charms' } })
+    const [input] = inputs(modal)
+    expect(input).toMatchObject({ custom_id: 'query', value: 'lumos', max_length: 50 })
+    expect(input.required).toBe(false)
+    expect(c.deferUpdate).not.toHaveBeenCalled()
+    expect(c.editReply).not.toHaveBeenCalled()
+  })
+
+  it('leaves the field empty for a search without a query', async () => {
+    const { c, done } = click(encodeCustomId({ kind: 'sq', state: { ...state, query: '' } }), fakeDeps(hits, 23))
+    await done
+    const [input] = inputs((c.showModal.mock.calls[0][0] as { toJSON(): Node }).toJSON())
+    expect(input.value).toBeUndefined()
+  })
+
+  it('redraws the browser for the new query on page 1, filters kept', async () => {
+    const deps = fakeDeps(hits, 23)
+    const submit = fakeModalSubmit(encodeCustomId({ kind: 'sm', state: { ...state, page: 4, lesson: 'charms' } }), { query: ' nox ' })
+    await handleInteraction(submit as never, deps as never)
+    expect(submit.deferUpdate).toHaveBeenCalled()
+    expect(deps.search).toHaveBeenCalledWith('nox', expect.objectContaining({ offset: 0 }))
+    expect(deps.search.mock.calls[0][1].filter).toContain('(lesson = "charms")')
+    expect(textOf(submit.editReply.mock.calls[0][0])).toContain('Cards found for "nox"')
+  })
+
+  it('says a malformed form id is out of date', async () => {
+    const submit = fakeModalSubmit('v1:sm:nope', { query: 'x' })
+    await handleInteraction(submit as never, fakeDeps(hits, 23) as never)
+    expect(textOf(submit.reply.mock.calls[0][0])).toBe('These results are out of date. Run the command again.')
+    expect(submit.reply.mock.calls[0][0].flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
+  })
+
+  it('answers a failure after the defer by editing the browser', async () => {
+    const deps = fakeDeps(hits, 23)
+    deps.search.mockRejectedValue(new Error('down'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const submit = fakeModalSubmit(encodeCustomId({ kind: 'sm', state }), { query: 'nox' })
+    await handleInteraction(submit as never, deps as never)
+    expect(textOf(submit.editReply.mock.calls.at(-1)![0])).toBe('Something went wrong. Please try again in a moment.')
   })
 })

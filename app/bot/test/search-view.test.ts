@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { ComponentType } from 'discord.js'
 import type { CardBrowseHit } from '@revelio/search'
 import { searchView, type SearchViewOptions } from '../src/discord/v2/search-view'
-import type { CardBrowseState } from '../src/discord/components/custom-id'
+import { decodeCustomId, type CardBrowseState } from '../src/discord/components/custom-id'
 import type { CardPage } from '../src/data/cards'
 import { measure } from '../src/discord/v2/limits'
 import { buttonsOf, flatten, textOf } from './helpers/v2'
@@ -26,6 +26,23 @@ const selects = (v: { components: unknown[] }) => flatten(v).filter((n) => n.typ
 }[]
 
 describe('searchView', () => {
+  // Text inputs exist only in modals, so the query is changed from a button
+  // beside the header; it must be there whatever the page shows.
+  it('offers Search beside the header on every page', () => {
+    const cases = [
+      render(page(5)),
+      render(page(0)),
+      render(page(0, { total: 0, page: 1, pages: 1 }), { ...state, page: 1 }),
+    ]
+    for (const v of cases) {
+      const section = flatten(v).find((n) => n.type === ComponentType.Section) as unknown as {
+        components: { content: string }[]; accessory: { custom_id: string; label: string }
+      }
+      expect(section.accessory.label).toBe('Search')
+      expect(decodeCustomId(section.accessory.custom_id)).toMatchObject({ kind: 'sq', state: { query: 'lumos' } })
+    }
+  })
+
   it('stays inside the limits at its fullest', () => {
     const full = render(page(5), { ...state, lesson: 'charms', type: 'spell', set: 's29', query: 'x'.repeat(50) })
     expect(measure(full.components).components).toBeLessThanOrEqual(40)

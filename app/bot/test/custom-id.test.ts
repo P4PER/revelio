@@ -31,7 +31,7 @@ const worstDeck: DeckBrowseState = {
 }
 
 const ALL: CustomId[] = [
-  ...(['s', 'sl', 'st', 'ss', 'co', 'cb', 'sh', 'sp'] as const).map((kind) => ({ kind, state: card })),
+  ...(['s', 'sl', 'st', 'ss', 'co', 'cb', 'sh', 'sp', 'sq', 'sm'] as const).map((kind) => ({ kind, state: card })),
   ...(['d', 'dl', 'df', 'ds', 'do'] as const).map((kind) => ({ kind, state: deck })),
   { kind: 'cp', cardId: 'chamber-of-secrets-12' },
   { kind: 'dp', deckId: '6f1c2a5e-9a8b-4c3d-8e7f-0a1b2c3d4e5f' },
@@ -48,7 +48,7 @@ describe('custom ids', () => {
 
   it('stays inside 100 characters for the worst case of every kind', () => {
     const worst: CustomId[] = [
-      ...(['s', 'sl', 'st', 'ss', 'co', 'cb', 'sh', 'sp'] as const).map((kind) => ({ kind, state: worstCard })),
+      ...(['s', 'sl', 'st', 'ss', 'co', 'cb', 'sh', 'sp', 'sq', 'sm'] as const).map((kind) => ({ kind, state: worstCard })),
       ...(['d', 'dl', 'df', 'ds', 'do'] as const).map((kind) => ({ kind, state: worstDeck })),
       { kind: 'cp', cardId: 'x'.repeat(64) },
       { kind: 'dp', deckId: 'x'.repeat(64) },

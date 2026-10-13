@@ -24,6 +24,7 @@ function fakeCommand(state: { replied: boolean; deferred: boolean }) {
     ...state,
     isAutocomplete: () => false,
     isMessageComponent: () => false,
+    isModalSubmit: () => false,
     isChatInputCommand: () => true,
     reply: vi.fn().mockResolvedValue(undefined),
     editReply: vi.fn().mockResolvedValue(undefined),

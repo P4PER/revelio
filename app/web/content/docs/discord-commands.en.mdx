@@ -25,14 +25,25 @@ both.
 
 ## Deck lookup
 
-Shows a public deck by link or id, as a picture of its cards - the same deck
+Finds a deck by name and shows it as a picture of its cards - the same deck
 sheet the builder's "Export PNG" downloads, grouped by card type with a copy
 count on each card. The embed above it carries the character, format and
 legality. `view:list` answers with a text list instead, which is easier to read
-on a slow connection and can be copied. Only public decks can be looked up this
-way - your own private decks are listed by `/mydecks`.
+on a slow connection and can be copied.
+
+Start typing and Discord suggests matching decks: every public deck, plus your
+own private decks if your account is linked, marked with a lock. Start with `@`
+to search by author. A pasted deck link or id works too. If you send a name
+without picking a suggestion and more than one deck matches, the bot asks you
+privately which one you meant.
+
+Your own private decks are never posted without asking. The bot first answers
+only you, with **Post publicly** and **Only show me**; the buttons stop working
+after a minute.
 
 <CommandTable name="deck" />
+
+<CommandExample>/deck deck:Gryffindor Aggro</CommandExample>
 
 <CommandExample>/deck deck:https://revelio.cards/decks/abc123</CommandExample>
 

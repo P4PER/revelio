@@ -825,7 +825,7 @@
         "description": "The same search as the site, paged, with a link back to the full results."
       },
       "deck": {
-        "description": "Any public deck by link or id, as a picture of its cards or as a text list."
+        "description": "Any deck you can see, found by name, link or id, as a picture of its cards or as a text list."
       },
       "collection": {
         "description": "How far along you are, overall or in one set."
@@ -922,7 +922,7 @@
       },
       "deck": {
         "options": {
-          "deck": "A deck link or its id. Only public decks can be looked up this way; your own private decks are listed by /mydecks.",
+          "deck": "A deck name, link or id. Discord suggests public decks as you type, plus your own private decks when your account is linked; a private one is only posted if you choose to.",
           "view": "How the deck is shown. A picture of its cards by default, or a text list you can read and copy."
         },
         "choices": {

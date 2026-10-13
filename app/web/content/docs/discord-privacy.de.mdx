@@ -11,8 +11,9 @@ Zu lesen bekommt er das, was du in die Optionen eines Slash-Befehls tippst -
 einen Kartennamen, eine Suchanfrage, einen Deck-Link. Sonst erreicht ihn nichts
 aus dem Gespräch.
 
-Für `/collection` und `/mydecks` liest er zusätzlich deine eigenen
-Revelio-Daten, die er über das von dir selbst verknüpfte Discord-Konto auflöst.
+Für `/collection` und `/mydecks` sowie für deine eigenen privaten Decks in
+`/deck` liest er zusätzlich deine eigenen Revelio-Daten, die er über das von dir
+selbst verknüpfte Discord-Konto auflöst.
 Er greift dafür direkt über eine private Netzwerkverbindung zu, mit einem
 Suchschlüssel, der nur lesen darf: Der Bot kann den Kartenindex nicht
 verändern, und die Schlüssel, die das könnten, bekommt er nie zu sehen.
@@ -37,6 +38,10 @@ kann sie also nicht vergessen werden.
 
 `/card`, `/search` und `/deck` antworten im Kanal, sichtbar für alle. Es geht
 dabei um das Spiel, nicht um dich.
+
+Die eine Ausnahme ist dein eigenes privates Deck. `/deck` fragt dich zuerst
+privat, ob es im Kanal gepostet oder nur dir gezeigt werden soll, und im Kanal
+erscheint nichts, bevor du dich entschieden hast.
 
 `/collection` und `/mydecks` antworten privat - nur du siehst die Antwort, auch
 in einem vollen Kanal. Das wird entschieden, bevor der Befehl überhaupt etwas

@@ -278,10 +278,12 @@ describe('deck pages', () => {
     expect(page).toMatchObject({ total: 12, page: 2, pages: 3 })
   })
 
-  it('pages the owner\'s decks ten at a time, newest edit first as listed', async () => {
-    const decks = Array.from({ length: 23 }, (_, i) => ({ id: `d${i}` }))
-    vi.spyOn(dbModule, 'listDecksByUser').mockResolvedValue(decks as never)
+  it('asks the database for one page of ten of the owner\'s decks', async () => {
+    const paged = vi.spyOn(dbModule, 'pageDecksByUser').mockResolvedValue({
+      decks: [{ id: 'd20' }, { id: 'd21' }, { id: 'd22' }] as never, total: 23, page: 3, pageCount: 3,
+    })
     const page = await pageOwnDecks({} as never, 'u1', 3)
+    expect(paged).toHaveBeenCalledWith({}, 'u1', { page: 3, pageSize: 10 })
     expect(page.decks.map((d) => d.id)).toEqual(['d20', 'd21', 'd22'])
     expect(page).toMatchObject({ total: 23, page: 3, pages: 3 })
   })

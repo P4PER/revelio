@@ -143,7 +143,7 @@ describe('an open /mydecks browser', () => {
   // showing private decks.
   it('re-resolves the account on every click', async () => {
     linkedAs(null)
-    const list = vi.spyOn(dbModule, 'listDecksByUser')
+    const list = vi.spyOn(dbModule, 'pageDecksByUser')
     const { c, done } = click(encodeCustomId({ kind: 'd', state: { ...state, scope: 'mine', sort: 'updated', page: 2 } }))
     await done
     expect(list).not.toHaveBeenCalled()

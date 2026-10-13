@@ -132,10 +132,11 @@ describe('/mydecks', () => {
     mainCount: 60, cardCount: 61, hasCharacter: true, characterName: 'Harry',
     updatedAt: '2026-01-01T00:00:00.000Z', ...over,
   })
+  const paged = (decks: unknown[]) => ({ decks: decks as never, total: decks.length, page: 1, pageCount: 1 })
 
   it('always replies ephemerally', async () => {
     linked()
-    vi.spyOn(dbModule, 'listDecksByUser').mockResolvedValue([])
+    vi.spyOn(dbModule, 'pageDecksByUser').mockResolvedValue(paged([]))
     const interaction = fakeInteraction()
     await run('mydecks', interaction, fakeDeps())
     expect(interaction.deferReply).toHaveBeenCalledWith({ flags: MessageFlags.Ephemeral })
@@ -143,7 +144,7 @@ describe('/mydecks', () => {
 
   it('lists private decks too, marked, since only the asker sees the reply', async () => {
     linked()
-    vi.spyOn(dbModule, 'listDecksByUser').mockResolvedValue([deck()] as never)
+    vi.spyOn(dbModule, 'pageDecksByUser').mockResolvedValue(paged([deck()]))
     const interaction = fakeInteraction()
     await run('mydecks', interaction, fakeDeps())
     expect(textOf(interaction.editReply.mock.calls[0][0])).toContain('🔒 **Secret Brew**')
@@ -151,8 +152,8 @@ describe('/mydecks', () => {
 
   it('pages ten decks at a time', async () => {
     linked()
-    const many = Array.from({ length: 25 }, (_, i) => deck({ id: `d${i}`, name: `Deck ${i}` }))
-    vi.spyOn(dbModule, 'listDecksByUser').mockResolvedValue(many as never)
+    const ten = Array.from({ length: 10 }, (_, i) => deck({ id: `d${i}`, name: `Deck ${i}` }))
+    vi.spyOn(dbModule, 'pageDecksByUser').mockResolvedValue({ ...paged(ten), total: 25, pageCount: 3 })
     const interaction = fakeInteraction()
     await run('mydecks', interaction, fakeDeps())
     const text = textOf(interaction.editReply.mock.calls[0][0])
@@ -163,7 +164,7 @@ describe('/mydecks', () => {
 
   it('offers the builder link when the user has no decks', async () => {
     linked()
-    vi.spyOn(dbModule, 'listDecksByUser').mockResolvedValue([])
+    vi.spyOn(dbModule, 'pageDecksByUser').mockResolvedValue(paged([]))
     const interaction = fakeInteraction()
     await run('mydecks', interaction, fakeDeps())
     expect(textOf(interaction.editReply.mock.calls[0][0])).toContain('/decks/new')

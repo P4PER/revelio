@@ -1,8 +1,8 @@
 import {
   getDeckAccess,
   getDeckForViewer,
-  listDecksByUser,
   listPublicDecks,
+  pageDecksByUser,
   suggestDecks,
   type DB,
   type DeckSuggestion,
@@ -206,12 +206,9 @@ export async function browsePublicDecks(db: DB, state: DeckBrowseState): Promise
   return { entries: res.entries, total: res.total, page: res.page, pages: res.pageCount }
 }
 
-// listDecksByUser returns every deck, newest edit first; a user's own list is
-// small enough to page in memory.
+// One page in the database, newest edit first: a click costs ten rows, not
+// the owner's whole list.
 export async function pageOwnDecks(db: DB, userId: string, page: number): Promise<OwnDeckPage> {
-  const all = await listDecksByUser(db, userId)
-  const pages = Math.max(1, Math.ceil(all.length / OWN_PAGE_SIZE))
-  const current = Math.min(Math.max(1, page), pages)
-  const start = (current - 1) * OWN_PAGE_SIZE
-  return { decks: all.slice(start, start + OWN_PAGE_SIZE), total: all.length, page: current, pages }
+  const res = await pageDecksByUser(db, userId, { page, pageSize: OWN_PAGE_SIZE })
+  return { decks: res.decks, total: res.total, page: res.page, pages: res.pageCount }
 }

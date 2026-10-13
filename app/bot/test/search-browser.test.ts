@@ -3,7 +3,7 @@ import { DiscordAPIError, MessageFlags, RESTJSONErrorCodes } from 'discord.js'
 import * as dbModule from '@revelio/db'
 import { COMMANDS } from '../src/discord/commands/index'
 import { handleInteraction } from '../src/discord/handle-interaction'
-import { encodeCustomId, type CardBrowseState } from '../src/discord/components/custom-id'
+import { decodeCustomId, encodeCustomId, type CardBrowseState } from '../src/discord/components/custom-id'
 import { fakeClick, fakeDeps, type ClickOptions } from './helpers/discord'
 import { buttonsOf, textOf } from './helpers/v2'
 
@@ -220,26 +220,39 @@ describe('sharing results', () => {
     expect(c.channel.send).not.toHaveBeenCalled()
   })
 
-  it('posts the picked cards and returns to the results', async () => {
-    const deps = fakeDeps([card(1), card(3)], 2)
+  it('redraws the picker for a new selection without posting', async () => {
+    const deps = fakeDeps(hits, 23)
     const { c, done } = click(encodeCustomId({ kind: 'sp', state }), deps, { values: ['base-1', 'base-3'] })
     await done
-    expect(deps.search.mock.calls[0][1].filter).toContain('id IN ["base-1","base-3"]')
-    expect(textOf(c.channel.send.mock.calls[0][0])).toMatch(/^<@111> shared 2 cards/)
+    expect(c.channel.send).not.toHaveBeenCalled()
+    const post = buttonsOf(c.editReply.mock.calls[0][0]).find((b) => b.label === 'Post')
+    expect(decodeCustomId(post!.custom_id as string)).toEqual({ kind: 'sx', mask: 0b00101, state })
+  })
+
+  it('ignores a picked value that is not on the page', async () => {
+    const deps = fakeDeps(hits, 23)
+    const { c, done } = click(encodeCustomId({ kind: 'sp', state }), deps, { values: ['base-2', 'x"] OR id EXISTS'] })
+    await done
+    const post = buttonsOf(c.editReply.mock.calls[0][0]).find((b) => b.label === 'Post')
+    expect(decodeCustomId(post!.custom_id as string)).toMatchObject({ mask: 0b00010 })
+  })
+
+  it('posts the selected rows in page order and returns to the results', async () => {
+    const deps = fakeDeps(hits, 23)
+    const { c, done } = click(encodeCustomId({ kind: 'sx', mask: 0b00101, state }), deps)
+    await done
+    const sent = textOf(c.channel.send.mock.calls[0][0])
+    expect(sent).toMatch(/^<@111> shared 2 cards/)
+    expect(sent.indexOf('**Card 1**')).toBeLessThan(sent.indexOf('**Card 3**'))
+    expect(sent).not.toContain('**Card 2**')
     expect(textOf(c.editReply.mock.calls.at(-1)![0])).toContain('Cards found')
     expect(c.reply).not.toHaveBeenCalled()
     expect(c.followUp).not.toHaveBeenCalled()
   })
 
-  it('drops a tampered value before it reaches the search', async () => {
-    const deps = fakeDeps([card(1)], 1)
-    await click(encodeCustomId({ kind: 'sp', state }), deps, { values: ['base-1', 'x"] OR id EXISTS'] }).done
-    expect(deps.search.mock.calls[0][1].filter).toContain('id IN ["base-1"]')
-  })
-
   it('refuses privately when the bot may not post there', async () => {
     const deps = fakeDeps(hits, 23)
-    const { c, done } = click(encodeCustomId({ kind: 'sp', state }), deps, { values: ['base-1'], allowed: false })
+    const { c, done } = click(encodeCustomId({ kind: 'sx', mask: 1, state }), deps, { allowed: false })
     await done
     expect(c.channel.send).not.toHaveBeenCalled()
     expect(c.reply.mock.calls[0][0].flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)

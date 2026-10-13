@@ -28,17 +28,26 @@ function row(...components: MessageActionRowComponentBuilder[]): Row {
   return new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(...components)
 }
 
-function cardOptions(hits: CardBrowseHit[], selected: boolean) {
-  return hits.map((hit) => ({
+// selected(i): whether the option for row i starts ticked.
+function cardOptions(hits: CardBrowseHit[], selected: (i: number) => boolean) {
+  return hits.map((hit, i) => ({
     label: clampLabel(hit.name),
     description: `${hit.setCode} #${hit.number}`,
     value: hit.id,
-    default: selected,
+    default: selected(i),
   }))
 }
 
 // The private step between Share and the post: which of this page's cards go.
-export function sharePicker(hits: CardBrowseHit[], state: CardBrowseState, locale: string): ContainerBuilder[] {
+// Changing the menu only redraws this picker; Post sends. A multi-select left
+// as it was may never fire, so the menu cannot be what posts. `mask` holds the
+// ticked rows, one bit per row, and rides on Post's id.
+export function sharePicker(
+  hits: CardBrowseHit[],
+  state: CardBrowseState,
+  mask: number,
+  locale: string,
+): ContainerBuilder[] {
   return [
     container()
       .addTextDisplayComponents(text(t(locale, 'search.share.prompt')))
@@ -48,11 +57,17 @@ export function sharePicker(hits: CardBrowseHit[], state: CardBrowseState, local
           .setPlaceholder(t(locale, 'search.share.placeholder'))
           .setMinValues(1)
           .setMaxValues(hits.length)
-          .addOptions(cardOptions(hits, true))),
-        row(new ButtonBuilder()
-          .setCustomId(encodeCustomId({ kind: 's', state }))
-          .setLabel(t(locale, 'search.share.cancel'))
-          .setStyle(ButtonStyle.Secondary)),
+          .addOptions(cardOptions(hits, (i) => ((mask >> i) & 1) === 1))),
+        row(
+          new ButtonBuilder()
+            .setCustomId(encodeCustomId({ kind: 'sx', mask, state }))
+            .setLabel(t(locale, 'search.share.post'))
+            .setStyle(ButtonStyle.Primary),
+          new ButtonBuilder()
+            .setCustomId(encodeCustomId({ kind: 's', state }))
+            .setLabel(t(locale, 'search.share.cancel'))
+            .setStyle(ButtonStyle.Secondary),
+        ),
       ),
   ]
 }
@@ -73,11 +88,11 @@ export function shareView(hits: CardBrowseHit[], state: CardBrowseState, opts: S
     row(new StringSelectMenuBuilder()
       .setCustomId(encodeCustomId({ kind: 'pk' }))
       .setPlaceholder(t(locale, 'share.view.placeholder'))
-      .addOptions(cardOptions(hits, false))),
+      .addOptions(cardOptions(hits, () => false))),
     row(linkButton(
       searchUrl(opts.siteBase, state.query, locale, {
-      lesson: state.lesson, type: state.type, set: state.set, sort: state.query ? null : 'number',
-    }),
+        lesson: state.lesson, type: state.type, set: state.set, sort: state.query ? null : 'number',
+      }),
       t(locale, 'share.site'),
     )),
   )

@@ -58,6 +58,11 @@ async function pageOf(deps: Deps, state: CardBrowseState, locale: string) {
   })
 }
 
+// Every row of a page of n rows ticked.
+function allRows(n: number): number {
+  return (1 << n) - 1
+}
+
 export async function renderSearchBrowser(
   deps: Deps,
   state: CardBrowseState,
@@ -213,32 +218,48 @@ const share: ComponentHandler = async (interaction, id, deps) => {
     await interaction.editReply(await renderSearchBrowser(deps, id.state, locale, interaction.inGuild()))
     return
   }
-  await interaction.editReply(v2Edit(sharePicker(page.hits, id.state, locale)))
+  await interaction.editReply(v2Edit(sharePicker(page.hits, id.state, allRows(page.hits.length), locale)))
 }
 
-// The picked cards are read again by id: the values are client data, so an
-// invalid one is dropped before the query and a card gone since simply drops
-// out of the result.
-const sharePicked: ComponentHandler = async (interaction, id, deps) => {
+// A new selection only redraws the picker, with the ticked rows as Post's mask.
+// The values are client data: only ids of cards on this page count, and an
+// empty result falls back to every row rather than to an unpostable picker.
+const pickShared: ComponentHandler = async (interaction, id, deps) => {
   if (!isCardState(id)) return
+  const locale = toRevelioLocale(interaction.locale)
+  const values = interaction.isStringSelectMenu() ? interaction.values : []
+  await interaction.deferUpdate()
+  const page = await pageOf(deps, id.state, locale)
+  if (!page.hits.length) {
+    await interaction.editReply(await renderSearchBrowser(deps, id.state, locale, interaction.inGuild()))
+    return
+  }
+  const mask = page.hits.reduce((bits, hit, i) => (values.includes(hit.id) ? bits | (1 << i) : bits), 0)
+  await interaction.editReply(v2Edit(sharePicker(page.hits, id.state, mask || allRows(page.hits.length), locale)))
+}
+
+// Post re-reads the page and takes the rows in the mask, so the channel gets
+// them in the order the caller saw. A page that changed since only shifts
+// which public cards go; nothing in the mask can reach a query.
+const postShared: ComponentHandler = async (interaction, id, deps) => {
+  if (id.kind !== 'sx') return
   const locale = toRevelioLocale(interaction.locale)
   const target = postTarget(interaction, { needsFiles: false })
   if (target.kind !== 'ok') {
     await interaction.reply({ ...textMessage(t(locale, postRefusalKey(target.kind))), flags: EPHEMERAL_V2 })
     return
   }
-  const ids = interaction.isStringSelectMenu() ? interaction.values.filter(isEntityId) : []
   await interaction.deferUpdate()
-  const chosen = ids.length
-    ? await findCards(deps.meili, { query: '', locale, filters: { ids }, pageSize: ids.length })
-    : null
-  if (chosen?.hits.length) {
-    const message = v2Message(shareView(chosen.hits, id.state, {
+  const page = await pageOf(deps, id.state, locale)
+  const chosen = page.hits.filter((_, i) => ((id.mask >> i) & 1) === 1)
+  if (chosen.length) {
+    const message = v2Message(shareView(chosen, id.state, {
       locale,
       imageBase: deps.env.IMAGE_BASE_URL,
       siteBase: deps.env.SITE_BASE_URL,
       sharerId: interaction.user.id,
     }))
+    // The post in the channel is its own confirmation: no private "posted".
     await sendToChannel(interaction, () => target.channel.send(message), locale)
   }
   await interaction.editReply(await renderSearchBrowser(deps, id.state, locale, interaction.inGuild()))
@@ -272,6 +293,7 @@ export const SEARCH_HANDLERS: readonly (readonly [CustomId['kind'], ComponentHan
   ['cb', backToResults],
   ['cp', postCard],
   ['sh', share],
-  ['sp', sharePicked],
+  ['sp', pickShared],
+  ['sx', postShared],
   ['pk', viewShared],
 ]

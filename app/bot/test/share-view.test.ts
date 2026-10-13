@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { ComponentType } from 'discord.js'
 import type { CardBrowseHit } from '@revelio/search'
 import { sharePicker, shareView } from '../src/discord/v2/share-view'
-import type { CardBrowseState } from '../src/discord/components/custom-id'
+import { decodeCustomId, type CardBrowseState } from '../src/discord/components/custom-id'
 import { measure } from '../src/discord/v2/limits'
 import { buttonsOf, flatten, textOf } from './helpers/v2'
 
@@ -18,15 +18,25 @@ const selectOf = (v: { components: unknown[] }) =>
   flatten(v).find((n) => n.type === ComponentType.StringSelect) as unknown as Select
 
 describe('sharePicker', () => {
-  it('preselects every card on the page and asks for at least one', () => {
-    const select = selectOf({ components: sharePicker(hits, state, 'en') })
+  const picker = (mask = 0b11111) => ({ components: sharePicker(hits, state, mask, 'en') })
+
+  it('preselects the rows in the mask and asks for at least one', () => {
+    const select = selectOf(picker(0b00101))
     expect(select.custom_id.startsWith('v1:sp:')).toBe(true)
-    expect(select.options.every((o) => o.default)).toBe(true)
+    expect(select.options.filter((o) => o.default).map((o) => o.value)).toEqual(['base-1', 'base-3'])
     expect([select.min_values, select.max_values]).toEqual([1, 5])
   })
 
+  // A multi-select left unchanged may never fire, so posting is a button.
+  it('posts the selection from a button that carries it', () => {
+    const [post] = buttonsOf(picker(0b00101))
+    expect(post.label).toBe('Post')
+    expect(decodeCustomId(post.custom_id!)).toEqual({ kind: 'sx', mask: 0b00101, state })
+  })
+
   it('cancels back to the same page', () => {
-    const cancel = buttonsOf({ components: sharePicker(hits, state, 'en') })[0]
+    const cancel = buttonsOf(picker())[1]
+    expect(cancel.label).toBe('Cancel')
     expect(cancel.custom_id?.startsWith('v1:s:2:')).toBe(true)
   })
 })

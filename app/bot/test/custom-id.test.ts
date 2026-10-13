@@ -38,6 +38,7 @@ const ALL: CustomId[] = [
   { kind: 'pk' },
   { kind: 'pg', of: 'cards' },
   { kind: 'pg', of: 'decks' },
+  { kind: 'sx', mask: 0b10110, state: card },
 ]
 
 describe('custom ids', () => {
@@ -51,6 +52,7 @@ describe('custom ids', () => {
       ...(['d', 'dl', 'df', 'ds', 'do'] as const).map((kind) => ({ kind, state: worstDeck })),
       { kind: 'cp', cardId: 'x'.repeat(64) },
       { kind: 'dp', deckId: 'x'.repeat(64) },
+      { kind: 'sx', mask: 31, state: worstCard },
     ]
     for (const id of worst) expect(encodeCustomId(id).length).toBeLessThanOrEqual(MAX_CUSTOM_ID)
   })
@@ -77,6 +79,9 @@ describe('custom ids', () => {
     ['an unknown deck scope', 'v1:d:x:1:-:0:-:q'],
     ['a card id with a space', 'v1:cp:a b'],
     ['an extra field on pk', 'v1:pk:1'],
+    ['an empty share mask', 'v1:sx:0:1:-:-:-:q'],
+    ['a share mask past five rows', 'v1:sx:w:1:-:-:-:q'],
+    ['a two-character share mask', 'v1:sx:1f:1:-:-:-:q'],
   ])('rejects %s', (_label, raw) => {
     expect(decodeCustomId(raw)).toBeNull()
   })

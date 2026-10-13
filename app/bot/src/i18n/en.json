@@ -36,7 +36,7 @@
   "deck.loading": "Loading the deck...",
   "deck.posting": "Posting to the channel...",
   "deck.sharedBy": "{user} shared a deck.",
-  "deck.cannotPost": "I can't post in this channel. Revelio needs permission to view it, send messages, embed links and attach files here.",
+  "post.cannotPost": "I can't post in this channel. Revelio needs permission to view it, send messages, embed links and attach files here.",
   "deck.cannotPostHere": "I can't post here. Run /deck again and choose Only show me.",
   "deck.field.character": "Starting character",
   "deck.field.main": "Main deck ({count})",

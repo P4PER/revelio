@@ -8,7 +8,7 @@ import type { Deps } from '../clients'
 import { COMMANDS } from './commands/index'
 import { COMPONENTS, MODALS } from './components/index'
 import { decodeCustomId } from './components/custom-id'
-import { EPHEMERAL_V2, textEdit, textMessage } from './v2/send'
+import { ephemeralText, textEdit } from './v2/send'
 import { toRevelioLocale } from '../i18n/locale'
 import { t } from '../i18n/t'
 
@@ -29,7 +29,7 @@ async function answerClick(interaction: MessageComponentInteraction, content: st
     await interaction.update(textEdit(content))
     return
   }
-  await interaction.reply({ ...textMessage(content), flags: EPHEMERAL_V2 })
+  await interaction.reply(ephemeralText(content))
 }
 
 async function handleComponent(interaction: MessageComponentInteraction, deps: Deps): Promise<void> {
@@ -64,7 +64,7 @@ async function answerModal(interaction: ModalSubmitInteraction, content: string)
     await interaction.update(textEdit(content))
     return
   }
-  await interaction.reply({ ...textMessage(content), flags: EPHEMERAL_V2 })
+  await interaction.reply(ephemeralText(content))
 }
 
 // The component path's twin for a submitted form.
@@ -120,7 +120,7 @@ export async function handleInteraction(interaction: Interaction, deps: Deps): P
     // respond", which reads as the bot being down.
     console.warn(`unknown command ${interaction.commandName} (${interaction.id})`)
     await interaction
-      .reply({ ...textMessage(t(toRevelioLocale(interaction.locale), 'error.generic')), flags: EPHEMERAL_V2 })
+      .reply(ephemeralText(t(toRevelioLocale(interaction.locale), 'error.generic')))
       .catch(() => {})
     return
   }
@@ -136,7 +136,7 @@ export async function handleInteraction(interaction: Interaction, deps: Deps): P
       // line replaces them.
       await interaction.editReply(textEdit(content)).catch(() => {})
     } else {
-      await interaction.reply({ ...textMessage(content), flags: EPHEMERAL_V2 }).catch(() => {})
+      await interaction.reply(ephemeralText(content)).catch(() => {})
     }
   }
 }

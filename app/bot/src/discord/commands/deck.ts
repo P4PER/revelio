@@ -26,7 +26,7 @@ import {
 } from '../components/deck-prompts'
 import { postTarget, refusal } from '../channel-post'
 import { deliverDeck } from '../deck-delivery'
-import { EPHEMERAL_V2, textEdit, textMessage, v2Edit, v2Message } from '../v2/send'
+import { EPHEMERAL_V2, ephemeralText, textEdit, v2Edit, v2Message } from '../v2/send'
 
 type DeckContext = { deps: Deps; locale: string; listOnly: boolean }
 
@@ -210,7 +210,7 @@ export async function execute(
   if (ref.kind === 'none') {
     // One message for "no such deck" and "someone else's private deck":
     // telling them apart would confirm a deck its owner chose not to share.
-    await interaction.reply({ ...textMessage(t(locale, 'deck.notFound')), flags: EPHEMERAL_V2 })
+    await interaction.reply(ephemeralText(t(locale, 'deck.notFound')))
     return
   }
 

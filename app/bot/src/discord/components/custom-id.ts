@@ -64,7 +64,7 @@ const DECK_KINDS: readonly string[] = ['d', 'dl', 'df', 'ds', 'do']
 // Lessons, types and formats go in as a one-character index into these lists:
 // 'care_of_magical_creatures' alone is 25 characters. Their order is therefore
 // part of the id format too; appending is safe, reordering breaks old ids.
-const LESSON_CODES: readonly string[] = LESSONS.map((l) => l.code)
+export const LESSON_CODES: readonly string[] = LESSONS.map((l) => l.code)
 const TYPE_CODES: readonly string[] = TYPES.map((t) => t.code)
 const FORMATS: readonly DeckFormat[] = DeckFormat.options
 const NONE = '-'

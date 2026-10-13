@@ -76,15 +76,25 @@ describe('opening a deck', () => {
     expect(buttonsOf(payload).map((b) => b.label)).toEqual(['Back to decks', 'Post to channel', 'Open on revelio.cards'])
   })
 
-  // Made private or deleted since the browser was drawn.
-  it('says not found for a deck the clicker may no longer see', async () => {
+  // Made private or deleted since the browser was drawn: the browser is
+  // redrawn in place, without that deck, under a line saying so.
+  it('redraws the browser with a notice for a deck the clicker may no longer see', async () => {
     linkedAs(null)
     vi.spyOn(dbModule, 'getDeckAccess').mockResolvedValue(null)
     const { c, done } = click(encodeCustomId({ kind: 'do', state }), { values: [ID] })
     await done
-    expect(textOf(c.reply.mock.calls[0][0])).toBe('No deck matched that name, link or id.')
-    expect(c.reply.mock.calls[0][0].flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
-    expect(c.editReply).not.toHaveBeenCalled()
+    expect(c.reply).not.toHaveBeenCalled()
+    expect(c.deferUpdate).toHaveBeenCalled()
+    expect(textOf(c.editReply.mock.calls[0][0])).toMatch(/^No deck matched that name, link or id\.\nPublic decks: \*\*3\*\*/)
+  })
+
+  it('says so too when the deck goes between the access check and the read', async () => {
+    linkedAs(null)
+    vi.spyOn(dbModule, 'getDeckAccess').mockResolvedValue({ access: 'public', name: 'Charms Aggro' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(null)
+    const { c, done } = click(encodeCustomId({ kind: 'do', state }), { values: [ID] })
+    await done
+    expect(textOf(c.editReply.mock.calls[0][0])).toMatch(/^No deck matched that name, link or id\./)
   })
 
   it('goes back and drops the sheet', async () => {
@@ -126,6 +136,21 @@ describe('posting a deck', () => {
     await done
     expect(c.channel.send).not.toHaveBeenCalled()
     expect(textOf(c.reply.mock.calls[0][0])).toBe('No deck matched that name, link or id.')
+  })
+
+  // Past deferUpdate the router would answer with editReply, which would
+  // replace the deck view the user posted from.
+  it('answers a failed post privately and leaves the deck view alone', async () => {
+    linkedAs(null)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(dbModule, 'getDeckAccess').mockResolvedValue({ access: 'public', name: 'Charms Aggro' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stored('public') as never)
+    const c = fakeClick(encodeCustomId({ kind: 'dp', deckId: ID }))
+    c.channel.send.mockRejectedValue(new Error('socket hang up'))
+    await handleInteraction(c as never, fakeDeps([], 0) as never)
+    expect(c.editReply).not.toHaveBeenCalled()
+    expect(textOf(c.followUp.mock.calls[0][0])).toBe('Something went wrong. Please try again in a moment.')
+    expect(c.followUp.mock.calls[0][0].flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
   })
 
   it('refuses privately where the bot may not attach files', async () => {

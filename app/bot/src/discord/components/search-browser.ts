@@ -1,4 +1,4 @@
-import { LESSONS, TYPES } from '@revelio/core'
+import { TYPES } from '@revelio/core'
 import {
   ButtonBuilder,
   ButtonStyle,
@@ -14,16 +14,17 @@ import { loadCardDetail } from '../../data/card-detail'
 import { findCardById, findCards, type CardPage } from '../../data/cards'
 import { toRevelioLocale } from '../../i18n/locale'
 import { t } from '../../i18n/t'
-import { postTarget, refusal } from '../channel-post'
+import { postTarget, sendToChannel } from '../channel-post'
 import { cardView } from '../v2/card-view'
 import { searchView, ANY } from '../v2/search-view'
-import { EPHEMERAL_V2, textEdit, textMessage, v2Edit, v2Message, type V2Edit } from '../v2/send'
+import { ephemeralText, textEdit, v2Edit, v2Message, type V2Edit } from '../v2/send'
 import { sharePicker, shareView } from '../v2/share-view'
 import {
   clampQuery,
   encodeCustomId,
   isCardKind,
   isEntityId,
+  LESSON_CODES,
   MAX_QUERY,
   type CardBrowseState,
   type CardKind,
@@ -33,7 +34,6 @@ import type { ComponentHandler, ModalHandler } from './types'
 
 type CardStateId = { kind: CardKind; state: CardBrowseState }
 
-const LESSON_CODES: readonly string[] = LESSONS.map((l) => l.code)
 const TYPE_CODES: readonly string[] = TYPES.map((ty) => ty.code)
 // The search form's one text input.
 const QUERY_FIELD = 'query'
@@ -110,20 +110,6 @@ function postButton(cardId: string, locale: string): ButtonBuilder {
 // a refusal Discord answered is told to the caller privately. Anything else (a
 // timeout, a dropped socket) may have posted, so it is not retried but left to
 // the router's error path.
-async function sendToChannel(
-  interaction: MessageComponentInteraction,
-  send: () => Promise<unknown>,
-  locale: string,
-): Promise<void> {
-  try {
-    await send()
-  } catch (err) {
-    const refused = refusal(err)
-    if (!refused) throw err
-    await interaction.followUp({ ...textMessage(t(locale, REFUSAL_KEYS[refused])), flags: EPHEMERAL_V2 })
-  }
-}
-
 // A filter value is client data: anything that is not a real lesson, type or
 // set clears the filter rather than reaching the Meilisearch query.
 const filterLesson: ComponentHandler = async (interaction, id, deps) => {
@@ -190,13 +176,13 @@ const postCard: ComponentHandler = async (interaction, id, deps) => {
   const locale = toRevelioLocale(interaction.locale)
   const target = postTarget(interaction, { needsFiles: false })
   if (target.kind !== 'ok') {
-    await interaction.reply({ ...textMessage(t(locale, REFUSAL_KEYS[target.kind])), flags: EPHEMERAL_V2 })
+    await interaction.reply(ephemeralText(t(locale, REFUSAL_KEYS[target.kind])))
     return
   }
   await interaction.deferUpdate()
   const doc = await findCardById(deps.meili, id.cardId, locale)
   if (!doc) {
-    await interaction.followUp({ ...textMessage(t(locale, 'card.gone')), flags: EPHEMERAL_V2 })
+    await interaction.followUp(ephemeralText(t(locale, 'card.gone')))
     return
   }
   const detail = await loadCardDetail(deps, doc, locale)
@@ -207,7 +193,7 @@ const postCard: ComponentHandler = async (interaction, id, deps) => {
     // Never pings: the client's allowedMentions parses none.
     lead: t(locale, 'post.sharedCard', { user: `<@${interaction.user.id}>` }),
   }))
-  await sendToChannel(interaction, () => target.channel.send(message), locale)
+  await sendToChannel(interaction, () => target.channel.send(message), locale, REFUSAL_KEYS)
 }
 
 const share: ComponentHandler = async (interaction, id, deps) => {
@@ -247,7 +233,7 @@ const postShared: ComponentHandler = async (interaction, id, deps) => {
   const locale = toRevelioLocale(interaction.locale)
   const target = postTarget(interaction, { needsFiles: false })
   if (target.kind !== 'ok') {
-    await interaction.reply({ ...textMessage(t(locale, REFUSAL_KEYS[target.kind])), flags: EPHEMERAL_V2 })
+    await interaction.reply(ephemeralText(t(locale, REFUSAL_KEYS[target.kind])))
     return
   }
   await interaction.deferUpdate()
@@ -264,7 +250,7 @@ const postShared: ComponentHandler = async (interaction, id, deps) => {
       siteBase: deps.env.SITE_BASE_URL,
       sharerId: interaction.user.id,
     }))
-    await sendToChannel(interaction, () => target.channel.send(message), locale)
+    await sendToChannel(interaction, () => target.channel.send(message), locale, REFUSAL_KEYS)
   }
   await interaction.editReply(await browserOf(deps, page, id.state, locale, interaction.inGuild()))
 }

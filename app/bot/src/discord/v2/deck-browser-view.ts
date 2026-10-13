@@ -18,7 +18,13 @@ import { pagerRow } from './pager'
 import { actionRow, container, linkButton, plain, text } from './parts'
 import { ANY } from './search-view'
 
-export type DeckBrowserOptions = { locale: string; imageBase: string; siteBase: string }
+export type DeckBrowserOptions = {
+  locale: string
+  imageBase: string
+  siteBase: string
+  // A line above the header, e.g. why the deck just picked did not open.
+  notice?: string
+}
 
 type Row = ActionRowBuilder<MessageActionRowComponentBuilder>
 
@@ -96,7 +102,8 @@ function pager(state: DeckBrowseState, page: number, pages: number, shown: numbe
 // format, order and lesson menus, and the pager. 32 components at its fullest.
 export function publicDecksView(page: PublicDeckPage, state: DeckBrowseState, opts: DeckBrowserOptions): ContainerBuilder[] {
   const { locale } = opts
-  const view = container().addTextDisplayComponents(text(header(page, state, locale)))
+  const head = header(page, state, locale)
+  const view = container().addTextDisplayComponents(text(opts.notice ? `${opts.notice}\n${head}` : head))
   if (page.entries.length) {
     view.addSeparatorComponents(new SeparatorBuilder())
     for (const entry of page.entries) {
@@ -136,7 +143,7 @@ export function ownDecksView(page: OwnDeckPage, state: DeckBrowseState, opts: De
     return d.visibility === 'private' ? `🔒 ${line}` : line
   })
   const view = container().addTextDisplayComponents(
-    text(`${t(locale, 'decks.title', { count: page.total })}\n${lines.join('\n')}`),
+    text([opts.notice, t(locale, 'decks.title', { count: page.total }), ...lines].filter(Boolean).join('\n')),
   )
   view.addActionRowComponents(
     openMenu(state, page.decks.map((d) => ({ id: d.id, label: d.name })), locale),

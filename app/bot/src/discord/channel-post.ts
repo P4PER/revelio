@@ -5,6 +5,8 @@ import {
   type MessageComponentInteraction,
   type SendableChannels,
 } from 'discord.js'
+import { t } from '../i18n/t'
+import { ephemeralText } from './v2/send'
 
 // Whether a message can go to the interaction's channel as a plain message.
 // 'unreachable' is a channel the bot has no hold on at all (not cached: a
@@ -14,6 +16,10 @@ export type PostTarget =
   | { kind: 'ok'; channel: SendableChannels }
   | { kind: 'unreachable' }
   | { kind: 'forbidden' }
+
+// The catalog keys a refusal is answered with; a card post and a deck post
+// name different permissions.
+export type RefusalKeys = { unreachable: string; forbidden: string }
 
 // needsFiles: Attach Files is only asked for when something is attached (a
 // deck sheet); a card list posts images by URL.
@@ -48,4 +54,22 @@ export function refusal(err: unknown): 'unreachable' | 'forbidden' | null {
   if (err.code === RESTJSONErrorCodes.MissingAccess) return 'unreachable'
   if (err.code === RESTJSONErrorCodes.MissingPermissions) return 'forbidden'
   return null
+}
+
+// Sends a post the click has already acknowledged with deferUpdate. Every
+// failure is answered privately: past the acknowledgement the router would
+// answer with editReply, which replaces the private message the post came from.
+export async function sendToChannel(
+  interaction: MessageComponentInteraction,
+  send: () => Promise<unknown>,
+  locale: string,
+  keys: RefusalKeys,
+): Promise<void> {
+  try {
+    await send()
+  } catch (err) {
+    const refused = refusal(err)
+    if (!refused) console.error(`post failed (${interaction.id}):`, err)
+    await interaction.followUp(ephemeralText(t(locale, refused ? keys[refused] : 'error.generic')))
+  }
 }

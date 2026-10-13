@@ -31,7 +31,7 @@ import { deckEmbed } from '../embeds/deck-embed'
 
 type DeckPayload = { embeds: EmbedBuilder[]; files?: AttachmentBuilder[]; components: [] }
 
-type DeckContext = { deps: Deps; locale: string; viewerId: string | null; listOnly: boolean }
+type DeckContext = { deps: Deps; locale: string; listOnly: boolean }
 
 // Where the deck's own message goes once a prompt is answered: 'post' to the
 // channel, 'self' to the caller alone.
@@ -100,12 +100,15 @@ async function deliverDeck(
 
 // Answers a click on the prompt with the deck's own message. Whether the deck
 // may be shown is checked again here rather than carried from before the
-// prompt: it may have been deleted or made private in the meantime. `loadAs`
-// is the viewer both checks run for: the owner only once they have confirmed
-// through the visibility prompt, null for a deck posted unprompted.
+// prompt: it may have been deleted or made private in the meantime. `asOwner`
+// says whose eyes both checks use: the clicker's linked account only once they
+// have confirmed through the visibility prompt, nobody for a deck posted
+// unprompted. That account is resolved again on the click rather than reused
+// from the command's start, because resolveLinkedUser is where a ban or an
+// unlink is enforced, and either can land inside the prompt's 60 s.
 //
-// Before the click is acknowledged, only getDeckAccess runs: one primary-key
-// read, so the 3 s budget holds, and a miss stays in the private prompt
+// Before the click is acknowledged, only those two indexed reads run, so the
+// 3 s budget holds, and a miss stays in the private prompt
 // instead of opening a public "thinking" message that has to be taken back.
 // Then deferReply, which gives Discord's native loading state on the new
 // message (deferUpdate would show nothing while the sheet renders), and only
@@ -116,10 +119,12 @@ async function deliverChoice(
   deckId: string,
   delivery: Delivery,
   ctx: DeckContext,
-  loadAs: string | null,
+  asOwner: boolean,
 ): Promise<void> {
   const isPublic = delivery === 'post'
+  let loadAs: string | null = null
   try {
+    if (asOwner) loadAs = await resolveLinkedUser(ctx.deps.db, component.user.id)
     const access = await getDeckAccess(ctx.deps.db, deckId, loadAs)
     if (!access) {
       await component.update({ content: t(ctx.locale, 'deck.notFound'), components: [] })
@@ -186,7 +191,7 @@ async function answerPick(
     return
   }
   if (accessOf(chosen) === 'public') {
-    await deliverChoice(interaction, pick, chosen.id, 'post', ctx, null)
+    await deliverChoice(interaction, pick, chosen.id, 'post', ctx, false)
     return
   }
   await pick.update(visibilityPrompt(chosen.name, ctx.locale))
@@ -195,7 +200,7 @@ async function answerPick(
     await expire(interaction, ctx.locale)
     return
   }
-  await deliverChoice(interaction, click, chosen.id, click.customId === POST_ID ? 'post' : 'self', ctx, ctx.viewerId)
+  await deliverChoice(interaction, click, chosen.id, click.customId === POST_ID ? 'post' : 'self', ctx, true)
 }
 
 // The one command that does not defer first. Whether its first reply is public
@@ -210,7 +215,7 @@ export async function execute(
   const locale = toRevelioLocale(interaction.locale)
   const viewerId = await resolveLinkedUser(deps.db, interaction.user.id)
   const ctx: DeckContext = {
-    deps, locale, viewerId, listOnly: interaction.options.getString('view') === 'list',
+    deps, locale, listOnly: interaction.options.getString('view') === 'list',
   }
   const ref = await resolveDeckRef(deps.db, interaction.options.getString('deck') ?? '', viewerId)
 
@@ -252,7 +257,7 @@ export async function execute(
     return
   }
   if (ref.kind === 'deck') {
-    await deliverChoice(interaction, choice, ref.id, choice.customId === POST_ID ? 'post' : 'self', ctx, viewerId)
+    await deliverChoice(interaction, choice, ref.id, choice.customId === POST_ID ? 'post' : 'self', ctx, true)
     return
   }
   await answerPick(interaction, choice, ref.options, ctx)

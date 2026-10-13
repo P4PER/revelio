@@ -549,6 +549,18 @@ describe('/deck', () => {
     })
   })
 
+  // Bans are enforced in resolveLinkedUser, so a confirmed click asks again
+  // rather than trusting the id read when /deck started: a ban or unlink in
+  // the prompt's 60 s must not still let the deck out.
+  it('re-checks the linked account on the click', async () => {
+    viewer('user-1').mockResolvedValueOnce('user-1').mockResolvedValueOnce(null)
+    const check = access({ access: 'own-private', name: 'Secret Charms' })
+    const click = fakeComponent('deck:post')
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(check).toHaveBeenLastCalledWith({}, 'abc123', null)
+  })
+
   // A failure before the click is acknowledged must answer the click itself;
   // the top-level handler only knows the slash command's interaction.
   it('turns the prompt into the error when the click cannot be served', async () => {

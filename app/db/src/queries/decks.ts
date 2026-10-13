@@ -145,12 +145,15 @@ export async function listDecksByUser(db: DB, userId: string): Promise<DeckSumma
 export async function pageDecksByUser(
   db: DB, userId: string, input: { page: number; pageSize: number },
 ): Promise<DeckPage> {
+  // Exported from the shared barrel: bad input reads as page 1 of one-deck pages.
+  const pageSize = input.pageSize >= 1 ? Math.floor(input.pageSize) : 1
+  const asked = input.page >= 1 ? Math.floor(input.page) : 1
   const where = eq(decks.userId, userId)
   const [{ total }] = await db.select({ total: count() }).from(decks).where(where)
-  const pageCount = Math.max(1, Math.ceil(total / input.pageSize))
-  const page = Math.min(Math.max(1, Math.floor(input.page)), pageCount)
+  const pageCount = Math.max(1, Math.ceil(total / pageSize))
+  const page = Math.min(asked, pageCount)
   const rows = await db.select().from(decks).where(where).orderBy(...BY_UPDATED)
-    .limit(input.pageSize).offset((page - 1) * input.pageSize)
+    .limit(pageSize).offset((page - 1) * pageSize)
   return { decks: await summarize(db, rows), total, page, pageCount }
 }
 

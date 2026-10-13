@@ -40,6 +40,10 @@ describe('deck queries', () => {
     const past = await pageDecksByUser(ctx.db, 'u-paged', { page: 9, pageSize: 2 })
     expect(past.decks.map((d) => d.id)).toEqual(all.slice(4))
     expect(past.page).toBe(3)
+    // Exported from the shared barrel, so bad input reads as page 1 of one-deck pages.
+    const odd = await pageDecksByUser(ctx.db, 'u-paged', { page: Number.NaN, pageSize: 0 })
+    expect(odd).toMatchObject({ page: 1, pageCount: 5 })
+    expect(odd.decks.map((d) => d.id)).toEqual(all.slice(0, 1))
     const none = await pageDecksByUser(ctx.db, 'u-nobody', { page: 1, pageSize: 2 })
     expect(none).toMatchObject({ decks: [], total: 0, page: 1, pageCount: 1 })
   })

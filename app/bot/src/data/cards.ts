@@ -8,6 +8,7 @@ import {
   type SearchDocument,
 } from '@revelio/search'
 import { getCardRulings, type DB } from '@revelio/db'
+import { truncateUnits } from '@revelio/core'
 
 export type CardRuling = { date: string | null; source: string | null; text: string }
 
@@ -48,8 +49,10 @@ function browseSort(input: CardSearchInput): string[] | undefined {
   return [input.filters?.setCode?.length ? NUMBER_SORT : NAME_SORT]
 }
 
+// truncateUnits never leaves half of a surrogate pair at the cut, which a
+// select label would carry as invalid text.
 export function clampLabel(value: string): string {
-  return value.length <= MAX_LABEL ? value : `${value.slice(0, MAX_LABEL - 1)}…`
+  return value.length <= MAX_LABEL ? value : `${truncateUnits(value, MAX_LABEL - 1)}…`
 }
 
 // Reads browse rows (identity, thumbnail and stats fields) rather than whole

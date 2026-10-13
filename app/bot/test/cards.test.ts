@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import * as dbModule from '@revelio/db'
-import { findCards, findOneCard, resolveCardRulings } from '../src/data/cards'
+import { clampLabel, findCards, findOneCard, resolveCardRulings } from '../src/data/cards'
 import { stubMeili } from './helpers/meili'
 
 const doc = {
@@ -122,5 +122,16 @@ describe('resolveCardRulings', () => {
   it('returns an empty list for a card that does not exist', async () => {
     vi.spyOn(dbModule, 'getCardRulings').mockResolvedValue(null)
     expect(await resolveCardRulings({} as never, 'nope', 'en')).toEqual([])
+  })
+})
+
+describe('clampLabel', () => {
+  // A deck name is user text up to 120 units; a cut through an emoji's
+  // surrogate pair would leave a lone half in a select label.
+  it('never leaves half of a surrogate pair at the cut', () => {
+    const label = clampLabel(`${'a'.repeat(98)}\u{1F600}${'b'.repeat(10)}`)
+    expect(label.length).toBeLessThanOrEqual(100)
+    expect(label).not.toMatch(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/)
+    expect(label.endsWith('…')).toBe(true)
   })
 })

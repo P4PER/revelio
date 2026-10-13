@@ -52,7 +52,6 @@ function fakeComponent(
     values,
     user: { id: '111' },
     isStringSelectMenu: () => values.length > 0,
-    deferUpdate: vi.fn().mockResolvedValue(undefined),
     deferReply: vi.fn().mockResolvedValue(undefined),
     update: vi.fn().mockResolvedValue(undefined),
     followUp: vi.fn().mockResolvedValue(undefined),
@@ -491,18 +490,72 @@ describe('/deck', () => {
   })
 
   // Review focus 4: the deck vanished or went private between prompt and click.
-  // The deck is read before anything is deferred, so "not found" stays in the
-  // private prompt and no public "thinking" message ever appears.
+  // Only the one-row access check runs before the click is acknowledged, so
+  // "not found" stays in the private prompt and no public "thinking" message
+  // ever appears.
   it('reports a deck that disappeared before the click, and posts nothing', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' }).mockResolvedValueOnce(
+      { access: 'own-private', name: 'Secret Charms' },
+    ).mockResolvedValueOnce(null)
+    const load = vi.spyOn(dbModule, 'getDeckForViewer')
+    const click = fakeComponent('deck:post')
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.deferReply).not.toHaveBeenCalled()
+    expect(load).not.toHaveBeenCalled()
+    expect(click.update).toHaveBeenCalledWith({
+      content: 'No deck matched that name, link or id.', components: [],
+    })
+  })
+
+  // The full deck load runs after the defer; a deck gone in that gap takes the
+  // public placeholder back and tells the caller alone.
+  it('withdraws the public placeholder for a deck gone after the defer', async () => {
     viewer('user-1')
     access({ access: 'own-private', name: 'Secret Charms' })
     vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(null)
     const click = fakeComponent('deck:post')
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.deleteReply).toHaveBeenCalled()
+    expect(click.followUp).toHaveBeenCalledWith({
+      content: 'No deck matched that name, link or id.', flags: MessageFlags.Ephemeral,
+    })
+  })
+
+  // Review finding: a failure before the click is acknowledged used to escape
+  // to main.ts, which edits the text but leaves the now-dead buttons up.
+  it('turns the prompt into the error when the click cannot be served', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' }).mockResolvedValueOnce(
+      { access: 'own-private', name: 'Secret Charms' },
+    ).mockRejectedValueOnce(new Error('db down'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const click = fakeComponent('deck:self')
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await expect(
+      COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never),
+    ).resolves.toBeUndefined()
     expect(click.deferReply).not.toHaveBeenCalled()
     expect(click.update).toHaveBeenCalledWith({
-      content: 'No deck matched that name, link or id.', components: [],
+      content: 'Something went wrong. Please try again in a moment.', components: [],
+    })
+  })
+
+  // "Only show me" has no public placeholder to withdraw: the error replaces
+  // the private "thinking" message instead of sitting next to it.
+  it('puts a private failure into the private placeholder', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockRejectedValue(new Error('db down'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const click = fakeComponent('deck:self')
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.deleteReply).not.toHaveBeenCalled()
+    expect(click.editReply).toHaveBeenCalledWith({
+      content: 'Something went wrong. Please try again in a moment.', embeds: [], files: [], components: [],
     })
   })
 
@@ -552,7 +605,11 @@ describe('/deck', () => {
     ]
     beforeEach(() => {
       viewer('user-1')
-      access(null)
+      // The typed text is no id; the click re-checks the picked deck by its id.
+      vi.spyOn(dbModule, 'getDeckAccess').mockImplementation(async (_db, id) =>
+        id === 'pub' ? { access: 'public', name: 'Aggro One' }
+        : id === 'mine' ? { access: 'own-private', name: 'Aggro Two' }
+        : null)
       vi.spyOn(dbModule, 'suggestDecks').mockResolvedValue(options)
       vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
     })

@@ -7,7 +7,7 @@ import {
   type EmbedBuilder,
   type MessageComponentInteraction,
 } from 'discord.js'
-import type { DeckSuggestion } from '@revelio/db'
+import { getDeckAccess, type DeckSuggestion } from '@revelio/db'
 import type { Deps } from '../../clients'
 import {
   accessOf,
@@ -90,18 +90,18 @@ async function deliverDeck(
   await send({ embeds: [deckEmbed(deck, { locale, siteBase, view: 'list' })], components: [] })
 }
 
-// Answers a click on the prompt with the deck's own message. The deck is
-// loaded again here rather than carried from before the prompt: it may have
-// been deleted or made private in the meantime, and getDeckForViewer is the
-// check that has to run last. `loadAs` is the viewer that check runs for: the
-// owner only once they have confirmed through the visibility prompt, null for
-// a deck posted unprompted.
+// Answers a click on the prompt with the deck's own message. Whether the deck
+// may be shown is checked again here rather than carried from before the
+// prompt: it may have been deleted or made private in the meantime. `loadAs`
+// is the viewer both checks run for: the owner only once they have confirmed
+// through the visibility prompt, null for a deck posted unprompted.
 //
-// The read comes before the acknowledgement on purpose. It is one indexed
-// read, well inside the 3 s budget, and it keeps "not found" in the private
-// prompt instead of opening a public "thinking" message that has to be taken
-// back. Only then deferReply, which gives Discord's native loading state on the
-// new message - deferUpdate would show nothing while the sheet renders.
+// Before the click is acknowledged, only getDeckAccess runs: one primary-key
+// read, so the 3 s budget holds, and a miss stays in the private prompt
+// instead of opening a public "thinking" message that has to be taken back.
+// Then deferReply, which gives Discord's native loading state on the new
+// message (deferUpdate would show nothing while the sheet renders), and only
+// then the full load, which is several queries.
 async function deliverChoice(
   prompt: ChatInputCommandInteraction,
   component: MessageComponentInteraction,
@@ -110,26 +110,50 @@ async function deliverChoice(
   ctx: DeckContext,
   loadAs: string | null,
 ): Promise<void> {
-  const deck = await getDeckView(ctx.deps.db, deckId, loadAs)
-  if (!deck) {
-    await component.update({ content: t(ctx.locale, 'deck.notFound'), components: [] })
+  const isPublic = delivery === 'post'
+  try {
+    const access = await getDeckAccess(ctx.deps.db, deckId, loadAs)
+    if (!access) {
+      await component.update({ content: t(ctx.locale, 'deck.notFound'), components: [] })
+      return
+    }
+    await (isPublic ? component.deferReply() : component.deferReply({ flags: MessageFlags.Ephemeral }))
+  } catch (err) {
+    // Not acknowledged, or only half: left alone, the error would reach
+    // main.ts, which edits the prompt's text but leaves its dead buttons up.
+    console.error('deck prompt failed:', err)
+    await component
+      .update({ content: t(ctx.locale, 'error.generic'), components: [] })
+      .catch(() => {})
     return
   }
-  const isPublic = delivery === 'post'
-  await (isPublic ? component.deferReply() : component.deferReply({ flags: MessageFlags.Ephemeral }))
+
   // Answered: the deck's own message replaces the prompt. A prompt the user
   // already dismissed has nothing left to delete.
   await prompt.deleteReply().catch(() => {})
+
+  // An empty public placeholder must not linger in the channel, so a failure
+  // there is withdrawn and told to the caller alone; a private one simply
+  // becomes the message.
+  const fail = async (key: string): Promise<void> => {
+    const content = t(ctx.locale, key)
+    if (isPublic) {
+      await component.deleteReply().catch(() => {})
+      await component.followUp({ content, flags: MessageFlags.Ephemeral }).catch(() => {})
+    } else {
+      await component.editReply({ content, embeds: [], files: [], components: [] }).catch(() => {})
+    }
+  }
   try {
+    const deck = await getDeckView(ctx.deps.db, deckId, loadAs)
+    if (!deck) {
+      await fail('deck.notFound')
+      return
+    }
     await deliverDeck((p) => component.editReply(p), deck, ctx)
   } catch (err) {
     console.error('deck prompt failed:', err)
-    // An empty public placeholder must not linger in the channel; the error
-    // is for the caller alone.
-    if (isPublic) await component.deleteReply().catch(() => {})
-    await component
-      .followUp({ content: t(ctx.locale, 'error.generic'), flags: MessageFlags.Ephemeral })
-      .catch(() => {})
+    await fail('error.generic')
   }
 }
 

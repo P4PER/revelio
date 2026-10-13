@@ -107,8 +107,8 @@ still runs after a defer.
    buttons, **Post publicly** and **Only show me**.
    - A click first re-checks access with `getDeckAccess` (one primary-key read, inside the
      3 s budget). A miss is `update`d into the prompt as `deck.notFound`; nothing public opens.
-   - Only show me answers with an ephemeral `deferReply`: Discord's native loading state on
-     the deck's own message. The answered prompt is deleted.
+   - Only show me `update`s the prompt to `deck.loading` at once, then edits the deck into that
+     same ephemeral message. No second message, nothing to delete.
    - Post publicly sends a plain channel message (`channel.send`), not an interaction reply:
      a reply to the click renders as a reply to the private, deleted prompt. The prompt turns
      into `deck.posting` at once, the channel shows the bot typing while the sheet renders,

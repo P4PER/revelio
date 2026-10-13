@@ -158,6 +158,8 @@ may itself contain colons. Kinds:
 | `sl` / `st` / `ss` | as `s` | lesson / type / set select of the card browser |
 | `dl` / `df` / `ds` | as `d` | lesson / format / sort select of the deck browser |
 | `pg` | `c` cards / `d` decks | the disabled page indicator |
+| `sx` | mask, then the card state fields | the share picker's Post button (phase 2b) |
+| `sq` / `sm` | as `s` | the Search button / the search form it opens (phase 2b) |
 
 *Refined in the phase 1 plan:* one kind per filter select (`sl`, `st`, `ss`, `dl`, `df`,
 `ds`), because custom ids must be unique within a message, and `pg` for the page indicator,
@@ -264,50 +266,62 @@ query nor filters it still answers: the first page of everything.
 imageVersion, imageLang, defaultLanguage, orientation]`. `bot/src/data/cards.ts` `findCards`
 switches to it; the page size becomes 5.
 
-**View** (`v2/search-view.ts`), worst case 33 components:
+**View** (`v2/search-view.ts`), worst case 35 components:
 
 ```
 Container (brand gold)
-  TextDisplay   **312 cards** for "charm" · Charms · Base Set
+  Section       **312 cards** for "charm" · Charms · Base Set   [Search] (sq: state)
   Separator
   Section x5    cardRow (thumbnail accessory)
   Separator
   ActionRow     Select "Open a card..."          (co: state, values = the 5 card ids)
-  ActionRow     Select lesson  (Any + 5)         (s: state with lesson replaced, page 1)
-  ActionRow     Select type    (Any + 9)
-  ActionRow     Select set     (Any + sets, max 24 + Any)
+  ActionRow     Select "Any lesson"    (Any + 5)   (sl: state; page 1 with lesson replaced)
+  ActionRow     Select "Any card type" (Any + 9)
+  ActionRow     Select "Any set"       (Any + sets, max 24 + Any)
   ActionRow     [◀] [2 / 63] [▶] [Share] [revelio.cards ↗]
 ```
 
 - A filter select re-renders page 1 with that filter replaced; the selected option is shown
-  as the default. The set select lists `deps.sets.all(locale)`, cut to 24 plus "Any"; a set
+  as the default. *Phase 2b:* an unset filter selects nothing, so its placeholder ("Any
+  lesson", "Any card type", "Any set") is the label a message select otherwise lacks. The set select lists `deps.sets.all(locale)`, cut to 24 plus "Any"; a set
   passed by the slash option that falls outside the cut is still honoured and shown first.
 - No results: the header says so, the filter rows stay so the user can widen the search, and
   the rows, open select and Share are left off.
 - An empty page inside the estimated range (Meilisearch over-count) renders as "no more
   results" with ◀ enabled, not as an error.
 - Every click is `update()` with the new view after one Meilisearch read; no defer needed.
+  *Refined in the phase 2 plan:* `deferUpdate()` then `editReply()`, so a slow read cannot
+  miss the 3-second budget.
+- *Phase 2b:* a search without a query sorts by `numberSort:asc` (the site's "number" sort),
+  so a set browses #1, #2, ...; the site link then carries `sort=number`.
+- *Phase 2b:* **Search** (`sq`) opens a modal (`sm`, same state) with one text input
+  (`query`, prefilled unless empty, max 50, optional): a message cannot hold a text input.
+  Submitting redraws the browser on page 1 with the filters kept. Modal submits route
+  through a `MODALS` registry, the twin of `COMPONENTS`.
 
 **Opening a card.** The select's `update()` replaces the browser with `card-view` plus an
 action row `[◀ Back to results] [Post to channel] [revelio.cards ↗]`. Back (`cb`) rebuilds the
 page it came from.
 
 **Posting one card** (`cp`): `deferUpdate`, `channel-post` sends the card view with
-`post.sharedCard` above it, then an ephemeral `followUp` `post.done` ("Posted.") so the
-private card view stays where it is.
+`post.sharedCard` above it, and the private card view stays where it is. *Phase 2b:* no
+private "Posted." line: the post in the channel is its own confirmation; only a refusal
+answers privately.
 
 **Sharing results.** Share (`sh`) `update()`s to the picker:
 
 ```
 Container
   TextDisplay   Share which cards to the channel?
-  ActionRow     Multi-select (sp: state), min 1, max n, all n options preselected
-  ActionRow     [Cancel]  (s: state)
+  ActionRow     Multi-select (sp: state), min 1, max n, the masked rows preselected
+  ActionRow     [Post] (sx: mask, state)  [Cancel] (s: state)
 ```
 
-Submitting re-reads the chosen ids (`filters.ids`, so a stale or tampered value simply drops
-out), posts the **share view** through `channel-post`, and `update()`s the ephemeral message
-back to the browser page.
+*Phase 2b:* a multi-select left as it was may never fire, so the menu does not post.
+Changing it only redraws the picker, with the ticked rows as a bitmask of page positions on
+**Post** (five card ids do not fit in a custom id; five bits are one character). Values not
+on the re-read page are ignored. Post re-reads the page, posts the masked rows in page order
+as the **share view** through `channel-post`, and redraws the browser page.
 
 **Share view** (public, `v2/share-view.ts`):
 
@@ -371,8 +385,8 @@ Discord refuses retries as the list (an edit cannot double-post). The page link 
 public deck is loaded as nobody, exactly as `/deck` does; the caller's **own private** deck is
 loaded as its owner, because pressing "Post to channel" on it is the owner's explicit say-so,
 the same consent the `/deck` prompt's **Post publicly** asks for. The button is labelled the
-same way on both. Then `channel-post` with `needsFiles`, a fresh sheet render, and an
-ephemeral `followUp` `post.done`.
+same way on both. Then `channel-post` with `needsFiles` and a fresh sheet render; as for
+cards (phase 2b), no private "Posted." line.
 
 **`/deck`** keeps its flow from #150. Its deck message and both prompts move to V2
 (`deck-view` without the browser buttons, prompts as a TextDisplay plus the existing action
@@ -400,7 +414,7 @@ New bot keys (both catalogs; the parity test covers them): `browse.expired`,
 `search.share.cancel`, `search.back`, `search.post`, `share.view.placeholder`,
 `share.site`, `decks.header` / `decks.header.empty`, `decks.open.placeholder`,
 `decks.filter.format|sort|lesson`, `decks.sort.likes|views|newest|updated`, `deck.back`,
-`deck.post`, `post.*` (renamed from `deck.*`, section 3), `post.done`. Removed:
+`deck.post`, `post.*` (renamed from `deck.*`, section 3). Removed:
 `search.title`, `search.footer`, `search.line`, `search.pageOutOfRange`, the embed field
 names no view uses any more. Command and option descriptions for `/decks`.
 

@@ -63,5 +63,6 @@
   "decks.empty": "Du hast noch keine Decks. Baue eins auf {url}",
   "decks.visibility.public": "öffentlich",
   "decks.visibility.private": "privat",
-  "error.generic": "Da ist etwas schiefgelaufen. Bitte versuche es gleich noch einmal."
+  "error.generic": "Da ist etwas schiefgelaufen. Bitte versuche es gleich noch einmal.",
+  "browse.expired": "Diese Ergebnisse sind veraltet. Führe den Befehl erneut aus."
 }

@@ -62,6 +62,7 @@
   "collection.setUnknown": "Zu diesem Code gibt es kein Set.",
   "decks.title": "Deine Decks ({count})",
   "decks.empty": "Du hast noch keine Decks. Baue eins auf {url}",
+  "decks.privateRow": "🔒 {line}",
   "decks.cards": "{count} Karten",
   "decks.header": "Öffentliche Decks: **{total}**",
   "decks.header.query": "Öffentliche Decks für „{query}“: **{total}**",

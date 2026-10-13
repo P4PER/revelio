@@ -16,7 +16,7 @@ import { toRevelioLocale } from '../../i18n/locale'
 import { t } from '../../i18n/t'
 import { postTarget, sendToChannel } from '../channel-post'
 import { cardView } from '../v2/card-view'
-import { searchView, ANY } from '../v2/search-view'
+import { searchView } from '../v2/search-view'
 import { ephemeralText, textEdit, v2Edit, v2Message, type V2Edit } from '../v2/send'
 import { sharePicker, shareView } from '../v2/share-view'
 import {
@@ -30,6 +30,7 @@ import {
   type CardKind,
   type CustomId,
 } from './custom-id'
+import { picked } from './select'
 import type { ComponentHandler, ModalHandler } from './types'
 
 type CardStateId = { kind: CardKind; state: CardBrowseState }
@@ -45,12 +46,6 @@ function isCardState(id: CustomId): id is CardStateId {
 
 // The one select value a click carries, or null for "Any" and anything that is
 // not a select click.
-function picked(interaction: MessageComponentInteraction): string | null {
-  if (!interaction.isStringSelectMenu()) return null
-  const value = interaction.values[0]
-  return value && value !== ANY ? value : null
-}
-
 // The one Meilisearch read behind every view of a page: the browser, the share
 // picker and Post all draw from it, so they show the same cards.
 async function pageOf(deps: Deps, state: CardBrowseState, locale: string): Promise<CardPage> {
@@ -106,10 +101,6 @@ function postButton(cardId: string, locale: string): ButtonBuilder {
     .setLabel(t(locale, 'search.post')).setStyle(ButtonStyle.Primary)
 }
 
-// Sends a finished message into the channel. The post is its own confirmation;
-// a refusal Discord answered is told to the caller privately. Anything else (a
-// timeout, a dropped socket) may have posted, so it is not retried but left to
-// the router's error path.
 // A filter value is client data: anything that is not a real lesson, type or
 // set clears the filter rather than reaching the Meilisearch query.
 const filterLesson: ComponentHandler = async (interaction, id, deps) => {

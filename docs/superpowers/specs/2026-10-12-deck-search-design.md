@@ -107,9 +107,16 @@ still runs after a defer.
    buttons, **Post publicly** and **Only show me**.
    - A click first re-checks access with `getDeckAccess` (one primary-key read, inside the
      3 s budget). A miss is `update`d into the prompt as `deck.notFound`; nothing public opens.
-   - Otherwise the click answers with `deferReply`: public for Post publicly, ephemeral for
-     Only show me. Discord shows its native loading state on that new message, the answered
-     prompt is deleted, and the full load and sheet render then fill the message.
+   - Only show me answers with an ephemeral `deferReply`: Discord's native loading state on
+     the deck's own message. The answered prompt is deleted.
+   - Post publicly sends a plain channel message (`channel.send`), not an interaction reply:
+     a reply to the click renders as a reply to the private, deleted prompt. The prompt turns
+     into `deck.posting` at once, the channel shows the bot typing while the sheet renders,
+     the message carries a non-pinging `deck.sharedBy` mention (a plain message has no "used
+     /deck" line), and the prompt is deleted once the deck is up. The bot's permissions in the
+     channel come with the interaction (`appPermissions`); without View Channel, Send Messages
+     (Send Messages in Threads in a thread), Embed Links and Attach Files, the prompt says
+     `deck.cannotPost` and nothing is sent.
    - Reached from the select menu, the prompt replaces the menu in the same message.
 
 A deck delivered without the prompt (a public id, or a public pick from the menu) loads with
@@ -119,7 +126,12 @@ prompt loads as the owner.
 
 Revised 2026-10-13 after the manual run: the first version answered clicks with
 `deferUpdate` and posted with a public `followUp`, which showed nothing while the sheet
-rendered.
+rendered; the next answered with a public `deferReply`, which Discord renders as a reply to the
+deleted prompt.
+
+A picture Discord rejects falls back to the list only on a `DiscordAPIError`: then nothing was
+posted. Any other send failure may have reached the channel, so it is reported to the caller
+instead of retried, which could post the deck twice.
 
 The deck loader takes the viewer: `getPublicDeck` becomes `getDeckView(db, id, viewerId)`
 calling `getDeckForViewer(db, id, viewerId)`, so the owner check stays in the one place that

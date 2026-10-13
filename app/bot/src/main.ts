@@ -1,53 +1,8 @@
-import { Client, GatewayIntentBits, MessageFlags, type Interaction } from 'discord.js'
+import { Client, GatewayIntentBits } from 'discord.js'
 import { parseEnv } from './env'
-import { createDeps, type Deps } from './clients'
-import { COMMANDS } from './discord/commands/index'
+import { createDeps } from './clients'
+import { handleInteraction } from './discord/handle-interaction'
 import { registerCommands } from './discord/register'
-import { toRevelioLocale } from './i18n/locale'
-import { t } from './i18n/t'
-
-async function handle(interaction: Interaction, deps: Deps): Promise<void> {
-  if (interaction.isAutocomplete()) {
-    const command = COMMANDS.get(interaction.commandName)
-    // Autocomplete has a 3 second budget and no defer, so failures are swallowed
-    // inside the handler rather than routed through the reply-based error path
-    // below, which does not apply to an autocomplete interaction. An unanswered
-    // one leaves the client spinning until it times out, so a stale registration
-    // or an option with no handler still gets an empty list.
-    if (!command?.autocomplete) {
-      await interaction.respond([]).catch(() => {})
-      return
-    }
-    await command.autocomplete(interaction, deps)
-    return
-  }
-  if (!interaction.isChatInputCommand()) return
-  const command = COMMANDS.get(interaction.commandName)
-  if (!command) {
-    // A stale registration still dispatches a removed name. Leaving the
-    // interaction unacknowledged shows the user "the application did not
-    // respond", which reads as the bot being down.
-    console.warn(`unknown command ${interaction.commandName} (${interaction.id})`)
-    await interaction
-      .reply({ content: t(toRevelioLocale(interaction.locale), 'error.generic'),
-               flags: MessageFlags.Ephemeral })
-      .catch(() => {})
-    return
-  }
-  try {
-    await command.execute(interaction, deps)
-  } catch (err) {
-    // Log the command and interaction id, never the token or the raw options.
-    console.error(`command ${interaction.commandName} failed (${interaction.id}):`, err)
-    const content = t(toRevelioLocale(interaction.locale), 'error.generic')
-    // The command may or may not have deferred before throwing.
-    if (interaction.deferred || interaction.replied) {
-      await interaction.editReply({ content }).catch(() => {})
-    } else {
-      await interaction.reply({ content, flags: MessageFlags.Ephemeral }).catch(() => {})
-    }
-  }
-}
 
 async function main(): Promise<void> {
   const env = parseEnv()
@@ -63,7 +18,7 @@ async function main(): Promise<void> {
   })
 
   client.once('clientReady', (c) => console.log(`logged in as ${c.user.tag}`))
-  client.on('interactionCreate', (i) => { void handle(i, deps) })
+  client.on('interactionCreate', (i) => { void handleInteraction(i, deps) })
 
   const shutdown = async (signal: string) => {
     console.log(`${signal} received, shutting down`)

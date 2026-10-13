@@ -109,6 +109,10 @@ Discord 400.
 `{ components, files, flags: MessageFlags.IsComponentsV2 }` plus `attachments: []` when no
 files are given (an update from the deck view back to a list must drop the sheet).
 
+*Refined in the phase 1 plan:* the helpers are `v2Message` / `v2Edit` (create and edit
+payloads, the edit one carrying `attachments: []`) and `textMessage` / `textEdit` for status
+lines, in place of the names `v2Reply` / `textPayload` used elsewhere in this spec.
+
 ### 2. Component routing and state (`bot/src/discord/components/`)
 
 **Router.** `handle-interaction.ts` gets a third branch, `interaction.isMessageComponent()`,
@@ -136,6 +140,14 @@ may itself contain colons. Kinds:
 | `d` | scope (`p` public / `m` mine), page, format, sort, lesson, query | deck browser controls |
 | `do` | (value = deck id) + deck browser state | "Open a deck" select |
 | `dp` | deck id | "Post to channel" on a deck |
+| `sl` / `st` / `ss` | as `s` | lesson / type / set select of the card browser |
+| `dl` / `df` / `ds` | as `d` | lesson / format / sort select of the deck browser |
+| `pg` | `c` cards / `d` decks | the disabled page indicator |
+
+*Refined in the phase 1 plan:* one kind per filter select (`sl`, `st`, `ss`, `dl`, `df`,
+`ds`), because custom ids must be unique within a message, and `pg` for the page indicator,
+since a non-link button needs an id even when it does nothing. The set field is validated
+syntactically only (`[a-z0-9-]{1,8}`): a well-formed but unknown set simply finds no cards.
 
 - Lesson, type, format and sort are written as an **index** into `LESSONS`, `TYPES`,
   `DeckFormat.options` and a `DECK_SORTS` tuple in `components/custom-id.ts` mirroring
@@ -190,6 +202,12 @@ required only for a deck sheet). Every "post to channel" in this design goes thr
 `deck.cannotPost`, `deck.cannotPostHere`, `deck.posting` and `deck.sharedBy` are renamed into
 the `post.*` namespace and generalized ("I can't post in this channel..."), with
 `post.sharedCards` / `post.sharedCard` / `post.sharedDeck` for the attribution line.
+
+*Refined in the phase 1 plan:* `refusalKey` became `refusal`, which returns
+`'unreachable' | 'forbidden' | null` rather than a catalog key, so each caller keeps its own
+wording. `/deck` keeps `deck.cannotPostHere` (its "choose Only show me" hint only makes sense
+there); only `deck.cannotPost` became `post.cannotPost` in phase 1. Phase 2 adds
+`post.cannotPostHere` for the browsers.
 
 Outside a guild (`!interaction.inGuild()`) there is no channel to post to: Share and every
 "Post to channel" button are left off the view, not shown disabled.

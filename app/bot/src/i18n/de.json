@@ -32,7 +32,6 @@
   "deck.private.prompt": "**{name}** ist privat. Im Kanal posten oder nur dir zeigen?",
   "deck.private.post": "Öffentlich posten",
   "deck.private.self": "Nur mir zeigen",
-  "deck.posted": "Im Kanal gepostet.",
   "deck.prompt.expired": "Diese Auswahl ist abgelaufen. Führe /deck erneut aus.",
   "deck.field.character": "Startcharakter",
   "deck.field.main": "Hauptdeck ({count})",

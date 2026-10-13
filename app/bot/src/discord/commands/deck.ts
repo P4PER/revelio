@@ -33,8 +33,8 @@ type DeckPayload = { embeds: EmbedBuilder[]; files?: AttachmentBuilder[]; compon
 
 type DeckContext = { deps: Deps; locale: string; viewerId: string | null; listOnly: boolean }
 
-// 'post' sends a public follow-up and marks the prompt as done; 'self' turns
-// the ephemeral prompt itself into the deck.
+// Where the deck's own message goes once a prompt is answered: 'post' to the
+// channel, 'self' to the caller alone.
 type Delivery = 'post' | 'self'
 
 export const data = new SlashCommandBuilder()
@@ -65,8 +65,8 @@ export const data = new SlashCommandBuilder()
 // be had must not cost the answer: both fall back to the list the embed can
 // always draw from the data already in hand. The bot draws nothing itself -
 // @revelio/sheet is the only process that paints a deck. `send` is whichever
-// call puts the answer where it belongs: the deferred reply, a public
-// follow-up, or the ephemeral prompt being replaced.
+// call puts the answer where it belongs: the command's deferred reply, or the
+// deferred reply to a click on a prompt.
 async function deliverDeck(
   send: (payload: DeckPayload) => Promise<unknown>,
   deck: DeckView,
@@ -90,32 +90,45 @@ async function deliverDeck(
   await send({ embeds: [deckEmbed(deck, { locale, siteBase, view: 'list' })], components: [] })
 }
 
-// Answers a click on the prompt. The deck is loaded again here rather than
-// carried from before the prompt: it may have been deleted or made private in
-// the meantime, and getDeckForViewer is the check that has to run last.
+// Answers a click on the prompt with the deck's own message. The deck is
+// loaded again here rather than carried from before the prompt: it may have
+// been deleted or made private in the meantime, and getDeckForViewer is the
+// check that has to run last. `loadAs` is the viewer that check runs for: the
+// owner only once they have confirmed through the visibility prompt, null for
+// a deck posted unprompted.
+//
+// The read comes before the acknowledgement on purpose. It is one indexed
+// read, well inside the 3 s budget, and it keeps "not found" in the private
+// prompt instead of opening a public "thinking" message that has to be taken
+// back. Only then deferReply, which gives Discord's native loading state on the
+// new message - deferUpdate would show nothing while the sheet renders.
 async function deliverChoice(
+  prompt: ChatInputCommandInteraction,
   component: MessageComponentInteraction,
   deckId: string,
   delivery: Delivery,
   ctx: DeckContext,
+  loadAs: string | null,
 ): Promise<void> {
-  await component.deferUpdate()
+  const deck = await getDeckView(ctx.deps.db, deckId, loadAs)
+  if (!deck) {
+    await component.update({ content: t(ctx.locale, 'deck.notFound'), components: [] })
+    return
+  }
+  const isPublic = delivery === 'post'
+  await (isPublic ? component.deferReply() : component.deferReply({ flags: MessageFlags.Ephemeral }))
+  // Answered: the deck's own message replaces the prompt. A prompt the user
+  // already dismissed has nothing left to delete.
+  await prompt.deleteReply().catch(() => {})
   try {
-    const deck = await getDeckView(ctx.deps.db, deckId, ctx.viewerId)
-    if (!deck) {
-      await component.editReply({ content: t(ctx.locale, 'deck.notFound'), components: [] })
-      return
-    }
-    if (delivery === 'post') {
-      await deliverDeck((p) => component.followUp(p), deck, ctx)
-      await component.editReply({ content: t(ctx.locale, 'deck.posted'), components: [] })
-    } else {
-      await deliverDeck((p) => component.editReply({ ...p, content: '' }), deck, ctx)
-    }
+    await deliverDeck((p) => component.editReply(p), deck, ctx)
   } catch (err) {
     console.error('deck prompt failed:', err)
+    // An empty public placeholder must not linger in the channel; the error
+    // is for the caller alone.
+    if (isPublic) await component.deleteReply().catch(() => {})
     await component
-      .editReply({ content: t(ctx.locale, 'error.generic'), embeds: [], components: [] })
+      .followUp({ content: t(ctx.locale, 'error.generic'), flags: MessageFlags.Ephemeral })
       .catch(() => {})
   }
 }
@@ -140,7 +153,7 @@ async function answerPick(
     return
   }
   if (accessOf(chosen) === 'public') {
-    await deliverChoice(pick, chosen.id, 'post', ctx)
+    await deliverChoice(interaction, pick, chosen.id, 'post', ctx, null)
     return
   }
   await pick.update(visibilityPrompt(chosen.name, ctx.locale))
@@ -149,7 +162,7 @@ async function answerPick(
     await expire(interaction, ctx.locale)
     return
   }
-  await deliverChoice(click, chosen.id, click.customId === POST_ID ? 'post' : 'self', ctx)
+  await deliverChoice(interaction, click, chosen.id, click.customId === POST_ID ? 'post' : 'self', ctx, ctx.viewerId)
 }
 
 // The one command that does not defer first. Whether its first reply is public
@@ -177,7 +190,9 @@ export async function execute(
 
   if (ref.kind === 'deck' && ref.access === 'public') {
     await interaction.deferReply()
-    const deck = await getDeckView(deps.db, ref.id, viewerId)
+    // Loaded as nobody: the reply is already public, so a deck its owner made
+    // private since the access check must read as not found, not be posted.
+    const deck = await getDeckView(deps.db, ref.id, null)
     if (!deck) {
       await interaction.editReply({ content: t(locale, 'deck.notFound') })
       return
@@ -204,7 +219,7 @@ export async function execute(
     return
   }
   if (ref.kind === 'deck') {
-    await deliverChoice(choice, ref.id, choice.customId === POST_ID ? 'post' : 'self', ctx)
+    await deliverChoice(interaction, choice, ref.id, choice.customId === POST_ID ? 'post' : 'self', ctx, viewerId)
     return
   }
   await answerPick(interaction, choice, ref.options, ctx)

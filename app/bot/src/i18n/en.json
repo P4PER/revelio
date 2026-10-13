@@ -32,7 +32,6 @@
   "deck.private.prompt": "**{name}** is private. Post it to the channel, or show it only to you?",
   "deck.private.post": "Post publicly",
   "deck.private.self": "Only show me",
-  "deck.posted": "Posted to the channel.",
   "deck.prompt.expired": "This choice expired. Run /deck again.",
   "deck.field.character": "Starting character",
   "deck.field.main": "Main deck ({count})",

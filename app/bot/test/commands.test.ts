@@ -31,6 +31,7 @@ function fakeInteraction(
     user: { id: '111' },
     deferReply: vi.fn().mockResolvedValue(undefined),
     editReply: vi.fn().mockResolvedValue(undefined),
+    deleteReply: vi.fn().mockResolvedValue(undefined),
     reply: vi.fn().mockResolvedValue({ resource: { message: { awaitMessageComponent } } }),
     options: {
       getString: (name: string) => (options[name] as string) ?? null,
@@ -52,9 +53,11 @@ function fakeComponent(
     user: { id: '111' },
     isStringSelectMenu: () => values.length > 0,
     deferUpdate: vi.fn().mockResolvedValue(undefined),
+    deferReply: vi.fn().mockResolvedValue(undefined),
     update: vi.fn().mockResolvedValue(undefined),
     followUp: vi.fn().mockResolvedValue(undefined),
     editReply: vi.fn().mockResolvedValue(undefined),
+    deleteReply: vi.fn().mockResolvedValue(undefined),
     message: { awaitMessageComponent: next },
   }
 }
@@ -433,13 +436,16 @@ describe('/deck', () => {
     expect(interaction.reply.mock.calls[0][0].content).toBe('No deck matched that name, link or id.')
   })
 
-  it('loads a public deck with the linked viewer', async () => {
+  // A deck posted without asking is loaded as nobody: if its owner made it
+  // private after the access check, it reads as not found instead of being
+  // posted on the owner's own authority.
+  it('loads an unprompted public deck as an anonymous viewer', async () => {
     viewer('user-1')
     const load = vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
     const interaction = fakeInteraction({ deck: 'abc123' })
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
     expect(interaction.deferReply).toHaveBeenCalledWith()
-    expect(load).toHaveBeenCalledWith({}, 'abc123', 'user-1')
+    expect(load).toHaveBeenCalledWith({}, 'abc123', null)
   })
 
   // The leak regression: an own private deck must never start with a public
@@ -456,6 +462,8 @@ describe('/deck', () => {
     expect(prompt.components).toHaveLength(1)
   })
 
+  // The click opens the deck's own message with deferReply, so Discord shows
+  // its native "thinking" state at once; the answered prompt is deleted.
   it('posts publicly only after "Post publicly"', async () => {
     viewer('user-1')
     access({ access: 'own-private', name: 'Secret Charms' })
@@ -463,11 +471,10 @@ describe('/deck', () => {
     const click = fakeComponent('deck:post')
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-    expect(click.deferUpdate).toHaveBeenCalled()
-    const posted = click.followUp.mock.calls[0][0]
-    expect(posted.flags).toBeUndefined()
-    expect(posted.embeds[0].toJSON().title).toBe('Charms Aggro')
-    expect(click.editReply).toHaveBeenCalledWith({ content: 'Posted to the channel.', components: [] })
+    expect(click.deferReply).toHaveBeenCalledWith()
+    expect(click.editReply.mock.calls[0][0].embeds[0].toJSON().title).toBe('Charms Aggro')
+    expect(click.followUp).not.toHaveBeenCalled()
+    expect(interaction.deleteReply).toHaveBeenCalled()
   })
 
   it('never posts publicly for "Only show me"', async () => {
@@ -477,14 +484,15 @@ describe('/deck', () => {
     const click = fakeComponent('deck:self')
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.deferReply).toHaveBeenCalledWith({ flags: MessageFlags.Ephemeral })
     expect(click.followUp).not.toHaveBeenCalled()
-    const shown = click.editReply.mock.calls[0][0]
-    expect(shown.content).toBe('')
-    expect(shown.components).toEqual([])
-    expect(shown.embeds[0].toJSON().title).toBe('Charms Aggro')
+    expect(click.editReply.mock.calls[0][0].embeds[0].toJSON().title).toBe('Charms Aggro')
+    expect(interaction.deleteReply).toHaveBeenCalled()
   })
 
   // Review focus 4: the deck vanished or went private between prompt and click.
+  // The deck is read before anything is deferred, so "not found" stays in the
+  // private prompt and no public "thinking" message ever appears.
   it('reports a deck that disappeared before the click, and posts nothing', async () => {
     viewer('user-1')
     access({ access: 'own-private', name: 'Secret Charms' })
@@ -492,9 +500,26 @@ describe('/deck', () => {
     const click = fakeComponent('deck:post')
     const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-    expect(click.followUp).not.toHaveBeenCalled()
-    expect(click.editReply).toHaveBeenCalledWith({
+    expect(click.deferReply).not.toHaveBeenCalled()
+    expect(click.update).toHaveBeenCalledWith({
       content: 'No deck matched that name, link or id.', components: [],
+    })
+  })
+
+  // Discord rejecting the deck message itself, after the public defer: the
+  // empty public placeholder is taken back and the error goes to the caller.
+  it('withdraws the public placeholder when the post fails', async () => {
+    viewer('user-1')
+    access({ access: 'own-private', name: 'Secret Charms' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const click = fakeComponent('deck:post')
+    click.editReply.mockRejectedValue(new Error('Request entity too large'))
+    const interaction = fakeInteraction({ deck: 'abc123' }, 'en', vi.fn().mockResolvedValue(click))
+    await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+    expect(click.deleteReply).toHaveBeenCalled()
+    expect(click.followUp).toHaveBeenCalledWith({
+      content: expect.any(String), flags: MessageFlags.Ephemeral,
     })
   })
 
@@ -545,8 +570,29 @@ describe('/deck', () => {
       const pick = fakeComponent('deck:pick', ['pub'])
       const interaction = fakeInteraction({ deck: 'aggro' }, 'en', vi.fn().mockResolvedValue(pick))
       await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
-      expect(pick.followUp).toHaveBeenCalled()
-      expect(pick.editReply).toHaveBeenCalledWith({ content: 'Posted to the channel.', components: [] })
+      expect(pick.deferReply).toHaveBeenCalledWith()
+      expect(pick.editReply.mock.calls[0][0].embeds[0].toJSON().title).toBe('Charms Aggro')
+      expect(interaction.deleteReply).toHaveBeenCalled()
+    })
+
+    // Review finding: the menu was built while the deck was public. If it went
+    // private before the pick, an unprompted post must not go out on the
+    // owner's authority.
+    it('loads a picked public deck as an anonymous viewer', async () => {
+      const load = vi.mocked(dbModule.getDeckForViewer)
+      const pick = fakeComponent('deck:pick', ['pub'])
+      const interaction = fakeInteraction({ deck: 'aggro' }, 'en', vi.fn().mockResolvedValue(pick))
+      await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+      expect(load).toHaveBeenCalledWith({}, 'pub', null)
+    })
+
+    it('loads a confirmed private deck as its owner', async () => {
+      const load = vi.mocked(dbModule.getDeckForViewer)
+      const click = fakeComponent('deck:self')
+      const pick = fakeComponent('deck:pick', ['mine'], vi.fn().mockResolvedValue(click))
+      const interaction = fakeInteraction({ deck: 'aggro' }, 'en', vi.fn().mockResolvedValue(pick))
+      await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
+      expect(load).toHaveBeenCalledWith({}, 'mine', 'user-1')
     })
 
     it('asks again before showing a picked private deck', async () => {

@@ -80,7 +80,6 @@
   "search.post": "Post to channel",
   "card.gone": "That card is no longer in the database.",
   "post.sharedCard": "{user} shared a card.",
-  "post.done": "Posted to the channel.",
   "post.cannotPostCards": "I can't post in this channel. Revelio needs permission to view it, send messages and embed links here.",
   "post.cannotPostHere": "I can't post here, for example in a server where only you added Revelio.",
   "search.share.prompt": "Which cards should I post to the channel?",

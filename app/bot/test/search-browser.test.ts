@@ -185,7 +185,8 @@ describe('posting one card', () => {
     expect(sent.flags).toBe(MessageFlags.IsComponentsV2)
     expect(textOf(sent)).toMatch(/^<@111> shared a card\.\n## Card 1/)
     expect(buttonsOf(sent).map((b) => b.label)).toEqual(['Open on revelio.cards'])
-    expect(c.followUp).toHaveBeenCalledWith(expect.objectContaining({ flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral }))
+    // The post itself is the confirmation; no private "posted" line.
+    expect(c.followUp).not.toHaveBeenCalled()
     expect(c.reply).not.toHaveBeenCalled()
   })
 
@@ -227,6 +228,7 @@ describe('sharing results', () => {
     expect(textOf(c.channel.send.mock.calls[0][0])).toMatch(/^<@111> shared 2 cards/)
     expect(textOf(c.editReply.mock.calls.at(-1)![0])).toContain('Cards found')
     expect(c.reply).not.toHaveBeenCalled()
+    expect(c.followUp).not.toHaveBeenCalled()
   })
 
   it('drops a tampered value before it reaches the search', async () => {

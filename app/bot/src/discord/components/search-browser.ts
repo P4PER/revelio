@@ -138,15 +138,13 @@ async function sendToChannel(
   interaction: MessageComponentInteraction,
   send: () => Promise<unknown>,
   locale: string,
-): Promise<boolean> {
+): Promise<void> {
   try {
     await send()
-    return true
   } catch (err) {
     const refused = refusal(err)
     if (!refused || !(err instanceof DiscordAPIError)) throw err
     await interaction.followUp({ ...textMessage(t(locale, postRefusalKey(refused))), flags: EPHEMERAL_V2 })
-    return false
   }
 }
 
@@ -179,7 +177,7 @@ const backToResults: ComponentHandler = async (interaction, id, deps) => {
 }
 
 // The private card view stays where it is; the channel gets its own copy with
-// a "shared by" line, and the caller a private "posted".
+// a "shared by" line.
 const postCard: ComponentHandler = async (interaction, id, deps) => {
   if (id.kind !== 'cp') return
   const locale = toRevelioLocale(interaction.locale)
@@ -202,9 +200,8 @@ const postCard: ComponentHandler = async (interaction, id, deps) => {
     // Never pings: the client's allowedMentions parses none.
     lead: t(locale, 'post.sharedCard', { user: `<@${interaction.user.id}>` }),
   }))
-  if (await sendToChannel(interaction, () => target.channel.send(message), locale)) {
-    await interaction.followUp({ ...textMessage(t(locale, 'post.done')), flags: EPHEMERAL_V2 })
-  }
+  // The post in the channel is its own confirmation: no private "posted".
+  await sendToChannel(interaction, () => target.channel.send(message), locale)
 }
 
 const share: ComponentHandler = async (interaction, id, deps) => {
@@ -242,9 +239,7 @@ const sharePicked: ComponentHandler = async (interaction, id, deps) => {
       siteBase: deps.env.SITE_BASE_URL,
       sharerId: interaction.user.id,
     }))
-    if (await sendToChannel(interaction, () => target.channel.send(message), locale)) {
-      await interaction.followUp({ ...textMessage(t(locale, 'post.done')), flags: EPHEMERAL_V2 })
-    }
+    await sendToChannel(interaction, () => target.channel.send(message), locale)
   }
   await interaction.editReply(await renderSearchBrowser(deps, id.state, locale, interaction.inGuild()))
 }

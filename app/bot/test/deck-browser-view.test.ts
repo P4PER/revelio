@@ -94,6 +94,13 @@ describe('ownDecksView', () => {
     expect(measure(view).text).toBeLessThanOrEqual(4000)
   })
 
+  // The count and the page are two reads; decks deleted between them leave
+  // an empty page, and Discord rejects a select with no options.
+  it('offers no open menu on an empty page', () => {
+    const v = { components: ownDecksView({ decks: [], total: 3, page: 1, pages: 1 }, mine, opts) }
+    expect(ids(v).some((id) => id.startsWith('v1:do:'))).toBe(false)
+  })
+
   it('has no filter menus', () => {
     const v = { components: ownDecksView({ decks: [own(1)], total: 1, page: 1, pages: 1 }, mine, opts) }
     expect(ids(v).some((id) => /^v1:d[fsl]:/.test(id))).toBe(false)

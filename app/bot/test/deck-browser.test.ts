@@ -146,7 +146,27 @@ describe('posting a deck', () => {
     const { c, done } = click(encodeCustomId({ kind: 'dp', deckId: ID }))
     await done
     expect(c.channel.send).not.toHaveBeenCalled()
-    expect(textOf(c.reply.mock.calls[0][0])).toBe('No deck matched that name, link or id.')
+    expect(textOf(c.followUp.mock.calls[0][0])).toBe('No deck matched that name, link or id.')
+  })
+
+  // Two Postgres reads must not run inside Discord's 3 second budget.
+  it('acknowledges before it reads anything', async () => {
+    linkedAs(null)
+    const access = vi.spyOn(dbModule, 'getDeckAccess').mockResolvedValue({ access: 'public', name: 'Charms Aggro' })
+    vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stored('public') as never)
+    const { c, done } = click(encodeCustomId({ kind: 'dp', deckId: ID }))
+    await done
+    expect(c.deferUpdate.mock.invocationCallOrder[0]).toBeLessThan(access.mock.invocationCallOrder[0])
+  })
+
+  it('answers a failed read privately and leaves the deck view alone', async () => {
+    linkedAs(null)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(dbModule, 'getDeckAccess').mockRejectedValue(new Error('connection reset'))
+    const { c, done } = click(encodeCustomId({ kind: 'dp', deckId: ID }))
+    await done
+    expect(c.editReply).not.toHaveBeenCalled()
+    expect(textOf(c.followUp.mock.calls[0][0])).toBe('Something went wrong. Please try again in a moment.')
   })
 
   // Past deferUpdate the router would answer with editReply, which would

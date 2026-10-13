@@ -140,14 +140,16 @@ export function ownDecksView(page: OwnDeckPage, state: DeckBrowseState, opts: De
   const { locale } = opts
   const lines = page.decks.map((d) => {
     const line = `**${plain(clampDeckName(d.name))}** · ${t(locale, `deck.format.${d.format}`)} · ${t(locale, 'decks.cards', { count: d.mainCount })}`
-    return d.visibility === 'private' ? `🔒 ${line}` : line
+    return d.visibility === 'private' ? t(locale, 'decks.privateRow', { line }) : line
   })
   const view = container().addTextDisplayComponents(
     text([opts.notice, t(locale, 'decks.title', { count: page.total }), ...lines].filter(Boolean).join('\n')),
   )
-  view.addActionRowComponents(
-    openMenu(state, page.decks.map((d) => ({ id: d.id, label: d.name })), locale),
-    pager(state, page.page, page.pages, page.decks.length, OWN_PAGE_SIZE, opts, false),
-  )
+  // Decks deleted between the count and the page read can leave it empty,
+  // and Discord rejects a select with no options.
+  if (page.decks.length) {
+    view.addActionRowComponents(openMenu(state, page.decks.map((d) => ({ id: d.id, label: d.name })), locale))
+  }
+  view.addActionRowComponents(pager(state, page.page, page.pages, page.decks.length, OWN_PAGE_SIZE, opts, false))
   return [view]
 }

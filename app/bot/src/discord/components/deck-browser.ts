@@ -10,7 +10,6 @@ import { newDeckUrl, settingsUrl } from '../../links'
 import { postTarget, sendToChannel } from '../channel-post'
 import { deliverDeck } from '../deck-delivery'
 import { ownDecksView, publicDecksView } from '../v2/deck-browser-view'
-import { ANY } from '../v2/search-view'
 import { ephemeralText, textEdit, v2Edit, v2Message, type V2Edit } from '../v2/send'
 import {
   DECK_SORTS,
@@ -21,6 +20,7 @@ import {
   type DeckBrowseState,
   type DeckKind,
 } from './custom-id'
+import { picked } from './select'
 import type { ComponentHandler } from './types'
 
 type DeckStateId = { kind: DeckKind; state: DeckBrowseState }
@@ -29,12 +29,6 @@ const REFUSAL_KEYS = { unreachable: 'post.cannotPostHere', forbidden: 'post.cann
 
 function isDeckState(id: CustomId): id is DeckStateId {
   return 'state' in id && 'scope' in id.state
-}
-
-function picked(interaction: MessageComponentInteraction): string | null {
-  if (!interaction.isStringSelectMenu()) return null
-  const value = interaction.values[0]
-  return value && value !== ANY ? value : null
 }
 
 async function show(interaction: MessageComponentInteraction, deps: Deps, state: DeckBrowseState): Promise<void> {
@@ -113,33 +107,38 @@ const openDeck: ComponentHandler = async (interaction, id, deps) => {
 // Pressing Post on your own private deck is the owner's explicit say-so, the
 // same consent /deck's prompt asks for with "Post publicly". Anyone else's
 // private deck reads as not found. The post is its own confirmation; only a
-// refusal or a failure is answered privately.
+// refusal or a failure is answered privately. postTarget reads only what
+// Discord sent with the click, so its refusal goes out before the
+// acknowledgement; the reads come after it, outside the 3 second budget.
 const postDeck: ComponentHandler = async (interaction, id, deps) => {
   if (id.kind !== 'dp') return
   const locale = toRevelioLocale(interaction.locale)
-  const reader = await readAs(deps, interaction, id.deckId)
-  if (!reader) {
-    await interaction.reply(ephemeralText(t(locale, 'deck.notFound')))
-    return
-  }
   const target = postTarget(interaction, { needsFiles: true })
   if (target.kind !== 'ok') {
     await interaction.reply(ephemeralText(t(locale, REFUSAL_KEYS[target.kind])))
     return
   }
   await interaction.deferUpdate()
-  const deck = await getDeckView(deps.db, id.deckId, reader.loadAs)
-  if (!deck) {
-    await interaction.followUp(ephemeralText(t(locale, 'deck.notFound')))
-    return
+  // Past deferUpdate the router would answer with editReply, replacing the
+  // deck view the post came from, so every failure is answered here.
+  try {
+    const reader = await readAs(deps, interaction, id.deckId)
+    const deck = reader && await getDeckView(deps.db, id.deckId, reader.loadAs)
+    if (!deck) {
+      await interaction.followUp(ephemeralText(t(locale, 'deck.notFound')))
+      return
+    }
+    await target.channel.sendTyping().catch(() => {})
+    await sendToChannel(interaction, () => deliverDeck((c, f) => target.channel.send(v2Message(c, f)), deck, deps, locale, {
+      audience: 'channel',
+      sendEdits: false,
+      listOnly: false,
+      lead: t(locale, 'post.sharedDeck', { user: `<@${interaction.user.id}>` }),
+    }), locale, REFUSAL_KEYS)
+  } catch (err) {
+    console.error(`deck post failed (${interaction.id}):`, err)
+    await interaction.followUp(ephemeralText(t(locale, 'error.generic')))
   }
-  await target.channel.sendTyping().catch(() => {})
-  await sendToChannel(interaction, () => deliverDeck((c, f) => target.channel.send(v2Message(c, f)), deck, deps, locale, {
-    audience: 'channel',
-    sendEdits: false,
-    listOnly: false,
-    lead: t(locale, 'post.sharedDeck', { user: `<@${interaction.user.id}>` }),
-  }), locale, REFUSAL_KEYS)
 }
 
 export const DECK_HANDLERS: readonly (readonly [CustomId['kind'], ComponentHandler])[] = [

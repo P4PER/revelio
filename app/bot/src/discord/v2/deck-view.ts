@@ -80,7 +80,7 @@ export function deckView(deck: DeckView, opts: DeckViewOptions): ContainerBuilde
     // The picture shows every card, so the text lists would only repeat it.
     view.addMediaGalleryComponents(
       new MediaGalleryBuilder().addItems(
-        new MediaGalleryItemBuilder().setURL(`attachment://${opts.imageName}`).setDescription(deck.name),
+        new MediaGalleryItemBuilder().setURL(`attachment://${opts.imageName}`).setDescription(clampDeckName(deck.name)),
       ),
     )
   } else {

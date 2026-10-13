@@ -106,7 +106,7 @@ export function publicDecksView(page: PublicDeckPage, state: DeckBrowseState, op
           .addTextDisplayComponents(text(content))
           .setThumbnailAccessory(new ThumbnailBuilder()
             .setURL(imageUrl(opts.imageBase, artCropKey(entry.starterCardId, entry.starterArtCropVersion)))
-            .setDescription(entry.name)))
+            .setDescription(clampDeckName(entry.name))))
       } else {
         // A section must carry an accessory; no starter, no picture.
         view.addTextDisplayComponents(text(content))

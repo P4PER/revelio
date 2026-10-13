@@ -8,6 +8,7 @@ type Json = {
   accessory?: Json
   items?: { media: { url: string }; description?: string | null }[]
   media?: { url: string }
+  description?: string | null
   url?: string
   label?: string
   custom_id?: string

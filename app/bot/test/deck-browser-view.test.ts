@@ -49,6 +49,13 @@ describe('publicDecksView', () => {
     expect(buttonsOf(v).find((b) => b.url)?.url).toBe('https://revelio.cards/decks')
   })
 
+  it('clamps a legacy over-long name in the thumbnail description', () => {
+    const descs = flatten(pub([entry(1, { name: 'x'.repeat(1500) })]))
+      .flatMap((n) => (n.type === ComponentType.Thumbnail ? [n.description ?? ''] : []))
+    expect(descs).toHaveLength(1)
+    expect(descs[0].length).toBeLessThanOrEqual(120)
+  })
+
   it('says when nothing matched and keeps the menus', () => {
     const v = pub([], { total: 0, pages: 1 })
     expect(textOf(v)).toContain('No public deck matched.')

@@ -3,7 +3,7 @@ import { ButtonBuilder, ButtonStyle } from 'discord.js'
 import { deckView, type DeckViewOptions } from '../src/discord/v2/deck-view'
 import type { DeckView } from '../src/data/decks'
 import { measure } from '../src/discord/v2/limits'
-import { buttonsOf, mediaUrls, textOf } from './helpers/v2'
+import { buttonsOf, flatten, mediaUrls, textOf } from './helpers/v2'
 
 const deck: DeckView = {
   id: 'abc123',
@@ -77,6 +77,15 @@ describe('deckView', () => {
     }))
     const big = { ...deck, name: '*'.repeat(1500), main, sideboard: main, mainCount: 120, sideboardCount: 120 }
     expect(measure(view(big).components).text).toBeLessThanOrEqual(4000)
+  })
+
+  // Discord caps a media description at 1024 characters; a legacy name past
+  // that would fail the whole post.
+  it('clamps a legacy over-long name in the sheet description', () => {
+    const descs = flatten(view({ ...deck, name: 'x'.repeat(1500) }, { imageName: 'deck.png' }))
+      .flatMap((n) => (n.items ?? []).map((i) => i.description ?? ''))
+    expect(descs).toHaveLength(1)
+    expect(descs[0].length).toBeLessThanOrEqual(120)
   })
 
   it('stays inside the text budget for a huge deck, saying how many it left out', () => {

@@ -549,8 +549,8 @@ describe('/deck', () => {
     })
   })
 
-  // Review finding: a failure before the click is acknowledged used to escape
-  // to main.ts, which edits the text but leaves the now-dead buttons up.
+  // A failure before the click is acknowledged must answer the click itself;
+  // the top-level handler only knows the slash command's interaction.
   it('turns the prompt into the error when the click cannot be served', async () => {
     viewer('user-1')
     access({ access: 'own-private', name: 'Secret Charms' }).mockResolvedValueOnce(

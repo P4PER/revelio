@@ -5,18 +5,18 @@ import { t } from '../../i18n/t'
 import { deckUrl } from '../../links'
 import { inlineGrid } from './inline-grid'
 
-// The image view carries the attachment's file name because that is the only
-// handle an embed has on an upload, and the render service picks the format it
-// settled on - PNG, or WebP when the PNG overshot the attachment ceiling. A
-// single constant here used to be enough, back when one painter picked one
-// format for every sheet.
 // linkPage: false leaves the title unlinked. A private deck posted to a channel
 // would otherwise link a page that answers "not found" for everyone but its
-// owner.
-type DeckEmbedBase = { locale: string; siteBase: string; linkPage?: boolean }
+// owner. Required, so a new caller has to decide rather than link by default.
+type DeckEmbedBase = { locale: string; siteBase: string; linkPage: boolean }
 
 export type DeckEmbedOptions =
   | DeckEmbedBase & { view: 'list' }
+  // The image view carries the attachment's file name because that is the
+  // only handle an embed has on an upload, and the render service picks the
+  // format it settled on - PNG, or WebP when the PNG overshot the attachment
+  // ceiling. A single constant here used to be enough, back when one painter
+  // picked one format for every sheet.
   | DeckEmbedBase & { view: 'image'; imageName: string }
 
 const FIELD_LIMIT = 1024
@@ -60,7 +60,7 @@ export function deckEmbed(deck: DeckView, opts: DeckEmbedOptions): EmbedBuilder 
   const { locale } = opts
   const embed = new EmbedBuilder()
     .setTitle(deck.name)
-    .setURL(opts.linkPage === false ? null : deckUrl(opts.siteBase, deck.id, locale))
+    .setURL(opts.linkPage ? deckUrl(opts.siteBase, deck.id, locale) : null)
     .setColor(lessonColor(deck.topLesson))
     .setFooter({
       text: deck.ownerUsername

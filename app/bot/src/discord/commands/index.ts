@@ -16,8 +16,8 @@ export type BotCommand = {
   autocomplete?(interaction: AutocompleteInteraction, deps: Deps): Promise<void>
 }
 
-// A registry, not a barrel: main.ts routes an interaction by name through this
-// map, and register.ts publishes every entry's builder to Discord.
+// A registry, not a barrel: handle-interaction.ts routes an interaction by name
+// through this map, and register.ts publishes every entry's builder to Discord.
 export const COMMANDS: Map<string, BotCommand> = new Map(
   [card, search, deck, collection, mydecks].map((c) => [c.data.name, c as BotCommand]),
 )

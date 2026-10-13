@@ -21,7 +21,7 @@ const deck: DeckView = {
   status: 'incomplete',
 }
 
-const opts = { locale: 'en', siteBase: 'https://revelio.cards', view: 'list' } as const
+const opts = { locale: 'en', siteBase: 'https://revelio.cards', linkPage: true, view: 'list' } as const
 
 describe('deckEmbed', () => {
   it('titles with the deck name and links to the deck page', () => {

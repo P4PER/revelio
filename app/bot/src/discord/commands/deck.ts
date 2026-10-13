@@ -37,6 +37,10 @@ type DeckContext = { deps: Deps; locale: string; viewerId: string | null; listOn
 // channel, 'self' to the caller alone.
 type Delivery = 'post' | 'self'
 
+// Who reads the message a deck is delivered in. Required wherever a deck is
+// sent, so the page link is decided from data rather than defaulted.
+type Audience = 'channel' | 'caller'
+
 export const data = new SlashCommandBuilder()
   .setName('deck')
   .setDescription(t('en', 'command.deck.description'))
@@ -71,9 +75,12 @@ async function deliverDeck(
   send: (payload: DeckPayload) => Promise<unknown>,
   deck: DeckView,
   ctx: DeckContext,
-  linkPage = true,
+  audience: Audience,
 ): Promise<void> {
   const { locale } = ctx
+  // Only the owner can open a private deck's page, so a channel never gets a
+  // link to one; the caller alone may be that owner.
+  const linkPage = audience === 'caller' || deck.visibility === 'public'
   const siteBase = ctx.deps.env.SITE_BASE_URL
   if (!ctx.listOnly && deck.entries.length > 0) {
     try {
@@ -120,8 +127,9 @@ async function deliverChoice(
     }
     await (isPublic ? component.deferReply() : component.deferReply({ flags: MessageFlags.Ephemeral }))
   } catch (err) {
-    // Not acknowledged, or only half: left alone, the error would reach
-    // main.ts, which edits the prompt's text but leaves its dead buttons up.
+    // The click itself has to be answered. The top-level handler only knows
+    // the slash command's interaction, so an error left to it would edit the
+    // prompt while the clicker still sees "This interaction failed".
     console.error('deck prompt failed:', err)
     await component
       .update({ content: t(ctx.locale, 'error.generic'), components: [] })
@@ -151,10 +159,7 @@ async function deliverChoice(
       await fail('deck.notFound')
       return
     }
-    // Only the owner can open a private deck's page, so a channel post of one
-    // goes out unlinked.
-    const linkPage = !isPublic || deck.visibility === 'public'
-    await deliverDeck((p) => component.editReply(p), deck, ctx, linkPage)
+    await deliverDeck((p) => component.editReply(p), deck, ctx, isPublic ? 'channel' : 'caller')
   } catch (err) {
     console.error('deck prompt failed:', err)
     await fail('error.generic')
@@ -225,7 +230,7 @@ export async function execute(
       await interaction.editReply({ content: t(locale, 'deck.notFound') })
       return
     }
-    await deliverDeck((p) => interaction.editReply(p), deck, ctx)
+    await deliverDeck((p) => interaction.editReply(p), deck, ctx, 'channel')
     return
   }
 

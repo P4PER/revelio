@@ -52,15 +52,26 @@ async function handleComponent(interaction: MessageComponentInteraction, deps: D
   }
 }
 
-// The component path's twin for a submitted form. A form only exists once a
-// click opened it, so an answer before the handler acknowledged is a private
-// reply; after, it edits what the handler acknowledged.
+// A status line in answer to a submitted form, as answerClick does for a
+// click: a form opened from the private browser replaces it; one from a public
+// message is answered privately.
+async function answerModal(interaction: ModalSubmitInteraction, content: string): Promise<void> {
+  if (interaction.deferred || interaction.replied) {
+    await interaction.editReply(textEdit(content))
+    return
+  }
+  if (interaction.isFromMessage() && interaction.message.flags.has(MessageFlags.Ephemeral)) {
+    await interaction.update(textEdit(content))
+    return
+  }
+  await interaction.reply({ ...textMessage(content), flags: EPHEMERAL_V2 })
+}
+
+// The component path's twin for a submitted form.
 async function handleModal(interaction: ModalSubmitInteraction, deps: Deps): Promise<void> {
   if (!ROUTED_ID.test(interaction.customId)) return
   const locale = toRevelioLocale(interaction.locale)
-  const answer = (content: string) => interaction.deferred || interaction.replied
-    ? interaction.editReply(textEdit(content))
-    : interaction.reply({ ...textMessage(content), flags: EPHEMERAL_V2 })
+  const answer = (content: string) => answerModal(interaction, content)
   const id = decodeCustomId(interaction.customId)
   const handler = id ? MODALS.get(id.kind) : undefined
   if (!id || !handler) {

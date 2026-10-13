@@ -315,10 +315,19 @@ describe('changing the search', () => {
     expect(textOf(submit.editReply.mock.calls[0][0])).toContain('Cards found for "nox"')
   })
 
-  it('says a malformed form id is out of date', async () => {
+  // Like a click on the private browser: the stale view is replaced, not
+  // left above a separate line.
+  it('replaces the private browser when a form id is out of date', async () => {
     const submit = fakeModalSubmit('v1:sm:nope', { query: 'x' })
     await handleInteraction(submit as never, fakeDeps(hits, 23) as never)
-    expect(textOf(submit.reply.mock.calls[0][0])).toBe('These results are out of date. Run the command again.')
+    expect(textOf(submit.update.mock.calls[0][0])).toBe('These results are out of date. Run the command again.')
+    expect(submit.reply).not.toHaveBeenCalled()
+  })
+
+  it('answers a form from a public message privately', async () => {
+    const submit = fakeModalSubmit('v1:sm:nope', { query: 'x' }, { ephemeral: false })
+    await handleInteraction(submit as never, fakeDeps(hits, 23) as never)
+    expect(submit.update).not.toHaveBeenCalled()
     expect(submit.reply.mock.calls[0][0].flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
   })
 

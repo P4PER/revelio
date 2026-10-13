@@ -81,6 +81,10 @@ export function fakeModalSubmit(customId: string, values: Record<string, string>
     isModalSubmit: () => true,
     isChatInputCommand: () => false,
     fields: { getTextInputValue: (key: string) => values[key] ?? '' },
+    // A form opened from a button carries the message the button was on.
+    isFromMessage: () => true,
+    message: { flags: { has: (flag: number) => flag === MessageFlags.Ephemeral && (opts.ephemeral ?? true) } },
+    update: vi.fn().mockResolvedValue(undefined),
     reply: vi.fn().mockResolvedValue(undefined),
     editReply: vi.fn().mockResolvedValue(undefined),
     deferUpdate: vi.fn(async () => { submit.deferred = true }),

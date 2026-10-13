@@ -65,5 +65,8 @@
   "decks.visibility.public": "public",
   "decks.visibility.private": "private",
   "error.generic": "Something went wrong. Please try again in a moment.",
-  "browse.expired": "These results are out of date. Run the command again."
+  "browse.expired": "These results are out of date. Run the command again.",
+  "browse.prev": "Previous",
+  "browse.next": "Next",
+  "browse.page": "{page} / {pages}"
 }

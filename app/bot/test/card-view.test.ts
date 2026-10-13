@@ -26,6 +26,10 @@ const opts: CardViewOptions = {
 const view = (d: CardDetail, o: Partial<CardViewOptions> = {}) => ({ components: cardView(d, { ...opts, ...o }) })
 
 describe('cardView', () => {
+  it('puts a lead line above the heading', () => {
+    expect(textOf(view(detail(), { lead: '<@1> shared a card.' }))).toMatch(/^<@1> shared a card\.\n## Nimbus 2000/)
+  })
+
   it('heads the card with its name and links to the card page', () => {
     const v = view(detail())
     expect(textOf(v)).toMatch(/^## Nimbus 2000\n/)

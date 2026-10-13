@@ -76,6 +76,14 @@ describe('suggestDecks', () => {
     }
   })
 
+  // ILIKE wildcards in what the user typed are literal characters: "%" alone
+  // must not turn into "every visible deck".
+  it('treats % and _ in the query as literal characters', async () => {
+    expect(await suggestDecks(ctx.db, { query: '%', viewerId: null })).toEqual([])
+    expect(await suggestDecks(ctx.db, { query: '_', viewerId: null })).toEqual([])
+    expect(await suggestDecks(ctx.db, { query: '@%', viewerId: null })).toEqual([])
+  })
+
   it('respects the limit', async () => {
     expect(await suggestDecks(ctx.db, { query: '', viewerId: null, limit: 2 })).toHaveLength(2)
   })

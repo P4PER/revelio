@@ -36,14 +36,21 @@ const PUBLIC_PAGE_SIZE = 24
 // Discord's autocomplete ceiling, and the default for the bot's suggestions.
 const SUGGEST_LIMIT = 25
 
+// The user's text is matched literally: "%" and "_" are ILIKE wildcards and
+// "\" its default escape, so all three are escaped. Otherwise a query of "%"
+// would match every visible deck.
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, '\\$&')
+}
+
 // The browse page's matching rule, shared so the web and the bot can never
 // disagree on what a search finds: "@handle" narrows to the author, anything
 // else matches the deck name or the author.
 function deckSearchCondition(search: string): SQL | undefined {
   const s = search.trim()
   if (!s) return undefined
-  if (s.startsWith('@')) return ilike(user.username, `%${s.slice(1)}%`)
-  const q = `%${s}%`
+  if (s.startsWith('@')) return ilike(user.username, `%${escapeLike(s.slice(1))}%`)
+  const q = `%${escapeLike(s)}%`
   return or(ilike(decks.name, q), ilike(user.username, q))
 }
 

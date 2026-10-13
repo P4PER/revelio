@@ -19,6 +19,11 @@ describe('cardUrl', () => {
 })
 
 describe('searchUrl', () => {
+  it('carries the number sort when asked to', () => {
+    expect(searchUrl('https://revelio.cards', '', 'en', { set: 'base', sort: 'number' }))
+      .toBe('https://revelio.cards/search?q=&set=base&sort=number')
+  })
+
   it('encodes the query', () => {
     expect(searchUrl('https://revelio.cards', 'harry potter', 'en'))
       .toBe('https://revelio.cards/search?q=harry+potter')

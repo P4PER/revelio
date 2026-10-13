@@ -120,7 +120,9 @@ export function searchView(page: CardPage, state: CardBrowseState, opts: SearchV
       .setStyle(ButtonStyle.Primary))
   }
   trailing.push(linkButton(
-    searchUrl(opts.siteBase, state.query, locale, { lesson: state.lesson, type: state.type, set: state.set }),
+    searchUrl(opts.siteBase, state.query, locale, {
+      lesson: state.lesson, type: state.type, set: state.set, sort: state.query ? null : 'number',
+    }),
     t(locale, 'browse.site'),
   ))
   const hasNext = page.page < page.pages && page.hits.length === page.pageSize

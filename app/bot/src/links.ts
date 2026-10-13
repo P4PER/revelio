@@ -4,6 +4,8 @@ export type SearchLinkFilters = {
   lesson?: string | null
   type?: string | null
   set?: string | null
+  // 'number' when the bot browsed without a query, so the site lists the same order.
+  sort?: 'number' | null
 }
 
 // web/i18n/routing.ts uses localePrefix 'as-needed' with 'en' as the default,
@@ -31,6 +33,7 @@ export function searchUrl(
   if (filters.lesson) params.append('lesson', filters.lesson)
   if (filters.type) params.append('type', filters.type)
   if (filters.set) params.set('set', filters.set)
+  if (filters.sort) params.set('sort', filters.sort)
   return `${localeRoot(siteBase, locale)}/search?${params.toString()}`
 }
 

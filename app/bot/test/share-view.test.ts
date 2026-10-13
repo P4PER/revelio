@@ -57,6 +57,11 @@ describe('shareView', () => {
     expect(buttonsOf(view()).find((b) => b.url)?.url).toBe('https://revelio.cards/search?q=lumos&lesson=charms')
   })
 
+  it('links a search without a query in number order', () => {
+    expect(buttonsOf(view(hits, { ...state, query: '' })).find((b) => b.url)?.url)
+      .toBe('https://revelio.cards/search?q=&lesson=charms&sort=number')
+  })
+
   it('stays inside the limits', () => {
     expect(measure(shareView(hits, { ...state, query: 'x'.repeat(50) }, opts)).components).toBeLessThanOrEqual(40)
   })

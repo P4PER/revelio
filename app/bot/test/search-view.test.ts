@@ -102,6 +102,11 @@ describe('searchView', () => {
     expect(site?.url).toBe('https://revelio.cards/search?q=lumos&lesson=charms')
   })
 
+  it('links a search without a query in the same number order', () => {
+    const site = buttonsOf(render(page(5), { ...state, query: '', set: 's3' })).find((b) => b.url)
+    expect(site?.url).toBe('https://revelio.cards/search?q=&set=s3&sort=number')
+  })
+
   it('gives every control a distinct id', () => {
     const ids = flatten(render(page(5))).flatMap((n) => (n.custom_id ? [n.custom_id] : []))
     expect(new Set(ids).size).toBe(ids.length)

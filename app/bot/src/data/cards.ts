@@ -36,6 +36,9 @@ export const DEFAULT_PAGE_SIZE = 5
 // makes the whole suggestion list silently disappear for the user.
 export const MAX_CHOICES = 25
 const MAX_LABEL = 100
+// The site's "number" sort (web/src/lib/search-params.ts). With no words to
+// rank by, Meilisearch would return index order; this browses a set #1, #2, ...
+const NUMBER_SORT = 'numberSort:asc'
 
 export function clampLabel(value: string): string {
   return value.length <= MAX_LABEL ? value : `${value.slice(0, MAX_LABEL - 1)}…`
@@ -48,6 +51,7 @@ export async function findCards(meili: MeiliSearch, input: CardSearchInput): Pro
   const page = Math.max(1, Math.floor(input.page ?? 1))
   const res = await searchCardBrowseRows(meili, input.locale, input.query, {
     filters: input.filters,
+    sort: input.query.trim() ? undefined : [NUMBER_SORT],
     page,
     hitsPerPage: pageSize,
   })

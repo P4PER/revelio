@@ -75,7 +75,9 @@ export function shareView(hits: CardBrowseHit[], state: CardBrowseState, opts: S
       .setPlaceholder(t(locale, 'share.view.placeholder'))
       .addOptions(cardOptions(hits, false))),
     row(linkButton(
-      searchUrl(opts.siteBase, state.query, locale, { lesson: state.lesson, type: state.type, set: state.set }),
+      searchUrl(opts.siteBase, state.query, locale, {
+      lesson: state.lesson, type: state.type, set: state.set, sort: state.query ? null : 'number',
+    }),
       t(locale, 'share.site'),
     )),
   )

@@ -52,6 +52,16 @@ describe('findCards', () => {
     expect(page.hits[0]).not.toHaveProperty('flavorText')
   })
 
+  // With no words to rank by, Meilisearch returns index order; a set must
+  // browse #1, #2, ... as the site's "number" sort does.
+  it('orders a search without a query by card number, and a query by relevance', async () => {
+    const { client, search } = stubMeili([doc], 1)
+    await findCards(client, { query: '  ', locale: 'en' })
+    expect(search.mock.calls[0][1]).toMatchObject({ sort: ['numberSort:asc'] })
+    await findCards(client, { query: 'nimbus', locale: 'en' })
+    expect(search.mock.calls[1][1].sort).toBeUndefined()
+  })
+
   it('clamps a page below one', async () => {
     const { client, search } = stubMeili([], 5)
     await findCards(client, { query: 'x', locale: 'en', page: 0 })

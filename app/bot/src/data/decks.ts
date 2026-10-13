@@ -1,4 +1,10 @@
-import { getDeckForViewer, type DB } from '@revelio/db'
+import {
+  getDeckAccess,
+  getDeckForViewer,
+  suggestDecks,
+  type DB,
+  type DeckSuggestion,
+} from '@revelio/db'
 import {
   evaluateDeck,
   type DeckCardMeta,
@@ -6,6 +12,8 @@ import {
   type DeckFormat,
   type DeckStatus,
 } from '@revelio/core'
+import { t } from '../i18n/t'
+import { clampLabel, MAX_CHOICES } from './cards'
 
 export type DeckEntryView = {
   name: string
@@ -18,7 +26,7 @@ export type DeckEntryView = {
   number: string
 }
 
-export type PublicDeck = {
+export type DeckView = {
   id: string
   name: string
   format: DeckFormat
@@ -34,6 +42,14 @@ export type PublicDeck = {
   topLesson: string | null
   status: DeckStatus
 }
+
+// What /deck was asked for, once the input has been read. A picked suggestion
+// always arrives as an id, so it lands on 'deck'; only typed free text can be
+// 'ambiguous'.
+export type DeckRef =
+  | { kind: 'deck'; id: string; name: string; access: 'public' | 'own-private' }
+  | { kind: 'ambiguous'; options: DeckSuggestion[] }
+  | { kind: 'none' }
 
 type Sortable = Pick<DeckCardView, 'cost' | 'name'>
 
@@ -54,10 +70,11 @@ export function parseDeckRef(input: string): string {
   return trimmed.replace(/[/?#].*$/, '')
 }
 
-export async function getPublicDeck(db: DB, ref: string): Promise<PublicDeck | null> {
-  // Always a null viewer here: this phase serves public decks only, and
-  // getDeckForViewer is what enforces that. Never call getDeck directly.
-  const res = await getDeckForViewer(db, parseDeckRef(ref), null)
+// The viewer decides what is visible: null sees public decks only, an owner
+// also sees their own private ones. getDeckForViewer is what enforces that;
+// never call getDeck directly.
+export async function getDeckView(db: DB, ref: string, viewerId: string | null): Promise<DeckView | null> {
+  const res = await getDeckForViewer(db, parseDeckRef(ref), viewerId)
   if (!res) return null
   const { deck, views, ownerUsername } = res
 
@@ -119,4 +136,40 @@ export async function getPublicDeck(db: DB, ref: string): Promise<PublicDeck | n
     topLesson,
     status,
   }
+}
+
+export function findDecks(db: DB, query: string, viewerId: string | null): Promise<DeckSuggestion[]> {
+  return suggestDecks(db, { query, viewerId, limit: MAX_CHOICES })
+}
+
+// suggestDecks only returns public decks and the viewer's own, so a private
+// suggestion is always the viewer's own.
+export function accessOf(s: DeckSuggestion): 'public' | 'own-private' {
+  return s.visibility === 'public' ? 'public' : 'own-private'
+}
+
+// Shared by autocomplete and the "did you mean" menu, so a deck reads the same
+// in both. Only the person typing sees either, so naming their own private
+// deck here leaks nothing.
+export function suggestionLabel(s: DeckSuggestion, locale: string): string {
+  const lock = s.visibility === 'public' ? '' : '🔒 '
+  return clampLabel(`${lock}${s.name} · @${s.author} · ${t(locale, `deck.format.${s.format}`)}`)
+}
+
+export async function resolveDeckRef(db: DB, input: string, viewerId: string | null): Promise<DeckRef> {
+  const id = parseDeckRef(input)
+  if (!id) return { kind: 'none' }
+  const hit = await getDeckAccess(db, id, viewerId)
+  if (hit) return { kind: 'deck', id, ...hit }
+
+  // The whole input, not the parsed id: parseDeckRef cuts at the first "/",
+  // which would turn a deck called "Aggro/Control" into "Aggro".
+  const query = input.trim()
+  const matches = await findDecks(db, query, viewerId)
+  if (matches.length === 0) return { kind: 'none' }
+  const wanted = query.toLowerCase()
+  const exact = matches.filter((m) => m.name.toLowerCase() === wanted)
+  const one = matches.length === 1 ? matches[0] : exact.length === 1 ? exact[0] : null
+  if (one) return { kind: 'deck', id: one.id, name: one.name, access: accessOf(one) }
+  return { kind: 'ambiguous', options: matches }
 }

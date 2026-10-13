@@ -1,6 +1,6 @@
 import { EmbedBuilder, type APIEmbedField } from 'discord.js'
 import { LESSONS } from '@revelio/core'
-import type { DeckEntryView, PublicDeck } from '../../data/decks'
+import type { DeckEntryView, DeckView } from '../../data/decks'
 import { t } from '../../i18n/t'
 import { deckUrl } from '../../links'
 import { inlineGrid } from './inline-grid'
@@ -51,7 +51,7 @@ function cardList(entries: DeckEntryView[], locale: string): string {
   return lines.join('\n')
 }
 
-export function deckEmbed(deck: PublicDeck, opts: DeckEmbedOptions): EmbedBuilder {
+export function deckEmbed(deck: DeckView, opts: DeckEmbedOptions): EmbedBuilder {
   const { locale } = opts
   const embed = new EmbedBuilder()
     .setTitle(deck.name)

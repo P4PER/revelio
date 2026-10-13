@@ -1,6 +1,6 @@
 import { AttachmentBuilder, SlashCommandBuilder, type ChatInputCommandInteraction } from 'discord.js'
 import type { Deps } from '../../clients'
-import { getPublicDeck } from '../../data/decks'
+import { getDeckView } from '../../data/decks'
 import { toRevelioLocale } from '../../i18n/locale'
 import { t } from '../../i18n/t'
 import { requestDeckSheet } from '../../data/sheet'
@@ -37,7 +37,7 @@ export async function execute(
   const locale = toRevelioLocale(interaction.locale)
   const ref = interaction.options.getString('deck') ?? ''
 
-  const deck = await getPublicDeck(deps.db, ref)
+  const deck = await getDeckView(deps.db, ref, null)
   if (!deck) {
     // One message for "no such deck" and "that deck is private": telling them
     // apart would confirm the existence of a deck its owner chose not to share.

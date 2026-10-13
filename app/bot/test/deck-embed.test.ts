@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { deckEmbed } from '../src/discord/embeds/deck-embed'
-import type { PublicDeck } from '../src/data/decks'
+import type { DeckView } from '../src/data/decks'
 
-const deck: PublicDeck = {
+const deck: DeckView = {
   id: 'abc123',
   name: 'Charms Aggro',
   format: 'classic',

@@ -89,6 +89,9 @@ export function ContactForm({
       // transport error, …). Surface a generic error rather than failing silently.
       form.setError('root', { message: t('errorGeneric') })
     }
+    // The send button was disabled while the action ran, which dropped its focus to
+    // <body>. Put it on the field the error sits under; the next Tab reaches Send.
+    form.setFocus('message')
   }
 
   // The page hands in its intro and footer so this component can own the grid:

@@ -27,6 +27,10 @@ One file, `app/web/src/components/legal/contact-form.tsx`:
    `form.handleSubmit(...)` during render. Both paths are now user actions by
    construction, so the page never takes focus on load.
 4. The `role="status"` wrapper stays as it is.
+5. A failed send (an error code or a rejection) puts focus on the message field, which
+   the error sits under. The send button is disabled while the action runs, and in
+   Chromium that drops its focus to `<body>`, where it stays after the button is
+   enabled again. Found in code review.
 
 ## Tests (RED first)
 
@@ -34,6 +38,7 @@ In `components/legal/__tests__/contact-form.test.tsx`:
 
 - after a successful send, `document.activeElement` is the success heading
 - after "Send another message", `document.activeElement` is the name input
+- after a send that returns an error, and after one that rejects, the message field has focus
 - on first render, nothing in the form has focus
 
 ## Verification

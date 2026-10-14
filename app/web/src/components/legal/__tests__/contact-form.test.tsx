@@ -129,7 +129,7 @@ describe('ContactForm', () => {
     await user.click(screen.getByRole('button', { name: en.contact.send }))
 
     const heading = await screen.findByRole('heading', { name: en.contact.successTitle })
-    await vi.waitFor(() => expect(heading).toHaveFocus())
+    expect(heading).toHaveFocus()
   })
 
   it('moves focus back to the first field after send another message', async () => {
@@ -139,7 +139,24 @@ describe('ContactForm', () => {
     await user.click(screen.getByRole('button', { name: en.contact.send }))
     await user.click(await screen.findByRole('button', { name: en.contact.sendAnother }))
 
-    await vi.waitFor(() => expect(screen.getByLabelText(en.contact.name)).toHaveFocus())
+    // Synchronous on purpose: the click handler commits the form and focuses in one go.
+    expect(screen.getByLabelText(en.contact.name)).toHaveFocus()
+  })
+
+  // The send button is disabled while the action runs, which drops its focus to
+  // <body> in a real browser (jsdom keeps it), so the error path must place it.
+  it.each([
+    ['returns an error', () => sendContactMessage.mockResolvedValueOnce({ ok: false, error: 'rate' })],
+    ['rejects', () => sendContactMessage.mockRejectedValueOnce(new Error('boom'))],
+  ])('moves focus to the message field when the send %s', async (_, arrange) => {
+    arrange()
+    const user = userEvent.setup()
+    renderForm()
+    await fillValid(user)
+    await user.click(screen.getByRole('button', { name: en.contact.send }))
+
+    await screen.findByRole('alert')
+    expect(screen.getByLabelText(en.contact.message)).toHaveFocus()
   })
 
   it('renders the intro and footer it is given', () => {

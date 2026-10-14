@@ -1,12 +1,10 @@
 import { test, expect } from '@playwright/test'
 import { total } from './result-total'
+import { requireSeeded } from './seeded'
 
 test('filter drawer narrows results and shows a removable chip', async ({ page }) => {
   await page.goto('/search?q=harry')
-  const grid = page.getByRole('figure').first()
-  if (!(await grid.isVisible().catch(() => false))) {
-    test.skip(true, 'Search index has no data — run with a seeded stack to verify fully')
-  }
+  await requireSeeded(page.getByRole('figure').first(), 'Search index has no data')
   const before = await total(page)
 
   // filters.button reads "Advanced", not "Filters".

@@ -34,6 +34,8 @@ test('a public deck OG image renders as a real PNG when decks exist', async ({ p
   const firstDeck = page
     .locator('a[href*="/decks/"]:not([href$="/new"]):not([href$="/mine"])')
     .first()
+  // A plain skip, outside E2E_REQUIRE_SEED: ingest seeds cards and sets but no
+  // decks, so a seeded stack has none until someone publishes one.
   if (!(await firstDeck.isVisible().catch(() => false))) {
     test.skip(true, 'No public decks seeded — run against a seeded stack to verify fully')
   }

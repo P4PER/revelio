@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test'
 import { total } from './result-total'
+import { requireSeeded } from './seeded'
 
 // Requires the web running with MEILI_HOST/MEILI_SEARCH_KEY pointed at a SEEDED Meili
-// (the compose stack). Skipped automatically if the search index has no data.
+// (the compose stack). Skipped if the search index has no data, unless
+// E2E_REQUIRE_SEED=1 (see seeded.ts).
 test('search from home shows results and a type filter narrows them', async ({ page }) => {
   await page.goto('/')
   // The home search submits on Enter; it has no submit button to click.
@@ -13,16 +15,8 @@ test('search from home shows results and a type filter narrows them', async ({ p
   // would also hit the pager, which repeats the count without announcing it.
   await expect(page.getByRole('status')).toHaveText(/\d+ cards/)
 
-  // If no result tiles appear within a short timeout, the search index is empty or
-  // unreachable — skip so `npx playwright test` stays green without seeded data.
   const firstFigure = page.getByRole('figure').first()
-  const hasTiles = await firstFigure.isVisible({ timeout: 5_000 }).catch(() => false)
-  if (!hasTiles) {
-    test.skip(true, 'Search index has no data — run with a seeded Meili stack to verify fully')
-    return
-  }
-
-  await expect(firstFigure).toBeVisible()
+  await requireSeeded(firstFigure, 'Search index has no data')
 
   // Compared on the total, not the tiles: both pages fill a full grid, so a
   // tile count stays at the page size whether or not the filter applied.

@@ -13,7 +13,8 @@ type ShareRow = { name: string; setCode: string; number: string; cost: number; t
  *   - every message is one container; its accent bar is the LESSON colour for a
  *     card (Charms is #0069A9) and BRAND_GOLD (#d4a83a) for a shared list
  *   - the card is: "## name", then two lines of labelled pairs (type and
- *     lesson; cost, rarity and legality), the image, the rules text, the footer
+ *     lesson; cost, rarity and legality), the image, the rules text and the
+ *     flavour text in italics, the footer
  *     line "{setName} · #{number}" in small muted text, a link button
  *   - a shared list is a plain channel message, so it has no "used /search"
  *     line; it opens with "@user shared N cards from a search for ...", then one
@@ -169,6 +170,9 @@ export function CommandChannel() {
               className="mb-2 h-auto w-40 rounded"
             />
             <p className="mb-2 text-[0.8rem]">{t('sample.cardText')}</p>
+            <p className="mb-2 text-[0.8rem]">
+              <em>{t('sample.cardFlavor')}</em>
+            </p>
             <p className="text-[0.69rem]" style={{ color: DISCORD_MUTED }}>
               {t('sample.cardFooter')}
             </p>

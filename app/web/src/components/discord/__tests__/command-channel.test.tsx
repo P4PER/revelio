@@ -50,6 +50,16 @@ describe('CommandChannel', () => {
     expect(follows(body, footer)).toBe(true)
   })
 
+  // card-view.ts follows the rules text with the flavour text in italics.
+  it('shows the flavour text in italics between the rules text and the footer', () => {
+    renderChannel('en', en)
+    const flavor = screen.getByText(/whispered, 'Alohomora!'/)
+    const follows = (a: Node, b: Node) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(flavor.tagName).toBe('EM')
+    expect(follows(screen.getByText(/Search your deck/), flavor)).toBe(true)
+    expect(follows(flavor, screen.getByText('Adventures at Hogwarts · #32'))).toBe(true)
+  })
+
   // A shared list is a plain channel message: no "used /search" line above it.
   it('shows a shared result list with thumbnails and no command line', () => {
     renderChannel('en', en)

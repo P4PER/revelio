@@ -854,6 +854,7 @@
       "cardTags": "<b>Type</b> Spell · <b>Lesson</b> Charms",
       "cardStats": "<b>Cost</b> 4 · <b>Rarity</b> Uncommon · <b>Legality</b> Legal",
       "cardText": "Search your deck. You may take a Location or Adventure card from your deck, show it to your opponent and put it into your hand. Then shuffle your deck.",
+      "cardFlavor": "She grabbed Harry's wand, tapped the lock and whispered, 'Alohomora!'",
       "cardFooter": "Adventures at Hogwarts · #32",
       "shareLead": "<mention>@{userName}</mention> shared 3 cards from a search for \"{query}\".",
       "shareQuery": "charm",

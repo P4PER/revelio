@@ -806,6 +806,7 @@
       "cardTags": "<b>Typ</b> Zauber · <b>Lektion</b> Zauberkunst",
       "cardStats": "<b>Kosten</b> 4 · <b>Seltenheit</b> Ungewöhnlich · <b>Legalität</b> Legal",
       "cardText": "Durchsuche dein Deck. Du darfst eine Ort- oder Abenteuerkarte aus deinem Deck nehmen, sie deinem Gegner zeigen und auf deine Hand nehmen. Mische danach dein Deck.",
+      "cardFlavor": "She grabbed Harry's wand, tapped the lock and whispered, 'Alohomora!'",
       "cardFooter": "Adventures at Hogwarts · #32",
       "shareLead": "<mention>@{userName}</mention> hat 3 Karten aus einer Suche nach „{query}“ geteilt.",
       "shareQuery": "charm",

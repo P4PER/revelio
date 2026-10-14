@@ -57,8 +57,8 @@ export function CardEditForm({
 
   return (
     <div className="space-y-8">
-      <LocalizationForm ref={locRef} embedded cardId={cardId} lang={lang} initial={locInitial} kind={kind} />
-      <RulingsEditor ref={rulRef} embedded cardId={cardId} lang={lang} initial={rulingsInitial} sources={sources} />
+      <LocalizationForm ref={locRef} cardId={cardId} lang={lang} initial={locInitial} kind={kind} />
+      <RulingsEditor ref={rulRef} cardId={cardId} lang={lang} initial={rulingsInitial} sources={sources} />
       <div className="flex items-center gap-2 border-t pt-6">
         <Button type="button" disabled={busy} onClick={onSave}>{t('save')}</Button>
         <Button type="button" variant="ghost" asChild>

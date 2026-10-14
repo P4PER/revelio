@@ -6,17 +6,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const updateLocalization = vi.fn(async () => ({ ok: true as const }))
 vi.mock('@/lib/actions/localization-actions', () => ({ updateLocalization: (...a: unknown[]) => updateLocalization(...a) }))
-vi.mock('@/../i18n/navigation', () => ({
-  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
-  Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,
-}))
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), warning: vi.fn(), error: vi.fn() } }))
 
 import { LocalizationForm, type LocalizationFormHandle } from '@/components/card/localization-form'
 import en from '@/../messages/en.json'
 
-// Rendered the way CardEditForm embeds it, its only caller: no Save button of
-// its own, saved through the ref handle.
+// Saved through the ref handle, the way CardEditForm, its only caller, saves it.
 const handle = createRef<LocalizationFormHandle>()
 const save = () => act(() => handle.current!.save())
 
@@ -25,7 +19,7 @@ function renderForm(kind: 'adventure' | 'match' | null = null) {
     <NextIntlClientProvider locale="en" messages={en}>
       <LocalizationForm
         ref={handle}
-        embedded
+       
         cardId="x-1"
         lang="de"
         kind={kind}

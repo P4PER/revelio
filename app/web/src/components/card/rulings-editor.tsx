@@ -2,9 +2,7 @@
 import { useEffect, useImperativeHandle, useRef } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useRouter } from '@/../i18n/navigation'
 import { useTranslations } from 'next-intl'
-import { toast } from 'sonner'
 import { ChevronUp, ChevronDown, X } from 'lucide-react'
 import { saveRulingsAction, type RulingsSaveResult } from '@/lib/actions/rulings-actions'
 import { Button } from '@/components/ui/button'
@@ -26,19 +24,16 @@ export function RulingsEditor({
   lang,
   initial,
   sources = [],
-  embedded = false,
   ref,
 }: {
   cardId: string
   lang: string
   initial: Initial[]
   sources?: string[]
-  embedded?: boolean
   ref?: React.Ref<RulingsEditorHandle>
 }) {
   const t = useTranslations('edit')
   const tv = useTranslations('validation')
-  const router = useRouter()
   const form = useForm<{ rows: Row[] }>({
     resolver: zodResolver(makeRulingsSchema((k) => tv(k))),
     defaultValues: {
@@ -69,8 +64,8 @@ export function RulingsEditor({
     append({ id: null, date: '', source: '', text: '' })
   }
 
-  // Persist the rulings; validate all rows first so an embedding parent
-  // (CardEditForm) gets { ok:false, error:'invalid' } when a row is incomplete.
+  // Persist the rulings; validate all rows first so CardEditForm gets
+  // { ok:false, error:'invalid' } when a row is incomplete.
   async function save(): Promise<RulingsSaveResult> {
     const valid = await form.trigger()
     if (!valid) return { ok: false, error: 'invalid' }
@@ -83,13 +78,6 @@ export function RulingsEditor({
   }
 
   useImperativeHandle(ref, () => ({ save }))
-
-  async function onSave() {
-    const res = await save()
-    if (!res.ok) return // inline messages already show which fields are missing
-    toast.success(t('rulingsSaved'))
-    router.refresh()
-  }
 
   return (
     <Form {...form}>
@@ -177,12 +165,6 @@ export function RulingsEditor({
             />
           </div>
         ))}
-
-        {!embedded && (
-          <Button type="button" disabled={form.formState.isSubmitting} onClick={onSave}>
-            {t('saveRulings')}
-          </Button>
-        )}
       </section>
     </Form>
   )

@@ -6,24 +6,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const saveRulingsAction = vi.fn(async () => ({ ok: true as const }))
 vi.mock('@/lib/actions/rulings-actions', () => ({ saveRulingsAction: (...a: unknown[]) => saveRulingsAction(...a) }))
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
-vi.mock('@/../i18n/navigation', () => ({
-  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
-  Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,
-}))
 
 import { RulingsEditor, type RulingsEditorHandle } from '@/components/card/rulings-editor'
 import en from '@/../messages/en.json'
 
-// Rendered the way CardEditForm embeds it, its only caller: no Save button of
-// its own, saved through the ref handle.
+// Saved through the ref handle, the way CardEditForm, its only caller, saves it.
 const handle = React.createRef<RulingsEditorHandle>()
 const save = () => act(() => handle.current!.save())
 
 function renderEditor(initial: { id: string; date: string; source: string; text: string }[] = []) {
   return render(
     <NextIntlClientProvider locale="en" messages={en}>
-      <RulingsEditor ref={handle} embedded cardId="x-1" lang="en" initial={initial} />
+      <RulingsEditor ref={handle} cardId="x-1" lang="en" initial={initial} />
     </NextIntlClientProvider>,
   )
 }

@@ -46,10 +46,6 @@ describe('CardEditForm', () => {
         />
       </NextIntlClientProvider>,
     )
-    // exactly one Save button (no per-section saves)
-    expect(screen.getByRole('button', { name: en.edit.save })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: en.edit.saveRulings })).not.toBeInTheDocument()
-
     await userEvent.click(screen.getByRole('button', { name: en.edit.save }))
     expect(updateLocalization).toHaveBeenCalledTimes(1)
     expect(saveRulingsAction).toHaveBeenCalledTimes(1)

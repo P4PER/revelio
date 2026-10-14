@@ -855,12 +855,10 @@
       "cardStats": "<b>Cost</b> 4 · <b>Rarity</b> Uncommon · <b>Legality</b> Legal",
       "cardText": "Search your deck. You may take a Location or Adventure card from your deck, show it to your opponent and put it into your hand. Then shuffle your deck.",
       "cardFooter": "Adventures at Hogwarts · #32",
-      "openSite": "Open on revelio.cards",
       "shareLead": "<mention>@{userName}</mention> shared 3 cards from a search for \"{query}\".",
       "shareQuery": "charm",
       "rowStats": "Spell · Charms · Cost {cost}",
       "viewCard": "View a card...",
-      "fullSearch": "Full search on revelio.cards",
       "typing": "set: Chamber of Secrets"
     }
   },

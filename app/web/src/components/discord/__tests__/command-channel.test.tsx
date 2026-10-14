@@ -26,7 +26,14 @@ describe('CommandChannel', () => {
     expect(line('Type Spell · Lesson Charms')).toBeInTheDocument()
     expect(line('Cost 4 · Rarity Uncommon · Legality Legal')).toBeInTheDocument()
     expect(screen.getByText('Adventures at Hogwarts · #32')).toBeInTheDocument()
-    expect(screen.getByText('Open on revelio.cards')).toBeInTheDocument()
+  })
+
+  // Both real messages end in a link button; the page leaves them off, since
+  // the visitor is already on revelio.cards.
+  it('leaves the site link buttons off', () => {
+    renderChannel('en', en)
+    expect(screen.queryByText('Open on revelio.cards')).not.toBeInTheDocument()
+    expect(screen.queryByText('Full search on revelio.cards')).not.toBeInTheDocument()
   })
 
   // card-view.ts: heading and the labelled lines, then the image, then the
@@ -49,7 +56,6 @@ describe('CommandChannel', () => {
     expect(screen.getByText(/shared 3 cards from a search for "charm"/)).toBeInTheDocument()
     expect(screen.getByAltText('Obliviate card')).toBeInTheDocument()
     expect(screen.getByText('View a card...')).toBeInTheDocument()
-    expect(screen.getByText('Full search on revelio.cards')).toBeInTheDocument()
     expect(screen.queryByText('/search')).not.toBeInTheDocument()
   })
 

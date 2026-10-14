@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { ChevronDown, ExternalLink } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 type ShareRow = { name: string; setCode: string; number: string; cost: number; thumb: string }
@@ -19,6 +19,8 @@ type ShareRow = { name: string; setCode: string; number: string; cost: number; t
  *     line; it opens with "@user shared N cards from a search for ...", then one
  *     row per card ("**name** · set #number", then type, lesson and cost) with
  *     its thumbnail on the right, a "View a card" menu and a link button
+ *   - both link buttons are left off here: the visitor is already on
+ *     revelio.cards
  *
  * The colours below are Discord's own surface palette, deliberately hardcoded
  * rather than taken from the Revelio theme tokens: this depicts Discord's UI,
@@ -32,7 +34,6 @@ const DISCORD_TEXT = '#dbdee1'
 const DISCORD_MUTED = '#949ba4'
 const DISCORD_BLURPLE = '#5865F2'
 const DISCORD_MENTION = '#c2c5f7'
-const DISCORD_BUTTON = '#4e5058'
 const DISCORD_SELECT = '#1e1f22'
 
 const LESSON_CHARMS = '#0069A9'
@@ -120,19 +121,6 @@ function Container({ accent, children }: { accent: string; children: React.React
   )
 }
 
-// Discord's grey link button, with the external-link glyph it draws.
-function LinkButton({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded px-3 py-1 text-[0.78rem] font-medium"
-      style={{ background: DISCORD_BUTTON, color: DISCORD_HEADING }}
-    >
-      {children}
-      <ExternalLink className="size-3" aria-hidden />
-    </span>
-  )
-}
-
 // A string select, closed: its placeholder and the chevron.
 function SelectMenu({ placeholder }: { placeholder: string }) {
   return (
@@ -181,10 +169,9 @@ export function CommandChannel() {
               className="mb-2 h-auto w-40 rounded"
             />
             <p className="mb-2 text-[0.8rem]">{t('sample.cardText')}</p>
-            <p className="mb-2 text-[0.69rem]" style={{ color: DISCORD_MUTED }}>
+            <p className="text-[0.69rem]" style={{ color: DISCORD_MUTED }}>
               {t('sample.cardFooter')}
             </p>
-            <LinkButton>{t('sample.openSite')}</LinkButton>
           </Container>
         </BotMessage>
 
@@ -223,12 +210,7 @@ export function CommandChannel() {
                   </li>
                 ))}
               </ul>
-              <div className="flex flex-col gap-2">
-                <SelectMenu placeholder={t('sample.viewCard')} />
-                <span>
-                  <LinkButton>{t('sample.fullSearch')}</LinkButton>
-                </span>
-              </div>
+              <SelectMenu placeholder={t('sample.viewCard')} />
             </Container>
           </BotMessage>
         </div>

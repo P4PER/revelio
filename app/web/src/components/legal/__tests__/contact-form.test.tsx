@@ -9,13 +9,14 @@ vi.mock('@/lib/actions/contact-actions', () => ({
 }))
 
 import { ContactForm } from '@/components/legal/contact-form'
+import { FORM_CARD } from '@/components/auth/auth-form'
 import en from '@/../messages/en.json'
 
-function renderForm() {
+function renderForm(props: Partial<React.ComponentProps<typeof ContactForm>> = {}) {
   // renderedAt well in the past so the (client-collected) value is plausible.
   return render(
     <NextIntlClientProvider locale="en" messages={en}>
-      <ContactForm renderedAt={Date.now() - 10_000} />
+      <ContactForm renderedAt={Date.now() - 10_000} intro={<h1>Intro block</h1>} {...props} />
     </NextIntlClientProvider>,
   )
 }
@@ -75,11 +76,7 @@ describe('ContactForm', () => {
   })
 
   it('prefills name and email from the provided defaults', () => {
-    render(
-      <NextIntlClientProvider locale="en" messages={en}>
-        <ContactForm renderedAt={Date.now() - 10_000} defaultName="Hermione" defaultEmail="h@x.io" />
-      </NextIntlClientProvider>,
-    )
+    renderForm({ defaultName: 'Hermione', defaultEmail: 'h@x.io' })
     expect(screen.getByLabelText(en.contact.name)).toHaveValue('Hermione')
     expect(screen.getByLabelText(en.contact.email)).toHaveValue('h@x.io')
   })
@@ -116,5 +113,63 @@ describe('ContactForm', () => {
     // Back to a blank form ready for a second message.
     expect(screen.getByLabelText(en.contact.subject)).toHaveValue('')
     expect(screen.getByRole('button', { name: en.contact.send })).toBeInTheDocument()
+  })
+
+  it('renders the intro and footer it is given', () => {
+    renderForm({ footer: <p>Footer line</p> })
+    expect(screen.getByRole('heading', { name: 'Intro block' })).toBeInTheDocument()
+    expect(screen.getByText('Footer line')).toBeInTheDocument()
+  })
+
+  it('wraps the form in the shared login card chrome', () => {
+    const { container } = renderForm()
+    const card = container.querySelector('[data-slot="contact-card"]')
+    expect(card?.className).toContain(FORM_CARD)
+    expect(card?.querySelector('form')).not.toBeNull()
+  })
+
+  it('shows the still emblem above the intro on small screens only', () => {
+    const { container } = renderForm()
+    const intro = container.querySelector('[data-slot="contact-intro"]')
+    const emblem = intro?.querySelector('[data-slot="owl-post-emblem"]')
+    expect(emblem).toHaveAttribute('data-state', 'still')
+    expect(emblem).toHaveClass('lg:hidden')
+  })
+
+  it('keeps the honeypot out of the tab order', async () => {
+    const user = userEvent.setup()
+    renderForm()
+    for (let i = 0; i < 6; i++) {
+      await user.tab()
+      expect(document.activeElement?.id).not.toBe('contact-website')
+    }
+  })
+
+  it('after sending, flies the emblem over a success card and keeps the intro', async () => {
+    const user = userEvent.setup()
+    const { container } = renderForm()
+    await fillValid(user)
+    await user.click(screen.getByRole('button', { name: en.contact.send }))
+    await screen.findByText(en.contact.successTitle)
+
+    expect(screen.getByRole('heading', { name: 'Intro block' })).toBeInTheDocument()
+    const emblems = container.querySelectorAll('[data-slot="owl-post-emblem"]')
+    expect(emblems).toHaveLength(1)
+    expect(emblems[0]).toHaveAttribute('data-state', 'flying')
+    const status = screen.getByRole('status')
+    expect(status.closest('[data-slot="contact-card"]')?.className).toContain(FORM_CARD)
+  })
+
+  it('send another message resets to the signed-in prefill, not to empty', async () => {
+    const user = userEvent.setup()
+    renderForm({ defaultName: 'Hermione', defaultEmail: 'hermione@example.com' })
+    await user.type(screen.getByLabelText(en.contact.subject), 'Card data typo')
+    await user.type(screen.getByLabelText(en.contact.message), 'The Lumos card has the wrong lesson cost listed.')
+    await user.click(screen.getByRole('button', { name: en.contact.send }))
+    await user.click(await screen.findByRole('button', { name: en.contact.sendAnother }))
+
+    expect(screen.getByLabelText(en.contact.name)).toHaveValue('Hermione')
+    expect(screen.getByLabelText(en.contact.email)).toHaveValue('hermione@example.com')
+    expect(screen.getByLabelText(en.contact.subject)).toHaveValue('')
   })
 })

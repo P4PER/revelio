@@ -768,7 +768,7 @@
     "cardImageAlt": "Karte {name}",
     "commandsTitle": "Was du tippen kannst",
     "commandsIntro": "Tippe <slash>/</slash> in jedem Kanal, den der Bot sieht. Den Rest ergänzt Discord.",
-    "ephemeral": "Nur du siehst es",
+    "channelNote": "<cmd>/card</cmd> und <cmd>/deck</cmd> antworten im Kanal. Alles andere antwortet nur dir, bis du es teilst.",
     "commands": {
       "card": {
         "description": "Die ganze Karte: Text, Flavour, Kosten, Lektion, Seltenheit, Legalität, Rulings und das Artwork."

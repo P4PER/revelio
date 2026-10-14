@@ -46,9 +46,15 @@ describe('CommandGrid', () => {
     expect(screen.getByText('/mydecks', { selector: 'code' })).toBeInTheDocument()
   })
 
-  it('marks every command that answers privately', () => {
+  // Four of six commands answer privately, so a tag on each stopped telling
+  // tiles apart. One line names the exceptions instead: the commands that
+  // answer in the channel, which must be exactly the manifest's public ones.
+  it('names the commands that answer in the channel, once', () => {
     renderGrid()
-    expect(screen.getAllByText('Only you see it')).toHaveLength(BOT_COMMANDS.filter((c) => c.ephemeral).length)
+    expect(screen.queryByText('Only you see it')).not.toBeInTheDocument()
+    const note = screen.getByText(/answer in the channel/)
+    const named = [...note.querySelectorAll('code')].map((c) => c.textContent)
+    expect(named).toEqual(BOT_COMMANDS.filter((c) => !c.ephemeral).map((c) => `/${c.name}`))
   })
 
   // Six commands fill two rows of three; the reference tile takes the third

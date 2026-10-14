@@ -816,7 +816,7 @@
     "cardImageAlt": "{name} card",
     "commandsTitle": "What you can type",
     "commandsIntro": "Type <slash>/</slash> in any channel the bot can see. Discord fills in the rest.",
-    "ephemeral": "Only you see it",
+    "channelNote": "<cmd>/card</cmd> and <cmd>/deck</cmd> answer in the channel. Everything else answers only you until you share it.",
     "commands": {
       "card": {
         "description": "The full card: text, flavour, cost, lesson, rarity, legality, rulings, and the art."

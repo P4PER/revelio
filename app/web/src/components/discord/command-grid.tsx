@@ -5,7 +5,7 @@ import { Link } from '@/../i18n/navigation'
 import { CommandCode } from '@/components/discord/command-code'
 
 // Display order only - most-used first. Everything else about a command (its
-// options, whether only the caller sees the answer) comes from BOT_COMMANDS,
+// options, whether it answers in the channel) comes from BOT_COMMANDS,
 // which bot/test/command-manifest.test.ts holds to what the bot registers. The
 // grid used to keep its own copy and kept showing an option the bot had dropped.
 //
@@ -18,8 +18,6 @@ const COMMANDS: readonly BotCommandSpec[] = ORDER.flatMap((name) => BOT_COMMANDS
 
 const STEPS = ['add', 'link', 'type'] as const
 
-// `ephemeral` drives the "only you see it" tag: those commands defer
-// ephemerally in the bot, and command-manifest.test.ts checks it.
 function CommandCard({ command }: { command: BotCommandSpec }) {
   const t = useTranslations('discord')
   return (
@@ -39,11 +37,6 @@ function CommandCard({ command }: { command: BotCommandSpec }) {
       <span className="text-sm leading-relaxed text-muted-foreground">
         {t(`commands.${command.name}.description`)}
       </span>
-      {command.ephemeral && (
-        <span className="mt-auto self-start rounded-full border border-border px-2 py-0.5 text-[0.62rem] font-medium uppercase tracking-wider text-muted-foreground">
-          {t('ephemeral')}
-        </span>
-      )}
     </li>
   )
 }
@@ -96,6 +89,15 @@ export function CommandGrid({ docsHref }: { docsHref?: string | null }) {
           slash: (chunks) => (
             <span className="font-mono font-medium text-primary-ink">{chunks}</span>
           ),
+        })}
+      </p>
+      {/* Most commands answer privately, so a tag on each tile stopped telling
+          them apart. This names the exceptions instead: the commands that
+          post where everyone can see, which is what a visitor worries about.
+          command-grid.test.tsx holds the named ones to the manifest. */}
+      <p className="mx-auto mt-1 max-w-md text-center text-sm text-muted-foreground">
+        {t.rich('channelNote', {
+          cmd: (chunks) => <CommandCode>{chunks}</CommandCode>,
         })}
       </p>
 

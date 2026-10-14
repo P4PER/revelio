@@ -816,22 +816,25 @@
     "cardImageAlt": "{name} card",
     "commandsTitle": "What you can type",
     "commandsIntro": "Type <slash>/</slash> in any channel the bot can see. Discord fills in the rest.",
-    "ephemeral": "Only you see it",
+    "channelNote": "<cmd>/card</cmd> and <cmd>/deck</cmd> answer in the channel. Everything else answers only you until you share it.",
     "commands": {
       "card": {
         "description": "The full card: text, flavour, cost, lesson, rarity, legality, rulings, and the art."
       },
       "search": {
-        "description": "The same search as the site, paged, with a link back to the full results."
+        "description": "The site's search, privately: page through, filter, open a card, then share the ones you mean."
       },
       "deck": {
         "description": "Any deck you can see, found by name, link or id, as a picture of its cards or as a text list."
+      },
+      "decks": {
+        "description": "Browse public decks by name, author, format or lesson, open one as a picture, and post it."
       },
       "collection": {
         "description": "How far along you are, overall or in one set."
       },
       "mydecks": {
-        "description": "Your decks, public and private, with their formats and sizes."
+        "description": "Your decks, public and private, to page through, open and post."
       }
     },
     "reference": {
@@ -848,16 +851,15 @@
     },
     "sample": {
       "cardName": "Alohomora",
+      "cardTags": "<b>Type</b> Spell · <b>Lesson</b> Charms",
+      "cardStats": "<b>Cost</b> 4 · <b>Rarity</b> Uncommon · <b>Legality</b> Legal",
       "cardText": "Search your deck. You may take a Location or Adventure card from your deck, show it to your opponent and put it into your hand. Then shuffle your deck.",
-      "cardFooter": "Adventures at Hogwarts - #32",
-      "fieldType": "Type",
-      "fieldTypeValue": "Spell",
-      "fieldLesson": "Lesson",
-      "fieldLessonValue": "Charms",
-      "fieldCost": "Cost",
-      "fieldCostValue": "4",
-      "searchTitle": "42 cards",
-      "searchFooter": "Page 1 of 5 - view all on revelio.cards",
+      "cardFlavor": "She grabbed Harry's wand, tapped the lock and whispered, 'Alohomora!'",
+      "cardFooter": "Adventures at Hogwarts · #32",
+      "shareLead": "<mention>@{userName}</mention> shared 3 cards from a search for \"{query}\".",
+      "shareQuery": "charm",
+      "rowStats": "Spell · Charms · Cost {cost}",
+      "viewCard": "View a card...",
       "typing": "set: Chamber of Secrets"
     }
   },
@@ -881,7 +883,7 @@
     "sections": {
       "discord": {
         "title": "Discord bot",
-        "summary": "Five slash commands for card, deck and collection lookups inside Discord."
+        "summary": "Six slash commands for card, deck and collection lookups inside Discord."
       },
       "api": {
         "title": "API",
@@ -957,7 +959,7 @@
       },
       "discord-commands": {
         "title": "Commands",
-        "description": "Every option each of the five slash commands takes."
+        "description": "Every option each of the six slash commands takes."
       },
       "discord-linking": {
         "title": "Account linking",

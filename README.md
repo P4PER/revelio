@@ -34,9 +34,10 @@ The app is six npm workspaces under `app/`, with a strict dependency direction
 - **`@revelio/ingest`** — one-shot job that runs migrations, seeds Postgres from
   `card-data`, indexes Meilisearch, and uploads card images to S3/RustFS.
 - **`@revelio/web`** — the Next.js 16 (App Router, React 19) app that ships to users.
-- **`@revelio/bot`** — a Discord bot (`/card`, `/search`) built on discord.js. It
-  reads Meilisearch and Postgres directly, with no HTTP API between it and the web
-  app, and never writes.
+- **`@revelio/bot`** — a Discord bot (`/card`, `/search`, `/deck`, `/decks`,
+  `/collection`, `/mydecks`) built on discord.js. It reads Meilisearch and
+  Postgres directly, with no HTTP API between it and the web app, and never
+  writes.
 
 **Stack:** Next.js · React · Postgres + Drizzle · Meilisearch · S3/RustFS · Better Auth · shadcn/Radix/Tailwind v4 · `next-intl` · discord.js.
 

@@ -36,12 +36,18 @@ kann sie also nicht vergessen werden.
 
 ## Wo die Antworten erscheinen
 
-`/card`, `/search` und `/deck` antworten im Kanal, sichtbar für alle. Es geht
-dabei um das Spiel, nicht um dich.
+`/card` und `/deck` antworten im Kanal, sichtbar für alle. Es geht dabei um das
+Spiel, nicht um dich.
 
-Die eine Ausnahme ist dein eigenes privates Deck. `/deck` fragt dich zuerst
-privat, ob es im Kanal gepostet oder nur dir gezeigt werden soll, und im Kanal
-erscheint nichts, bevor du dich entschieden hast.
+`/search` und `/decks` antworten privat. Du blätterst, filterst und öffnest Karten
+oder Decks dort, wo nur du sie siehst, und in den Kanal kommt nur, was du selbst
+postest oder teilst - mit deinem Namen daran.
+
+Die eine Ausnahme davon, dass `/deck` im Kanal antwortet, ist dein eigenes
+privates Deck. `/deck` fragt dich zuerst privat, ob es im Kanal gepostet oder nur
+dir gezeigt werden soll, und im Kanal erscheint nichts, bevor du dich entschieden
+hast. Die Deck-Übersichten funktionieren genauso: Ein privates Deck von dir wird
+nur gepostet, wenn du seinen Button **Im Kanal posten** drückst.
 
 `/collection` und `/mydecks` antworten privat - nur du siehst die Antwort, auch
 in einem vollen Kanal. Das wird entschieden, bevor der Befehl überhaupt etwas
@@ -61,23 +67,25 @@ alles andere, was du sendest.
 
 Suchergebniszahlen sind Schätzungen. Die Trefferzahl, die die Suchmaschine
 meldet, fällt zu hoch aus. Die letzte Seite eines langen Ergebnissatzes kann
-deshalb hinter dem Ende der echten Ergebnisse liegen. Fragst du sie ab, sagt dir
-der Bot, dass die Seite außerhalb des Bereichs liegt, statt ein leeres Embed zu
-zeigen - geh eine Seite zurück.
+deshalb hinter dem Ende der echten Ergebnisse liegen. Der Bot sagt das auf dieser
+Seite, und **Zurück** ist weiter da - geh eine Seite zurück.
 
 Lange Antworten werden gekürzt, nicht riskiert. Discord weist eine zu große
 Nachricht rundheraus ab und lässt den ganzen Befehl scheitern. Deshalb kürzt der
-Bot vorher: Eine Embed-Beschreibung ist auf 4.096 Zeichen begrenzt, ein einzelnes
-Feld auf 1.024, ein Embed auf 25 Felder und eine einfache Nachricht auf 2.000
-Zeichen. `/mydecks` hört an der Grenze auf und sagt dazu, wie viele Decks es
-weggelassen hat, statt die Liste stillschweigend enden zu lassen.
+Bot vorher: Eine Nachricht hat höchstens 40 Teile (Textblöcke, Bilder, Buttons,
+Menüs) und etwa 4.000 Zeichen Text. Eine lange Deckliste endet deshalb mit der
+Zahl der weggelassenen Karten, statt stillschweigend aufzuhören.
 
-Das Artwork in einem Embed ist die 300-Pixel-Vorschau, nicht der Scan in voller
-Größe, groß unter den Kartendetails. In der Größe, in der Discord es anzeigt, ist
-es scharf, und die Antwort bleibt schnell. Außer Zaubern sind alle Karten im
-Querformat gedruckt; der Bot dreht sie, damit sie aufrecht zu lesen sind. Die
-Kartenseite auf revelio.cards - im Embed immer einen Klick entfernt - hat das
-vollständige Bild.
+Das Artwork ist die 300-Pixel-Vorschau, nicht der Scan in voller Größe. In der
+Größe, in der Discord es zeigt, ist es scharf, und die Antwort bleibt schnell.
+Außer Zaubern sind alle Karten im Querformat gedruckt; der Bot dreht sie, damit
+sie aufrecht zu lesen sind. Die Kartenseite auf revelio.cards - immer einen Klick
+entfernt - hat das vollständige Bild.
+
+Die Buttons und Menüs einer Antwort tragen alles mit, was sie brauchen, und
+funktionieren deshalb auch nach einem Neustart des Bots. Eine private Antwort
+ist weg, sobald du sie schließt oder Discord neu lädst; führe den Befehl dann
+erneut aus.
 
 ## Rechtliches
 

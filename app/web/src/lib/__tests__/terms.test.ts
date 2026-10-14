@@ -9,8 +9,8 @@ import { TERMS_VERSION, TERMS_EFFECTIVE_DATE, needsTermsAcceptance } from '../te
 // language files with whitespace collapsed. Update it only together with
 // TERMS_VERSION.
 const PINNED_TERMS = {
-  version: '2026-09-16',
-  sha256: '6b634d5e2ca424c60e7f9d27e59d77662bb74db1b51a316649e33cfc9f97bdb4',
+  version: '2026-10-14',
+  sha256: '0535f137ede62b73499645fb1106b6affc79e4b9c747465c5b67ad55286df1e7',
 }
 
 // Joined by hand: Vite rewrites `new URL('x.mdx', import.meta.url)` into an

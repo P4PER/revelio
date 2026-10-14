@@ -1,4 +1,4 @@
-Five slash commands, available in every channel the bot can see. Option names are
+Six slash commands, available in every channel the bot can see. Option names are
 the same in every language - only their descriptions are translated, so you type
 the same thing whether Discord is set to English or German.
 
@@ -15,21 +15,32 @@ matters.
 
 ## Search
 
-The same search the site runs, paged into an embed, with a link back to the full
-results on revelio.cards. Filters combine: a lesson and a set together narrow to
-both.
+The same search the site runs, answered privately: only you see the results
+until you decide to share some. Five cards to a page, each with its art, and
+buttons to page through them. Lesson, card type and set can be changed on the
+reply itself, without typing the command again, and the filters combine.
+**Search** changes the search terms. Leave them out and the filters alone browse
+a lesson, a type or a set.
+
+Pick a card from the menu to open it in place, with everything `/card` shows
+and a button back to the results. **Post to channel** puts that one card in the
+channel. **Share** asks which cards of the page to post, all of them ticked to
+start with; the channel gets them as a list that names you, with a menu anyone
+can use to open one of the cards - privately, for whoever picked it.
 
 <CommandTable name="search" />
 
-<CommandExample>/search query:lumos lesson:Charms set:Chamber of Secrets</CommandExample>
+<CommandExample>/search query:lumos lesson:Charms</CommandExample>
+
+<CommandExample>/search set:Chamber of Secrets type:Spell</CommandExample>
 
 ## Deck lookup
 
 Finds a deck by name and shows it as a picture of its cards - the same deck
 sheet the builder's "Export PNG" downloads, grouped by card type with a copy
-count on each card. The embed above it carries the character, format and
-legality. `view:list` answers with a text list instead, which is easier to read
-on a slow connection and can be copied.
+count on each card. The heading above it names the starting character, the
+author, the format and legality. `view:list` answers with a text list instead,
+which is easier to read on a slow connection and can be copied.
 
 Start typing and Discord suggests matching decks: every public deck, plus your
 own private decks if your account is linked, marked with a lock. Start with `@`
@@ -49,11 +60,30 @@ after a minute.
 
 <CommandExample>/deck deck:abc123 view:list</CommandExample>
 
+## Browse decks
+
+Every public deck, privately, five to a page with the starting character's art,
+most liked first. The menus on the reply change the format, the order and the
+lesson. Give a deck name as `query`, or start it with `@` to search by author.
+Open a deck to see it as a picture of its cards; **Post to channel** shares it,
+naming you.
+
+<CommandTable name="decks" />
+
+<CommandExample>/decks query:aggro format:Classic</CommandExample>
+
+<CommandExample>/decks query:@hermione sort:Newest</CommandExample>
+
 ## Your own data
 
 Two commands answer about you rather than about the game, so both reply
 privately - only you see the result, even in a busy channel. Both need your
 Discord account linked to Revelio first.
+
+`/mydecks` lists five decks to a page, the way `/decks` does, with your private
+ones marked with a lock, and opens any of them the same way. Posting one of your
+private decks to the channel is your choice to make, with its button; nothing
+else does it.
 
 <CommandTable name="collection" />
 
@@ -61,6 +91,6 @@ Discord account linked to Revelio first.
 
 <Callout>
 Not linked yet? The bot replies with a link to Settings, then Connections.
-Linking is only needed for these two commands - card, search and deck lookups
-work for anyone. See [account linking](/docs/discord/linking).
+Linking is only needed for these two commands - `/card`, `/search`, `/deck` and
+`/decks` work for anyone. See [account linking](/docs/discord/linking).
 </Callout>

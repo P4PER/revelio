@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { useTranslations } from 'next-intl'
 import { getTranslations } from 'next-intl/server'
-import { ArrowRight, BookText, Code2 } from 'lucide-react'
+import { BookText, ChevronRight, Code2 } from 'lucide-react'
 import { routing } from '@/../i18n/routing'
 import { Link, getPathname } from '@/../i18n/navigation'
 import { SITE_URL as BASE_URL } from '@/lib/site'
@@ -85,17 +85,21 @@ export function DocsHub() {
               <Link
                 key={section.key}
                 href={`/docs/${section.pages[0]}`}
-                className="flex flex-col gap-1.5 rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary hover:bg-primary/5"
+                className="flex items-center gap-4 rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary hover:bg-primary/5"
               >
-                <span className="flex items-center gap-2 text-base font-semibold text-foreground">
-                  <Icon className="size-4 text-primary-ink" aria-hidden />
-                  {title}
-                  <ArrowRight className="size-4 text-primary-ink" aria-hidden />
+                {/* Content, then a chevron at the end, as the /discord page's
+                    reference tile draws a link into the docs. */}
+                <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <span className="flex items-center gap-2 text-base font-semibold text-foreground">
+                    <Icon className="size-4 text-primary-ink" aria-hidden />
+                    {title}
+                  </span>
+                  <span className="text-sm leading-relaxed text-muted-foreground">{summary}</span>
+                  <span className="mt-1 font-mono text-xs text-muted-foreground">
+                    {section.pages.map((slug) => t(`pages.${docId(slug)}.title`)).join(' · ')}
+                  </span>
                 </span>
-                <span className="text-sm leading-relaxed text-muted-foreground">{summary}</span>
-                <span className="mt-1 font-mono text-xs text-muted-foreground">
-                  {section.pages.map((slug) => t(`pages.${docId(slug)}.title`)).join(' · ')}
-                </span>
+                <ChevronRight className="size-4 shrink-0 text-primary-ink" aria-hidden />
               </Link>
             )
           })}

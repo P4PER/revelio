@@ -768,22 +768,25 @@
     "cardImageAlt": "Karte {name}",
     "commandsTitle": "Was du tippen kannst",
     "commandsIntro": "Tippe <slash>/</slash> in jedem Kanal, den der Bot sieht. Den Rest ergänzt Discord.",
-    "ephemeral": "Nur du siehst es",
+    "channelNote": "<cmd>/card</cmd> und <cmd>/deck</cmd> antworten im Kanal. Alles andere antwortet nur dir, bis du es teilst.",
     "commands": {
       "card": {
         "description": "Die ganze Karte: Text, Flavour, Kosten, Lektion, Seltenheit, Legalität, Rulings und das Artwork."
       },
       "search": {
-        "description": "Dieselbe Suche wie auf der Website, seitenweise, mit Link zu den vollständigen Ergebnissen."
+        "description": "Die Suche der Website, privat: blättern, filtern, eine Karte öffnen und dann die passenden teilen."
       },
       "deck": {
         "description": "Jedes Deck, das du sehen darfst, per Name, Link oder ID - als Bild seiner Karten oder als Textliste."
+      },
+      "decks": {
+        "description": "Öffentliche Decks nach Name, Autor, Format oder Lektion durchsuchen, eins als Bild öffnen und posten."
       },
       "collection": {
         "description": "Wie weit du bist, insgesamt oder in einem Set."
       },
       "mydecks": {
-        "description": "Deine Decks, öffentlich und privat, mit Format und Kartenzahl."
+        "description": "Deine Decks, öffentlich und privat, zum Durchblättern, Öffnen und Posten."
       }
     },
     "reference": {
@@ -800,16 +803,15 @@
     },
     "sample": {
       "cardName": "Alohomora",
+      "cardTags": "<b>Typ</b> Zauber · <b>Lektion</b> Zauberkunst",
+      "cardStats": "<b>Kosten</b> 4 · <b>Seltenheit</b> Ungewöhnlich · <b>Legalität</b> Legal",
       "cardText": "Durchsuche dein Deck. Du darfst eine Ort- oder Abenteuerkarte aus deinem Deck nehmen, sie deinem Gegner zeigen und auf deine Hand nehmen. Mische danach dein Deck.",
-      "cardFooter": "Adventures at Hogwarts - #32",
-      "fieldType": "Typ",
-      "fieldTypeValue": "Zauber",
-      "fieldLesson": "Lektion",
-      "fieldLessonValue": "Zauberkunst",
-      "fieldCost": "Kosten",
-      "fieldCostValue": "4",
-      "searchTitle": "42 Karten",
-      "searchFooter": "Seite 1 von 5 - alle auf revelio.cards",
+      "cardFlavor": "She grabbed Harry's wand, tapped the lock and whispered, 'Alohomora!'",
+      "cardFooter": "Adventures at Hogwarts · #32",
+      "shareLead": "<mention>@{userName}</mention> hat 3 Karten aus einer Suche nach „{query}“ geteilt.",
+      "shareQuery": "charm",
+      "rowStats": "Zauber · Zauberkunst · Kosten {cost}",
+      "viewCard": "Karte ansehen ...",
       "typing": "set: Kammer des Schreckens"
     }
   },
@@ -833,7 +835,7 @@
     "sections": {
       "discord": {
         "title": "Discord-Bot",
-        "summary": "Fünf Slash-Befehle für Karten-, Deck- und Sammlungsabfragen direkt in Discord."
+        "summary": "Sechs Slash-Befehle für Karten-, Deck- und Sammlungsabfragen direkt in Discord."
       },
       "api": {
         "title": "API",
@@ -909,7 +911,7 @@
       },
       "discord-commands": {
         "title": "Befehle",
-        "description": "Jede Option, die jeder der fünf Slash-Befehle annimmt."
+        "description": "Jede Option, die jeder der sechs Slash-Befehle annimmt."
       },
       "discord-linking": {
         "title": "Kontoverknüpfung",

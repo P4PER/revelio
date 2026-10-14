@@ -1,4 +1,4 @@
-import { BookText, ArrowRight } from 'lucide-react'
+import { BookText, ChevronRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { BOT_COMMANDS, type BotCommandName, type BotCommandSpec } from '@revelio/core'
 import { Link } from '@/../i18n/navigation'
@@ -56,16 +56,19 @@ function ReferenceTile({ href }: { href: string }) {
     <li className="col-span-full">
       <Link
         href={href}
-        className="flex h-full flex-col justify-center gap-1.5 rounded-xl border border-dashed border-primary/50 bg-card p-4 transition-colors hover:bg-accent/40 sm:flex-row sm:items-center sm:gap-4"
+        className="flex h-full items-center gap-4 rounded-xl border border-dashed border-primary/50 bg-card p-4 transition-colors hover:bg-accent/40"
       >
-        <BookText className="size-5 text-primary-ink" aria-hidden />
-        <span className="flex items-center gap-1.5 font-semibold text-foreground">
-          {t('reference.title')}
-          <ArrowRight className="size-4 text-primary-ink" aria-hidden />
+        <BookText className="size-5 shrink-0 text-primary-ink" aria-hidden />
+        {/* Title over the description on a phone, beside it from sm up. */}
+        <span className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
+          <span className="whitespace-nowrap font-semibold text-foreground">
+            {t('reference.title')}
+          </span>
+          <span className="text-sm leading-relaxed text-muted-foreground">
+            {t('reference.description')}
+          </span>
         </span>
-        <span className="text-sm leading-relaxed text-muted-foreground">
-          {t('reference.description')}
-        </span>
+        <ChevronRight className="size-4 shrink-0 text-primary-ink" aria-hidden />
       </Link>
     </li>
   )

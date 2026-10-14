@@ -65,6 +65,16 @@ describe('CommandGrid', () => {
     expect(tile.className).toMatch(/col-span-full/)
   })
 
+  // A chevron ends the tile, after the description, rather than an arrow
+  // sitting between the title and the text it leads to.
+  it('ends the reference tile with a chevron', () => {
+    renderGrid('/docs/discord')
+    const link = screen.getByRole('link', { name: /Full reference/i })
+    expect(link.lastElementChild?.tagName.toLowerCase()).toBe('svg')
+    expect(link.lastElementChild?.getAttribute('class')).toMatch(/lucide-chevron-right/)
+    expect(link.querySelectorAll('svg')).toHaveLength(2)
+  })
+
   it('hides the reference tile while there is no docs route', () => {
     renderGrid(null)
     expect(screen.queryByRole('link', { name: /Full reference/i })).not.toBeInTheDocument()

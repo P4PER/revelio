@@ -958,7 +958,7 @@
       },
       "discord-commands": {
         "title": "Commands",
-        "description": "Every option each of the five slash commands takes."
+        "description": "Every option each of the six slash commands takes."
       },
       "discord-linking": {
         "title": "Account linking",

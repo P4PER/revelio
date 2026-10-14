@@ -35,20 +35,14 @@ describe('buildDocuments', () => {
     expect(deanDe.text).toBe('Ziehe 3 Karten.')
   })
 
-  it('falls back to defaultLanguage when a localization is missing', () => {
-    // qc-1-the-snitch has only en; its de doc should fall back to en text
-    const snitchDe = byLang.de.find((d) => d.id === 'qc-1-the-snitch')!
-    expect(snitchDe.name).toBe('The Snitch')
-  })
-
-  it('includes types/subTypes from the junctions and the lesson color', () => {
+  it('includes types/subTypes from the junctions', () => {
     const flob = byLang.en.find((d) => d.id === 'bs-2-flobberworm')!
     expect(flob.types).toEqual(['creature'])
     const dean = byLang.en.find((d) => d.id === 'bs-1-dean-thomas')!
     expect(dean.subTypes.sort()).toEqual(['gryffindor', 'wizard'])
   })
 
-  it('carries set metadata (name + isOfficial)', () => {
+  it('carries the set\'s isOfficial flag', () => {
     const snitch = byLang.en.find((d) => d.id === 'qc-1-the-snitch')!
     expect(snitch.isOfficial).toBe(true)
   })

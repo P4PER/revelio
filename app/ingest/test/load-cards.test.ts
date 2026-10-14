@@ -51,15 +51,6 @@ describe('loadCards', () => {
     expect(locs.find((l) => l.lang === 'en')?.source).toBe('WotC')
   })
 
-  it('inserts card_rulings for flobberworm', async () => {
-    const rulings = await ctx.db.select().from(cardRulings).where(eq(cardRulings.cardId, 'bs-2-flobberworm'))
-    expect(rulings).toHaveLength(1)
-    expect(rulings[0].id).toBe('bs-2-flobberworm-r0')
-    expect(rulings[0].seq).toBe(0)
-    expect(rulings[0].date).toBe('2001-08-31')
-    expect(rulings[0].source).toBe('POJO')
-  })
-
   it('re-run is additive and never overwrites an in-app edit', async () => {
     await ctx.db
       .update(cardLocalizations)

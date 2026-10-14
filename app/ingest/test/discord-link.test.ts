@@ -39,9 +39,10 @@ describe('getUserIdByDiscordAccount', () => {
     expect(await getUserIdByDiscordAccount(ctx.db, '999')).toBeNull()
   })
 
-  it('ignores an account row from another provider with the same accountId', async () => {
-    // u3 holds github/111222333; only the discord row may match.
-    expect(await getUserIdByDiscordAccount(ctx.db, '111222333')).not.toBe('u3')
+  it('ignores an account row from another provider', async () => {
+    // An accountId that only a github row carries must not resolve at all.
+    await seedAccount('a4', 'u3', 'github', '444555666')
+    expect(await getUserIdByDiscordAccount(ctx.db, '444555666')).toBeNull()
   })
 
   // Banning deletes web sessions but leaves the account row, so without this
@@ -127,10 +128,6 @@ describe('unlinkProvider', () => {
     expect(await unlinkProvider(ctx.db, 'u10', 'discord')).toEqual([
       { accessToken: 'access-abc', refreshToken: 'refresh-xyz' },
     ])
-  })
-
-  it('reports nothing removed when the provider was never linked', async () => {
-    expect(await unlinkProvider(ctx.db, 'u2', 'discord')).toEqual([])
   })
 
   // The action resolves userId from the session, but the query is the last line

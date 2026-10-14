@@ -50,7 +50,7 @@ describe('parseEnv', () => {
     expect(() => parseEnv({ ...base, IMAGE_BASE_URL: 'https://cdn.test/images#f' })).toThrow()
   })
 
-  it('rejects an image base that is not a URL', () => {
+  it('rejects an image base without an http(s) scheme', () => {
     expect(() => parseEnv({ ...base, IMAGE_BASE_URL: 'rustfs:9000' })).toThrow()
   })
 })

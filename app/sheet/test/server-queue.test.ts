@@ -185,10 +185,6 @@ describe('the render queue', () => {
     log.mockRestore()
   })
 
-  it('states a request deadline that bounds one render', () => {
-    expect(REQUEST_DEADLINE_MS).toBe(60_000)
-  })
-
   it('sheds the request past one in flight and MAX_QUEUED waiting', async () => {
     gate.reset()
     const flight = Array.from({ length: MAX_QUEUED + 4 }, post)

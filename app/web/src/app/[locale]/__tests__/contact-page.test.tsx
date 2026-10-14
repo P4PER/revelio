@@ -114,4 +114,9 @@ describe('ContactPage', () => {
     // site-header.tsx's inner row is max-w-[76rem] px-6; the two columns line up with it.
     expect(container.querySelector('main')).toHaveClass('lg:max-w-[76rem]', 'lg:px-6')
   })
+
+  it('spaces the topic list out to match the taller card', async () => {
+    render(await ContactPage())
+    expect(screen.getByRole('list', { name: 'topicsLabel' })).toHaveClass('mt-12', 'gap-9')
+  })
 })

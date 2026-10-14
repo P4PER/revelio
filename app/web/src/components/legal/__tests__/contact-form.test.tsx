@@ -185,4 +185,10 @@ describe('ContactForm', () => {
     const card = container.querySelector('[data-slot="contact-card"]')?.parentElement
     expect(card).toHaveClass('lg:row-span-4', 'lg:self-center')
   })
+
+  it('opens the form up from lg up, where the card sits beside the intro', () => {
+    const { container } = renderForm()
+    expect(container.querySelector('form')).toHaveClass('space-y-4', 'lg:space-y-6')
+    expect(screen.getByLabelText(en.contact.message)).toHaveClass('min-h-32', 'lg:min-h-44')
+  })
 })

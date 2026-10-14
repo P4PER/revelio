@@ -51,8 +51,8 @@ export default async function ContactPage() {
             <h1 className="text-2xl font-semibold tracking-tight text-foreground lg:text-4xl">
               {t('titlePrefix')} <span className="text-heading">{t('titleAccent')}</span>
             </h1>
-            <p className="mt-2 text-base leading-relaxed text-muted-foreground lg:mt-4">{t('intro')}</p>
-            <ul aria-label={t('topicsLabel')} className="mt-8 hidden flex-col gap-5 lg:flex">
+            <p className="mt-2 text-base leading-relaxed text-muted-foreground lg:mt-5">{t('intro')}</p>
+            <ul aria-label={t('topicsLabel')} className="mt-12 hidden flex-col gap-9 lg:flex">
               {TOPICS.map(({ key, Icon }) => (
                 <li key={key} className="flex gap-3.5">
                   <span

@@ -125,7 +125,7 @@ export function ContactForm({
         ) : (
           <div data-slot="contact-card" className={FORM_CARD}>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 lg:space-y-6" noValidate>
                 {/* Honeypot — visually hidden, off the tab order and a11y tree, no autofill.
                     Any value ⇒ the server silently drops the submission. */}
                 <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
@@ -214,7 +214,7 @@ export function ContactForm({
                           ref={field.ref}
                           size="lg"
                           placeholder={t('messagePlaceholder')}
-                          className="min-h-32 mb-0"
+                          className="min-h-32 mb-0 lg:min-h-44"
                         />
                       </FormControl>
                       <FormMessage />
@@ -238,7 +238,7 @@ export function ContactForm({
       </div>
 
       {footer && (
-        <div data-slot="contact-footer" className="lg:col-start-1 lg:row-start-3 lg:mt-8">
+        <div data-slot="contact-footer" className="lg:col-start-1 lg:row-start-3 lg:mt-12">
           {footer}
         </div>
       )}

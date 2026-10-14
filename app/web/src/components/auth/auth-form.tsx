@@ -21,8 +21,9 @@ import { REGEXP_ONLY_DIGITS } from 'input-otp'
 // The card chrome only applies from `sm` up. On a phone a box costs width - a
 // second gutter inside the page's - and frames a form that already fills the
 // screen, so below `sm` the form sits directly on the page. z-10 keeps it above
-// the fan cards that run behind its top edge.
-const FORM_CARD =
+// the fan cards that run behind its top edge. The contact page uses it too, so
+// the two form pages cannot drift apart.
+export const FORM_CARD =
   'relative z-10 sm:rounded-xl sm:border sm:border-border sm:bg-card sm:p-8 sm:shadow-[0_-10px_28px_rgb(19_18_42/0.22)]'
 
 // Shared passwordless (email OTP) form. `register` collects a username and sets

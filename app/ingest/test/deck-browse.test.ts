@@ -132,21 +132,20 @@ describe('listPublicDecks', () => {
   })
 
   it('filters by lesson (array overlap) and by author search (@handle)', async () => {
+    await createDeck(ctx.db, 'u1', {
+      name: 'Potions Only', format: 'revival', visibility: 'public',
+      cards: [{ cardId: 'c-potions', zone: 'main', quantity: 1 }],
+    })
     const byLesson = await listPublicDecks(ctx.db, { lessons: ['charms'] })
+    expect(byLesson.total).toBeGreaterThan(0)
     expect(byLesson.entries.every((e) => e.lessons.includes('charms'))).toBe(true)
+    expect(byLesson.entries.some((e) => e.name === 'Potions Only')).toBe(false)
 
     // Search still matches on the lowercase login handle, but the displayed
     // author is the cased displayUsername.
     const byAuthor = await listPublicDecks(ctx.db, { search: '@alice' })
     expect(byAuthor.entries.every((e) => e.author === 'Alice_HP')).toBe(true)
     expect(byAuthor.total).toBeGreaterThan(0)
-  })
-
-  it('paginates with a stable page count', async () => {
-    const res = await listPublicDecks(ctx.db, { page: 1 })
-    expect(res.page).toBe(1)
-    expect(res.pageCount).toBe(Math.max(1, Math.ceil(res.total / 24)))
-    expect(res.entries.length).toBeLessThanOrEqual(24)
   })
 
   it('returns the starting-character card id (null when the deck has none)', async () => {

@@ -38,7 +38,8 @@ describe('findCards', () => {
   })
 
   // A browse row draws a thumbnail and a stats line, so the read must carry the
-  // image and stat fields - and still not the rules text.
+  // image and stat fields - and still not the rules text. The only test of
+  // search's BROWSE_FIELDS projection.
   it('reads the browse projection, five to a page', async () => {
     const full = {
       ...doc, lesson: 'quidditch', cost: 4, imageVersion: 3, imageLang: 'en',

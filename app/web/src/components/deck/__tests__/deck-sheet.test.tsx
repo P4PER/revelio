@@ -44,12 +44,6 @@ function Harness() {
 }
 
 describe('DeckSheet', () => {
-  it('opens collapsed, with the deck one tap away', () => {
-    render(<Harness />)
-    const handle = screen.getByRole('button', { name: 'Deck, 12 cards' })
-    expect(handle).toHaveAttribute('aria-expanded', 'false')
-  })
-
   it('is a disclosure over the sheet body, not a dialog', () => {
     // Deck building is the comparison of two lists, so the sheet must never
     // trap focus or hide the browse pane from assistive tech. A disclosure

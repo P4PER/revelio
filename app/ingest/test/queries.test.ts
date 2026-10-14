@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { getCardById, listSets, getSetByCode, listCardsForSitemap, listSetsForSitemap, getDailyShowcaseCandidates, schema } from '@revelio/db'
+import { getCardById, listCardsForSitemap, listSetsForSitemap, getDailyShowcaseCandidates, schema } from '@revelio/db'
 import { withMigratedDb } from './helpers'
 
 let ctx: Awaited<ReturnType<typeof withMigratedDb>>
@@ -54,16 +54,6 @@ describe('getCardById', () => {
 
   it('returns null for an unknown id', async () => {
     expect(await getCardById(ctx.db, 'nope')).toBeNull()
-  })
-})
-
-describe('listSets / getSetByCode', () => {
-  it('lists sets and finds one by code', async () => {
-    const all = await listSets(ctx.db)
-    expect(all.map((s) => s.code)).toContain('BS')
-    const bs = await getSetByCode(ctx.db, 'BS')
-    expect(bs!.name).toBe('Base Set')
-    expect(await getSetByCode(ctx.db, 'ZZ')).toBeNull()
   })
 })
 

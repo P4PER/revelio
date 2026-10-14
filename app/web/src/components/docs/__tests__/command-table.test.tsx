@@ -29,7 +29,7 @@ describe('CommandTable', () => {
     }
   })
 
-  it('marks required and optional options differently', () => {
+  it('marks a required option as required', () => {
     renderTable('card')
     const row = screen.getByText('name').closest('tr')!
     expect(within(row).getByText('Required')).toBeInTheDocument()

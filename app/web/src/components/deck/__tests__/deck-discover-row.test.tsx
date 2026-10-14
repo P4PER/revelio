@@ -15,7 +15,7 @@ const deck = {
 }
 
 describe('DeckDiscoverRow', () => {
-  it('renders name, author/meta, read-only counts, and links to the deck', () => {
+  it('renders name and author, offers no like button, and links to the deck', () => {
     const { container } = render(
       <NextIntlClientProvider locale="en" messages={en}><DeckDiscoverRow deck={deck} imageBase="https://img.test" /></NextIntlClientProvider>,
     )

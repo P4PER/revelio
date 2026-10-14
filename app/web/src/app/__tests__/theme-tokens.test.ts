@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { describe, it, expect, beforeAll } from 'vitest'
+import { LESSONS } from '@revelio/core'
 
 let css = ''
 beforeAll(async () => {
@@ -72,5 +73,17 @@ describe('theme tokens', () => {
   it('resolves every alias through a --light-*/--dark-* value, never a raw hex', () => {
     expect(block(EXPLICIT_DARK)).not.toMatch(/:\s*#[0-9a-f]{3,8}/i)
     expect(block(OS_DARK)).not.toMatch(/:\s*#[0-9a-f]{3,8}/i)
+  })
+})
+
+// lesson-colors.ts builds `var(--lesson-<code>)` from the code itself, so a
+// lesson with no alias paints nothing at all. theme-contrast.test.ts checks the
+// --light-/--dark- values; this checks the alias that reaches them.
+describe('lesson colours', () => {
+  it('aliases every lesson to its themed value in both themes', () => {
+    for (const { code } of LESSONS) {
+      expect(css).toMatch(new RegExp(`--lesson-${code}\\s*:\\s*var\\(--light-lesson-${code}\\)`, 'i'))
+      expect(css).toMatch(new RegExp(`--lesson-${code}\\s*:\\s*var\\(--dark-lesson-${code}\\)`, 'i'))
+    }
   })
 })

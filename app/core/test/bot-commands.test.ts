@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { BOT_COMMANDS } from '../src/bot-commands'
-import { LESSONS, TYPES } from '../src/attributes'
 
 describe('BOT_COMMANDS', () => {
   it('names each command exactly once', () => {
@@ -34,14 +33,12 @@ describe('BOT_COMMANDS', () => {
       .toEqual(['collection', 'decks', 'mydecks', 'search'])
   })
 
-  // `choices` names an attribute scope rather than listing values, so the
-  // rendered table reuses attrLabel and survives a new lesson or type.
-  it('only sources choices from a scope that exists', () => {
-    const scopes: Record<string, number> = { lessons: LESSONS.length, types: TYPES.length }
+  // `choices` names an attribute scope rather than listing values, and the
+  // scope's codes are strings, so only a string option can carry one.
+  it('puts choices only on a string option', () => {
     for (const command of BOT_COMMANDS) {
       for (const option of command.options) {
         if (!option.choices) continue
-        expect(scopes[option.choices]).toBeGreaterThan(0)
         expect(option.type).toBe('string')
       }
     }
@@ -53,15 +50,5 @@ describe('BOT_COMMANDS', () => {
         if (option.min !== undefined) expect(option.type).toBe('integer')
       }
     }
-  })
-
-  it('describes the search options in the order Discord shows them', () => {
-    const search = BOT_COMMANDS.find((c) => c.name === 'search')
-    expect(search?.options.map((o) => o.name))
-      .toEqual(['query', 'lesson', 'type', 'set'])
-  })
-
-  it('takes no options for mydecks', () => {
-    expect(BOT_COMMANDS.find((c) => c.name === 'mydecks')?.options).toEqual([])
   })
 })

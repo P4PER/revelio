@@ -16,6 +16,7 @@ vi.mock('@revelio/search', () => ({ reindexCard: m.reindexCard }))
 vi.mock('next/cache', () => ({ revalidatePath: m.revalidatePath }))
 
 import { updateLocalization } from '../localization-actions'
+import { routing } from '@/../i18n/routing'
 
 const valid = { cardId: 'x-1', lang: 'de', name: 'Neuer Name', text: 'Rumpf', flavorText: '', status: 'official' }
 
@@ -51,7 +52,8 @@ describe('updateLocalization', () => {
     expect(m.upsertLocalization).toHaveBeenCalledWith(expect.anything(), {
       cardId: 'x-1', lang: 'de', name: 'Neuer Name', text: 'Rumpf', flavorText: null, status: 'official',
     })
-    expect(m.reindexCard).toHaveBeenCalled()
+    // Every language index, since a de edit can change en's fallback document.
+    expect(m.reindexCard).toHaveBeenCalledWith(expect.anything(), expect.anything(), [...routing.locales])
     expect(m.revalidatePath).toHaveBeenCalledWith('/card/x-1')
     expect(res).toEqual({ ok: true })
   })

@@ -30,7 +30,9 @@ describe('DocsToc', () => {
 
   it('indents a subheading under its parent', () => {
     renderToc()
-    expect(screen.getByRole('link', { name: 'Options' }).className).toContain('pl-')
+    // Every link carries pl-3; only an h3 adds the deeper indent.
+    expect(screen.getByRole('link', { name: 'Options' })).toHaveClass('pl-6')
+    expect(screen.getByRole('link', { name: 'Card lookup' })).not.toHaveClass('pl-6')
   })
 
   // A page with no h2 would otherwise render an empty labelled rail, which a

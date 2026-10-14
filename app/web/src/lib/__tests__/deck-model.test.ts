@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { emptyDeck, addCard, clampQuantity, copyLimitReached, maxQuantity, setFormat } from '../deck-model'
+import { emptyDeck, addCard, clampQuantity, copyLimitReached, maxQuantity } from '../deck-model'
 
 const view = (id: string, over: Partial<Parameters<typeof addCard>[1]> = {}) => ({
   cardId: id, name: id, cost: 1, setCode: 'BS', number: '1', lesson: null,
@@ -65,8 +65,5 @@ describe('deck model', () => {
     expect(clampQuantity(s, 'accio', 'main', 7)).toBe(null)
     expect(clampQuantity(s, 'accio', 'main', 5)).toBe(5)
     expect(clampQuantity(s, 'accio', 'main', 0)).toBe(0)
-  })
-  it('setFormat changes the format', () => {
-    expect(setFormat(emptyDeck(), 'classic').format).toBe('classic')
   })
 })

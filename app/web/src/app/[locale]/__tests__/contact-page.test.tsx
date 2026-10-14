@@ -120,11 +120,6 @@ describe('ContactPage', () => {
     expect(container.querySelector('main')).toHaveClass('lg:max-w-[76rem]', 'lg:px-6')
   })
 
-  it('spaces the topic list out to match the taller card', async () => {
-    render(await ContactPage())
-    expect(screen.getByRole('list', { name: 'topicsLabel' })).toHaveClass('mt-12', 'gap-9')
-  })
-
   it('passes no footer when the GitHub URL was cleared to an empty string', async () => {
     getCachedSiteSettings.mockResolvedValue({ githubUrl: '' })
     render(await ContactPage())

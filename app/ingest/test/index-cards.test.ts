@@ -42,7 +42,7 @@ describe('indexCards', () => {
     expect(r.hits.map((h) => h.id)).toContain('bs-1-dean-thomas')
   })
 
-  it('returns the localized name in the de index', async () => {
+  it('indexes the localized text in the de index', async () => {
     const r = await searchCards(client, 'de', 'ziehe')
     expect(r.hits.map((h) => h.id)).toContain('bs-1-dean-thomas')
   })

@@ -14,6 +14,9 @@ function renderRow(locale: 'en' | 'de', messages: typeof en | typeof de) {
 }
 
 describe('TrustRow', () => {
+  // The "cannot read your messages" claim is only true while the bot asks for
+  // GatewayIntentBits.Guilds alone (bot/src/main.ts). These fail loudly if the
+  // claim is ever dropped, which is the cue to check the intents still match.
   it('states all three reassurances', () => {
     renderRow('en', en)
     expect(screen.getByText('Works in any server')).toBeInTheDocument()
@@ -25,14 +28,5 @@ describe('TrustRow', () => {
     renderRow('de', de)
     expect(screen.getByText('Auf jedem Server nutzbar')).toBeInTheDocument()
     expect(screen.getByText('Liest deine Nachrichten nicht')).toBeInTheDocument()
-  })
-
-  // The "cannot read your messages" claim is only true while the bot asks for
-  // GatewayIntentBits.Guilds alone (bot/src/main.ts). This fails loudly if the
-  // claim is ever dropped, which is the cue to check the intents still match.
-  it('keeps the no-message-access claim in both catalogs', () => {
-    for (const messages of [en, de]) {
-      expect(messages.discord.trust.noMessages).toBeTruthy()
-    }
   })
 })

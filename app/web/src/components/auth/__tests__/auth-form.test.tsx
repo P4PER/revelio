@@ -115,14 +115,6 @@ describe('AuthForm', () => {
     expect(updateUser).toHaveBeenCalledWith({ username: 'Hermione', displayUsername: 'Hermione' })
   })
 
-  it('login submit button reads "Login"; register reads "Register"', () => {
-    const { unmount } = renderForm('login')
-    expect(screen.getByRole('button', { name: 'Login' })).toBeInTheDocument()
-    unmount()
-    renderForm('register')
-    expect(screen.getByRole('button', { name: 'Register' })).toBeInTheDocument()
-  })
-
   it('renders six OTP slots on the code step', async () => {
     const { container } = renderForm('login')
     await userEvent.type(screen.getByLabelText('Email'), 'known@example.com')

@@ -39,7 +39,6 @@ beforeEach(() => {
   duplicateDeckAction.mockClear()
   deleteDeckAction.mockClear()
   updateDeckMetaAction.mockClear()
-  vi.spyOn(window, 'confirm').mockReturnValue(true)
 })
 
 describe('DeckList', () => {

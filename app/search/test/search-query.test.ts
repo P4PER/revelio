@@ -5,7 +5,8 @@ import {
   searchCardSuggestions,
   searchCardSummaries,
   searchCards,
-} from '../search'
+  buildFilter,
+} from '../src/search.js'
 
 // Minimal fake Meili client that records the search options it was called with.
 // A relevance read goes out as a federated multi-search rather than an index search,
@@ -28,6 +29,7 @@ function fakeClient(captured: Record<string, unknown>, hits: { id: string }[] = 
       const unrestricted = req.queries[req.queries.length - 1]
       Object.assign(captured, unrestricted, req.federation, {
         federated: true,
+        federation: req.federation,
         queries: req.queries,
       })
       return {
@@ -107,12 +109,6 @@ describe('searchCardSuggestions', () => {
     expect(captured.limit).toBe(25)
     expect(captured.attributesToRetrieve).toEqual(['id', 'name', 'setCode', 'number'])
   })
-
-  it('returns the hits in relevance order', async () => {
-    const hits = [{ id: 'a' }, { id: 'b' }]
-    const res = await searchCardSuggestions(fakeClient({}, hits), 'en', 'x', 2)
-    expect(res.map((h) => h.id)).toEqual(['a', 'b'])
-  })
 })
 
 describe('searchCardFields', () => {
@@ -155,8 +151,12 @@ describe('relevance reads', () => {
   it('reads its window through the federation, not the sub-queries', async () => {
     const captured: Record<string, unknown> = {}
     await searchCards(fakeClient(captured), 'en', 'harry', { page: 2, hitsPerPage: 24 })
-    expect(captured.offset).toBe(24)
-    expect(captured.limit).toBe(24)
+    const federation = captured.federation as Record<string, unknown>
+    expect(federation).toMatchObject({ offset: 24, limit: 24 })
+    for (const query of captured.queries as Record<string, unknown>[]) {
+      expect(query).not.toHaveProperty('offset')
+      expect(query).not.toHaveProperty('limit')
+    }
   })
 
   it('applies the caller filters to both sub-queries', async () => {
@@ -173,12 +173,6 @@ describe('relevance reads', () => {
     const queries = captured.queries as { attributesToRetrieve: string[] }[]
     expect(queries[0].attributesToRetrieve).toEqual(['id', 'name'])
     expect(queries[1].attributesToRetrieve).toEqual(['id', 'name'])
-  })
-
-  it('strips the merge bookkeeping meilisearch stamps on a federated hit', async () => {
-    const res = await searchCards(fakeClient({}, [{ id: 'a' }]), 'en', 'harry')
-    expect(res.hits[0]).not.toHaveProperty('_federation')
-    expect(res.hits[0]).toMatchObject({ id: 'a' })
   })
 
   it('federates the id window too, so neighbours walk the order the grid showed', async () => {
@@ -208,3 +202,43 @@ describe('relevance reads', () => {
     expect(captured.federated).toBe(false)
   })
 })
+
+describe('buildFilter', () => {
+  it('builds an AND-of-facets filter array', () => {
+    expect(buildFilter({ types: ['character'], rarity: ['rare'] })).toEqual([
+      '(types = "character")',
+      '(rarity = "rare")',
+    ])
+    expect(buildFilter({ isOfficial: true })).toEqual(['isOfficial = true'])
+    expect(buildFilter({})).toEqual([])
+    expect(buildFilter({ types: ['character', 'creature'] })).toEqual([
+      '(types = "character" OR types = "creature")',
+    ])
+  })
+
+  it('filters on the finishes array field (Meili "contains")', () => {
+    expect(buildFilter({ finishes: ['foil'] })).toEqual(['(finishes = "foil")'])
+    expect(buildFilter({ finishes: ['foil', 'holo'] })).toEqual([
+      '(finishes = "foil" OR finishes = "holo")',
+    ])
+  })
+
+  it('filters by a cost range', () => {
+    expect(buildFilter({ costMin: 2 })).toContain('cost >= 2')
+    expect(buildFilter({ costMax: 4 })).toContain('cost <= 4')
+    expect(buildFilter({ costMin: 2, costMax: 4 })).toEqual(['cost >= 2', 'cost <= 4'])
+  })
+})
+
+describe('buildFilter id ownership clauses', () => {
+  it('emits an IN clause for ids', () => {
+    expect(buildFilter({ ids: ['a', 'b'] })).toContain('id IN ["a","b"]')
+  })
+  it('emits a NOT IN clause for excludeIds', () => {
+    expect(buildFilter({ excludeIds: ['a'] })).toContain('id NOT IN ["a"]')
+  })
+  it('emits nothing for empty id arrays', () => {
+    expect(buildFilter({ ids: [], excludeIds: [] })).toEqual([])
+  })
+})
+

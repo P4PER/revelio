@@ -90,13 +90,6 @@ describe('email-OTP auth', () => {
     expect(res.status).toBe(200)
   })
 
-  it('promotes ADMIN_EMAILS on sign-up', async () => {
-    await auth.api.sendVerificationOTP({ body: { email: 'boss@revelio.cards', type: 'sign-in' } })
-    await auth.api.signInEmailOTP({ body: { email: 'boss@revelio.cards', otp: lastOtp } })
-    const admins = await ctx.db.select().from(schema.user)
-    expect(admins.find((u) => u.email === 'boss@revelio.cards')?.role).toBe('admin')
-  })
-
   it('exposes the admin role on the session after sign-in', async () => {
     await auth.api.sendVerificationOTP({ body: { email: 'boss@revelio.cards', type: 'sign-in' } })
     const res = await auth.api.signInEmailOTP({

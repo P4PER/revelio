@@ -46,8 +46,7 @@ describe('requestDeckSheet', () => {
     expect(sent.locale).toBe('de')
     expect(sent.maxBytes).toBe(9_000_000)
     expect(sent.deck).toEqual({ name: 'Charms Aggro', format: 'classic' })
-    // Narrowed to the painted fields: cost and legality never reach a pixel and
-    // would only widen the service's cache key.
+    // Narrowed to the painted fields: cost and legality never reach a pixel.
     expect(sent.entries[0]).toEqual({
       cardId: 'harry', zone: 'main', quantity: 2, name: 'Card harry',
       setCode: 'base', types: ['creature'], imageVersion: 4, orientation: null,

@@ -118,7 +118,6 @@ describe('BOT_COMMANDS matches what the bot registers with Discord', () => {
       const { interaction, done } = deferOf(command.name)
       await done
       const [reply] = interaction.editReply.mock.calls[0] as [{ content?: string; components?: unknown[] }]
-      // /collection answers in V2, /mydecks still in content until phase 3.
       expect(textOf(reply)).toContain('/settings')
     })
   }

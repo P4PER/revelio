@@ -53,23 +53,15 @@ function fakeClick(customId: string, opts: { ephemeral?: boolean; deferred?: boo
 const run = (interaction: unknown) => handleInteraction(interaction as never, { db: {} } as never)
 
 describe('handleInteraction: commands', () => {
-  // /deck's prompt is a V1 message until phase 3: an edit there keeps content.
-  it('replaces a /deck prompt with a V2 status line when the command fails after replying', async () => {
+  // Every reply is V2, so a content edit would be a 400 and leave the user on
+  // "thinking..." (deferred) or on /deck's prompt (replied).
+  it.each([
+    { replied: true, deferred: false },
+    { replied: false, deferred: true },
+  ])('answers a command that failed after answering (%o) with a V2 status line', async (state) => {
     vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockRejectedValue(new Error('db down'))
     vi.spyOn(console, 'error').mockImplementation(() => {})
-    const interaction = fakeCommand({ replied: true, deferred: false })
-    await run(interaction)
-    const payload = interaction.editReply.mock.calls[0][0]
-    expect(payload.flags).toBe(MessageFlags.IsComponentsV2)
-    expect(textOf(payload)).toBe(ERROR)
-  })
-
-  // A deferred reply is V2; a content edit would be a 400 and leave the user
-  // on "thinking...".
-  it('answers a command that failed after deferring with a V2 status line', async () => {
-    vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockRejectedValue(new Error('db down'))
-    vi.spyOn(console, 'error').mockImplementation(() => {})
-    const interaction = fakeCommand({ replied: false, deferred: true })
+    const interaction = fakeCommand(state)
     await run(interaction)
     const payload = interaction.editReply.mock.calls[0][0]
     expect(payload.flags).toBe(MessageFlags.IsComponentsV2)

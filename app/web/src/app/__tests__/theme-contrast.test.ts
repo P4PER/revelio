@@ -134,7 +134,11 @@ describe('light theme contrast', () => {
 // readable on parchment is, by construction, at risk of vanishing on midnight.
 describe('dark theme ink', () => {
   const GRAPHIC = 3 // WCAG 1.4.11
-  it('the error-card glyph stays visible on the card motif', () => {
+  // The same token is the card-tile hover border, which must be read at full
+  // strength: composited at /60 the dark value falls to 2.11:1 and at /40 to
+  // 1.61:1, which is how the old primary/40/accent/60 borders ended up nearly
+  // invisible.
+  it('the error-card glyph and the hover border stay visible on a card', () => {
     // Rendered on the muted/card stripes of error-card-state.tsx.
     expect(contrast(hex('--dark-secondary-ink'), hex('--dark-card'))).toBeGreaterThanOrEqual(GRAPHIC)
     expect(contrast(hex('--dark-secondary-ink'), hex('--dark-muted'))).toBeGreaterThanOrEqual(GRAPHIC)
@@ -156,13 +160,6 @@ describe('dark theme ink', () => {
   it('the progress fill separates from its own track', () => {
     const fill = hex('--dark-progress')
     expect(contrast(fill, over(fill, hex('--dark-card'), 0.2))).toBeGreaterThanOrEqual(3)
-  })
-
-  // The card-tile hover border. It must be read at full strength: composited at
-  // /60 the dark value falls to 2.11:1 and at /40 to 1.61:1, which is how the
-  // old primary/40/accent/60 borders ended up nearly invisible.
-  it('the hover border clears 3:1 on a card', () => {
-    expect(contrast(hex('--dark-secondary-ink'), hex('--dark-card'))).toBeGreaterThanOrEqual(3)
   })
 })
 

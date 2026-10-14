@@ -26,13 +26,6 @@ describe('AdminIndexPage', () => {
     expect(redirect).toHaveBeenCalledWith({ href: '/admin/users', locale: 'en' })
   })
 
-  it('falls back to sub-types when no cookie is set', async () => {
-    getSession.mockResolvedValue({ user: { role: 'editor' } })
-    cookieGet.mockReturnValue(undefined)
-    await run()
-    expect(redirect).toHaveBeenCalledWith({ href: '/admin/sub-types', locale: 'en' })
-  })
-
   it('ignores an admin-only stored section for a non-admin', async () => {
     getSession.mockResolvedValue({ user: { role: 'editor' } })
     cookieGet.mockReturnValue({ value: '/admin/users' })

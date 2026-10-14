@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { cardsIndex, CARD_INDEX_SETTINGS, buildCardDocument } from '../src/documents.js'
 import type { SearchDocument, CardIndexData } from '../src/documents.js'
-import { searchCards, searchCardIds, buildFilter } from '../src/search.js'
+import { searchCards, searchCardIds } from '../src/search.js'
 import { testMeiliClient, uniqueLang } from './helpers.js'
 
 const client = testMeiliClient()
@@ -41,43 +41,6 @@ describe('searchCards', () => {
   it('filters by isOfficial boolean', async () => {
     const r = await searchCards(client, lang, '', { filters: { isOfficial: false } })
     expect(r.hits.map((h) => h.id)).toEqual(['c'])
-  })
-
-  it('builds an AND-of-facets filter array', () => {
-    expect(buildFilter({ types: ['character'], rarity: ['rare'] })).toEqual([
-      '(types = "character")',
-      '(rarity = "rare")',
-    ])
-    expect(buildFilter({ isOfficial: true })).toEqual(['isOfficial = true'])
-    expect(buildFilter({})).toEqual([])
-    expect(buildFilter({ types: ['character', 'creature'] })).toEqual([
-      '(types = "character" OR types = "creature")',
-    ])
-  })
-
-  it('filters on the finishes array field (Meili "contains")', () => {
-    expect(buildFilter({ finishes: ['foil'] })).toEqual(['(finishes = "foil")'])
-    expect(buildFilter({ finishes: ['foil', 'holo'] })).toEqual([
-      '(finishes = "foil" OR finishes = "holo")',
-    ])
-  })
-
-  it('filters by a cost range', () => {
-    expect(buildFilter({ costMin: 2 })).toContain('cost >= 2')
-    expect(buildFilter({ costMax: 4 })).toContain('cost <= 4')
-    expect(buildFilter({ costMin: 2, costMax: 4 })).toEqual(['cost >= 2', 'cost <= 4'])
-  })
-})
-
-describe('buildFilter id ownership clauses', () => {
-  it('emits an IN clause for ids', () => {
-    expect(buildFilter({ ids: ['a', 'b'] })).toContain('id IN ["a","b"]')
-  })
-  it('emits a NOT IN clause for excludeIds', () => {
-    expect(buildFilter({ excludeIds: ['a'] })).toContain('id NOT IN ["a"]')
-  })
-  it('emits nothing for empty id arrays', () => {
-    expect(buildFilter({ ids: [], excludeIds: [] })).toEqual([])
   })
 })
 
@@ -142,7 +105,7 @@ describe('name matches rank above text and flavor matches', () => {
     expect(r.hits.map((h) => h.id)).toEqual(['exact', 'partial', 'flavor'])
   })
 
-  it('reports the same total as an unfederated read of the same query', async () => {
+  it('counts each document once across both sub-queries', async () => {
     const r = await searchCards(client, rankLang, 'harry potter')
     expect(r.total).toBe(3)
   })

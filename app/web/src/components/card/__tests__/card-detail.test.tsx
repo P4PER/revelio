@@ -56,6 +56,7 @@ describe('CardDetail', () => {
     const { container } = render(<CardDetail card={vertical} locale="en" imageBase="http://img" />, { wrapper: Wrapper })
     expect(container.querySelector('.aspect-\\[5\\/7\\]')).not.toBeNull()
     expect(container.querySelector('.rotate-90')).toBeNull()
+    expect(container.querySelector('.md\\:w-\\[340px\\]')).not.toBeNull()
   })
 
   it('renders the localized card with rules text, rulings and artist', () => {

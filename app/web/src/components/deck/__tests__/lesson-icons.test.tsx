@@ -28,7 +28,7 @@ describe('LessonIcons', () => {
 
   it('renders nothing for an empty list', () => {
     const { container } = renderWithIntl(<LessonIcons codes={[]} />)
-    expect(container.querySelectorAll('img')).toHaveLength(0)
+    expect(container).toBeEmptyDOMElement()
   })
 
   it('names the row and each symbol in the active locale', () => {

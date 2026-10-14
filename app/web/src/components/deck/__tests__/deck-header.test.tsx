@@ -43,11 +43,10 @@ describe('DeckHeader', () => {
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
 
-  it('renders the lesson-gradient fallback when there is no starter art', () => {
-    const { container } = renderWithIntl(
-      <DeckHeader {...base} starterCardId={null} starterArtCropVersion={null} />,
-    )
-    expect(container.querySelector('[data-slot="deck-art-fallback"]')).toBeInTheDocument()
+  it('paints the starter card\'s art crop', () => {
+    const { container } = renderWithIntl(<DeckHeader {...base} />)
+    const srcs = [...container.querySelectorAll('img')].map((img) => img.getAttribute('src'))
+    expect(srcs).toContain('https://img.example/cards/art-crop/harry.1.webp')
   })
 
   // Formatted in the provider zone, not the host's: SSR and hydration must print

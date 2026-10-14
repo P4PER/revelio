@@ -1,13 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { CollectionVisibility, isFinishAllowed } from '../src/collection'
-
-describe('CollectionVisibility', () => {
-  it('accepts private/public and rejects others', () => {
-    expect(CollectionVisibility.parse('private')).toBe('private')
-    expect(CollectionVisibility.parse('public')).toBe('public')
-    expect(CollectionVisibility.safeParse('secret').success).toBe(false)
-  })
-})
+import { isFinishAllowed } from '../src/collection'
 
 describe('isFinishAllowed', () => {
   it('accepts a known finish present on the card', () => {

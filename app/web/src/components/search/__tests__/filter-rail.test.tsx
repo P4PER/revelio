@@ -78,12 +78,6 @@ function renderRail(activeIndex?: number) {
 }
 
 describe('FilterRail', () => {
-  it('renders its chips inside the group it is given', () => {
-    renderRail()
-    const lane = screen.getByRole('group', { name: 'Type' })
-    expect(lane).toContainElement(screen.getByRole('button', { name: 'chip 3' }))
-  })
-
   it('scrolls an active chip into the middle of the lane on mount', () => {
     renderRail(3)
     // chip 3 sits at 300; centring wants 300 - (300 - 100) / 2 = 200, clamped

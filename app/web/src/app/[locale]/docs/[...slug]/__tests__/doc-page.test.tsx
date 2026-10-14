@@ -64,7 +64,7 @@ describe('a docs content page', () => {
   it('lists the page headings in the contents rail', () => {
     renderArticle()
     const rail = screen.getByRole('navigation', { name: 'On this page' })
-    expect(rail).toBeInTheDocument()
+    expect(within(rail).getByRole('link', { name: 'What you need' })).toHaveAttribute('href', '#what-you-need')
   })
 
   it('renders the German title and section name', () => {

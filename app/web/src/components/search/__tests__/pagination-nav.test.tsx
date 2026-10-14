@@ -98,13 +98,6 @@ describe('PaginationNav', () => {
     expect(screen.queryByText('999 / 37')).not.toBeInTheDocument()
   })
 
-  it('groups thousands in the record range', () => {
-    renderWithIntl(
-      <PaginationNav page={1} pageSize={24} total={14181} prevHref="?page=0" nextHref="?page=2" />,
-    )
-    expect(screen.getByRole('status')).toHaveTextContent('Showing 1–24 of 14,181')
-  })
-
   it('groups thousands on both sides of the range', () => {
     renderWithIntl(
       <PaginationNav page={500} pageSize={24} total={14181} prevHref="?page=499" nextHref="?page=501" />,

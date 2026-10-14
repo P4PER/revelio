@@ -169,8 +169,11 @@ describe('deleteUser', () => {
     expect(m.deleteUserById).not.toHaveBeenCalled()
   })
 
-  it('deletes and revalidates', async () => {
+  it('deletes and revalidates, revoking the Discord link first', async () => {
     expect(await deleteUser('u2')).toEqual({ ok: true })
+    expect(m.unlinkAndRevokeDiscord).toHaveBeenCalledWith('u2')
+    expect(m.unlinkAndRevokeDiscord.mock.invocationCallOrder[0])
+      .toBeLessThan(m.deleteUserById.mock.invocationCallOrder[0])
     expect(m.deleteUserById).toHaveBeenCalledWith(expect.anything(), 'u2')
     expect(m.revalidatePath).toHaveBeenCalledWith('/admin/users')
   })

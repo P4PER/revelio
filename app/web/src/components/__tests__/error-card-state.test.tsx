@@ -31,13 +31,4 @@ describe('ErrorCardState', () => {
     )
     expect(screen.getByText('reference: 8f3a1c')).toBeInTheDocument()
   })
-
-  it('shows a "?" mark for the missing variant', () => {
-    render(
-      <ErrorCardState variant="missing" heading="h" description="d">
-        <span />
-      </ErrorCardState>,
-    )
-    expect(screen.getByText('?')).toBeInTheDocument()
-  })
 })

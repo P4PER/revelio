@@ -187,7 +187,7 @@ describe('renderSheet', () => {
   it('reports how long the fetch and the encode took', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(await art(), { status: 200 })))
     const out = await renderSheet(req, opts)
-    expect(Number.isFinite(out.fetchMs)).toBe(true)
+    expect(out.fetchMs).toBeGreaterThanOrEqual(0)
     expect(out.encodeMs).toBeGreaterThan(0)
   })
 

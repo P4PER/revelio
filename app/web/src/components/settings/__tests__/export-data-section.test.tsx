@@ -31,12 +31,15 @@ it('downloads the export as a named JSON file', async () => {
   const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
     downloads.push(this.download)
   })
-  renderSection()
-  await userEvent.click(screen.getByRole('button', { name: en.settings.safety.export.export }))
-  await waitFor(() => expect(downloads).toEqual(['revelio-export-alice.json']))
-  expect(URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob))
-  expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:x')
-  click.mockRestore()
+  try {
+    renderSection()
+    await userEvent.click(screen.getByRole('button', { name: en.settings.safety.export.export }))
+    await waitFor(() => expect(downloads).toEqual(['revelio-export-alice.json']))
+    expect(URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob))
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:x')
+  } finally {
+    click.mockRestore()
+  }
 })
 
 it('toasts an error when export fails', async () => {

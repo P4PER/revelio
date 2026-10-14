@@ -67,6 +67,7 @@ function renderBuilder(overrides: Partial<Parameters<typeof DeckBuilder>[0]> = {
 }
 
 beforeEach(() => {
+  searchDeckCards.mockResolvedValue(EMPTY_RESULT)
   createDeckAction.mockClear()
   updateDeckAction.mockClear()
   push.mockClear()
@@ -417,6 +418,5 @@ describe('DeckBuilder mobile deck sheet', () => {
     await user.click(await screen.findByRole('menuitem', { name: en.decks.browse.addToMain }))
 
     await waitFor(() => expect(screen.getByTestId('deck-sheet-count')).not.toBe(before))
-    searchDeckCards.mockResolvedValue(EMPTY_RESULT)
   })
 })

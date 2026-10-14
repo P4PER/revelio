@@ -108,9 +108,14 @@ it('deletes on a good code, revoking the Discord link first', async () => {
 it('still deletes when Discord cannot be reached', async () => {
   m.consumeCode.mockResolvedValueOnce({})
   m.unlinkAndRevokeDiscord.mockRejectedValueOnce(new Error('discord down'))
-  vi.spyOn(console, 'error').mockImplementation(() => {})
-  expect(await confirmAccountDeletion('123456')).toEqual({ ok: true })
-  expect(m.deleteUserById).toHaveBeenCalledWith(expect.anything(), 'u1')
+  const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+  try {
+    expect(await confirmAccountDeletion('123456')).toEqual({ ok: true })
+    expect(m.deleteUserById).toHaveBeenCalledWith(expect.anything(), 'u1')
+    expect(error).toHaveBeenCalled()
+  } finally {
+    error.mockRestore()
+  }
 })
 it('returns export data', async () => {
   const r = await exportMyData()

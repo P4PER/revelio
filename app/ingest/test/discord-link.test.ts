@@ -41,8 +41,8 @@ describe('getUserIdByDiscordAccount', () => {
 
   it('ignores an account row from another provider', async () => {
     // An accountId that only a github row carries must not resolve at all.
-    await seedAccount('a4', 'u3', 'github', '444555666')
-    expect(await getUserIdByDiscordAccount(ctx.db, '444555666')).toBeNull()
+    await seedAccount('a4', 'u3', 'github', '777000111')
+    expect(await getUserIdByDiscordAccount(ctx.db, '777000111')).toBeNull()
   })
 
   // Banning deletes web sessions but leaves the account row, so without this

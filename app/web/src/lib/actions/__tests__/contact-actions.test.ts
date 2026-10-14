@@ -44,6 +44,7 @@ describe('sendContactMessage', () => {
   it('delivers a valid message to contactEmail with the sender as replyTo', async () => {
     const res = await sendContactMessage(base())
     expect(res).toEqual({ ok: true })
+    expect(m.consumeContactRateLimit).toHaveBeenCalledWith('203.0.113.7')
     expect(m.sendMail).toHaveBeenCalledTimes(1)
     expect(m.sendMail).toHaveBeenCalledWith(
       expect.objectContaining({ to: 'ops@revelio.cards', replyTo: 'hermione@example.com' }),

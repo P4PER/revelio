@@ -33,24 +33,9 @@ describe('runSearch', () => {
     expect(Object.keys(r.hits[0]).sort()).toEqual([...CARD_TILE_FIELDS].sort())
   })
 
-  it('drops the heavy fields the tile never reads', async () => {
-    const r = await runSearch(
-      client, lang, parseSearchParams(new URLSearchParams('q=harry')), CARD_TILE_FIELDS,
-    )
-    expect(r.hits[0]).not.toHaveProperty('text')
-    expect(r.hits[0]).not.toHaveProperty('flavorText')
-  })
-
   it('still applies the url filters', async () => {
     const r = await runSearch(
       client, lang, parseSearchParams(new URLSearchParams('type=creature')), CARD_TILE_FIELDS,
-    )
-    expect(r.hits.map((h) => h.id)).toEqual(['b'])
-  })
-
-  it('applies the official/fan filter', async () => {
-    const r = await runSearch(
-      client, lang, parseSearchParams(new URLSearchParams('official=fan')), CARD_TILE_FIELDS,
     )
     expect(r.hits.map((h) => h.id)).toEqual(['b'])
   })

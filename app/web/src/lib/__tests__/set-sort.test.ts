@@ -15,9 +15,6 @@ describe('byReleaseDate', () => {
     const sets = [set('OLD', '08-2023'), set('NEW', '03-2026'), set('MID', '11-2024')]
     expect([...sets].sort(byReleaseDate).map((s) => s.code)).toEqual(['OLD', 'MID', 'NEW'])
   })
-  it('formats MM-YYYY as MM/YYYY too', () => {
-    expect(formatReleaseMonth('03-2026')).toBe('03/2026')
-  })
   it('puts null dates last', () => {
     expect([set('X', null), set('BS', '2001-08-01')].sort(byReleaseDate).map((s) => s.code)).toEqual(['BS', 'X'])
   })
@@ -26,6 +23,9 @@ describe('byReleaseDate', () => {
 describe('formatReleaseMonth', () => {
   it('formats YYYY-MM-DD as MM/YYYY', () => {
     expect(formatReleaseMonth('2001-08-01')).toBe('08/2001')
+  })
+  it('formats MM-YYYY as MM/YYYY too', () => {
+    expect(formatReleaseMonth('03-2026')).toBe('03/2026')
   })
   it('handles null', () => {
     expect(formatReleaseMonth(null)).toBe('—')

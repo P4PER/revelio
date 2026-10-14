@@ -103,10 +103,16 @@ it('rejects duplicate when logged out', async () => {
   expect(m.createDeck).not.toHaveBeenCalled()
 })
 
-it('rejects duplicate on a deck owned by someone else', async () => {
+it('rejects duplicate on someone else\'s private deck', async () => {
   m.getDeck.mockResolvedValueOnce({ userId: 'other', deck: { name: 'D', format: 'revival', visibility: 'private', cards: [] } } as never)
   expect(await duplicateDeckAction('d1')).toEqual({ ok: false, error: 'forbidden' })
   expect(m.createDeck).not.toHaveBeenCalled()
+})
+
+it('duplicates someone else\'s public deck into the caller\'s account', async () => {
+  m.getDeck.mockResolvedValueOnce({ userId: 'other', deck: { name: 'D', format: 'revival', visibility: 'public', cards: [] } } as never)
+  expect(await duplicateDeckAction('d1')).toEqual({ ok: true, id: 'new-id' })
+  expect(m.createDeck).toHaveBeenCalledWith(expect.anything(), 'u1', expect.anything())
 })
 
 it('duplicates a deck with the session user id and suffixed name', async () => {

@@ -10,12 +10,7 @@ const slugs = DOCS_NAV.flatMap((section) => section.pages)
 describe('content structure is the same in both locales', () => {
   it.each(slugs)('%s has the same heading shape in en and de', async (slug) => {
     const [en, de] = await Promise.all([loadDoc(slug, 'en'), loadDoc(slug, 'de')])
-    expect(de.toc.map((entry) => entry.depth)).toEqual(en.toc.map((entry) => entry.depth))
-  })
-
-  it.each(slugs)('%s has at least one section in both locales', async (slug) => {
-    const [en, de] = await Promise.all([loadDoc(slug, 'en'), loadDoc(slug, 'de')])
     expect(en.toc.length).toBeGreaterThan(0)
-    expect(de.toc.length).toBeGreaterThan(0)
+    expect(de.toc.map((entry) => entry.depth)).toEqual(en.toc.map((entry) => entry.depth))
   })
 })

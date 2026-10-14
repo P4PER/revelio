@@ -80,7 +80,18 @@ describe('POST /api/deck-sheet', () => {
     expect(sent.entries[0].types).toEqual(['character'])
   })
 
-  it('drops a card id the database does not know', async () => {
+  // A card removed from the dataset must not fail the other cards in the deck.
+  it('drops a card id the database does not know and renders the rest', async () => {
+    const res = await post({
+      ...body,
+      cards: [...body.cards, { cardId: 'gone', zone: 'main', quantity: 1 }],
+    })
+    expect(res.status).toBe(200)
+    const [sent] = renderDeckSheet.mock.calls[0]
+    expect(sent.entries.map((e: { cardId: string }) => e.cardId)).toEqual(['harry'])
+  })
+
+  it('refuses a deck none of whose cards the database knows', async () => {
     getCardViews.mockResolvedValue({})
     const res = await post(body)
     expect(res.status).toBe(400)

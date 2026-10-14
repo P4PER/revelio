@@ -82,8 +82,11 @@ it('rejects a bad email-change code', async () => {
   expect(await confirmEmailChange('000000')).toEqual({ ok: false, error: 'code' })
 })
 it('applies the email change on a good code', async () => {
+  const set = vi.fn(() => ({ where: async () => {} }))
+  m.update.mockReturnValue({ set })
   expect(await confirmEmailChange('123456')).toEqual({ ok: true })
-  expect(m.update).toHaveBeenCalled()
+  // The code proved the new address, so it lands verified.
+  expect(set).toHaveBeenCalledWith({ email: 'new@owl.post', emailVerified: true })
 })
 it('mails the current address on deletion request', async () => {
   expect(await requestAccountDeletion()).toEqual({ ok: true })
@@ -93,8 +96,19 @@ it('rejects a bad deletion code', async () => {
   m.consumeCode.mockResolvedValueOnce(null)
   expect(await confirmAccountDeletion('000000')).toEqual({ ok: false, error: 'code' })
 })
-it('deletes on a good code', async () => {
+it('deletes on a good code, revoking the Discord link first', async () => {
   m.consumeCode.mockResolvedValueOnce({})
+  expect(await confirmAccountDeletion('123456')).toEqual({ ok: true })
+  expect(m.unlinkAndRevokeDiscord).toHaveBeenCalledWith('u1')
+  expect(m.deleteUserById).toHaveBeenCalledWith(expect.anything(), 'u1')
+  // The cascade would drop the tokens unrevoked, so the order is the point.
+  expect(m.unlinkAndRevokeDiscord.mock.invocationCallOrder[0])
+    .toBeLessThan(m.deleteUserById.mock.invocationCallOrder[0])
+})
+it('still deletes when Discord cannot be reached', async () => {
+  m.consumeCode.mockResolvedValueOnce({})
+  m.unlinkAndRevokeDiscord.mockRejectedValueOnce(new Error('discord down'))
+  vi.spyOn(console, 'error').mockImplementation(() => {})
   expect(await confirmAccountDeletion('123456')).toEqual({ ok: true })
   expect(m.deleteUserById).toHaveBeenCalledWith(expect.anything(), 'u1')
 })

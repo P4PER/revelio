@@ -4,7 +4,8 @@ import { makeUsernameSchema, makeNewEmailSchema } from '../schemas/settings'
 const t = (k: string) => k
 
 it('accepts a valid username and trims it', () => {
-  expect(makeUsernameSchema(t).safeParse({ username: '  alice ' }).success).toBe(true)
+  const parsed = makeUsernameSchema(t).safeParse({ username: '  alice ' })
+  expect(parsed.success && parsed.data.username).toBe('alice')
 })
 it('rejects an empty username', () => {
   expect(makeUsernameSchema(t).safeParse({ username: '   ' }).success).toBe(false)

@@ -1,8 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
   METADATA_BASE,
-  THEME_COLOR,
-  THEME_COLOR_LIGHT,
   OG_SIZE,
   OG_CONTENT_TYPE,
   buildSiteMetadata,
@@ -12,7 +10,6 @@ import {
   ogImageMetadata,
   clampOgTitle,
 } from '../seo'
-import { routing } from '@/../i18n/routing'
 import en from '@/../messages/en.json'
 import de from '@/../messages/de.json'
 
@@ -21,14 +18,6 @@ describe('seo helpers', () => {
     expect(METADATA_BASE).toBeInstanceOf(URL)
     // SITE_URL defaults to https://revelio.cards in tests
     expect(METADATA_BASE.origin).toBe('https://revelio.cards')
-  })
-
-  it('uses the brand midnight as the theme color', () => {
-    expect(THEME_COLOR).toBe('#13122A')
-  })
-
-  it('exposes the light theme color', () => {
-    expect(THEME_COLOR_LIGHT).toBe('#F8F5ED')
   })
 
   it('uses the standard 1200x630 PNG social card', () => {
@@ -63,10 +52,8 @@ describe('seo helpers', () => {
   })
 
   it('has an OG alt for every configured locale (no silent fallback)', () => {
+    // ogImageAlt itself falls back to the default locale, so only the map can say.
     expect(hasOgAltForAllLocales()).toBe(true)
-    for (const locale of routing.locales) {
-      expect(ogImageAlt(locale)).toBeTruthy()
-    }
   })
 
   it('builds the OG image metadata shape with the given alt', () => {

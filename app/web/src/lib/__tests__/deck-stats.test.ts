@@ -27,6 +27,6 @@ describe('deckStats', () => {
     const views = [view({ cardId: 'harry', zone: 'character', quantity: 1, isStartingCharacter: true })]
     const s = deckStats(views, 'revival')
     expect(s.status).toBe('incomplete')
-    expect(Array.isArray(s.violations)).toBe(true)
+    expect(s.violations).toEqual([{ code: 'main_deck_size', actual: 0 }])
   })
 })

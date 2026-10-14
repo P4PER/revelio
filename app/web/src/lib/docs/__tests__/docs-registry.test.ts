@@ -18,10 +18,6 @@ describe('the docs page map', () => {
     }
   })
 
-  it('registers every navigable page', () => {
-    for (const slug of slugs) expect(DOC_PAGES).toHaveProperty(slug)
-  })
-
   it('navigates to every registered page', () => {
     expect(Object.keys(DOC_PAGES).sort()).toEqual([...slugs].sort())
   })
@@ -88,11 +84,6 @@ describe('docs content', () => {
 // exists in both catalogs. What it cannot know is that those keys line up with
 // DOCS_NAV, which is what these assert.
 describe('docs i18n', () => {
-  it('has a docs namespace in both locales', () => {
-    expect(en.docs).toBeTruthy()
-    expect(de.docs).toBeTruthy()
-  })
-
   it('titles and describes every page in both locales', () => {
     for (const messages of [en.docs, de.docs] as const) {
       for (const slug of slugs) {

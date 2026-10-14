@@ -6,7 +6,7 @@ vi.mock('@/lib/server/db', () => ({ getDb: () => ({ __db: true }) }))
 // unstable_cache needs Next's incremental cache; a pass-through is enough here.
 vi.mock('next/cache', () => ({ unstable_cache: (fn: unknown) => fn }))
 
-import { getFooterContactEmail, loadSiteSettings, SITE_SETTINGS_TAG } from '../site-settings'
+import { getFooterContactEmail, loadSiteSettings } from '../site-settings'
 
 // Braces matter: mockReset() returns the mock, and a function returned from
 // beforeEach runs as teardown, which would call a throwing mock after the test.
@@ -20,10 +20,6 @@ describe('loadSiteSettings', () => {
     const result = await loadSiteSettings()
     expect(getSiteSettings).toHaveBeenCalledWith({ __db: true })
     expect(result).toEqual({ id: 'singleton', operatorName: 'Jane' })
-  })
-
-  it('exposes the cache tag', () => {
-    expect(SITE_SETTINGS_TAG).toBe('site-settings')
   })
 })
 

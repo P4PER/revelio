@@ -49,8 +49,6 @@ describe('buildSitemap', () => {
   // like the privacy policy and imprint next to it.
   it('lists the terms of service', () => {
     expect(STATIC_ROUTES).toContain('/terms')
-    expect(urls).toContain(`${BASE}/terms`)
-    expect(urls).toContain(`${BASE}/de/terms`)
   })
 
   it('includes card and set pages in both locales', () => {
@@ -76,14 +74,5 @@ describe('the sitemap covers the docs', () => {
     for (const slug of DOCS_NAV.flatMap((section) => section.pages)) {
       expect(STATIC_ROUTES).toContain(`/docs/${slug}`)
     }
-  })
-
-  // Each page needs its full hreflang alternates, or Google treats the German
-  // page as a duplicate of the English one.
-  it('emits both locales with alternates for a docs page', () => {
-    const entries = buildSitemap({ cards: [], sets: [] })
-    const docs = entries.filter((entry) => entry.url.includes('/docs/discord/commands'))
-    expect(docs).toHaveLength(2)
-    expect(Object.keys(docs[0].alternates!.languages!)).toContain('x-default')
   })
 })

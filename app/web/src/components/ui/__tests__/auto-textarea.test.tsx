@@ -49,4 +49,11 @@ describe('AutoTextarea', () => {
     fireEvent.change(el, { target: { value: 'a\nb\nc' } })
     expect(el.style.height).toBe('')
   })
+
+  it('is a block box, so no baseline gap opens under it', () => {
+    // An inline-block textarea sits on the text baseline and leaves the line's
+    // descender space below it - 7px of phantom margin above whatever follows.
+    render(<AutoTextarea aria-label="notes" value="" onChange={() => {}} />)
+    expect(screen.getByLabelText('notes')).toHaveClass('block')
+  })
 })

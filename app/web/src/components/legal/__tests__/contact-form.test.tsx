@@ -193,4 +193,19 @@ describe('ContactForm', () => {
     expect(container.querySelector('form')).toHaveClass('space-y-4', 'lg:space-y-6')
     expect(screen.getByLabelText(en.contact.message)).toHaveClass('min-h-32', 'lg:min-h-44')
   })
+
+  it('keeps a send error tight under the message field, not a field-gap away', async () => {
+    sendContactMessage.mockResolvedValueOnce({ ok: false, error: 'rate' })
+    const user = userEvent.setup()
+    renderForm()
+    await fillValid(user)
+    await user.click(screen.getByRole('button', { name: en.contact.send }))
+
+    const error = await screen.findByText(en.contact.errorRate)
+    // Grouped with the message field like a field's own error (login's
+    // space-y-1.5), so the form's field spacing does not land above it.
+    const group = error.parentElement
+    expect(group).toHaveClass('space-y-1.5')
+    expect(group).toContainElement(screen.getByLabelText(en.contact.message))
+  })
 })

@@ -199,30 +199,33 @@ export function ContactForm({
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="message"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('message')}</FormLabel>
-                      <FormControl>
-                        <AutoTextarea
-                          name={field.name}
-                          value={field.value}
-                          onChange={field.onChange}
-                          onBlur={field.onBlur}
-                          ref={field.ref}
-                          size="lg"
-                          placeholder={t('messagePlaceholder')}
-                          className="min-h-32 mb-0 lg:min-h-44"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FieldError>{form.formState.errors.root?.message}</FieldError>
+                {/* The send error belongs to the message field's group, so it sits as close
+                    under it as a field's own error rather than a whole field gap away. */}
+                <div className="space-y-1.5">
+                  <FormField
+                    control={form.control}
+                    name="message"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('message')}</FormLabel>
+                        <FormControl>
+                          <AutoTextarea
+                            name={field.name}
+                            value={field.value}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                            ref={field.ref}
+                            size="lg"
+                            placeholder={t('messagePlaceholder')}
+                            className="min-h-32 lg:min-h-44"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FieldError>{form.formState.errors.root?.message}</FieldError>
+                </div>
                 <Button
                   type="submit"
                   size="lg"

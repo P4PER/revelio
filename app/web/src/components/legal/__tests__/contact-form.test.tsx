@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
@@ -9,7 +11,7 @@ vi.mock('@/lib/actions/contact-actions', () => ({
 }))
 
 import { ContactForm } from '@/components/legal/contact-form'
-import { FORM_CARD } from '@/components/auth/auth-form'
+import { FORM_CARD } from '@/components/auth/form-card'
 import en from '@/../messages/en.json'
 
 function renderForm(props: Partial<React.ComponentProps<typeof ContactForm>> = {}) {
@@ -207,5 +209,20 @@ describe('ContactForm', () => {
     const group = error.parentElement
     expect(group).toHaveClass('space-y-1.5')
     expect(group).toContainElement(screen.getByLabelText(en.contact.message))
+  })
+
+  it('leaves the footer wrapper out entirely when there is no footer', () => {
+    for (const footer of [undefined, null, '']) {
+      const { container, unmount } = renderForm({ footer })
+      expect(container.querySelector('[data-slot="contact-footer"]')).toBeNull()
+      unmount()
+    }
+  })
+
+  it('takes the card chrome without pulling in the login form module', () => {
+    // auth-form.tsx is a client module carrying the OTP flow, input-otp and the
+    // auth server actions; the contact bundle needs one class string from it.
+    const source = readFileSync(join(__dirname, '..', 'contact-form.tsx'), 'utf8')
+    expect(source).not.toMatch(/components\/auth\/auth-form/)
   })
 })

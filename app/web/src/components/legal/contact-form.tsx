@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { FieldError } from '@/components/ui/field-error'
-import { FORM_CARD } from '@/components/auth/auth-form'
+import { FormCard } from '@/components/auth/form-card'
 import { OwlPostEmblem } from '@/components/legal/owl-post-emblem'
 
 type Values = ContactFormValues
@@ -99,35 +99,31 @@ export function ContactForm({
       </div>
 
       <div className="lg:col-start-2 lg:row-span-4 lg:row-start-1 lg:self-center">
-        {sent ? (
-          <>
-            <OwlPostEmblem flying className="mb-4" />
-            <div data-slot="contact-card" className={FORM_CARD}>
-              <div role="status" className="flex flex-col items-center py-6 text-center">
-                <h2 className="text-2xl font-semibold tracking-tight text-foreground">{t('successTitle')}</h2>
-                <p className="mt-2 max-w-sm text-base text-muted-foreground">{t('successBody')}</p>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="mt-6"
-                  onClick={() => {
-                    // Reset to the original defaults (keeps the signed-in prefill and reuses
-                    // the still-valid renderedAt token) so a second message can be sent.
-                    form.reset()
-                    setSent(false)
-                  }}
-                >
-                  {t('sendAnother')}
-                </Button>
-              </div>
+        {sent && <OwlPostEmblem flying className="mb-4" />}
+        <FormCard data-slot="contact-card">
+          {sent ? (
+            <div role="status" className="flex flex-col items-center py-6 text-center">
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground">{t('successTitle')}</h2>
+              <p className="mt-2 max-w-sm text-base text-muted-foreground">{t('successBody')}</p>
+              <Button
+                type="button"
+                variant="ghost"
+                className="mt-6"
+                onClick={() => {
+                  // Reset to the original defaults (keeps the signed-in prefill and reuses
+                  // the still-valid renderedAt token) so a second message can be sent.
+                  form.reset()
+                  setSent(false)
+                }}
+              >
+                {t('sendAnother')}
+              </Button>
             </div>
-          </>
-        ) : (
-          <div data-slot="contact-card" className={FORM_CARD}>
+          ) : (
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 lg:space-y-6" noValidate>
-                {/* Honeypot — visually hidden, off the tab order and a11y tree, no autofill.
-                    Any value ⇒ the server silently drops the submission. */}
+                {/* Honeypot - visually hidden, off the tab order and a11y tree, no autofill.
+                    Any value => the server silently drops the submission. */}
                 <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
                   <label htmlFor="contact-website">Website</label>
                   <input
@@ -236,8 +232,8 @@ export function ContactForm({
                 </Button>
               </form>
             </Form>
-          </div>
-        )}
+          )}
+        </FormCard>
       </div>
 
       {footer && (

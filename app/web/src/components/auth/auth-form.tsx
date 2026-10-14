@@ -15,16 +15,9 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { FieldError } from '@/components/ui/field-error'
+import { FormCard } from '@/components/auth/form-card'
 import { makeEmailStepSchema, makeCodeSchema } from '@/lib/schemas/auth'
 import { REGEXP_ONLY_DIGITS } from 'input-otp'
-
-// The card chrome only applies from `sm` up. On a phone a box costs width - a
-// second gutter inside the page's - and frames a form that already fills the
-// screen, so below `sm` the form sits directly on the page. z-10 keeps it above
-// the fan cards that run behind its top edge. The contact page uses it too, so
-// the two form pages cannot drift apart.
-export const FORM_CARD =
-  'relative z-10 sm:rounded-xl sm:border sm:border-border sm:bg-card sm:p-8 sm:shadow-[0_-10px_28px_rgb(19_18_42/0.22)]'
 
 // Shared passwordless (email OTP) form. `register` collects a username and sets
 // it after verification; `login` is email-only. Both cross-link to the other.
@@ -129,7 +122,7 @@ export function AuthForm({
 
   return (
     <>
-      <div data-slot="auth-form-card" className={FORM_CARD}>
+      <FormCard data-slot="auth-form-card">
         <div className="mb-6 text-center">
           <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-primary-ink">
             {t('tagline')}
@@ -254,7 +247,7 @@ export function AuthForm({
             </button>
           </form>
         )}
-      </div>
+      </FormCard>
         <p className="mt-6 border-t border-border pt-4 text-center text-base text-muted-foreground sm:border-0 sm:pt-0">
           {register ? (
             <>

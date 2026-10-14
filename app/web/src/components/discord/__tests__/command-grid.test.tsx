@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi } from 'vitest'
+import { BOT_COMMANDS } from '@revelio/core'
 import en from '@/../messages/en.json'
 
 vi.mock('@/../i18n/navigation', () => ({
@@ -21,10 +22,21 @@ function renderGrid(docsHref?: string | null) {
 describe('CommandGrid', () => {
   // Tile names are spans; the same commands also appear as <code> chips in the
   // step copy below, so the selector is what keeps this unambiguous.
-  it('lists all five commands', () => {
+  it('lists every command the bot registers', () => {
     renderGrid()
-    for (const name of ['/card', '/search', '/deck', '/collection', '/mydecks']) {
-      expect(screen.getByText(name, { selector: 'span' })).toBeInTheDocument()
+    for (const command of BOT_COMMANDS) {
+      expect(screen.getByText(`/${command.name}`, { selector: 'span' })).toBeInTheDocument()
+    }
+  })
+
+  // The grid used to keep its own option list and kept showing /search's
+  // removed page option. Structure comes from the manifest now.
+  it('shows exactly the options the manifest declares', () => {
+    renderGrid()
+    for (const command of BOT_COMMANDS) {
+      const tile = screen.getByText(`/${command.name}`, { selector: 'span' }).closest('li')!
+      const chips = [...tile.querySelectorAll('code')].map((c) => c.textContent)
+      expect(chips, command.name).toEqual(command.options.map((o) => o.name))
     }
   })
 
@@ -34,11 +46,17 @@ describe('CommandGrid', () => {
     expect(screen.getByText('/mydecks', { selector: 'code' })).toBeInTheDocument()
   })
 
-  // /collection and /mydecks defer ephemerally in the bot, so the page must not
-  // imply their answers are public.
-  it('marks exactly the two personal commands as private', () => {
+  it('marks every command that answers privately', () => {
     renderGrid()
-    expect(screen.getAllByText('Only you see it')).toHaveLength(2)
+    expect(screen.getAllByText('Only you see it')).toHaveLength(BOT_COMMANDS.filter((c) => c.ephemeral).length)
+  })
+
+  // Six commands fill two rows of three; the reference tile takes the third
+  // row whole instead of sitting in it alone.
+  it('lets the reference tile span its row', () => {
+    renderGrid('/docs/discord')
+    const tile = screen.getByRole('link', { name: /Full reference/i }).closest('li')!
+    expect(tile.className).toMatch(/col-span-full/)
   })
 
   it('hides the reference tile while there is no docs route', () => {

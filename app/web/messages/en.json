@@ -822,16 +822,19 @@
         "description": "The full card: text, flavour, cost, lesson, rarity, legality, rulings, and the art."
       },
       "search": {
-        "description": "The same search as the site, paged, with a link back to the full results."
+        "description": "The site's search, privately: page through, filter, open a card, then share the ones you mean."
       },
       "deck": {
         "description": "Any deck you can see, found by name, link or id, as a picture of its cards or as a text list."
+      },
+      "decks": {
+        "description": "Browse public decks by name, author, format or lesson, open one as a picture, and post it."
       },
       "collection": {
         "description": "How far along you are, overall or in one set."
       },
       "mydecks": {
-        "description": "Your decks, public and private, with their formats and sizes."
+        "description": "Your decks, public and private, to page through, open and post."
       }
     },
     "reference": {

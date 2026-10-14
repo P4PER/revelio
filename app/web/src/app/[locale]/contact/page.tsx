@@ -36,7 +36,7 @@ export default async function ContactPage() {
   // Centred like the login page from `sm` up; on a phone it stays at the top,
   // where an opening keyboard would otherwise shift a centred form.
   return (
-    <main className="relative mx-auto flex w-full max-w-[480px] flex-col px-4 py-6 sm:min-h-[calc(100dvh-var(--header-h))] sm:justify-center sm:px-0 md:py-12 lg:max-w-5xl lg:px-6">
+    <main className="relative mx-auto flex w-full max-w-[480px] flex-col px-4 py-6 sm:min-h-[calc(100dvh-var(--header-h))] sm:justify-center sm:px-0 md:py-12 lg:max-w-[76rem] lg:px-6">
       <StarField />
       {/* A fresh per-request submit-timing token. This page is force-dynamic, so it
           renders once per request - Date.now() is intentional here (no re-render

@@ -108,4 +108,10 @@ describe('ContactPage', () => {
     render(await ContactPage())
     expect(screen.getByTestId('star-field')).toBeInTheDocument()
   })
+
+  it('spans the header width from lg up', async () => {
+    const { container } = render(await ContactPage())
+    // site-header.tsx's inner row is max-w-[76rem] px-6; the two columns line up with it.
+    expect(container.querySelector('main')).toHaveClass('lg:max-w-[76rem]', 'lg:px-6')
+  })
 })

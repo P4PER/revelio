@@ -1,5 +1,6 @@
 'use client'
 import { useState, type ReactNode } from 'react'
+import { flushSync } from 'react-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
@@ -39,6 +40,15 @@ const ERROR_KEY: Record<Exclude<ContactResult, { ok: true }>['error'], string> =
   rate: 'errorRate',
   unconfigured: 'errorUnconfigured',
   send: 'errorSend',
+}
+
+// Swapping the form for the success card (and back) unmounts whatever had focus,
+// which would drop keyboard and screen-reader users back to the top of the page.
+// The success heading only ever mounts after a send, so focusing it on mount is
+// focusing it after the send. Module-level so the ref callback stays stable and
+// React does not re-run it on every render.
+function focusOnMount(el: HTMLElement | null) {
+  el?.focus()
 }
 
 export function ContactForm({
@@ -103,7 +113,13 @@ export function ContactForm({
         <FormCard data-slot="contact-card">
           {sent ? (
             <div role="status" className="flex flex-col items-center py-6 text-center">
-              <h2 className="text-2xl font-semibold tracking-tight text-foreground">{t('successTitle')}</h2>
+              <h2
+                ref={focusOnMount}
+                tabIndex={-1}
+                className="text-2xl font-semibold tracking-tight text-foreground outline-none"
+              >
+                {t('successTitle')}
+              </h2>
               <p className="mt-2 max-w-sm text-base text-muted-foreground">{t('successBody')}</p>
               <Button
                 type="button"
@@ -113,7 +129,9 @@ export function ContactForm({
                   // Reset to the original defaults (keeps the signed-in prefill and reuses
                   // the still-valid renderedAt token) so a second message can be sent.
                   form.reset()
-                  setSent(false)
+                  // Commit the form back before focusing its first field.
+                  flushSync(() => setSent(false))
+                  form.setFocus('name')
                 }}
               >
                 {t('sendAnother')}

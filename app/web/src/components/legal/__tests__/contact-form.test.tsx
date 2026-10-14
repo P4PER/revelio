@@ -117,6 +117,31 @@ describe('ContactForm', () => {
     expect(screen.getByRole('button', { name: en.contact.send })).toBeInTheDocument()
   })
 
+  it('does not take focus on first render', () => {
+    renderForm()
+    expect(document.activeElement).toBe(document.body)
+  })
+
+  it('moves focus to the success heading after sending, so it is not lost to the page', async () => {
+    const user = userEvent.setup()
+    renderForm()
+    await fillValid(user)
+    await user.click(screen.getByRole('button', { name: en.contact.send }))
+
+    const heading = await screen.findByRole('heading', { name: en.contact.successTitle })
+    await vi.waitFor(() => expect(heading).toHaveFocus())
+  })
+
+  it('moves focus back to the first field after send another message', async () => {
+    const user = userEvent.setup()
+    renderForm()
+    await fillValid(user)
+    await user.click(screen.getByRole('button', { name: en.contact.send }))
+    await user.click(await screen.findByRole('button', { name: en.contact.sendAnother }))
+
+    await vi.waitFor(() => expect(screen.getByLabelText(en.contact.name)).toHaveFocus())
+  })
+
   it('renders the intro and footer it is given', () => {
     renderForm({ footer: <p>Footer line</p> })
     expect(screen.getByRole('heading', { name: 'Intro block' })).toBeInTheDocument()

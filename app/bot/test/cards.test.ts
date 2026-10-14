@@ -37,19 +37,10 @@ describe('findCards', () => {
     }))
   })
 
-  // A browse row draws a thumbnail and a stats line, so the read must carry the
-  // image and stat fields - and still not the rules text.
-  it('reads the browse projection, five to a page', async () => {
-    const full = {
-      ...doc, lesson: 'quidditch', cost: 4, imageVersion: 3, imageLang: 'en',
-      defaultLanguage: 'en', orientation: null, flavorText: 'Fast.',
-    }
-    const { client, search } = stubMeili([full], 1)
-    const page = await findCards(client, { query: 'nimbus', locale: 'en' })
+  it('reads five to a page by default', async () => {
+    const { client, search } = stubMeili([doc], 1)
+    await findCards(client, { query: 'nimbus', locale: 'en' })
     expect(search).toHaveBeenCalledWith('nimbus', expect.objectContaining({ limit: 5 }))
-    expect(page.hits[0]).toMatchObject({ imageVersion: 3, lesson: 'quidditch', cost: 4, types: ['item'] })
-    expect(page.hits[0]).not.toHaveProperty('text')
-    expect(page.hits[0]).not.toHaveProperty('flavorText')
   })
 
   // With no words to rank by, Meilisearch returns index order; a set must

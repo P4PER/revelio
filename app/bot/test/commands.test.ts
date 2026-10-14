@@ -320,7 +320,7 @@ describe('/deck', () => {
     access({ access: 'public', name: 'Charms Aggro' })
   })
 
-  it('replies with an embed for a public deck', async () => {
+  it('replies with the deck for a public deck', async () => {
     vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
     const interaction = fakeInteraction({ deck: 'https://revelio.cards/decks/abc123' })
     await COMMANDS.get('deck')!.execute(interaction as never, fakeDeps([], 0) as never)
@@ -351,7 +351,7 @@ describe('/deck', () => {
   })
 
   // A deck the user can see is worth more than the picture of it.
-  it('falls back to the list embed when the service cannot answer', async () => {
+  it('falls back to the text list when the service cannot answer', async () => {
     vi.spyOn(dbModule, 'getDeckForViewer').mockResolvedValue(stubDeck() as never)
     vi.mocked(requestDeckSheet).mockRejectedValueOnce(new Error('sheet service answered 503'))
     vi.spyOn(console, 'error').mockImplementation(() => {})

@@ -4,14 +4,13 @@ import { resolveLinkedUser } from '../src/data/link'
 
 afterEach(() => vi.restoreAllMocks())
 
+// The ban rule lives in the query (ingest/test/discord-link.test.ts); this only
+// pins that the one place every personal command asks goes through it.
 describe('resolveLinkedUser', () => {
-  it('returns the Revelio user id for a linked snowflake', async () => {
-    vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockResolvedValue('user-1')
-    expect(await resolveLinkedUser({} as never, '111')).toBe('user-1')
-  })
-
-  it('returns null for an unlinked snowflake', async () => {
-    vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockResolvedValue(null)
-    expect(await resolveLinkedUser({} as never, '999')).toBeNull()
+  it('resolves the snowflake through the ban-aware account query', async () => {
+    const lookup = vi.spyOn(dbModule, 'getUserIdByDiscordAccount').mockResolvedValue('user-1')
+    const db = {} as never
+    expect(await resolveLinkedUser(db, '111')).toBe('user-1')
+    expect(lookup).toHaveBeenCalledWith(db, '111')
   })
 })

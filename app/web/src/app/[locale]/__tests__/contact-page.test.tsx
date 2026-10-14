@@ -31,7 +31,12 @@ vi.mock('@/components/legal/contact-form', () => ({
     intro: React.ReactNode
     footer?: React.ReactNode
   }) => (
-    <div data-testid="contact-form" data-name={defaultName} data-email={defaultEmail}>
+    <div
+      data-testid="contact-form"
+      data-name={defaultName}
+      data-email={defaultEmail}
+      data-footer={footer === null ? 'null' : typeof footer}
+    >
       {intro}
       <span>{renderedAt}</span>
       {footer}
@@ -118,5 +123,11 @@ describe('ContactPage', () => {
   it('spaces the topic list out to match the taller card', async () => {
     render(await ContactPage())
     expect(screen.getByRole('list', { name: 'topicsLabel' })).toHaveClass('mt-12', 'gap-9')
+  })
+
+  it('passes no footer when the GitHub URL was cleared to an empty string', async () => {
+    getCachedSiteSettings.mockResolvedValue({ githubUrl: '' })
+    render(await ContactPage())
+    expect(screen.getByTestId('contact-form')).toHaveAttribute('data-footer', 'null')
   })
 })

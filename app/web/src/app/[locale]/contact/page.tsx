@@ -31,7 +31,8 @@ export default async function ContactPage() {
   const user = (await getSession())?.user
   const defaultName = user?.displayUsername ?? user?.username ?? ''
   const defaultEmail = user?.email ?? ''
-  const githubUrl = (await getCachedSiteSettings())?.githubUrl ?? null
+  // The schema stores a cleared field as '', which must mean no footer too.
+  const githubUrl = (await getCachedSiteSettings())?.githubUrl || null
 
   // Centred like the login page from `sm` up; on a phone it stays at the top,
   // where an opening keyboard would otherwise shift a centred form.

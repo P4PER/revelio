@@ -3,6 +3,7 @@ import type { DeckSuggestion } from '@revelio/db'
 import {
   awaitChoice, pickPrompt, visibilityPrompt, PICK_ID, POST_ID, PROMPT_TIMEOUT_MS, SELF_ID,
 } from '../src/discord/components/deck-prompts'
+import { flatten, textOf } from './helpers/v2'
 
 const suggestion = (id: string): DeckSuggestion => ({
   id, name: `Deck ${id}`, format: 'classic', author: 'seeker', visibility: 'public', isOwn: false, exactName: false,
@@ -11,8 +12,8 @@ const suggestion = (id: string): DeckSuggestion => ({
 describe('visibilityPrompt', () => {
   it('names the deck and offers post and self buttons', () => {
     const prompt = visibilityPrompt('Secret Charms', 'en')
-    expect(prompt.content).toContain('Secret Charms')
-    const ids = prompt.components[0].toJSON().components.map((c) => (c as { custom_id: string }).custom_id)
+    expect(textOf(prompt)).toContain('Secret Charms')
+    const ids = flatten(prompt).flatMap((n) => (n.custom_id ? [n.custom_id] : []))
     expect(ids).toEqual([POST_ID, SELF_ID])
   })
 })
@@ -20,7 +21,7 @@ describe('visibilityPrompt', () => {
 describe('pickPrompt', () => {
   it('offers at most 25 decks, valued by id', () => {
     const prompt = pickPrompt(Array.from({ length: 30 }, (_, i) => suggestion(String(i))), 'en')
-    const menu = prompt.components[0].toJSON().components[0] as { custom_id: string; options: { value: string }[] }
+    const menu = flatten(prompt).find((n) => n.custom_id === PICK_ID) as unknown as { custom_id: string; options: { value: string }[] }
     expect(menu.custom_id).toBe(PICK_ID)
     expect(menu.options).toHaveLength(25)
     expect(menu.options[0].value).toBe('0')

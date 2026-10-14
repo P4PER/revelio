@@ -17,6 +17,8 @@ export type PublicDeckEntry = {
 export type ListPublicDecksInput = {
   search?: string; lessons?: string[]; format?: DeckFormat | null
   sort?: PublicDeckSort; page?: number; viewerId?: string | null
+  // The Discord bot pages five at a time; the web page keeps PUBLIC_PAGE_SIZE.
+  pageSize?: number
 }
 
 export type DeckSuggestion = {
@@ -102,6 +104,7 @@ export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Prom
   entries: PublicDeckEntry[]; total: number; page: number; pageCount: number; pageSize: number
 }> {
   const page = input.page && input.page >= 1 ? Math.floor(input.page) : 1
+  const pageSize = input.pageSize && input.pageSize >= 1 ? Math.floor(input.pageSize) : PUBLIC_PAGE_SIZE
   const conds = [eq(decks.visibility, 'public')]
 
   const match = deckSearchCondition(input.search ?? '')
@@ -112,7 +115,7 @@ export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Prom
 
   const [{ total }] = await db.select({ total: count() }).from(decks)
     .innerJoin(user, eq(user.id, decks.userId)).where(where)
-  const pageCount = Math.max(1, Math.ceil(total / PUBLIC_PAGE_SIZE))
+  const pageCount = Math.max(1, Math.ceil(total / pageSize))
 
   const order =
     input.sort === 'views' ? [desc(decks.viewCount), desc(decks.createdAt)]
@@ -131,7 +134,7 @@ export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Prom
       : sql<boolean>`false`,
   }).from(decks).innerJoin(user, eq(user.id, decks.userId))
     .where(where).orderBy(...order)
-    .limit(PUBLIC_PAGE_SIZE).offset((page - 1) * PUBLIC_PAGE_SIZE)
+    .limit(pageSize).offset((page - 1) * pageSize)
 
   const ids = rows.map((r) => r.id)
   const counts = ids.length
@@ -160,7 +163,7 @@ export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Prom
     starterCardId: starterByDeck.get(r.id) ?? null,
     starterArtCropVersion: starterCropByDeck.get(r.id) ?? null,
   }))
-  return { entries, total, page, pageCount, pageSize: PUBLIC_PAGE_SIZE }
+  return { entries, total, page, pageCount, pageSize }
 }
 
 export async function suggestDecks(db: DB, input: SuggestDecksInput): Promise<DeckSuggestion[]> {

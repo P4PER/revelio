@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { withMigratedDb } from './helpers.js'
 import {
-  createDeck, getDeck, listDecksByUser, updateDeck, updateDeckMeta, deleteDeck, resolveCardsByName, getCardViews,
+  createDeck, getDeck, listDecksByUser, pageDecksByUser, updateDeck, updateDeckMeta, deleteDeck, resolveCardsByName, getCardViews,
   user, sets, cards,
 } from '@revelio/db'
 
@@ -27,6 +27,27 @@ beforeAll(async () => {
 afterAll(async () => { await ctx.stop() })
 
 describe('deck queries', () => {
+  it('pages a user\'s decks in the database, in the full list\'s order', async () => {
+    await ctx.db.insert(user).values({ id: 'u-paged', name: 'Pager', email: 'p@example.com', emailVerified: true, createdAt: new Date(), updatedAt: new Date() })
+    for (let i = 0; i < 5; i++) {
+      await createDeck(ctx.db, 'u-paged', { name: `Paged ${i}`, format: 'classic', visibility: 'private', cards: [] })
+    }
+    const all = (await listDecksByUser(ctx.db, 'u-paged')).map((d) => d.id)
+    const second = await pageDecksByUser(ctx.db, 'u-paged', { page: 2, pageSize: 2 })
+    expect(second.decks.map((d) => d.id)).toEqual(all.slice(2, 4))
+    expect(second).toMatchObject({ total: 5, page: 2, pageCount: 3 })
+    // A page past the end (decks deleted since the browser was drawn) shows the last one.
+    const past = await pageDecksByUser(ctx.db, 'u-paged', { page: 9, pageSize: 2 })
+    expect(past.decks.map((d) => d.id)).toEqual(all.slice(4))
+    expect(past.page).toBe(3)
+    // Exported from the shared barrel, so bad input reads as page 1 of one-deck pages.
+    const odd = await pageDecksByUser(ctx.db, 'u-paged', { page: Number.NaN, pageSize: 0 })
+    expect(odd).toMatchObject({ page: 1, pageCount: 5 })
+    expect(odd.decks.map((d) => d.id)).toEqual(all.slice(0, 1))
+    const none = await pageDecksByUser(ctx.db, 'u-nobody', { page: 1, pageSize: 2 })
+    expect(none).toMatchObject({ decks: [], total: 0, page: 1, pageCount: 1 })
+  })
+
   it('creates, reads, lists, updates and deletes a deck', async () => {
     const id = await createDeck(ctx.db, 'u1', {
       name: 'My Deck', format: 'revival', visibility: 'private',
@@ -50,6 +71,8 @@ describe('deck queries', () => {
     const list = await listDecksByUser(ctx.db, 'u1')
     expect(list).toHaveLength(1)
     expect(list[0].cardCount).toBe(5) // 1 char + 4 main
+    // What the bot's /mydecks row draws, as a /decks row does.
+    expect(list[0]).toMatchObject({ likeCount: 0, lessons: [], starterCardId: 'bs-harry', starterArtCropVersion: null })
 
     await updateDeck(ctx.db, id, {
       name: 'Renamed', format: 'classic', visibility: 'public',

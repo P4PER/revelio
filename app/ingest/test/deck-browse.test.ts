@@ -123,6 +123,14 @@ describe('listPublicDecks', () => {
     expect(res.entries.some((e) => e.name === 'Secret')).toBe(false)
   })
 
+  it('honours a smaller page size and keeps 24 by default', async () => {
+    const small = await listPublicDecks(ctx.db, { pageSize: 1 })
+    expect(small.entries).toHaveLength(1)
+    expect(small.pageSize).toBe(1)
+    expect(small.pageCount).toBe(small.total)
+    expect((await listPublicDecks(ctx.db, {})).pageSize).toBe(24)
+  })
+
   it('filters by lesson (array overlap) and by author search (@handle)', async () => {
     const byLesson = await listPublicDecks(ctx.db, { lessons: ['charms'] })
     expect(byLesson.entries.every((e) => e.lessons.includes('charms'))).toBe(true)

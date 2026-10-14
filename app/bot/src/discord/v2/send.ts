@@ -37,3 +37,8 @@ export function textMessage(content: string): V2Message {
 export function textEdit(content: string): V2Edit {
   return v2Edit([container().addTextDisplayComponents(text(content))])
 }
+
+// A status line only the clicker sees: a reply or followUp to a click.
+export function ephemeralText(content: string) {
+  return { ...textMessage(content), flags: EPHEMERAL_V2 }
+}

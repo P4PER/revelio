@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import * as dbModule from '@revelio/db'
-import { parseDeckRef, getDeckView, resolveDeckRef, suggestionLabel, findDecks } from '../src/data/decks'
+import {
+  browsePublicDecks, findDecks, getDeckView, pageOwnDecks, parseDeckRef, resolveDeckRef, suggestionLabel,
+} from '../src/data/decks'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -259,5 +261,43 @@ describe('resolveDeckRef', () => {
     expect(await resolveDeckRef({} as never, '   ', null)).toEqual({ kind: 'none' })
     expect(access).not.toHaveBeenCalled()
     expect(search).not.toHaveBeenCalled()
+  })
+})
+
+describe('deck pages', () => {
+  it('asks listPublicDecks for five, with the browser state as its filters', async () => {
+    const list = vi.spyOn(dbModule, 'listPublicDecks').mockResolvedValue({
+      entries: [], total: 12, page: 2, pageCount: 3, pageSize: 5,
+    })
+    const page = await browsePublicDecks({} as never, {
+      scope: 'public', page: 2, format: 'revival', sort: 'views', lesson: 'charms', query: '@ann',
+    })
+    expect(list).toHaveBeenCalledWith({}, {
+      search: '@ann', lessons: ['charms'], format: 'revival', sort: 'views', page: 2, pageSize: 5,
+    })
+    expect(page).toMatchObject({ total: 12, page: 2, pages: 3 })
+  })
+
+  // Decks made private since the page was drawn: land on the last real
+  // page, as /mydecks does, rather than on an empty one.
+  it('reads the last page for a page past the end', async () => {
+    const list = vi.spyOn(dbModule, 'listPublicDecks')
+      .mockResolvedValueOnce({ entries: [], total: 12, page: 6, pageCount: 3, pageSize: 5 })
+      .mockResolvedValueOnce({ entries: [{ id: 'x' }] as never, total: 12, page: 3, pageCount: 3, pageSize: 5 })
+    const page = await browsePublicDecks({} as never, {
+      scope: 'public', page: 6, format: null, sort: 'likes', lesson: null, query: '',
+    })
+    expect(list.mock.calls[1][1]).toMatchObject({ page: 3 })
+    expect(page).toMatchObject({ page: 3, pages: 3 })
+  })
+
+  it('asks the database for one page of five of the owner\'s decks', async () => {
+    const paged = vi.spyOn(dbModule, 'pageDecksByUser').mockResolvedValue({
+      decks: [{ id: 'd20' }, { id: 'd21' }, { id: 'd22' }] as never, total: 23, page: 3, pageCount: 3,
+    })
+    const page = await pageOwnDecks({} as never, 'u1', 3)
+    expect(paged).toHaveBeenCalledWith({}, 'u1', { page: 3, pageSize: 5 })
+    expect(page.decks.map((d) => d.id)).toEqual(['d20', 'd21', 'd22'])
+    expect(page).toMatchObject({ total: 23, page: 3, pages: 3 })
   })
 })

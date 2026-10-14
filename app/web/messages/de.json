@@ -884,6 +884,17 @@
           }
         }
       },
+      "decks": {
+        "options": {
+          "query": "Ein Teil eines Decknamens, oder @ und ein Teil des Handles einer Autorin oder eines Autors. Ohne Angabe durchsuchst du alle öffentlichen Decks.",
+          "format": "Nur Decks dieses Formats. Das Format-Menü in der Antwort ändert es später.",
+          "sort": "Die Reihenfolge beim Durchsuchen. Standardmäßig nach den meisten Likes."
+        },
+        "choices": {
+          "format": { "classic": "Classic", "revival": "Revival" },
+          "sort": { "likes": "Meiste Likes", "views": "Meiste Aufrufe", "newest": "Neueste", "updated": "Zuletzt aktualisiert" }
+        }
+      },
       "collection": {
         "options": {
           "set": "Schränkt die Übersicht auf ein Set statt auf die ganze Sammlung ein. Die Vorschläge umfassen die Set-Namen."

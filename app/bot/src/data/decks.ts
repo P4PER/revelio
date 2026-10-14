@@ -1,9 +1,14 @@
 import {
   getDeckAccess,
   getDeckForViewer,
+  listPublicDecks,
+  pageDecksByUser,
   suggestDecks,
   type DB,
   type DeckSuggestion,
+  type DeckSummary,
+  type PublicDeckEntry,
+  type PublicDeckSort,
 } from '@revelio/db'
 import {
   evaluateDeck,
@@ -53,7 +58,20 @@ export type DeckRef =
   | { kind: 'ambiguous'; options: DeckSuggestion[] }
   | { kind: 'none' }
 
+export type PublicDeckPage = { entries: PublicDeckEntry[]; total: number; page: number; pages: number }
+export type OwnDeckPage = { decks: DeckSummary[]; total: number; page: number; pages: number }
+
+// What /decks filters on. The browser's custom-id state satisfies it, but data
+// takes plain fields so it never depends on how a Discord id is encoded.
+export type PublicDeckQuery = {
+  query: string; lesson: string | null; format: DeckFormat | null; sort: PublicDeckSort; page: number
+}
+
 type Sortable = Pick<DeckCardView, 'cost' | 'name'>
+
+// Five rows with art keep both deck browsers at 32 of Discord's 40
+// components: /mydecks draws the same rows as /decks.
+export const DECK_PAGE_SIZE = 5
 
 function byCostThenName(a: Sortable, b: Sortable): number {
   const ac = a.cost ?? Number.MAX_SAFE_INTEGER
@@ -177,4 +195,29 @@ export async function resolveDeckRef(db: DB, input: string, viewerId: string | n
   const one = matches.length === 1 ? matches[0] : exact.length === 1 ? exact[0] : null
   if (one) return { kind: 'deck', id: one.id, name: one.name, access: accessOf(one) }
   return { kind: 'ambiguous', options: matches }
+}
+
+// The web /decks page's own query, so the two can never disagree on what
+// matches - "@handle" included.
+// A page past the end (decks made private since it was drawn) reads the last
+// one, as pageOwnDecks does.
+export async function browsePublicDecks(db: DB, state: PublicDeckQuery): Promise<PublicDeckPage> {
+  const read = (page: number) => listPublicDecks(db, {
+    search: state.query || undefined,
+    lessons: state.lesson ? [state.lesson] : undefined,
+    format: state.format,
+    sort: state.sort,
+    page,
+    pageSize: DECK_PAGE_SIZE,
+  })
+  const first = await read(state.page)
+  const res = first.page > first.pageCount ? await read(first.pageCount) : first
+  return { entries: res.entries, total: res.total, page: res.page, pages: res.pageCount }
+}
+
+// One page in the database, newest edit first: a click costs ten rows, not
+// the owner's whole list.
+export async function pageOwnDecks(db: DB, userId: string, page: number): Promise<OwnDeckPage> {
+  const res = await pageDecksByUser(db, userId, { page, pageSize: DECK_PAGE_SIZE })
+  return { decks: res.decks, total: res.total, page: res.page, pages: res.pageCount }
 }

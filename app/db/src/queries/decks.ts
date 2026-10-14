@@ -1,4 +1,4 @@
-import { eq, desc, sql, inArray, and, isNotNull } from 'drizzle-orm'
+import { eq, desc, sql, inArray, and, isNotNull, count } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import type { DB } from '../client'
 import { cards, sets, cardLocalizations, cardTypes, cardSubTypes, decks, deckCards } from '../schema'
@@ -18,7 +18,12 @@ export type DeckSummary = {
   id: string; name: string; format: DeckFormat; visibility: DeckVisibility
   cardCount: number; mainCount: number; hasCharacter: boolean
   characterName: string | null; updatedAt: string
+  // For the bot's /mydecks rows, drawn like a /decks row.
+  likeCount: number; lessons: string[]
+  starterCardId: string | null; starterArtCropVersion: number | null
 }
+
+export type DeckPage = { decks: DeckSummary[]; total: number; page: number; pageCount: number }
 
 // Small helper: group junction rows into a code[] per parent id.
 function groupCodes<T>(rows: T[], key: (r: T) => string, code: (r: T) => string): Map<string, string[]> {
@@ -90,8 +95,11 @@ async function replaceDeckCards(tx: Tx, id: string, cardsIn: DeckWriteInput['car
   await tx.update(decks).set({ lessons: deckLessons }).where(eq(decks.id, id))
 }
 
-export async function listDecksByUser(db: DB, userId: string): Promise<DeckSummary[]> {
-  const rows = await db.select().from(decks).where(eq(decks.userId, userId)).orderBy(desc(decks.updatedAt))
+// Newest edit first; the id breaks ties so a page boundary never shifts
+// between two reads of the same list.
+const BY_UPDATED = [desc(decks.updatedAt), desc(decks.id)]
+
+async function summarize(db: DB, rows: (typeof decks.$inferSelect)[]): Promise<DeckSummary[]> {
   if (rows.length === 0) return []
   const ids = rows.map((r) => r.id)
   // Per-zone quantity sums, so the summary can show the main-deck count against
@@ -112,17 +120,41 @@ export async function listDecksByUser(db: DB, userId: string): Promise<DeckSumma
   }
   // The starting character's display name for each deck (if one is set).
   const charRows = await db
-    .select({ deckId: deckCards.deckId, name: cards.name })
+    .select({ deckId: deckCards.deckId, cardId: cards.id, name: cards.name, artCropVersion: cards.artCropVersion })
     .from(deckCards)
     .innerJoin(cards, eq(deckCards.cardId, cards.id))
     .where(and(inArray(deckCards.deckId, ids), eq(deckCards.zone, 'character')))
-  const charByDeck = new Map(charRows.map((c) => [c.deckId, c.name]))
+  const charByDeck = new Map(charRows.map((c) => [c.deckId, c]))
   return rows.map((r) => ({
     id: r.id, name: r.name, format: r.format as DeckFormat, visibility: r.visibility as DeckVisibility,
     cardCount: totalByDeck.get(r.id) ?? 0, mainCount: mainByDeck.get(r.id) ?? 0,
-    hasCharacter: hasCharacter.has(r.id), characterName: charByDeck.get(r.id) ?? null,
+    hasCharacter: hasCharacter.has(r.id), characterName: charByDeck.get(r.id)?.name ?? null,
     updatedAt: r.updatedAt.toISOString(),
+    likeCount: r.likeCount, lessons: r.lessons ?? [],
+    starterCardId: charByDeck.get(r.id)?.cardId ?? null,
+    starterArtCropVersion: charByDeck.get(r.id)?.artCropVersion ?? null,
   }))
+}
+
+export async function listDecksByUser(db: DB, userId: string): Promise<DeckSummary[]> {
+  return summarize(db, await db.select().from(decks).where(eq(decks.userId, userId)).orderBy(...BY_UPDATED))
+}
+
+// One page of listDecksByUser, cut in SQL so a click costs a page of rows. A
+// page past the end (decks deleted since it was asked for) answers the last.
+export async function pageDecksByUser(
+  db: DB, userId: string, input: { page: number; pageSize: number },
+): Promise<DeckPage> {
+  // Exported from the shared barrel: bad input reads as page 1 of one-deck pages.
+  const pageSize = input.pageSize >= 1 ? Math.floor(input.pageSize) : 1
+  const asked = input.page >= 1 ? Math.floor(input.page) : 1
+  const where = eq(decks.userId, userId)
+  const [{ total }] = await db.select({ total: count() }).from(decks).where(where)
+  const pageCount = Math.max(1, Math.ceil(total / pageSize))
+  const page = Math.min(asked, pageCount)
+  const rows = await db.select().from(decks).where(where).orderBy(...BY_UPDATED)
+    .limit(pageSize).offset((page - 1) * pageSize)
+  return { decks: await summarize(db, rows), total, page, pageCount }
 }
 
 // Updates only name/visibility (+ updatedAt) — never touches deck_cards. Used

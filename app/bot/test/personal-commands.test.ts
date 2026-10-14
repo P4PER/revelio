@@ -130,79 +130,51 @@ describe('/mydecks', () => {
   const deck = (over: Record<string, unknown> = {}) => ({
     id: 'd1', name: 'Secret Brew', format: 'classic', visibility: 'private',
     mainCount: 60, cardCount: 61, hasCharacter: true, characterName: 'Harry',
-    updatedAt: new Date('2026-01-01'), ...over,
+    updatedAt: '2026-01-01T00:00:00.000Z', likeCount: 0, lessons: [], starterCardId: null,
+    starterArtCropVersion: null, ...over,
   })
+  const paged = (decks: unknown[]) => ({ decks: decks as never, total: decks.length, page: 1, pageCount: 1 })
 
   it('always replies ephemerally', async () => {
     linked()
-    vi.spyOn(dbModule, 'listDecksByUser').mockResolvedValue([])
+    vi.spyOn(dbModule, 'pageDecksByUser').mockResolvedValue(paged([]))
     const interaction = fakeInteraction()
     await run('mydecks', interaction, fakeDeps())
     expect(interaction.deferReply).toHaveBeenCalledWith({ flags: MessageFlags.Ephemeral })
   })
 
-  it('lists private decks too, since only the asker sees the reply', async () => {
+  it('lists private decks too, marked, since only the asker sees the reply', async () => {
     linked()
-    vi.spyOn(dbModule, 'listDecksByUser').mockResolvedValue([deck()] as never)
+    vi.spyOn(dbModule, 'pageDecksByUser').mockResolvedValue(paged([deck()]))
     const interaction = fakeInteraction()
     await run('mydecks', interaction, fakeDeps())
-    const { content } = interaction.editReply.mock.calls[0][0]
-    expect(content).toContain('Secret Brew')
-    expect(content).toContain('private')
-    expect(content).toContain('https://revelio.cards/decks/d1')
+    expect(textOf(interaction.editReply.mock.calls[0][0])).toContain('🔒 **Secret Brew**')
+  })
+
+  it('pages five decks at a time', async () => {
+    linked()
+    const five = Array.from({ length: 5 }, (_, i) => deck({ id: `d${i}`, name: `Deck ${i}` }))
+    const page = vi.spyOn(dbModule, 'pageDecksByUser').mockResolvedValue({ ...paged(five), total: 25, pageCount: 5 })
+    const interaction = fakeInteraction()
+    await run('mydecks', interaction, fakeDeps())
+    expect(page).toHaveBeenCalledWith(expect.anything(), expect.anything(), { page: 1, pageSize: 5 })
+    const text = textOf(interaction.editReply.mock.calls[0][0])
+    expect(text).toContain('Your decks (25)')
+    expect(text).toContain('Deck 4')
   })
 
   it('offers the builder link when the user has no decks', async () => {
     linked()
-    vi.spyOn(dbModule, 'listDecksByUser').mockResolvedValue([])
+    vi.spyOn(dbModule, 'pageDecksByUser').mockResolvedValue(paged([]))
     const interaction = fakeInteraction()
     await run('mydecks', interaction, fakeDeps())
-    expect(interaction.editReply.mock.calls[0][0].content).toContain('/decks/new')
+    expect(textOf(interaction.editReply.mock.calls[0][0])).toContain('/decks/new')
   })
 
   it('points an unlinked user at the settings page', async () => {
     unlinked()
     const interaction = fakeInteraction()
     await run('mydecks', interaction, fakeDeps())
-    expect(interaction.editReply.mock.calls[0][0].content)
-      .toContain('https://revelio.cards/settings/connections')
-  })
-
-  // Discord rejects a message body over 2000 characters outright, which would
-  // fail the whole interaction rather than truncate it.
-  it('stays inside the message limit for a user with many decks', async () => {
-    linked()
-    const many = Array.from({ length: 80 }, (_, i) =>
-      deck({ id: `deck-${i}`, name: `A fairly long deck name number ${i}` }))
-    vi.spyOn(dbModule, 'listDecksByUser').mockResolvedValue(many as never)
-    const interaction = fakeInteraction()
-    await run('mydecks', interaction, fakeDeps())
-    expect(interaction.editReply.mock.calls[0][0].content.length).toBeLessThanOrEqual(2000)
-  })
-
-  // The header counts every deck, so a truncated list must say so or it reads
-  // as "you have 80 decks" above 25 lines.
-  it('admits how many decks it left out', async () => {
-    linked()
-    const many = Array.from({ length: 80 }, (_, i) =>
-      deck({ id: `deck-${i}`, name: `A fairly long deck name number ${i}` }))
-    vi.spyOn(dbModule, 'listDecksByUser').mockResolvedValue(many as never)
-    const interaction = fakeInteraction()
-    await run('mydecks', interaction, fakeDeps())
-    const { content } = interaction.editReply.mock.calls[0][0]
-    const lines = content.split('\n')
-    const shown = lines.length - 2 // header and the "and N more" line
-    expect(content).toContain('Your decks (80)')
-    expect(lines.at(-1)).toBe(`... and ${80 - shown} more`)
-  })
-
-  it('adds no remainder line when every deck fits', async () => {
-    linked()
-    vi.spyOn(dbModule, 'listDecksByUser').mockResolvedValue([deck(), deck({ id: 'd2', name: 'Second' })] as never)
-    const interaction = fakeInteraction()
-    await run('mydecks', interaction, fakeDeps())
-    const { content } = interaction.editReply.mock.calls[0][0]
-    expect(content).not.toContain('more')
-    expect(content.split('\n')).toHaveLength(3)
+    expect(textOf(interaction.editReply.mock.calls[0][0])).toContain('https://revelio.cards/settings/connections')
   })
 })

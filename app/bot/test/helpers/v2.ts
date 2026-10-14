@@ -8,6 +8,7 @@ type Json = {
   accessory?: Json
   items?: { media: { url: string }; description?: string | null }[]
   media?: { url: string }
+  description?: string | null
   url?: string
   label?: string
   custom_id?: string
@@ -53,4 +54,9 @@ export function mediaUrls(payload: Payload): string[] {
 
 export function buttonsOf(payload: Payload): Json[] {
   return flatten(payload).filter((n) => n.type === ComponentType.Button)
+}
+
+// The text of the first "## " heading, markdown escapes left as they are.
+export function titleOf(payload: Payload): string {
+  return /^## (.*)$/m.exec(textOf(payload))?.[1] ?? ''
 }

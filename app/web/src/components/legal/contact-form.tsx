@@ -84,19 +84,21 @@ export function ContactForm({
   // The page hands in its intro and footer so this component can own the grid:
   // sending moves the emblem from above the intro (phone) to above the success
   // card, which a server-rendered sibling could not follow. From `lg` up the
-  // intro and footer stack in the left column and the card spans both rows on
-  // the right; below `lg` everything is one column in DOM order.
+  // intro and footer stack in the left column between two flexible spacer rows,
+  // and the card spans all four rows on the right, so both columns share one
+  // centre line whichever is taller. Below `lg` everything is one column in DOM
+  // order.
   return (
     <div
       data-slot="contact-layout"
-      className="grid gap-6 lg:grid-cols-[5fr_6fr] lg:grid-rows-[auto_1fr] lg:gap-x-16"
+      className="grid gap-6 lg:grid-cols-[5fr_6fr] lg:grid-rows-[1fr_auto_auto_1fr] lg:gap-x-16 lg:gap-y-0"
     >
-      <div data-slot="contact-intro" className="lg:col-start-1 lg:row-start-1 lg:pt-6">
+      <div data-slot="contact-intro" className="lg:col-start-1 lg:row-start-2">
         {!sent && <OwlPostEmblem className="mb-4 lg:hidden" />}
         {intro}
       </div>
 
-      <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+      <div className="lg:col-start-2 lg:row-span-4 lg:row-start-1 lg:self-center">
         {sent ? (
           <>
             <OwlPostEmblem flying className="-mb-11" />
@@ -236,7 +238,7 @@ export function ContactForm({
       </div>
 
       {footer && (
-        <div data-slot="contact-footer" className="lg:col-start-1 lg:row-start-2 lg:self-start">
+        <div data-slot="contact-footer" className="lg:col-start-1 lg:row-start-3 lg:mt-8">
           {footer}
         </div>
       )}

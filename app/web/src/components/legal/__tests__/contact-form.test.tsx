@@ -172,4 +172,17 @@ describe('ContactForm', () => {
     expect(screen.getByLabelText(en.contact.email)).toHaveValue('hermione@example.com')
     expect(screen.getByLabelText(en.contact.subject)).toHaveValue('')
   })
+
+  it('centres the card against the intro and footer group from lg up', () => {
+    const { container } = renderForm({ footer: <p>Footer line</p> })
+    // Rows 1 and 4 are flexible spacers: the intro sits on the centre line from
+    // above, the footer from below, and the card spans all four, centred.
+    expect(container.querySelector('[data-slot="contact-layout"]')).toHaveClass(
+      'lg:grid-rows-[1fr_auto_auto_1fr]',
+    )
+    expect(container.querySelector('[data-slot="contact-intro"]')).toHaveClass('lg:row-start-2')
+    expect(container.querySelector('[data-slot="contact-footer"]')).toHaveClass('lg:row-start-3')
+    const card = container.querySelector('[data-slot="contact-card"]')?.parentElement
+    expect(card).toHaveClass('lg:row-span-4', 'lg:self-center')
+  })
 })

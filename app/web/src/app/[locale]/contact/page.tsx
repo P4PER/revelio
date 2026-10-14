@@ -72,7 +72,7 @@ export default async function ContactPage() {
         }
         footer={
           githubUrl && (
-            <p className="text-center text-sm text-muted-foreground lg:mt-2 lg:border-t lg:border-border lg:pt-5 lg:text-left">
+            <p className="text-center text-sm text-muted-foreground lg:border-t lg:border-border lg:pt-5 lg:text-left">
               {t.rich('github', {
                 link: (chunks) => (
                   <a

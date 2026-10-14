@@ -42,22 +42,30 @@ link rather than retyping the id by hand; the full link cannot be mistyped.
 
 ## "I can't post in this channel"
 
-**Post publicly** sends the deck as a normal message in the channel, so the bot
-needs to be allowed to: view the channel, send messages (or send messages in
-threads, inside a thread), embed links and attach files. A server's moderators
+**Post publicly**, **Post to channel** and **Share** send a normal message in the
+channel, so the bot needs to be allowed to: view the channel, send messages (or
+send messages in threads, inside a thread) and embed links, and attach files for
+a deck. A server's moderators
 can grant these to the Revelio role, or in the channel's own permissions. Until
 then, **Only show me** still works there.
 
 If it says "I can't post here" instead, there is no channel the bot can reach:
 for example a server where only you added Revelio, rather than the server
-itself. Run `/deck` again and choose **Only show me**. In a direct message with
+itself. Run `/deck` again and choose **Only show me**; in the browsers,
+everything you looked at privately still works, and only posting does not. In a direct message with
 the bot, your own private decks are shown to you straight away, without asking.
 
 ## A page of results is empty
 
-Ask `/search` for a page and it may tell you that page is out of range, even
-though the result count it showed you suggested there were more.
+Page forward through `/search` or `/decks` and the last page may say there are
+no more results, even though the count at the top suggested more.
 
 That is the result count being an estimate. The search engine reports an
 approximate total, which runs high, so the page count derived from it is an upper
-bound rather than a promise. Go back a page: the results up to there are real.
+bound rather than a promise. Press **Previous**: the results up to there are real.
+
+## The buttons say the results are out of date
+
+A reply's buttons and menus carry what you were looking at. After an update to
+the bot changes how they do that, older replies answer "These results are out of
+date". Run the command again; the new reply works as before.

@@ -1,4 +1,4 @@
-Fünf Slash-Befehle, verfügbar in jedem Kanal, den der Bot sehen kann. Die Namen
+Sechs Slash-Befehle, verfügbar in jedem Kanal, den der Bot sehen kann. Die Namen
 der Optionen sind in allen Sprachen gleich - übersetzt werden nur ihre
 Beschreibungen. Du tippst also dasselbe, egal ob Discord auf Deutsch oder auf
 Englisch steht.
@@ -17,20 +17,33 @@ Rolle.
 
 ## Suche
 
-Dieselbe Suche wie auf der Website, seitenweise in ein Embed gepackt, mit einem
-Link zurück zu den vollständigen Ergebnissen auf revelio.cards. Filter lassen
-sich kombinieren: Lektion und Set zusammen schränken auf beides ein.
+Dieselbe Suche wie auf der Website, aber privat beantwortet: Nur du siehst die
+Ergebnisse, bis du entscheidest, welche du teilst. Fünf Karten pro Seite, jede
+mit ihrem Artwork, und Buttons zum Blättern. Lektion, Kartentyp und Set lassen
+sich direkt in der Antwort ändern, ohne den Befehl neu zu tippen, **Suchen**
+ändert die Suchbegriffe, und Filter lassen sich kombinieren. Lässt du die
+Suchbegriffe weg, durchsuchen die Filter allein eine Lektion, einen Kartentyp
+oder ein Set.
+
+Wähl eine Karte aus dem Menü, um sie an Ort und Stelle zu öffnen - mit allem, was
+`/card` zeigt, und einem Button zurück zu den Ergebnissen. **Im Kanal posten**
+stellt diese eine Karte in den Kanal. **Teilen** fragt, welche Karten der Seite
+gepostet werden sollen; zu Beginn sind alle ausgewählt. Der Kanal bekommt sie als
+Liste mit deinem Namen und einem Menü, über das alle eine der Karten öffnen
+können - privat, nur für die Person, die sie gewählt hat.
 
 <CommandTable name="search" />
 
-<CommandExample>/search query:lumos lesson:Zauberkunst set:Kammer des Schreckens</CommandExample>
+<CommandExample>/search query:lumos lesson:Zauberkunst</CommandExample>
+
+<CommandExample>/search set:Kammer des Schreckens type:Zauber</CommandExample>
 
 ## Deck nachschlagen
 
 Findet ein Deck per Name und zeigt es als Bild seiner Karten - dasselbe
 Deck-Blatt, das im Deck-Builder unter "PNG exportieren" herauskommt, nach
-Kartentyp gruppiert und mit der Anzahl auf jeder Karte. Das Embed darüber nennt
-Charakter, Format und Legalität. Mit `view:list` kommt stattdessen eine
+Kartentyp gruppiert und mit der Anzahl auf jeder Karte. Die Überschrift darüber
+nennt Startcharakter, Autor, Format und Legalität. Mit `view:list` kommt stattdessen eine
 Textliste, die sich auf einer langsamen Verbindung besser liest und kopieren
 lässt.
 
@@ -52,11 +65,30 @@ Buttons funktionieren eine Minute lang.
 
 <CommandExample>/deck deck:abc123 view:list</CommandExample>
 
+## Decks durchsuchen
+
+Alle öffentlichen Decks, privat für dich, fünf pro Seite mit dem Artwork des
+Startcharakters, die beliebtesten zuerst. Die Menüs in der Antwort ändern Format,
+Reihenfolge und Lektion. Such nach dem Decknamen, oder beginne mit `@`, um nach
+Autor zu suchen. Öffne ein Deck, um es als Bild seiner Karten zu sehen; **Im
+Kanal posten** teilt es mit deinem Namen.
+
+<CommandTable name="decks" />
+
+<CommandExample>/decks query:aggro format:Classic</CommandExample>
+
+<CommandExample>/decks query:@hermione sort:Neueste</CommandExample>
+
 ## Deine eigenen Daten
 
 Zwei Befehle beantworten Fragen zu dir statt zum Spiel. Beide antworten deshalb
 privat - nur du siehst das Ergebnis, auch in einem vollen Kanal. Für beide muss
 dein Discord-Konto mit Revelio verknüpft sein.
+
+`/mydecks` zeigt fünf Decks pro Seite wie `/decks`, deine privaten mit einem
+Schloss markiert, und öffnet jedes davon genauso. Ob eines deiner privaten Decks
+im Kanal landet, entscheidest du selbst mit seinem Button; sonst passiert das
+nie.
 
 <CommandTable name="collection" />
 
@@ -64,7 +96,7 @@ dein Discord-Konto mit Revelio verknüpft sein.
 
 <Callout>
 Noch nicht verknüpft? Der Bot antwortet mit einem Link zu Einstellungen, dann
-Verknüpfungen. Die Verknüpfung ist nur für diese beiden Befehle nötig - Karten-,
-Such- und Deck-Abfragen funktionieren für alle. Siehe
+Verknüpfungen. Die Verknüpfung ist nur für diese beiden Befehle nötig - `/card`, `/search`,
+`/deck` und `/decks` funktionieren für alle. Siehe
 [Kontoverknüpfung](/docs/discord/linking).
 </Callout>

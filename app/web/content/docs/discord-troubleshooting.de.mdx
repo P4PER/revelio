@@ -45,9 +45,10 @@ vollständigen Link kann man sich nicht vertippen.
 
 ## "Ich kann in diesem Kanal nicht posten"
 
-**Öffentlich posten** schickt das Deck als normale Nachricht in den Kanal, also
-muss der Bot das dürfen: den Kanal sehen, Nachrichten senden (in einem Thread:
-Nachrichten in Threads senden), Links einbetten und Dateien anhängen. Die
+**Öffentlich posten**, **Im Kanal posten** und **Teilen** schicken eine normale
+Nachricht in den Kanal, also muss der Bot das dürfen: den Kanal sehen,
+Nachrichten senden (in einem Thread: Nachrichten in Threads senden) und Links
+einbetten, und für ein Deck Dateien anhängen. Die
 Moderation eines Servers kann das der Revelio-Rolle oder in den Berechtigungen
 des Kanals selbst erlauben. Bis dahin funktioniert dort **Nur mir zeigen**
 weiterhin.
@@ -55,15 +56,23 @@ weiterhin.
 Heißt es stattdessen "Hier kann ich nicht posten", gibt es keinen Kanal, den der
 Bot erreichen kann: etwa auf einem Server, auf dem nur du Revelio hinzugefügt
 hast, nicht der Server selbst. Führe `/deck` erneut aus und wähle **Nur mir
-zeigen**. In einer Direktnachricht an den Bot werden dir deine eigenen privaten
+zeigen**; in den Übersichten funktioniert alles, was du dir privat angesehen
+hast, weiter, nur das Posten nicht. In einer Direktnachricht an den Bot werden dir deine eigenen privaten
 Decks direkt gezeigt, ohne Nachfrage.
 
 ## Eine Ergebnisseite ist leer
 
-Fragst du `/search` nach einer Seite, kann es sein, dass sie laut Bot außerhalb
-des Bereichs liegt - obwohl die zuvor angezeigte Trefferzahl mehr nahegelegt hat.
+Blätterst du in `/search` oder `/decks` vor, kann die letzte Seite sagen, dass es
+keine weiteren Ergebnisse gibt - obwohl die Zahl oben mehr nahegelegt hat.
 
 Das liegt daran, dass diese Trefferzahl eine Schätzung ist. Die Suchmaschine
 meldet eine ungefähre Gesamtzahl, die zu hoch ausfällt, und die daraus
-abgeleitete Seitenzahl ist deshalb eine Obergrenze, keine Zusage. Geh eine Seite
-zurück: Die Ergebnisse bis dorthin sind echt.
+abgeleitete Seitenzahl ist deshalb eine Obergrenze, keine Zusage. Drück
+**Zurück**: Die Ergebnisse bis dorthin sind echt.
+
+## Die Buttons sagen, die Ergebnisse seien veraltet
+
+Die Buttons und Menüs einer Antwort tragen mit, was du dir gerade ansiehst. Ändert
+ein Update des Bots, wie sie das tun, antworten ältere Antworten mit "Diese
+Ergebnisse sind veraltet". Führe den Befehl erneut aus; die neue Antwort
+funktioniert wie gewohnt.

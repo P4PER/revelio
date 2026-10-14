@@ -836,7 +836,7 @@
     "sections": {
       "discord": {
         "title": "Discord-Bot",
-        "summary": "Fünf Slash-Befehle für Karten-, Deck- und Sammlungsabfragen direkt in Discord."
+        "summary": "Sechs Slash-Befehle für Karten-, Deck- und Sammlungsabfragen direkt in Discord."
       },
       "api": {
         "title": "API",

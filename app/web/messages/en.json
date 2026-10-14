@@ -884,7 +884,7 @@
     "sections": {
       "discord": {
         "title": "Discord bot",
-        "summary": "Five slash commands for card, deck and collection lookups inside Discord."
+        "summary": "Six slash commands for card, deck and collection lookups inside Discord."
       },
       "api": {
         "title": "API",

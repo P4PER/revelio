@@ -101,7 +101,7 @@ export function ContactForm({
       <div className="lg:col-start-2 lg:row-span-4 lg:row-start-1 lg:self-center">
         {sent ? (
           <>
-            <OwlPostEmblem flying className="-mb-11" />
+            <OwlPostEmblem flying className="mb-4" />
             <div data-slot="contact-card" className={FORM_CARD}>
               <div role="status" className="flex flex-col items-center py-6 text-center">
                 <h2 className="text-2xl font-semibold tracking-tight text-foreground">{t('successTitle')}</h2>

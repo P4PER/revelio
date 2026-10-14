@@ -156,6 +156,8 @@ describe('ContactForm', () => {
     const emblems = container.querySelectorAll('[data-slot="owl-post-emblem"]')
     expect(emblems).toHaveLength(1)
     expect(emblems[0]).toHaveAttribute('data-state', 'flying')
+    // Clear of the card: a negative margin tucks the trail under the card's z-10 and cuts it off.
+    expect(emblems[0].className.split(/\s+/).some((c) => /(^|:)-m[by]?-/.test(c))).toBe(false)
     const status = screen.getByRole('status')
     expect(status.closest('[data-slot="contact-card"]')?.className).toContain(FORM_CARD)
   })

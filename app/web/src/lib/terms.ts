@@ -8,7 +8,7 @@
  * again. lib/__tests__/terms.test.ts pins a hash of the text to this version,
  * so a wording change without a bump fails the suite.
  */
-export const TERMS_VERSION = '2026-09-16'
+export const TERMS_VERSION = '2026-10-14'
 
 export const TERMS_EFFECTIVE_DATE = new Date(`${TERMS_VERSION}T00:00:00Z`)
 

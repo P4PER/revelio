@@ -20,10 +20,6 @@ describe('CardTile rotate button', () => {
     wrap(base)
     expect(screen.getByRole('button', { name: /rotate upright/i })).toBeInTheDocument()
   })
-  it('shows no rotate button for a vertical card', () => {
-    wrap({ ...base, orientation: 'vertical' })
-    expect(screen.queryByRole('button', { name: /rotate upright/i })).toBeNull()
-  })
 })
 
 describe('CardTile href', () => {

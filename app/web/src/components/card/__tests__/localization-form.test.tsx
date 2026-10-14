@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react'
+import { createRef } from 'react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -11,13 +12,20 @@ vi.mock('@/../i18n/navigation', () => ({
 }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), warning: vi.fn(), error: vi.fn() } }))
 
-import { LocalizationForm } from '@/components/card/localization-form'
+import { LocalizationForm, type LocalizationFormHandle } from '@/components/card/localization-form'
 import en from '@/../messages/en.json'
+
+// Rendered the way CardEditForm embeds it, its only caller: no Save button of
+// its own, saved through the ref handle.
+const handle = createRef<LocalizationFormHandle>()
+const save = () => act(() => handle.current!.save())
 
 function renderForm(kind: 'adventure' | 'match' | null = null) {
   return render(
     <NextIntlClientProvider locale="en" messages={en}>
       <LocalizationForm
+        ref={handle}
+        embedded
         cardId="x-1"
         lang="de"
         kind={kind}
@@ -37,7 +45,7 @@ describe('LocalizationForm', () => {
   it('blocks an empty name with an inline error and does not call the action', async () => {
     renderForm()
     await userEvent.clear(screen.getByLabelText(en.edit.name))
-    await userEvent.click(screen.getByRole('button', { name: en.edit.save }))
+    await save()
     expect(await screen.findByText(en.validation.required)).toBeInTheDocument()
     expect(updateLocalization).not.toHaveBeenCalled()
   })
@@ -47,18 +55,10 @@ describe('LocalizationForm', () => {
     const name = screen.getByLabelText(en.edit.name)
     await userEvent.clear(name)
     await userEvent.type(name, 'Neuer Name')
-    await userEvent.click(screen.getByRole('button', { name: en.edit.save }))
+    await save()
     expect(updateLocalization).toHaveBeenCalledWith(
       expect.objectContaining({ cardId: 'x-1', lang: 'de', name: 'Neuer Name', status: 'machine' }),
     )
-  })
-
-  it('keeps Save disabled until a field changes', async () => {
-    renderForm()
-    const save = screen.getByRole('button', { name: en.edit.save })
-    expect(save).toBeDisabled()
-    await userEvent.type(screen.getByLabelText(en.edit.name), 'x')
-    expect(save).toBeEnabled()
   })
 
   it('shows the Adventure section only for adventure cards', () => {
@@ -73,7 +73,7 @@ describe('LocalizationForm', () => {
   it('submits the adventure group', async () => {
     renderForm('adventure')
     await userEvent.type(screen.getByLabelText(en.edit.effect), 'boom')
-    await userEvent.click(screen.getByRole('button', { name: en.edit.save }))
+    await save()
     expect(updateLocalization).toHaveBeenCalledWith(
       expect.objectContaining({ adventure: { effect: 'boom', reward: '', toSolve: '' } }),
     )
@@ -96,7 +96,7 @@ describe('LocalizationForm', () => {
   it('submits the match group', async () => {
     renderForm('match')
     await userEvent.type(screen.getByLabelText(en.edit.prize), 'win it')
-    await userEvent.click(screen.getByRole('button', { name: en.edit.save }))
+    await save()
     expect(updateLocalization).toHaveBeenCalledWith(
       expect.objectContaining({ match: { prize: 'win it', toWin: '' } }),
     )

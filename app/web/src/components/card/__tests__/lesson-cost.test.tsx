@@ -10,7 +10,7 @@ describe('LessonCost', () => {
     expect(screen.getByText('5')).toBeInTheDocument()
   })
 
-  it('renders a two-digit cost the same size as a single digit', () => {
+  it('renders a two-digit cost', () => {
     render(<LessonCost lesson="potions" cost={12} label="Potions" />)
     expect(screen.getByRole('img', { name: '12 Potions' })).toBeInTheDocument()
     expect(screen.getByText('12')).toBeInTheDocument()

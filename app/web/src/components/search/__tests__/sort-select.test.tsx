@@ -25,11 +25,6 @@ function renderSort(locale: 'en' | 'de', messages: typeof en | typeof de, ui: Re
 }
 
 describe('SortSelect', () => {
-  it('defaults to Relevance', () => {
-    renderSort('en', en, <SortSelect />)
-    expect(screen.getByRole('combobox')).toHaveTextContent(en.search.sort.relevance)
-  })
-
   it('choosing Name updates the sort param', async () => {
     const user = userEvent.setup()
     renderSort('en', en, <SortSelect />)

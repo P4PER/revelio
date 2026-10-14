@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -12,13 +12,18 @@ vi.mock('@/../i18n/navigation', () => ({
   Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,
 }))
 
-import { RulingsEditor } from '@/components/card/rulings-editor'
+import { RulingsEditor, type RulingsEditorHandle } from '@/components/card/rulings-editor'
 import en from '@/../messages/en.json'
+
+// Rendered the way CardEditForm embeds it, its only caller: no Save button of
+// its own, saved through the ref handle.
+const handle = React.createRef<RulingsEditorHandle>()
+const save = () => act(() => handle.current!.save())
 
 function renderEditor(initial: { id: string; date: string; source: string; text: string }[] = []) {
   return render(
     <NextIntlClientProvider locale="en" messages={en}>
-      <RulingsEditor cardId="x-1" lang="en" initial={initial} />
+      <RulingsEditor ref={handle} embedded cardId="x-1" lang="en" initial={initial} />
     </NextIntlClientProvider>,
   )
 }
@@ -40,7 +45,7 @@ describe('RulingsEditor', () => {
     const textField = screen.getByLabelText(en.edit.rulingText)
     await userEvent.clear(textField)
     await userEvent.type(textField, 'new')
-    await userEvent.click(screen.getByRole('button', { name: en.edit.saveRulings }))
+    await save()
     expect(saveRulingsAction).toHaveBeenCalledWith({
       cardId: 'x-1',
       lang: 'en',
@@ -51,7 +56,7 @@ describe('RulingsEditor', () => {
   it('shows required errors for an incomplete row and does not save', async () => {
     renderEditor()
     await userEvent.click(screen.getByRole('button', { name: en.edit.addRuling }))
-    await userEvent.click(screen.getByRole('button', { name: en.edit.saveRulings }))
+    await save()
     expect(await screen.findAllByText(en.validation.required)).not.toHaveLength(0)
     expect(saveRulingsAction).not.toHaveBeenCalled()
   })

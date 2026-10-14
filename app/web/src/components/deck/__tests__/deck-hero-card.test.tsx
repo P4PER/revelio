@@ -23,7 +23,7 @@ function renderCard() {
 }
 
 describe('DeckHeroCard', () => {
-  it('shows name, format, author, lessons, and read-only counts', () => {
+  it('shows name, format, author and read-only counts', () => {
     const { container } = renderCard()
     expect(screen.getByText('Lara but Fast')).toBeInTheDocument()
     expect(screen.getByText('Revival')).toBeInTheDocument()

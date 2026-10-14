@@ -39,7 +39,9 @@ describe('CardDetail edit link', () => {
     renderDetail(false)
     expect(screen.queryByRole('link', { name: en.edit.button })).not.toBeInTheDocument()
   })
+})
 
+describe('CardDetail content', () => {
   it('renders adventure effect/reward/toSolve text', () => {
     const advCard = {
       ...card,

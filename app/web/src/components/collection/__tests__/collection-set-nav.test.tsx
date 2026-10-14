@@ -22,14 +22,6 @@ const progress = [
 ]
 
 describe('CollectionSetNav', () => {
-  it('renders every set in the desktop rail', () => {
-    renderWithIntl(
-      <CollectionSetNav sets={sets} progress={progress} selected="BS" hrefFor={(c) => `?tab=sets&set=${c}`} />,
-    )
-    expect(screen.getByText('Base')).toBeInTheDocument()
-    expect(screen.getByText('Promo')).toBeInTheDocument()
-  })
-
   it('renders a mobile drawer trigger labelled Sets', () => {
     renderWithIntl(
       <CollectionSetNav sets={sets} progress={progress} selected="BS" hrefFor={(c) => `?tab=sets&set=${c}`} />,

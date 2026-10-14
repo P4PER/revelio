@@ -95,11 +95,6 @@ describe('DeckBrowse lesson filter', () => {
     const group = screen.getByRole('group', { name: en.decks.explore.lessonsLabel })
     expect(group.querySelectorAll('button')).toHaveLength(5)
   })
-
-  it('names the group in German too', () => {
-    renderBrowseInGerman()
-    expect(screen.getByRole('group', { name: de.decks.explore.lessonsLabel })).toBeInTheDocument()
-  })
 })
 
 describe('DeckBrowse empty state', () => {

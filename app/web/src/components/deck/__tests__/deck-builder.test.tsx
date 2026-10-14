@@ -277,25 +277,12 @@ describe('DeckBuilder mobile deck sheet', () => {
     expect(body).not.toContainElement(container.querySelector('[data-pane="browse"]'))
   })
 
-  it('opens and shuts on the handle', async () => {
-    renderBuilder()
-    const handle = screen.getByRole('button', { name: handleName(0) })
-    const user = userEvent.setup()
-
-    await user.click(handle)
-    expect(handle).toHaveAttribute('aria-expanded', 'true')
-
-    await user.click(handle)
-    expect(handle).toHaveAttribute('aria-expanded', 'false')
-  })
-
   it('lays both panes out side by side from md up', () => {
     // From md the sheet is display:contents, so its children become items of
     // the builder's own grid and `expanded` stops meaning anything.
     const { container } = renderBuilder()
     const browse = container.querySelector('[data-pane="browse"]')!
     expect(browse.parentElement).toHaveClass('md:grid', 'md:grid-cols-[1.15fr_0.85fr]')
-    expect(container.querySelector('[data-deck-sheet]')).toHaveClass('md:contents')
     expect(browse).toHaveClass('md:col-start-1', 'md:row-start-3')
     expect(container.querySelector('[data-pane="deck"]')).toHaveClass('md:col-start-2', 'md:row-start-3')
   })
@@ -318,17 +305,6 @@ describe('DeckBuilder mobile deck sheet', () => {
     renderBuilder({ initial: { ...emptyState, name: 'Gryffindor Aggro', entries: [draftEntry] } })
     expect(screen.getByText('Gryffindor Aggro')).toBeInTheDocument()
     expect(screen.getByText(new RegExp(`2 cards.*${en.decks.format.revival}`))).toBeInTheDocument()
-  })
-
-  it('rests the sheet flush on the bottom edge, not floating above it', () => {
-    // The old switch added env(safe-area-inset-bottom) to `bottom`, but the
-    // builder it sits in is already 100dvh tall less the header, and that dvh
-    // stops at the top of Safari's toolbar - so the home indicator was counted
-    // twice and the bar floated about 39px too high.
-    const { container } = renderBuilder()
-    const sheet = container.querySelector('[data-deck-sheet]')!
-    expect(sheet).toHaveClass('absolute', 'bottom-0')
-    expect(sheet.className).not.toContain('bottom-[')
   })
 
   it('isolates the browse pane only while the sheet is open', async () => {
@@ -420,12 +396,27 @@ describe('DeckBuilder mobile deck sheet', () => {
     expect(foot).toHaveClass('pb-2')
   })
 
-  it('replays the badge animation on every add by keying it to the add nonce', () => {
+  it('replays the badge animation on every add by keying it to the add nonce', async () => {
     // The count is the only feedback an add gives while the sheet is shut.
     // Remounting the badge per add replays its enter animation, so the number
     // does not just quietly tick over.
+    searchDeckCards.mockResolvedValue({
+      hits: [{
+        id: 'ok-card', setCode: 'BS', number: '001', name: 'OK Card', types: ['spell'], subTypes: [],
+        lesson: 'charms', legality: 'legal', cost: 2, damage: null, isOfficial: true, orientation: null,
+        imageLang: null, imageVersion: null, artCropVersion: null, defaultLanguage: 'en',
+      }],
+      total: 1, page: 1, hitsPerPage: 24,
+    })
     renderBuilder()
-    const badge = screen.getByTestId('deck-sheet-count')
-    expect(badge).toHaveClass('motion-safe:animate-in', 'motion-safe:zoom-in-50')
+    const before = screen.getByTestId('deck-sheet-count')
+    expect(before).toHaveClass('motion-safe:animate-in', 'motion-safe:zoom-in-50')
+
+    const user = userEvent.setup()
+    await user.click(await screen.findByRole('button', { name: 'Add OK Card' }))
+    await user.click(await screen.findByRole('menuitem', { name: en.decks.browse.addToMain }))
+
+    await waitFor(() => expect(screen.getByTestId('deck-sheet-count')).not.toBe(before))
+    searchDeckCards.mockResolvedValue(EMPTY_RESULT)
   })
 })

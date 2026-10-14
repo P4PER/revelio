@@ -1,5 +1,5 @@
 import { screen, fireEvent, waitFor } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithIntl } from '@/test/intl'
 
 const replace = vi.fn()
@@ -12,6 +12,11 @@ vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams('
 import { SearchBox } from '@/components/search/search-box'
 
 describe('SearchBox', () => {
+  // Without this, a waitFor on `replace` passes at once on the last test's calls.
+  beforeEach(() => {
+    replace.mockClear()
+  })
+
   it('debounced typing updates the q param via router.replace', async () => {
     renderWithIntl(<SearchBox placeholder="Search" />)
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'harry' } })

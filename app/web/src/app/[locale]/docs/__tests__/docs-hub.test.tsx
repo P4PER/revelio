@@ -35,6 +35,15 @@ describe('the docs hub', () => {
 
   // The hub is the footer link's target, so arriving here must make sense on
   // its own rather than bouncing the visitor somewhere they did not ask for.
+  // Same shape as the /discord page's reference tile: a chevron ends the card
+  // rather than an arrow between the title and the text it leads to.
+  it('ends a live section card with a chevron', () => {
+    renderHub()
+    const link = screen.getByRole('link', { name: /Discord bot/ })
+    expect(link.lastElementChild?.getAttribute('class')).toMatch(/lucide-chevron-right/)
+    expect(link.querySelector('.lucide-arrow-right')).toBeNull()
+  })
+
   it('links the live section at its first page', () => {
     renderHub()
     expect(screen.getByRole('link', { name: /Discord bot/ })).toHaveAttribute('href', '/docs/discord')

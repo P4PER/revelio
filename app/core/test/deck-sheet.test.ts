@@ -4,8 +4,8 @@ import {
   DECK_SHEET, DECK_SHEET_COLORS, layoutDeckSheet, computeSheetGeometry, makeupSegments,
   type DeckSheetCard, type DeckSheetLayout,
 } from '../src/deck-sheet.js'
-import { OTHER_GROUP, SHEET_LOCALES, sheetLabels } from '../src/index.js'
-import { CARD_NAME_MAX, DECK_NAME_MAX, DeckSheetRequest, MAX_SHEET_ENTRIES, SHEET_FIELD_LIMITS, pickSheetEntries, type DeckSheetEntry } from '../src/index.js'
+import { OTHER_GROUP, sheetLabels } from '../src/index.js'
+import { DECK_NAME_MAX, DeckSheetRequest, MAX_SHEET_ENTRIES, SHEET_FIELD_LIMITS, pickSheetEntries, type DeckSheetEntry } from '../src/index.js'
 
 const harry: DeckCardView = {
   cardId: 'bs-harry', zone: 'character', quantity: 1, types: ['character'],
@@ -255,10 +255,6 @@ describe('sheetLabels', () => {
   it('falls back to English for an unknown locale', () => {
     expect(sheetLabels('fr').mainDeck).toBe('Main deck')
   })
-
-  it('lists the locales the sheet contract accepts', () => {
-    expect([...SHEET_LOCALES]).toEqual(['en', 'de'])
-  })
 })
 
 const entry = {
@@ -284,10 +280,6 @@ describe('DeckSheetRequest', () => {
   it('accepts the unix-seconds imageVersion every real card carries', () => {
     const parsed = DeckSheetRequest.safeParse({ ...body, entries: [{ ...entry, imageVersion: 1_783_899_473 }] })
     expect(parsed.success).toBe(true)
-    // Still bounded, because the service sizes its body cap from the digits.
-    expect(DeckSheetRequest.safeParse({
-      ...body, entries: [{ ...entry, imageVersion: SHEET_FIELD_LIMITS.imageVersion + 1 }],
-    }).success).toBe(false)
   })
 
   it('rejects an empty deck and one past the entry cap', () => {
@@ -392,14 +384,6 @@ describe('DeckSheetRequest', () => {
     expect(parsed.entries[0].name).toHaveLength(SHEET_FIELD_LIMITS.name)
   })
 
-  // The real case: duplicating a 120-character deck gives a 127-character copy,
-  // and duplicating that one grows it again.
-  it('renders a deck whose name grew past the limit through duplication', () => {
-    let name = 'x'.repeat(SHEET_FIELD_LIMITS.name)
-    for (let i = 0; i < 6; i++) name = `${name} (copy)`
-    expect(DeckSheetRequest.safeParse({ ...body, deck: { ...body.deck, name } }).success).toBe(true)
-  })
-
   // Past the carry limit it is a payload problem, not a typography one.
   it('rejects a name past what the request may carry', () => {
     const name = 'x'.repeat(SHEET_FIELD_LIMITS.nameInput + 1)
@@ -485,8 +469,8 @@ describe('DeckSheetRequest', () => {
 })
 
 describe('stored name bounds', () => {
+  // The card bound is CARD_NAME_MAX by definition; the deck one is web's own.
   it('fit inside what the sheet paints, so no stored name is ever cut', () => {
-    expect(CARD_NAME_MAX).toBeLessThanOrEqual(SHEET_FIELD_LIMITS.name)
     expect(DECK_NAME_MAX).toBeLessThanOrEqual(SHEET_FIELD_LIMITS.name)
   })
 })

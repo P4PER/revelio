@@ -27,11 +27,11 @@ describe('evaluateDeck', () => {
   })
 
   it('incomplete: no character, 59 cards', () => {
-    const m = { A: meta({ id: 'A' }) }
-    const r = evaluateDeck([{ cardId: 'A', zone: 'main', quantity: 59 }], 'revival', m)
-    // 59 copies also trips the copy limit, so status is illegal; assert the incompleteness signals exist too.
-    expect(r.violations).toContainEqual({ code: 'no_character' })
-    expect(r.violations).toContainEqual({ code: 'main_deck_size', actual: 59 })
+    // A lesson is exempt from the copy limit, so only the soft violations fire.
+    const m = { L: meta({ id: 'L', isLesson: true }) }
+    const r = evaluateDeck([{ cardId: 'L', zone: 'main', quantity: 59 }], 'revival', m)
+    expect(r.status).toBe('incomplete')
+    expect(r.violations).toEqual([{ code: 'no_character' }, { code: 'main_deck_size', actual: 59 }])
   })
 
   it('illegal: 5 copies of a non-lesson card', () => {
@@ -93,10 +93,12 @@ describe('evaluateDeck', () => {
     const entries = [
       { cardId: 'CH1', zone: 'character' as const, quantity: 1 },
       { cardId: 'CH2', zone: 'character' as const, quantity: 1 },
+      { cardId: 'NOPE', zone: 'character' as const, quantity: 1 },
       { cardId: 'S', zone: 'sideboard' as const, quantity: 16 },
     ]
     const r = evaluateDeck(entries, 'revival', m)
     expect(r.violations).toContainEqual({ code: 'multiple_characters' })
+    expect(r.violations).toContainEqual({ code: 'invalid_character', cardId: 'NOPE' })
     expect(r.violations).toContainEqual({ code: 'sideboard_too_large', actual: 16 })
   })
 })

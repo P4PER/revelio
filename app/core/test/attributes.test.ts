@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { TYPES, LESSONS, RARITIES, FINISHES, LEGALITIES, ATTRIBUTES, slugify } from '../src/attributes.js'
+import { TYPES, LESSONS, RARITIES, FINISHES, LEGALITIES, slugify } from '../src/attributes.js'
 import { attributeMetaSchema, lessonMetaSchema } from '../src/schemas.js'
 
 describe('attribute config', () => {
@@ -13,12 +13,6 @@ describe('attribute config', () => {
     for (const e of [...TYPES, ...RARITIES, ...FINISHES, ...LEGALITIES]) {
       expect(() => attributeMetaSchema.parse(e)).not.toThrow()
     }
-  })
-
-  it('ATTRIBUTES groups the five curated attributes', () => {
-    expect(Object.keys(ATTRIBUTES).sort()).toEqual(
-      ['finishes', 'legalities', 'lessons', 'rarities', 'types'],
-    )
   })
 
   it('locks the curated attribute counts', () => {

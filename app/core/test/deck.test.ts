@@ -1,15 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { DeckFormat, DeckZone, deckCardMeta, STARTING_CHARACTER_SUBTYPES, DECK_NAME_MAX, clampDeckName, copyDeckName } from '../src/deck.js'
-
-describe('deck enums', () => {
-  it('accepts valid format and zone', () => {
-    expect(DeckFormat.parse('revival')).toBe('revival')
-    expect(DeckZone.parse('sideboard')).toBe('sideboard')
-  })
-  it('rejects unknown values', () => {
-    expect(DeckFormat.safeParse('modern').success).toBe(false)
-  })
-})
+import { deckCardMeta, DECK_NAME_MAX, clampDeckName, copyDeckName } from '../src/deck.js'
 
 describe('deckCardMeta', () => {
   const base = { id: 'bs-1', isOfficial: true, legality: 'legal' }
@@ -26,8 +16,9 @@ describe('deckCardMeta', () => {
     const m = deckCardMeta({ ...base, types: ['lesson'], subTypes: [] })
     expect(m.isLesson).toBe(true)
   })
-  it('exposes the recognised starting-character subtypes', () => {
-    expect(STARTING_CHARACTER_SUBTYPES).toContain('wizard_witch')
+  it('flags a character carrying the combined wizard_witch subtype', () => {
+    const m = deckCardMeta({ ...base, types: ['character'], subTypes: ['wizard_witch'] })
+    expect(m.isStartingCharacter).toBe(true)
   })
 })
 

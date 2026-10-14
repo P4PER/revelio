@@ -25,9 +25,14 @@ describe('mapLimit', () => {
   // per-item timeout measures that item rather than the whole queue.
   it('starts later items only as earlier ones finish', async () => {
     const started: number[] = []
-    await mapLimit([0, 1, 2, 3], 2, async (i) => { started.push(i); await tick(5) })
-    expect(started.slice(0, 2)).toEqual([0, 1])
-    expect(started).toHaveLength(4)
+    const startedWhenFirstFinished: number[] = []
+    await mapLimit([0, 1, 2, 3], 2, async (i) => {
+      started.push(i)
+      await tick(i === 0 ? 5 : 20)
+      if (i === 0) startedWhenFirstFinished.push(started.length)
+    })
+    expect(startedWhenFirstFinished).toEqual([2])
+    expect(started).toEqual([0, 1, 2, 3])
   })
 
   it('handles an empty list without hanging', async () => {

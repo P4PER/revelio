@@ -55,6 +55,8 @@ describe('CommandGrid', () => {
     const note = screen.getByText(/answer in the channel/)
     const named = [...note.querySelectorAll('code')].map((c) => c.textContent)
     expect(named).toEqual(BOT_COMMANDS.filter((c) => !c.ephemeral).map((c) => `/${c.name}`))
+    // Balanced, so a phone does not leave one word alone on the last line.
+    expect(note.className).toMatch(/text-balance/)
   })
 
   // Six commands fill two rows of three; the reference tile takes the third

@@ -87,7 +87,7 @@ export function CommandGrid({ docsHref }: { docsHref?: string | null }) {
       <h2 id="commands-title" className="text-center text-xl font-semibold text-foreground">
         {t('commandsTitle')}
       </h2>
-      <p className="mx-auto mt-2 max-w-md text-center text-sm text-muted-foreground">
+      <p className="mx-auto mt-2 max-w-md text-balance text-center text-sm text-muted-foreground">
         {t.rich('commandsIntro', {
           slash: (chunks) => (
             <span className="font-mono font-medium text-primary-ink">{chunks}</span>
@@ -98,7 +98,7 @@ export function CommandGrid({ docsHref }: { docsHref?: string | null }) {
           them apart. This names the exceptions instead: the commands that
           post where everyone can see, which is what a visitor worries about.
           command-grid.test.tsx holds the named ones to the manifest. */}
-      <p className="mx-auto mt-1 max-w-md text-center text-sm text-muted-foreground">
+      <p className="mx-auto mt-1 max-w-md text-balance text-center text-sm text-muted-foreground">
         {t.rich('channelNote', {
           cmd: (chunks) => <CommandCode>{chunks}</CommandCode>,
         })}

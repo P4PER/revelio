@@ -59,7 +59,7 @@ describe('DiscordContent', () => {
   it('shows the channel mockup', () => {
     renderPage('en', en, INVITE)
     expect(screen.getByText('Alohomora')).toBeInTheDocument()
-    expect(screen.getByText('42 cards')).toBeInTheDocument()
+    expect(screen.getByText('View a card...')).toBeInTheDocument()
   })
 
   it('points the secondary CTA at the commands section', () => {

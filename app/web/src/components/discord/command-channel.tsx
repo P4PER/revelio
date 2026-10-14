@@ -1,21 +1,24 @@
 import Image from 'next/image'
+import { ChevronDown, ExternalLink } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
-type SearchLine = { name: string; setCode: string; number: string }
+type ShareRow = { name: string; setCode: string; number: string; cost: number; thumb: string }
 
 /*
- * A hand-built rendering of what bot/src/discord/embeds/card-embed.ts and
- * search-embed.ts actually produce. It is markup rather than a screenshot so it
- * stays sharp at any width, works in both locales and costs one small image
- * instead of four. The trade is that it is only as true as this comment keeps
- * it. When those two builders change, change this:
- *   - the card embed's colour bar is the LESSON colour (Charms is #0069A9)
- *   - the search embed's bar is BRAND_GOLD (#d4a83a)
- *   - the card footer is `{setName} - #{number}`
- *   - the search footer is `Page {page} of {pages} - view all on revelio.cards`
- *   - the card fields are the ones the command adds, in order
- *   - the card art is the embed image (setImage), under the fields and above the
- *     footer, not a corner thumbnail; a horizontal card would show landscape
+ * A hand-built rendering of what bot/src/discord/v2/card-view.ts and
+ * share-view.ts actually produce. It is markup rather than a screenshot so it
+ * stays sharp at any width, works in both locales and costs a few small images
+ * instead of a large one. The trade is that it is only as true as this comment
+ * keeps it. When those builders change, change this:
+ *   - every message is one container; its accent bar is the LESSON colour for a
+ *     card (Charms is #0069A9) and BRAND_GOLD (#d4a83a) for a shared list
+ *   - the card is: "## name", then two lines of labelled pairs (type and
+ *     lesson; cost, rarity and legality), the image, the rules text, the footer
+ *     line "{setName} · #{number}" in small muted text, a link button
+ *   - a shared list is a plain channel message, so it has no "used /search"
+ *     line; it opens with "@user shared N cards from a search for ...", then one
+ *     row per card ("**name** · set #number", then type, lesson and cost) with
+ *     its thumbnail on the right, a "View a card" menu and a link button
  *
  * The colours below are Discord's own surface palette, deliberately hardcoded
  * rather than taken from the Revelio theme tokens: this depicts Discord's UI,
@@ -27,20 +30,21 @@ const DISCORD_INPUT = '#383a40'
 const DISCORD_HEADING = '#f2f3f5'
 const DISCORD_TEXT = '#dbdee1'
 const DISCORD_MUTED = '#949ba4'
-const DISCORD_LINK = '#00a8fc'
 const DISCORD_BLURPLE = '#5865F2'
 const DISCORD_MENTION = '#c2c5f7'
+const DISCORD_BUTTON = '#4e5058'
+const DISCORD_SELECT = '#1e1f22'
 
 const LESSON_CHARMS = '#0069A9'
 const BRAND_GOLD = '#d4a83a'
 
-// Card names are data, not copy: they read the same in both catalogs.
-const SEARCH_LINES: readonly SearchLine[] = [
-  { name: 'Obliviate', setCode: 'BS', number: '14' },
-  { name: 'Incendio', setCode: 'BS', number: '25' },
-  { name: 'Titillando', setCode: 'BS', number: '36' },
-  { name: 'Bluebell Flames', setCode: 'BS', number: '44' },
-  { name: 'Confundus', setCode: 'BS', number: '47' },
+// Card names and printings are data, not copy: they read the same in both
+// catalogs. All three are Base Set Charms spells; set, number and cost are the
+// real ones.
+const SHARE_ROWS: readonly ShareRow[] = [
+  { name: 'Obliviate', setCode: 'BS', number: '14', cost: 12, thumb: '/discord/obliviate-thumb.webp' },
+  { name: 'Incendio', setCode: 'BS', number: '25', cost: 3, thumb: '/discord/incendio-thumb.webp' },
+  { name: 'Confundus', setCode: 'BS', number: '47', cost: 5, thumb: '/discord/confundus-thumb.webp' },
 ]
 
 const SAMPLE_CARD_THUMB = '/discord/alohomora-thumb.webp'
@@ -107,7 +111,7 @@ function BotMessage({ time, children }: { time: string; children: React.ReactNod
   )
 }
 
-function Embed({ accent, children }: { accent: string; children: React.ReactNode }) {
+function Container({ accent, children }: { accent: string; children: React.ReactNode }) {
   return (
     <div className="flex max-w-[27rem] overflow-hidden rounded" style={{ background: DISCORD_EMBED }}>
       <span className="w-1 shrink-0" style={{ background: accent }} />
@@ -116,18 +120,34 @@ function Embed({ accent, children }: { accent: string; children: React.ReactNode
   )
 }
 
-function EmbedField({ name, value }: { name: string; value: string }) {
+// Discord's grey link button, with the external-link glyph it draws.
+function LinkButton({ children }: { children: React.ReactNode }) {
   return (
-    <div>
-      <div className="text-xs font-semibold" style={{ color: DISCORD_HEADING }}>
-        {name}
-      </div>
-      <div className="text-[0.8rem]" style={{ color: DISCORD_TEXT }}>
-        {value}
-      </div>
-    </div>
+    <span
+      className="inline-flex items-center gap-1.5 rounded px-3 py-1 text-[0.78rem] font-medium"
+      style={{ background: DISCORD_BUTTON, color: DISCORD_HEADING }}
+    >
+      {children}
+      <ExternalLink className="size-3" aria-hidden />
+    </span>
   )
 }
+
+// A string select, closed: its placeholder and the chevron.
+function SelectMenu({ placeholder }: { placeholder: string }) {
+  return (
+    <span
+      className="flex items-center justify-between rounded px-3 py-1.5 text-[0.78rem]"
+      style={{ background: DISCORD_SELECT, color: DISCORD_MUTED }}
+    >
+      {placeholder}
+      <ChevronDown className="size-4" aria-hidden />
+    </span>
+  )
+}
+
+// card-view.ts bolds each label of a labelled pair.
+const bold = (chunks: React.ReactNode) => <b style={{ color: DISCORD_HEADING }}>{chunks}</b>
 
 export function CommandChannel() {
   const t = useTranslations('discord')
@@ -147,16 +167,12 @@ export function CommandChannel() {
       <div className="flex flex-col gap-3 px-3.5 pt-3.5 pb-4">
         <CommandContext command="/card" />
         <BotMessage time="21:04">
-          <Embed accent={LESSON_CHARMS}>
-            <p className="mb-1 text-sm font-semibold" style={{ color: DISCORD_LINK }}>
+          <Container accent={LESSON_CHARMS}>
+            <h3 className="text-base font-bold" style={{ color: DISCORD_HEADING }}>
               {t('sample.cardName')}
-            </p>
-            <p className="mb-2 text-[0.8rem]">{t('sample.cardText')}</p>
-            <div className="mb-2 grid grid-cols-3 gap-x-3 gap-y-1.5">
-              <EmbedField name={t('sample.fieldType')} value={t('sample.fieldTypeValue')} />
-              <EmbedField name={t('sample.fieldLesson')} value={t('sample.fieldLessonValue')} />
-              <EmbedField name={t('sample.fieldCost')} value={t('sample.fieldCostValue')} />
-            </div>
+            </h3>
+            <p className="text-[0.8rem]">{t.rich('sample.cardTags', { b: bold })}</p>
+            <p className="mb-2 text-[0.8rem]">{t.rich('sample.cardStats', { b: bold })}</p>
             <Image
               src={SAMPLE_CARD_THUMB}
               alt={t('cardImageAlt', { name: t('sample.cardName') })}
@@ -164,34 +180,56 @@ export function CommandChannel() {
               height={419}
               className="mb-2 h-auto w-40 rounded"
             />
-            <p className="text-[0.69rem]" style={{ color: DISCORD_MUTED }}>
+            <p className="mb-2 text-[0.8rem]">{t('sample.cardText')}</p>
+            <p className="mb-2 text-[0.69rem]" style={{ color: DISCORD_MUTED }}>
               {t('sample.cardFooter')}
             </p>
-          </Embed>
+            <LinkButton>{t('sample.openSite')}</LinkButton>
+          </Container>
         </BotMessage>
 
         {/* On a phone the panel sits between the CTA and the commands, so the
-            second answer is hidden there: one embed already proves the point
+            second answer is hidden there: one message already proves the point
             and saves a screen of scrolling. */}
         <div className="hidden flex-col gap-3 sm:flex">
-          <CommandContext command="/search" />
           <BotMessage time="21:05">
-            <Embed accent={BRAND_GOLD}>
-              <p className="mb-1 text-sm font-semibold" style={{ color: DISCORD_LINK }}>
-                {t('sample.searchTitle')}
+            <Container accent={BRAND_GOLD}>
+              <p className="mb-2 text-[0.8rem]">
+                {t.rich('sample.shareLead', {
+                  userName: t('you'),
+                  query: t('sample.shareQuery'),
+                  mention: (chunks) => (
+                    <span className="rounded-sm px-0.5" style={{ background: '#3f4270', color: DISCORD_MENTION }}>
+                      {chunks}
+                    </span>
+                  ),
+                })}
               </p>
-              <ul className="mb-2 text-[0.8rem]">
-                {SEARCH_LINES.map((line) => (
-                  <li key={line.name}>
-                    <b style={{ color: DISCORD_HEADING }}>{line.name}</b> &middot; {line.setCode} #
-                    {line.number}
+              <ul className="mb-2 flex flex-col gap-2">
+                {SHARE_ROWS.map((row) => (
+                  <li key={row.name} className="flex items-center justify-between gap-3">
+                    <span className="text-[0.8rem]">
+                      <b style={{ color: DISCORD_HEADING }}>{row.name}</b> &middot; {row.setCode} #{row.number}
+                      <br />
+                      {t('sample.rowStats', { cost: row.cost })}
+                    </span>
+                    <Image
+                      src={row.thumb}
+                      alt={t('cardImageAlt', { name: row.name })}
+                      width={300}
+                      height={419}
+                      className="h-auto w-10 shrink-0 rounded-sm"
+                    />
                   </li>
                 ))}
               </ul>
-              <p className="text-[0.69rem]" style={{ color: DISCORD_MUTED }}>
-                {t('sample.searchFooter')}
-              </p>
-            </Embed>
+              <div className="flex flex-col gap-2">
+                <SelectMenu placeholder={t('sample.viewCard')} />
+                <span>
+                  <LinkButton>{t('sample.fullSearch')}</LinkButton>
+                </span>
+              </div>
+            </Container>
           </BotMessage>
         </div>
       </div>

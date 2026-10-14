@@ -13,43 +13,52 @@ function renderChannel(locale: 'en' | 'de', messages: typeof en | typeof de) {
   )
 }
 
+// The card header's labels are bold runs inside one line, so a line is matched
+// by its whole text rather than by a single text node.
+function line(text: string) {
+  return screen.getByText((_, el) => el?.tagName === 'P' && el.textContent === text)
+}
+
 describe('CommandChannel', () => {
-  it('shows the sample card embed as card-embed.ts builds it', () => {
+  it('shows the /card reply as card-view.ts builds it', () => {
     renderChannel('en', en)
-    expect(screen.getByText('Alohomora')).toBeInTheDocument()
-    expect(screen.getByText(/Search your deck/)).toBeInTheDocument()
-    expect(screen.getByText('Adventures at Hogwarts - #32')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Alohomora' })).toBeInTheDocument()
+    expect(line('Type Spell · Lesson Charms')).toBeInTheDocument()
+    expect(line('Cost 4 · Rarity Uncommon · Legality Legal')).toBeInTheDocument()
+    expect(screen.getByText('Adventures at Hogwarts · #32')).toBeInTheDocument()
+    expect(screen.getByText('Open on revelio.cards')).toBeInTheDocument()
   })
 
-  // card-embed.ts uses setImage, which Discord draws full width under the
-  // fields and above the footer, not as a thumbnail beside the text.
-  it('places the card art under the fields and above the footer', () => {
+  // card-view.ts: heading and the labelled lines, then the image, then the
+  // rules text, then the footer line and the link button.
+  it('orders the card as the bot does: image under the stats, above the text', () => {
     renderChannel('en', en)
+    const stats = line('Cost 4 · Rarity Uncommon · Legality Legal')
     const art = screen.getByAltText('Alohomora card')
-    const field = screen.getByText(en.discord.sample.fieldCost)
-    const footer = screen.getByText('Adventures at Hogwarts - #32')
-    expect(field.compareDocumentPosition(art) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(art.compareDocumentPosition(footer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    const body = screen.getByText(/Search your deck/)
+    const footer = screen.getByText('Adventures at Hogwarts · #32')
+    const follows = (a: Node, b: Node) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(follows(stats, art)).toBe(true)
+    expect(follows(art, body)).toBe(true)
+    expect(follows(body, footer)).toBe(true)
   })
 
-  it('shows the sample search embed with its card lines', () => {
+  // A shared list is a plain channel message: no "used /search" line above it.
+  it('shows a shared result list with thumbnails and no command line', () => {
     renderChannel('en', en)
-    expect(screen.getByText('42 cards')).toBeInTheDocument()
-    expect(screen.getByText(/Obliviate/)).toBeInTheDocument()
+    expect(screen.getByText(/shared 3 cards from a search for "charm"/)).toBeInTheDocument()
+    expect(screen.getByAltText('Obliviate card')).toBeInTheDocument()
+    expect(screen.getByText('View a card...')).toBeInTheDocument()
+    expect(screen.getByText('Full search on revelio.cards')).toBeInTheDocument()
+    expect(screen.queryByText('/search')).not.toBeInTheDocument()
   })
 
-  // Card names are data, not copy: they are identical in both catalogs, so only
-  // the chrome around them changes language.
   it('translates the chrome but keeps the card names', () => {
     renderChannel('de', de)
-    expect(screen.getByText('42 Karten')).toBeInTheDocument()
-    expect(screen.getByText(/Obliviate/)).toBeInTheDocument()
-    expect(screen.queryByText('42 cards')).not.toBeInTheDocument()
-  })
-
-  it('gives the card art a localized alt text', () => {
-    renderChannel('en', en)
-    expect(screen.getByAltText('Alohomora card')).toBeInTheDocument()
+    expect(screen.getByText(/hat 3 Karten aus einer Suche nach „charm“ geteilt/)).toBeInTheDocument()
+    expect(line('Kosten 4 · Seltenheit Ungewöhnlich · Legalität Legal')).toBeInTheDocument()
+    expect(screen.getByText('Obliviate')).toBeInTheDocument()
+    expect(screen.queryByText('View a card...')).not.toBeInTheDocument()
   })
 
   it('localizes the card art alt text in German', () => {

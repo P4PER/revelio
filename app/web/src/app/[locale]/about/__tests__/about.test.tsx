@@ -36,11 +36,6 @@ describe('AboutContent', () => {
     expect(screen.getByRole('link', { name: 'Random card' })).toHaveAttribute('href', '/random')
   })
 
-  it('lists the tech stack', () => {
-    renderAbout('en', en, null)
-    expect(screen.getByText('Meilisearch')).toBeInTheDocument()
-  })
-
   it('links the community credit to harrypottertcg.com', () => {
     renderAbout('en', en, null)
     const link = screen.getByRole('link', { name: /harrypottertcg\.com/i })

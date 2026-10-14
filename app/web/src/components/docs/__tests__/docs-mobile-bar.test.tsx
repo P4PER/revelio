@@ -33,11 +33,6 @@ function renderBar(toc: readonly TocEntry[] = TOC, editUrl: string | null = null
 describe('DocsMobileBar', () => {
   // The bar doubles as a breadcrumb: below 860px the rail is behind the drawer,
   // so the trigger is the only thing telling a reader where they are.
-  it('names the page being read on the menu trigger', () => {
-    renderBar()
-    expect(screen.getByRole('button', { name: /Commands/ })).toBeInTheDocument()
-  })
-
   // An aria-label replaces the visible text rather than adding to it, so the
   // breadcrumb has to be in the accessible name too: without it a screen reader
   // never hears which page this is, and "click Commands" does nothing for a

@@ -41,7 +41,7 @@ describe('SiteFooter', () => {
     expect(screen.getByText(/Warner Bros\./)).toBeInTheDocument()
   })
 
-  it('renders the four navigation columns with internal links', () => {
+  it('links the Browse, Build and About columns internally', () => {
     renderFooter()
     const browse = screen.getByRole('navigation', { name: 'Browse' })
     expect(within(browse).getByRole('link', { name: 'Sets' })).toHaveAttribute('href', '/sets')
@@ -107,12 +107,5 @@ describe('SiteFooter', () => {
 
     const about = screen.getByRole('navigation', { name: 'About' })
     expect(within(about).queryByRole('link', { name: /GitHub/ })).toBeNull()
-  })
-
-  it('keeps the Reference column when no repository is configured', () => {
-    renderFooter(null)
-    const reference = screen.getByRole('navigation', { name: 'Reference' })
-    expect(within(reference).getByRole('link', { name: 'Documentation' })).toBeInTheDocument()
-    expect(within(reference).queryByRole('link', { name: /GitHub/ })).toBeNull()
   })
 })

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { total } from './result-total'
 
 // Requires the web running with MEILI_HOST/MEILI_SEARCH_KEY pointed at a SEEDED Meili
 // (the compose stack). Skipped automatically if the search index has no data.
@@ -23,9 +24,11 @@ test('search from home shows results and a type filter narrows them', async ({ p
 
   await expect(firstFigure).toBeVisible()
 
-  const before = await page.getByRole('figure').count()
+  // Compared on the total, not the tiles: both pages fill a full grid, so a
+  // tile count stays at the page size whether or not the filter applied.
+  const before = await total(page)
   await page.getByRole('button', { name: 'Creature', exact: true }).click()
   await expect(page).toHaveURL(/type=creature/)
   await expect(page.getByRole('figure').first()).toBeVisible()
-  expect(await page.getByRole('figure').count()).toBeLessThanOrEqual(before)
+  await expect.poll(() => total(page)).toBeLessThan(before)
 })

@@ -44,7 +44,7 @@ export function createAuthOptions(config: AuthConfig, deps: AuthDeps) {
       },
     },
     // Prefix auth cookies so they share the `revelio.` family with our functional
-    // cookies (revelio.locale, revelio.theme, revelio.deck-view) — e.g.
+    // cookies (revelio.locale, revelio.theme, revelio.deck-view) - e.g.
     // `revelio.session_token` (Better Auth prepends `__Secure-` over HTTPS).
     // Changing this renames the cookies and logs existing sessions out once.
     advanced: { cookiePrefix: 'revelio' },
@@ -109,7 +109,7 @@ export function createAuthOptions(config: AuthConfig, deps: AuthDeps) {
         storeOTP: 'hashed',
         sendVerificationOTP: deps.sendVerificationOTP,
       }),
-      nextCookies(), // must be the last plugin — sets cookies on Next server actions
+      nextCookies(), // must be the last plugin - sets cookies on Next server actions
     ],
     databaseHooks: {
       user: {

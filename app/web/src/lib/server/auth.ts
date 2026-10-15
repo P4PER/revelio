@@ -15,9 +15,15 @@ const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET
 
 // Registered only when both halves are present. A local checkout without a
 // Discord app must still boot, and a half-configured provider fails at the
-// callback rather than at startup, which is worse. The Connections pane reads
-// this to explain itself instead of rendering a button that cannot work.
-export const discordLinkingConfigured = Boolean(DISCORD_CLIENT_ID && DISCORD_CLIENT_SECRET)
+// callback rather than at startup, which is worse.
+const discord =
+  DISCORD_CLIENT_ID && DISCORD_CLIENT_SECRET
+    ? { clientId: DISCORD_CLIENT_ID, clientSecret: DISCORD_CLIENT_SECRET }
+    : null
+
+// The Connections pane reads this to explain itself instead of rendering a
+// button that cannot work.
+export const discordLinkingConfigured = discord !== null
 
 export const auth = betterAuth(
   createAuthOptions(
@@ -25,9 +31,7 @@ export const auth = betterAuth(
       secret: process.env.BETTER_AUTH_SECRET,
       baseURL: process.env.BETTER_AUTH_URL,
       adminEmails: (process.env.ADMIN_EMAILS ?? '').split(','),
-      discord: discordLinkingConfigured
-        ? { clientId: DISCORD_CLIENT_ID!, clientSecret: DISCORD_CLIENT_SECRET! }
-        : null,
+      discord,
     },
     {
       database: drizzleAdapter(db, { provider: 'pg', schema }),

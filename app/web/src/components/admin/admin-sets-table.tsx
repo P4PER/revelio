@@ -170,9 +170,9 @@ export function AdminSetsTable({ sets, imageBase }: { sets: SetDTO[]; imageBase:
                         <button type="button" className="inline-flex items-center gap-1 hover:text-foreground" onClick={header.column.getToggleSortingHandler()}>
                           {flexRender(header.column.columnDef.header, header.getContext())}
                           {sorted === 'asc' ? (
-                            <ArrowUp className="size-3" />
+                            <ArrowUp className="size-3.5" />
                           ) : sorted === 'desc' ? (
-                            <ArrowDown className="size-3" />
+                            <ArrowDown className="size-3.5" />
                           ) : (
                             <ChevronsUpDown className="size-3 opacity-50" />
                           )}

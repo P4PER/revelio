@@ -207,8 +207,8 @@ export function CardNav({
         >
           {hintMode === 'keys' ? (
             <>
-              <Kbd className="border border-black/10 bg-white/90 text-neutral-900 shadow-sm"><ArrowLeft className="size-3" /></Kbd>
-              <Kbd className="border border-black/10 bg-white/90 text-neutral-900 shadow-sm"><ArrowRight className="size-3" /></Kbd>
+              <Kbd className="border border-black/10 bg-white/90 text-neutral-900 shadow-sm"><ArrowLeft className="size-3.5" /></Kbd>
+              <Kbd className="border border-black/10 bg-white/90 text-neutral-900 shadow-sm"><ArrowRight className="size-3.5" /></Kbd>
               <span>{labels.hint}</span>
             </>
           ) : (

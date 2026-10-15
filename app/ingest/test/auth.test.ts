@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { emailOTP, username, admin } from 'better-auth/plugins'
+import { eq } from 'drizzle-orm'
 import { schema } from '@revelio/db'
 import { withMigratedDb } from './helpers'
 
@@ -9,10 +10,12 @@ let ctx: Awaited<ReturnType<typeof withMigratedDb>>
 let auth: ReturnType<typeof betterAuth>
 let lastOtp = ''
 
-// A schema check only: the migrated auth tables carry every column web's Better
-// Auth setup reads and writes. The rules that setup enforces (terms acceptance
-// is server-only, ADMIN_EMAILS decides the role) are tested against web's own
-// options in web/src/lib/server/__tests__/auth-options.test.ts.
+// A schema check: the migrated auth tables hold up under Better Auth's drizzle
+// adapter. ingest cannot import web, so the options below are a hand-kept copy
+// of the fields and plugins in web/src/lib/server/auth-options.ts and only cover
+// what that copy declares - keep the two in step. The rules web's setup enforces
+// (terms acceptance is server-only, ADMIN_EMAILS decides the role) are tested
+// against the real options in web/src/lib/server/__tests__/auth-options.test.ts.
 beforeAll(async () => {
   ctx = await withMigratedDb() // migrates the consolidated schema incl. auth tables
   auth = betterAuth({
@@ -58,5 +61,19 @@ describe('auth schema', () => {
       .join('; ')
     const session = await auth.api.getSession({ headers: new Headers({ cookie }) })
     expect(session?.user).toMatchObject({ email: 'ann@example.com', role: 'user', termsVersion: null })
+
+    // input:false through the drizzle adapter: web's test runs the same rule over
+    // the memory adapter, which never touches a real terms_version column.
+    await auth.api
+      .updateUser({
+        headers: new Headers({ cookie }),
+        body: { termsVersion: '2099-01-01' } as Record<string, unknown>,
+      })
+      .catch(() => {})
+    const [row] = await ctx.db
+      .select({ v: schema.user.termsVersion })
+      .from(schema.user)
+      .where(eq(schema.user.email, 'ann@example.com'))
+    expect(row.v).toBeNull()
   })
 })

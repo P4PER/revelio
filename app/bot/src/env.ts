@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// zod marks a failed .url() dirty rather than aborted, so a refinement below
+// zod marks a failed z.url() dirty rather than aborted, so a refinement below
 // still runs on a value new URL() cannot parse - and an unguarded `new URL(v)`
 // throws a TypeError straight out of safeParse, past the reporting in parseEnv.
 // Declared above the schema because the schema reads it at module init.
@@ -20,13 +20,13 @@ const Env = z.object({
     z.string().min(1).optional(),
   ),
   DATABASE_URL: z.string().min(1),
-  MEILI_HOST: z.string().url(),
+  MEILI_HOST: z.url(),
   MEILI_SEARCH_KEY: z.string().default(''),
   // Public, absolute. Goes into embed image URLs, which *Discord* fetches from
   // the public internet. Nothing in this process fetches a card image itself,
   // so there is only one image base here and no second one to confuse it with.
-  IMAGE_BASE_URL: z.string().url(),
-  SITE_BASE_URL: z.string().url(),
+  IMAGE_BASE_URL: z.url(),
+  SITE_BASE_URL: z.url(),
   // The deck sheet render service. The bot draws no pictures itself: /deck posts
   // what this answers with, and falls back to the list embed when it does not.
   //
@@ -39,7 +39,7 @@ const Env = z.object({
   // The query and fragment, because /render is appended to this: a base of
   // http://sheet:8080/?token=x gives http://sheet:8080/?token=x/render, which
   // resolves nowhere.
-  SHEET_SERVICE_URL: z.string().url()
+  SHEET_SERVICE_URL: z.url()
     .refine((v) => /^https?:$/.test(parseUrl(v)?.protocol ?? ''), { message: 'must be an http(s) URL' })
     .refine((v) => { const u = parseUrl(v); return u !== null && u.search === '' && u.hash === '' },
       { message: 'must have no query or fragment' }),

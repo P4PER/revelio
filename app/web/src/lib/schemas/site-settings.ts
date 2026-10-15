@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 type T = (key: string) => string
 
-const isEmail = (v: string) => v === '' || z.string().email().safeParse(v).success
+const isEmail = (v: string) => v === '' || z.email().safeParse(v).success
 
 // Only http(s) URLs — reject javascript:/data:/etc. so a saved githubUrl can be
 // rendered as an href without becoming a script-injection vector.

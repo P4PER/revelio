@@ -18,7 +18,7 @@ export const CONTACT_LIMITS = {
 export function makeContactSchema(t: T) {
   return z.object({
     name: z.string().trim().min(1, t('required')).max(CONTACT_LIMITS.NAME_MAX, t('tooLong')),
-    email: z.string().trim().min(1, t('required')).email(t('email')),
+    email: z.string().trim().min(1, t('required')).pipe(z.email(t('email'))),
     subject: z.string().trim().min(1, t('required')).max(CONTACT_LIMITS.SUBJECT_MAX, t('tooLong')),
     message: z
       .string()

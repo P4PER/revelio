@@ -7,5 +7,5 @@ export function makeUsernameSchema(t: T) {
 }
 
 export function makeNewEmailSchema(t: T) {
-  return z.object({ email: z.string().trim().min(1, t('required')).email(t('email')) })
+  return z.object({ email: z.string().trim().min(1, t('required')).pipe(z.email(t('email'))) })
 }

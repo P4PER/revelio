@@ -12,7 +12,7 @@ export type EmailStepValues = { email: string; name?: string }
 // undefined` key, which react-hook-form's resolver then demands.
 export function makeEmailStepSchema(t: T, register: boolean): z.ZodType<EmailStepValues, EmailStepValues> {
   return z.object({
-    email: z.string().trim().min(1, t('required')).email(t('email')),
+    email: z.string().trim().min(1, t('required')).pipe(z.email(t('email'))),
     name: register ? z.string().trim().min(1, t('required')) : z.string().optional(),
   })
 }

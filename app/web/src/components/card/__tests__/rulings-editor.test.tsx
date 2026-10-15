@@ -13,6 +13,7 @@ import en from '@/../messages/en.json'
 // Saved through the ref handle, the way CardEditForm, its only caller, saves it.
 const handle = React.createRef<RulingsEditorHandle>()
 const save = () => act(() => handle.current!.save())
+const validate = () => act(() => handle.current!.validate(false))
 
 function renderEditor(initial: { id: string; date: string; source: string; text: string }[] = []) {
   return render(
@@ -47,11 +48,10 @@ describe('RulingsEditor', () => {
     })
   })
 
-  it('shows required errors for an incomplete row and does not save', async () => {
+  it('fails validation on an incomplete row and shows its required errors', async () => {
     renderEditor()
     await userEvent.click(screen.getByRole('button', { name: en.edit.addRuling }))
-    await save()
+    expect(await validate()).toBe(false)
     expect(await screen.findAllByText(en.validation.required)).not.toHaveLength(0)
-    expect(saveRulingsAction).not.toHaveBeenCalled()
   })
 })

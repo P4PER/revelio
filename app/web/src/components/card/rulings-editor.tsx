@@ -18,7 +18,7 @@ type Row = { id: string | null; date: string; source: string; text: string }
 type Initial = { id: string; date: string; source: string; text: string }
 
 export type RulingsEditorHandle = {
-  validate: () => Promise<boolean>
+  validate: (focus: boolean) => Promise<boolean>
   save: () => Promise<RulingsSaveResult>
 }
 
@@ -68,15 +68,14 @@ export function RulingsEditor({
   }
 
   // Shows the inline row errors as a side effect, so CardEditForm can check
-  // every section before it writes any of them.
-  function validate() {
-    return form.trigger()
+  // every section before it writes any of them. `focus` moves focus to the
+  // first invalid field.
+  function validate(focus: boolean) {
+    return form.trigger(undefined, { shouldFocus: focus })
   }
 
-  // Persist the rulings; validate all rows first so CardEditForm gets
-  // { ok:false, error:'invalid' } when a row is incomplete.
+  // Persist the rulings. CardEditForm has already validated them.
   async function save(): Promise<RulingsSaveResult> {
-    if (!(await validate())) return { ok: false, error: 'invalid' }
     const rows = form.getValues('rows')
     return saveRulingsAction({
       cardId,

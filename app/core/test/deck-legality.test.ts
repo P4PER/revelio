@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { evaluateDeck } from '../src/deck-legality.js'
+import { evaluateDeck, isHardViolation } from '../src/deck-legality.js'
 import type { DeckCardMeta } from '../src/deck.js'
 
 const meta = (over: Partial<DeckCardMeta> & { id: string }): DeckCardMeta => ({
@@ -100,5 +100,14 @@ describe('evaluateDeck', () => {
     expect(r.violations).toContainEqual({ code: 'multiple_characters' })
     expect(r.violations).toContainEqual({ code: 'invalid_character', cardId: 'NOPE' })
     expect(r.violations).toContainEqual({ code: 'sideboard_too_large', actual: 16 })
+  })
+})
+
+describe('isHardViolation', () => {
+  it('treats rule breaks as hard and missing pieces as soft', () => {
+    expect(isHardViolation({ code: 'banned_card', cardId: 'x' })).toBe(true)
+    expect(isHardViolation({ code: 'too_many_copies', cardId: 'x', count: 5 })).toBe(true)
+    expect(isHardViolation({ code: 'main_deck_size', actual: 58 })).toBe(false)
+    expect(isHardViolation({ code: 'no_character' })).toBe(false)
   })
 })

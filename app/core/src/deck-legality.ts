@@ -18,6 +18,13 @@ const HARD: ReadonlySet<Violation['code']> = new Set([
   'too_many_copies', 'card_not_in_format', 'banned_card',
 ])
 
+// Hard violations make a deck illegal; the rest (no character yet, main deck
+// not at 60) only make it incomplete. Shared so the web UI colours each reason
+// by the same split evaluateDeck uses for the status.
+export function isHardViolation(v: Violation): boolean {
+  return HARD.has(v.code)
+}
+
 export function evaluateDeck(
   entries: DeckEntry[],
   format: DeckFormat,
@@ -56,7 +63,7 @@ export function evaluateDeck(
     if (format === 'revival' && m.legality === 'banned') violations.push({ code: 'banned_card', cardId })
   }
 
-  const hasHard = violations.some((v) => HARD.has(v.code))
+  const hasHard = violations.some(isHardViolation)
   const status: DeckStatus = hasHard ? 'illegal' : violations.length > 0 ? 'incomplete' : 'legal'
   return { status, violations }
 }

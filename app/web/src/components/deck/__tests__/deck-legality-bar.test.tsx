@@ -19,11 +19,13 @@ describe('DeckLegalityBar reasons', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
-  it('counts the issues and starts open when the deck is illegal', () => {
+  it('counts only the reasons that make it illegal and starts open', () => {
     renderWithIntl(<DeckLegalityBar status="illegal" mainCount={58} hasCharacter violations={violations} names={names} />)
-    const button = screen.getByRole('button', { name: /Illegal · 2 issues/ })
+    // One hard reason (the copy limit) and one soft one (deck size): the
+    // label counts the first, the list still shows both.
+    const button = screen.getByRole('button', { name: /Illegal · 1 issue$/ })
     expect(button).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByRole('list')).toBeInTheDocument()
+    expect(screen.getAllByRole('listitem')).toHaveLength(2)
   })
 
   it('starts closed when the deck is only incomplete', () => {
@@ -38,7 +40,7 @@ describe('DeckLegalityBar reasons', () => {
     )
     await userEvent.click(screen.getByRole('button', { name: /Illegal/ }))
     rerender(<DeckLegalityBar status="illegal" mainCount={59} hasCharacter violations={[...violations, { code: 'banned_card', cardId: 'fred' }]} names={names} />)
-    expect(screen.getByRole('button', { name: /Illegal · 3 issues/ })).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByRole('button', { name: /Illegal · 2 issues/ })).toHaveAttribute('aria-expanded', 'false')
     expect(screen.queryByRole('list')).not.toBeInTheDocument()
   })
 

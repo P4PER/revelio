@@ -54,9 +54,12 @@ export function DeckLegalityBar({
   // stays 'incomplete'), but it's a clear error - surface it in red here.
   const ui = mainCount > MAIN_TARGET ? STATUS_UI.illegal : STATUS_UI[status]
   const hasReasons = violations.length > 0
+  // The count says why the deck is illegal, so it leaves out the soft reasons
+  // (deck size, no character yet) the list still shows with a muted marker.
+  const hardCount = violations.filter(isHardViolation).length
   const label =
-    status === 'illegal' && hasReasons
-      ? t('status.illegalIssues', { count: violations.length })
+    status === 'illegal' && hardCount > 0
+      ? t('status.illegalIssues', { count: hardCount })
       : deckStatusText(status, mainCount, hasCharacter, t)
 
   return (

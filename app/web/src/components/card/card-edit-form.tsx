@@ -43,6 +43,11 @@ export function CardEditForm({
   async function onSave() {
     setBusy(true)
     try {
+      // Both sections are checked before either is written: saving the
+      // localization and then finding an incomplete ruling would leave the card
+      // half-saved. Both run, so both show their inline errors at once.
+      const valid = await Promise.all([locRef.current!.validate(), rulRef.current!.validate()])
+      if (!valid.every(Boolean)) return toast.error(t('invalid'))
       const loc = await locRef.current!.save()
       if (!loc.ok) return toast.error(t('invalid'))
       const rulings = await rulRef.current!.save()

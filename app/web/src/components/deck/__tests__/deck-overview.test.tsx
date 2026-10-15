@@ -68,7 +68,7 @@ describe('DeckOverview', () => {
       { cardId: 'fred', zone: 'main', quantity: 1, name: 'Fred Weasley', cost: 2, setCode: 'BS', number: '3', lesson: null, isOfficial: true, legality: 'banned', isLesson: false, isStartingCharacter: false },
     ]
     renderWithIntl(<DeckOverview {...props} views={banned} />)
-    fireEvent.click(screen.getByRole('button', { name: /Illegal/ }))
+    // An illegal deck shows its reasons on arrival.
     const list = screen.getByRole('list')
     expect(list).toHaveTextContent('Fred Weasley is banned in Revival')
     expect(within(list).queryByRole('button')).not.toBeInTheDocument()

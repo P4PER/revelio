@@ -86,7 +86,6 @@ describe('DeckPanel violations', () => {
     const entries = [view('harry', 'character', 1), view('wing', 'main', 3), view('wing', 'sideboard', 2)]
     const { status, violations } = evaluate(entries, 'classic')
     renderWithIntl(<DeckPanel entries={entries} imageBase="http://img.test" status={status} violations={violations} onQuantityChange={() => {}} />)
-    await userEvent.click(screen.getByRole('button', { name: /Illegal/ }))
     await userEvent.click(screen.getByRole('button', { name: 'Show wing in the deck' }))
     expect(scrollIntoView).toHaveBeenCalled()
     expect(row('main-wing').className).toContain('bg-primary/15')
@@ -124,7 +123,6 @@ describe('DeckPanel violations', () => {
         highlight={{ zone: 'main', cardId: 'accio', nonce: 1 }} onQuantityChange={() => {}} />,
     )
     act(() => { vi.advanceTimersByTime(600) })
-    fireEvent.click(screen.getByRole('button', { name: /Illegal/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Show wing in the deck' }))
     expect(row('main-wing').className).toContain('bg-primary/15')
     // The add's timer would have ended at 1200 ms; the jump's runs to 1800.

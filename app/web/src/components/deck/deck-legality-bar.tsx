@@ -22,7 +22,8 @@ type DeckLegalityBarProps = {
 // Slim progress-bar + status-label legality indicator. Shared by the deck panel
 // (builder) and the deck overview so both read the same whole-deck legality: the
 // bar fills toward the 60-card main target and recolors with the status. When
-// the deck breaks rules, the label opens the list of every reason.
+// the deck has problems, the label toggles the list of every reason; the list
+// opens by itself when the deck becomes illegal.
 export function DeckLegalityBar({
   status,
   mainCount,
@@ -33,7 +34,18 @@ export function DeckLegalityBar({
   className,
 }: DeckLegalityBarProps) {
   const t = useTranslations('decks')
-  const [open, setOpen] = useState(false)
+  // What the user did with the toggle since the status last changed; null
+  // means follow the default, which is open only for an illegal deck. A new
+  // status drops the choice, so a deck that breaks a rule again reopens even
+  // if the list was collapsed last time, while a deck still being built
+  // (incomplete) stays closed until asked.
+  const [choice, setChoice] = useState<boolean | null>(null)
+  const [seenStatus, setSeenStatus] = useState(status)
+  if (status !== seenStatus) {
+    setSeenStatus(status)
+    setChoice(null)
+  }
+  const open = choice ?? status === 'illegal'
   const listId = useId()
   const pct = Math.min(100, Math.round((mainCount / MAIN_TARGET) * 100))
   // Overfilling the main deck isn't a "hard" violation in evaluateDeck (status
@@ -56,7 +68,7 @@ export function DeckLegalityBar({
             type="button"
             aria-expanded={open}
             aria-controls={listId}
-            onClick={() => setOpen((o) => !o)}
+            onClick={() => setChoice(!open)}
             className={cn(
               '-my-0.5 -mr-1 flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md px-1 py-0.5 text-xs font-medium hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
               ui.text,

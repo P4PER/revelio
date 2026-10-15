@@ -91,3 +91,28 @@ it('textLinesToEntries surfaces unresolved (missing/ambiguous) and viewless line
     { quantity: 1, name: 'Ghost Card', setCode: null, number: null, zone: 'main' },
   ])
 })
+
+it('textLinesToEntries keeps one starting character and reports the others', () => {
+  const ronView: CardViewMeta = { ...harryView, cardId: 'bs-ron', name: 'Ron Weasley', number: '3' }
+  const lines: ParsedTextLine[] = [
+    { quantity: 1, name: 'Harry Potter', setCode: 'BS', number: '2', zone: 'character' },
+    { quantity: 1, name: 'Ron Weasley', setCode: 'BS', number: '3', zone: 'character' },
+  ]
+  const resolved = { 'harry potter|BS|2': 'bs-harry', 'ron weasley|BS|3': 'bs-ron' }
+  const { entries, unresolved, extraCharacters } = textLinesToEntries(lines, resolved, { 'bs-harry': harryView, 'bs-ron': ronView })
+
+  expect(unresolved).toEqual([])
+  expect(entries).toEqual([{ ...harryView, zone: 'character', quantity: 1 }])
+  expect(extraCharacters).toEqual([lines[1]])
+})
+
+it('textLinesToEntries merges a repeated starting character rather than reporting it', () => {
+  const lines: ParsedTextLine[] = [
+    { quantity: 1, name: 'Harry Potter', setCode: 'BS', number: '2', zone: 'character' },
+    { quantity: 1, name: 'Harry Potter', setCode: 'BS', number: '2', zone: 'character' },
+  ]
+  const { entries, extraCharacters } = textLinesToEntries(lines, { 'harry potter|BS|2': 'bs-harry' }, { 'bs-harry': harryView })
+
+  expect(entries).toEqual([{ ...harryView, zone: 'character', quantity: 1 }])
+  expect(extraCharacters).toEqual([])
+})

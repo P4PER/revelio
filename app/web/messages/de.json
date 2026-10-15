@@ -392,7 +392,8 @@
       "emptyInput": "Füge zuerst eine Deckliste ein oder wähle eine Datei aus.",
       "noLines": "In diesem Text wurden keine Kartenzeilen gefunden.",
       "unparsedTitle": "Diese Zeilen konnten nicht gelesen werden:",
-      "unresolvedTitle": "Diese Karten konnten nicht zugeordnet werden:"
+      "unresolvedTitle": "Diese Karten konnten nicht zugeordnet werden:",
+      "extraCharactersTitle": "Ein Deck beginnt mit einem Charakter, daher wurden diese ausgelassen:"
     },
     "sheet": {
       "toggle": "Deck, {count, plural, one {# Karte} other {# Karten}}",

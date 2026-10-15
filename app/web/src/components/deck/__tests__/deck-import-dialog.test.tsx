@@ -3,10 +3,11 @@ import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import { describe, it, expect, vi } from 'vitest'
 
-vi.mock('@/lib/actions/deck-actions', () => ({
-  getCardViewsAction: vi.fn(async () => ({})),
-  resolveImportNames: vi.fn(async () => ({})),
+const actions = vi.hoisted(() => ({
+  getCardViewsAction: vi.fn(async (): Promise<Record<string, unknown>> => ({})),
+  resolveImportNames: vi.fn(async (): Promise<Record<string, string | null>> => ({})),
 }))
+vi.mock('@/lib/actions/deck-actions', () => actions)
 
 import { parseText } from '@revelio/core'
 
@@ -107,5 +108,31 @@ describe('DeckImportDialog', () => {
     expect(lines.every((l) => l.zone === 'main')).toBe(true)
     // ...and the bare character line is not merely moved, it is rejected.
     expect(unparsed).toEqual(['Harry Potter (BS 8)'])
+  })
+
+  it('imports one starting character and lists the others it left out', async () => {
+    const meta = { cost: null, setCode: 'BS', lesson: null, isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: true }
+    actions.resolveImportNames.mockResolvedValueOnce({ 'harry potter|BS|2': 'bs-harry', 'ron weasley|BS|3': 'bs-ron' })
+    actions.getCardViewsAction.mockResolvedValueOnce({
+      'bs-harry': { ...meta, cardId: 'bs-harry', name: 'Harry Potter', number: '2' },
+      'bs-ron': { ...meta, cardId: 'bs-ron', name: 'Ron Weasley', number: '3' },
+    })
+    const onImport = vi.fn()
+    const user = userEvent.setup()
+    render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        <DeckImportDialog state={emptyDeck()} onImport={onImport} />
+      </NextIntlClientProvider>,
+    )
+    await user.click(screen.getByRole('button', { name: en.decks.import.button }))
+    fireEvent.change(open().getByLabelText(en.decks.import.pasteLabel), {
+      target: { value: '// Character\nHarry Potter (BS 2)\nRon Weasley (BS 3)' },
+    })
+    await user.click(open().getByRole('button', { name: en.decks.import.submit }))
+
+    const notice = await screen.findByText(en.decks.import.extraCharactersTitle)
+    expect(notice.closest('[role="alert"]')).toHaveTextContent('Ron Weasley (BS 3)')
+    const entries = onImport.mock.calls[0][0].entries
+    expect(entries.map((e: { cardId: string; zone: string }) => `${e.zone}-${e.cardId}`)).toEqual(['character-bs-harry'])
   })
 })

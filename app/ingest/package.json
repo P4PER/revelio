@@ -9,12 +9,12 @@
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.600.0",
+    "@aws-sdk/client-s3": "^3.1152.0",
     "@revelio/core": "*",
     "@revelio/db": "*",
     "@revelio/search": "*",
-    "better-auth": "^1.7.4",
-    "drizzle-orm": "^0.45.2",
-    "postgres": "^3.4.0"
+    "better-auth": "^1.7.10",
+    "drizzle-orm": "^0.45.4",
+    "postgres": "^3.4.9"
   }
 }

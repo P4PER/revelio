@@ -19,7 +19,6 @@ function renderForm(kind: 'adventure' | 'match' | null = null) {
     <NextIntlClientProvider locale="en" messages={en}>
       <LocalizationForm
         ref={handle}
-       
         cardId="x-1"
         lang="de"
         kind={kind}

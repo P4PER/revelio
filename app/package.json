@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "workspaces": ["core", "db", "ingest", "search", "web", "bot", "sheet"],
-  "engines": { "node": ">=22" },
+  "engines": { "node": ">=22.22" },
   "scripts": {
     "test": "npm run test --workspaces --if-present",
     "lint": "eslint && npm run lint -w web",
@@ -11,7 +11,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "devDependencies": {
-    "typescript": "^6.0.3",
+    "typescript": "~6.0.3",
     "eslint": "^9.39.5",
     "typescript-eslint": "^8.71.2",
     "tsx": "^4.23.15",

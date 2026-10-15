@@ -133,7 +133,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
         return (
           <div
             key={deck.id}
-            className="group relative flex flex-col gap-3 rounded-xl border border-input bg-card/40 p-4 transition-colors hover:border-secondary-ink hover:bg-card/70"
+            className="group relative flex flex-col gap-3 rounded-xl border border-input bg-card/40 p-4 transition-colors hover:border-secondary-border hover:bg-card/70"
           >
             <div>
               <div className="flex items-center justify-between gap-2">

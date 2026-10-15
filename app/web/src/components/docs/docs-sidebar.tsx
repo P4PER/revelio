@@ -18,7 +18,7 @@ const PAGE_LINK =
 // The wash fades out to the right rather than filling the row, so the mark
 // reads as an accent on the rail's edge and not as a block.
 const PAGE_LINK_ACTIVE =
-  'block border-l-2 border-secondary-ink bg-gradient-to-r from-secondary-ink/10 to-transparent px-2.5 py-3 text-sm font-semibold text-secondary-ink dark:border-primary dark:from-primary/10 dark:text-primary-ink min-[860px]:py-1.5'
+  'block border-l-2 border-secondary-border bg-gradient-to-r from-secondary-border/10 to-transparent px-2.5 py-3 text-sm font-semibold text-secondary-ink dark:border-primary dark:from-primary/10 dark:text-primary-ink min-[860px]:py-1.5'
 const SECTION_LABEL = 'flex items-center gap-1.5 text-sm font-semibold'
 
 function href(slug: DocSlug): string {

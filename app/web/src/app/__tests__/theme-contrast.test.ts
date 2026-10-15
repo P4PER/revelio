@@ -69,7 +69,7 @@ describe('light theme contrast', () => {
     ['primary button label', '--light-primary-foreground', '--light-primary'],
     // --primary is a FILL (dark ink sits on it). Gold used as text needs its
     // own darker value: #F0C458 on parchment is 1.51:1, effectively invisible.
-    ['hover border on card', '--light-secondary-ink', '--light-card'],
+    ['hover border on card', '--light-secondary-border', '--light-card'],
     ['heading on page', '--light-heading', '--light-background'],
     ['heading on card', '--light-heading', '--light-card'],
     ['gold ink on page', '--light-primary-ink', '--light-background'],
@@ -134,14 +134,13 @@ describe('light theme contrast', () => {
 // readable on parchment is, by construction, at risk of vanishing on midnight.
 describe('dark theme ink', () => {
   const GRAPHIC = 3 // WCAG 1.4.11
-  // The same token is the card-tile hover border, which must be read at full
+  // The card-tile hover border, which must be read at full
   // strength: composited at /60 the dark value falls to 2.11:1 and at /40 to
   // 1.61:1, which is how the old primary/40/accent/60 borders ended up nearly
   // invisible.
-  it('the error-card glyph and the hover border stay visible on a card', () => {
-    // Rendered on the muted/card stripes of error-card-state.tsx.
-    expect(contrast(hex('--dark-secondary-ink'), hex('--dark-card'))).toBeGreaterThanOrEqual(GRAPHIC)
-    expect(contrast(hex('--dark-secondary-ink'), hex('--dark-muted'))).toBeGreaterThanOrEqual(GRAPHIC)
+  it('the hover border and the selected ring stay visible on a card', () => {
+    expect(contrast(hex('--dark-secondary-border'), hex('--dark-card'))).toBeGreaterThanOrEqual(GRAPHIC)
+    expect(contrast(hex('--dark-secondary-border'), hex('--dark-muted'))).toBeGreaterThanOrEqual(GRAPHIC)
   })
 
   it('gold ink clears AA on the page and on cards', () => {

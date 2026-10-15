@@ -59,13 +59,13 @@ export function AppearanceForm({ current }: { current: ThemeChoice }) {
           <Label
             key={value}
             htmlFor={`theme-${value}`}
-            className="flex cursor-pointer flex-col items-stretch gap-2.5 rounded-xl border p-2.5 transition-colors hover:bg-(--hover-bg) has-data-[state=checked]:border-secondary-ink has-data-[state=checked]:ring-2 has-data-[state=checked]:ring-secondary-ink has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring"
+            className="flex cursor-pointer flex-col items-stretch gap-2.5 rounded-xl border p-2.5 transition-colors hover:bg-(--hover-bg) has-data-[state=checked]:border-secondary-border has-data-[state=checked]:ring-2 has-data-[state=checked]:ring-secondary-border has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring"
           >
             {/* The dot is hidden, not dropped: it stays the focusable radio, so
                 arrow keys and the accessible name still work, and its own
                 data-state is what the tile styles off - no mirrored prop.
                 That makes the border the only selection cue, so it uses
-                secondary-ink, the same token deck-list, deck-hero-card and
+                secondary-border, the same token deck-list, deck-hero-card and
                 set-card use to emphasise a card border. Not primary: gold is
                 1.6:1 on the light card, under the 3:1 WCAG 1.4.11 asks of a
                 state indicator, it also appears inside the miniature (the mark

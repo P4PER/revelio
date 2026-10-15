@@ -67,4 +67,18 @@ describe('light-mode sweep', () => {
     expect(chromaticLiterals('linear-gradient(115deg,#000_55%,transparent_92%)')).toEqual([])
     expect(chromaticLiterals('#E2AE37')).toHaveLength(1)
   })
+
+  // secondary-ink is the text token; a border or ring painted with it would
+  // brighten the day the ink is tuned for text. Borders and rings take secondary-border.
+  it.each([
+    'set/set-card.tsx',
+    'deck/deck-list.tsx',
+    'deck/deck-hero-card.tsx',
+    'settings/appearance-form.tsx',
+    'docs/docs-sidebar.tsx',
+  ])('%s draws its borders with secondary-border', async (file) => {
+    const src = await read(file)
+    expect(src).not.toMatch(/(?:border|ring|from)-secondary-ink/)
+    expect(src).toMatch(/(?:border|ring)-secondary-border/)
+  })
 })

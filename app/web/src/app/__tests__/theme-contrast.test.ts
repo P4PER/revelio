@@ -67,11 +67,13 @@ describe('light theme contrast', () => {
     ['muted text', '--light-muted-foreground', '--light-background'],
     ['muted text on card', '--light-muted-foreground', '--light-card'],
     ['primary button label', '--light-primary-foreground', '--light-primary'],
-    // --primary is a FILL (dark ink sits on it). Gold used as text needs its
-    // own darker value: #F0C458 on parchment is 1.51:1, effectively invisible.
-    ['hover border on card', '--light-secondary-ink', '--light-card'],
+    ['indigo ink on page', '--light-secondary-ink', '--light-background'],
+    ['indigo ink on card', '--light-secondary-ink', '--light-card'],
+    ['indigo ink on muted', '--light-secondary-ink', '--light-muted'],
     ['heading on page', '--light-heading', '--light-background'],
     ['heading on card', '--light-heading', '--light-card'],
+    // --primary is a FILL (dark ink sits on it). Gold used as text needs its
+    // own darker value: #F0C458 on parchment is 1.51:1, effectively invisible.
     ['gold ink on page', '--light-primary-ink', '--light-background'],
     ['gold ink on card', '--light-primary-ink', '--light-card'],
     ['gold ink on muted', '--light-primary-ink', '--light-muted'],
@@ -85,6 +87,12 @@ describe('light theme contrast', () => {
       expect(contrast(hex(fg), hex(bg))).toBeGreaterThanOrEqual(AA)
     })
   }
+
+  // A border is a graphic, so like its dark side it is held to WCAG 1.4.11's
+  // 3:1, not to text AA.
+  it('the hover border on a card clears 3:1', () => {
+    expect(contrast(hex('--light-secondary-border'), hex('--light-card'))).toBeGreaterThanOrEqual(3)
+  })
 
   // Not a WCAG rule - a hierarchy one. --secondary is a quiet surface: on
   // midnight it sits 1.79:1 off the page while the gold primary shouts at
@@ -134,14 +142,27 @@ describe('light theme contrast', () => {
 // readable on parchment is, by construction, at risk of vanishing on midnight.
 describe('dark theme ink', () => {
   const GRAPHIC = 3 // WCAG 1.4.11
-  // The same token is the card-tile hover border, which must be read at full
+  // The card-tile hover border, which must be read at full
   // strength: composited at /60 the dark value falls to 2.11:1 and at /40 to
   // 1.61:1, which is how the old primary/40/accent/60 borders ended up nearly
   // invisible.
-  it('the error-card glyph and the hover border stay visible on a card', () => {
-    // Rendered on the muted/card stripes of error-card-state.tsx.
-    expect(contrast(hex('--dark-secondary-ink'), hex('--dark-card'))).toBeGreaterThanOrEqual(GRAPHIC)
-    expect(contrast(hex('--dark-secondary-ink'), hex('--dark-muted'))).toBeGreaterThanOrEqual(GRAPHIC)
+  it('the hover border and the selected ring stay visible on a card', () => {
+    expect(contrast(hex('--dark-secondary-border'), hex('--dark-card'))).toBeGreaterThanOrEqual(GRAPHIC)
+    expect(contrast(hex('--dark-secondary-border'), hex('--dark-muted'))).toBeGreaterThanOrEqual(GRAPHIC)
+  })
+
+  // secondary-ink is the indigo text token, so like primary-ink it has to read
+  // on every ground text sits on. Its old dark value (#6E66C9) was the border
+  // value at 3.16:1 on muted, which is why command-example grew syntax-option
+  // and the deck import dialog mixed its own.
+  it('indigo ink clears AA on the page, on cards and on muted', () => {
+    for (const ground of ['--dark-background', '--dark-card', '--dark-muted']) {
+      expect(contrast(hex('--dark-secondary-ink'), hex(ground))).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
+  it('there is one indigo text token', () => {
+    expect(css).not.toMatch(/syntax-option/)
   })
 
   it('gold ink clears AA on the page and on cards', () => {

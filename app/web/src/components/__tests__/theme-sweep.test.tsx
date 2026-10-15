@@ -1,6 +1,9 @@
-import { readFile } from 'node:fs/promises'
+import { readFile, readdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { describe, it, expect } from 'vitest'
+
+const BORDER_INK =
+  /(?<![\w-])(?:border(?:-[xytrbl])?|ring|outline|from|via|to|divide|decoration|shadow)-secondary-ink/
 
 const read = (p: string) => readFile(resolve(process.cwd(), 'src/components', p), 'utf8')
 
@@ -66,5 +69,32 @@ describe('light-mode sweep', () => {
     expect(chromaticLiterals('shadow-[0_18px_42px_rgba(0,0,0,0.55)]')).toEqual([])
     expect(chromaticLiterals('linear-gradient(115deg,#000_55%,transparent_92%)')).toEqual([])
     expect(chromaticLiterals('#E2AE37')).toHaveLength(1)
+  })
+
+  // secondary-ink is the text token; a border, ring or wash painted with it
+  // would brighten the day the ink is tuned for text. Those take
+  // secondary-border. command-table is the one exception: its badges are text
+  // pills whose outline carries the label's colour on purpose.
+  it('no component draws a border, ring or wash with secondary-ink', async () => {
+    const files = (await readdir(resolve(process.cwd(), 'src/components'), { recursive: true })).filter(
+      (f) => f.endsWith('.tsx') && !f.includes('__tests__') && f !== 'docs/command-table.tsx',
+    )
+    expect(files.length).toBeGreaterThan(50)
+    const offenders: string[] = []
+    for (const file of files) {
+      if (BORDER_INK.test(await read(file))) offenders.push(file)
+    }
+    expect(offenders).toEqual([])
+  })
+
+  // secondary-ink clears AA in both themes, so any dark: override on the zone
+  // headings is a stale workaround rather than a fix.
+  it('deck-import-dialog paints its zone headings in plain secondary-ink', async () => {
+    const src = await read('deck/deck-import-dialog.tsx')
+    const heading = src.match(/line\.kind === 'heading' && \(\s*<span className="([^"]*)"/)
+    expect(heading).not.toBeNull()
+    const classes = heading![1].split(/\s+/)
+    expect(classes).toContain('text-secondary-ink')
+    expect(classes.filter((c) => c.startsWith('dark:text-'))).toEqual([])
   })
 })

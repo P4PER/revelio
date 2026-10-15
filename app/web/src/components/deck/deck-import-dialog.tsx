@@ -251,15 +251,14 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
               decoration: they are the only thing that assigns a zone, so they carry
               the brand ink rather than being dimmed. Quantity and name are required.
               The (SET NUMBER) is the one genuinely optional token, so it is the one
-              that recedes. The ink is brightened on dark, where the flat token sits
-              at 3.8:1 against the card - short of AA for 12px text.
+              that recedes.
             */}
             <pre className="overflow-x-auto rounded-md border border-input bg-card/60 px-3 py-2.5 font-mono text-sm leading-relaxed">
               {EXAMPLE_LINES.map((line, i) => (
                 <Fragment key={i}>
                   {i > 0 && '\n'}
                   {line.kind === 'heading' && (
-                    <span className="font-medium text-secondary-ink dark:text-[color-mix(in_srgb,var(--secondary-ink)_60%,var(--foreground))]">
+                    <span className="font-medium text-secondary-ink">
                       {line.text}
                     </span>
                   )}

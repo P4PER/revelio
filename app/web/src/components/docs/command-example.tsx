@@ -73,8 +73,8 @@ function textOf(children: ReactNode): string {
  * ends. Tokenising it here is both shorter than a grammar and testable.
  *
  * The value colour is `foreground` and the command's is `primary-ink`, both
- * already text-safe on `muted`. The option name needed a token of its own:
- * `secondary-ink`, the obvious choice, measures 3.16:1 there in dark mode.
+ * already text-safe on `muted`. The option name is secondary-ink, the indigo
+ * text token.
  */
 export function CommandExample({ children }: { children: ReactNode }) {
   const { command, options } = parse(textOf(children))
@@ -86,7 +86,7 @@ export function CommandExample({ children }: { children: ReactNode }) {
         {options.map((option) => (
           <span key={option.name}>
             {' '}
-            <span className="text-syntax-option">{option.name}:</span>
+            <span className="text-secondary-ink">{option.name}:</span>
             <span className="text-foreground">{option.value}</span>
           </span>
         ))}

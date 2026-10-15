@@ -13,7 +13,7 @@ export function DeckHeroCard({ deck, imageBase }: { deck: PublicDeckEntry; image
   return (
     <Link
       href={`/decks/${deck.id}`}
-      className="group block overflow-hidden rounded-xl border border-input bg-card transition-colors hover:border-secondary-ink"
+      className="group block overflow-hidden rounded-xl border border-input bg-card transition-colors hover:border-secondary-border"
     >
       <div className="relative aspect-[7/5]">
         <DeckArt cardId={deck.starterCardId} version={deck.starterArtCropVersion} lessons={deck.lessons} imageBase={imageBase} alt={deck.name} className="h-full w-full" />

@@ -32,11 +32,11 @@ function Sparkle({ className }: { className?: string }) {
   )
 }
 
-// The symbol takes whichever ink carries against the ground it sits on:
-// indigo on parchment, gold on midnight. Neither reads in both. The light gold
-// is a dark bronze that muddies against the striped card, and the dark indigo
-// washes out against it. The sparkles stay gold in both themes: they are small
-// and sit outside the card, where the ground is the page rather than stripes.
+// The symbol follows the heading pairing: indigo on parchment, gold on
+// midnight. On light it has to be indigo - the light gold is a dark bronze
+// that muddies against the striped card. On dark either ink reads; gold keeps
+// the pairing. The sparkles stay gold in both themes: they are small and sit
+// outside the card, where the ground is the page rather than stripes.
 const SYMBOL_INK = 'text-secondary-ink dark:text-primary-ink'
 
 // One motif at three scales. `stripe` is the width in px of a single diagonal

@@ -78,7 +78,7 @@
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary-ink: var(--secondary-ink);
-  --color-syntax-option: var(--syntax-option);
+  --color-secondary-border: var(--secondary-border);
   --color-brand-indigo: var(--brand-indigo);
   --color-brand-discord: var(--brand-discord);
   --color-success: var(--success);
@@ -161,12 +161,14 @@
   --dark-progress: #E8B23A;
   --dark-secondary: #3B3194;
   --dark-secondary-foreground: #FBF3DC;
-  --dark-secondary-ink: #6E66C9;
-  /* The option name in a slash-command example, and the indigo badges on a
-     command table. secondary-ink is the obvious pick and cannot be used: on
-     --dark-muted it measures 3.16:1 (3.56:1 on --dark-card), under the 4.5 AA
-     needs for text this size. This is the same hue lifted to 6.28:1 (7.09:1). */
-  --dark-syntax-option: #A79FE8;
+  /* Indigo as text. #6E66C9, the brand's mid indigo, is 3.16:1 on muted and
+     stays the border value; this is the same hue lifted to 6.28:1 (7.09:1 on
+     card). Text on the indigo FILL takes secondary-foreground, not this. */
+  --dark-secondary-ink: #A79FE8;
+  /* Indigo as a border or ring: hover borders on cards, the selected theme tile.
+     Held to the 3:1 WCAG 1.4.11 asks of a graphic, not to text AA. Text takes
+     secondary-ink. */
+  --dark-secondary-border: #6E66C9;
   --dark-brand-indigo: #3B3194;
   --dark-muted: #252246;
   --dark-muted-foreground: #C5BAA0;
@@ -231,7 +233,7 @@
   --light-secondary: #D9D2F0;
   --light-secondary-foreground: #2A2270;
   --light-secondary-ink: #3B3194;
-  --light-syntax-option: #3B3194;
+  --light-secondary-border: #3B3194;
   --light-brand-indigo: #3B3194;
   --light-muted: #ECE7DB;
   --light-muted-foreground: #5B5478;
@@ -306,7 +308,7 @@
   --secondary: var(--light-secondary);
   --secondary-foreground: var(--light-secondary-foreground);
   --secondary-ink: var(--light-secondary-ink);
-  --syntax-option: var(--light-syntax-option);
+  --secondary-border: var(--light-secondary-border);
   --brand-indigo: var(--light-brand-indigo);
   --muted: var(--light-muted);
   --muted-foreground: var(--light-muted-foreground);
@@ -368,7 +370,7 @@
     --secondary: var(--dark-secondary);
     --secondary-foreground: var(--dark-secondary-foreground);
     --secondary-ink: var(--dark-secondary-ink);
-    --syntax-option: var(--dark-syntax-option);
+    --secondary-border: var(--dark-secondary-border);
     --brand-indigo: var(--dark-brand-indigo);
     --muted: var(--dark-muted);
     --muted-foreground: var(--dark-muted-foreground);
@@ -432,7 +434,7 @@
   --secondary: var(--dark-secondary);
   --secondary-foreground: var(--dark-secondary-foreground);
   --secondary-ink: var(--dark-secondary-ink);
-  --syntax-option: var(--dark-syntax-option);
+  --secondary-border: var(--dark-secondary-border);
   --brand-indigo: var(--dark-brand-indigo);
   --muted: var(--dark-muted);
   --muted-foreground: var(--dark-muted-foreground);

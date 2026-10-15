@@ -87,13 +87,12 @@ describe('CommandTable', () => {
     expect(screen.getByText('Needs a linked account')).toBeInTheDocument()
   })
 
-  // secondary-ink is the obvious pick for these badges and measures 3.56:1 on
-  // the dark card, under AA for text this small. syntax-option is the same hue
-  // lifted to 7.09:1.
-  it('draws the indigo badges in the AA-safe ink', () => {
+  // The badges are indigo text at 0.68rem on the card, so they take the text
+  // ink; theme-contrast.test.ts holds secondary-ink to AA there in both themes.
+  it('draws the indigo badges in the indigo text ink', () => {
     renderTable('collection')
-    expect(screen.getByText('Needs a linked account')).toHaveClass('text-syntax-option')
-    expect(screen.getByText('Autocompletes')).toHaveClass('text-syntax-option')
+    expect(screen.getByText('Needs a linked account')).toHaveClass('text-secondary-ink')
+    expect(screen.getByText('Autocompletes')).toHaveClass('text-secondary-ink')
   })
 
   it('marks a public command as posting to the channel', () => {

@@ -15,6 +15,10 @@ import { defineConfig } from '@playwright/test'
 // server -- or to 3000 to deliberately reuse one you started yourself:
 //
 //   E2E_PORT=3100 npm run e2e -w web
+//
+// The specs that need card data skip when the stack has none. Against a stack
+// you know is seeded, E2E_REQUIRE_SEED=1 makes them fail instead (e2e/seeded.ts),
+// so a search that broke and renders nothing cannot pass as an empty index.
 const E2E_PORT = Number(process.env.E2E_PORT ?? 3000)
 
 const baseURL = `http://localhost:${E2E_PORT}`

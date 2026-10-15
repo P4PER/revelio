@@ -27,6 +27,7 @@ npm test -w web -- -t "test name substring"
 
 # Playwright e2e (web only; specs in web/e2e/, config in web/playwright.config.ts)
 npm run e2e -w web           # builds + starts prod server, runs against localhost:3000
+E2E_REQUIRE_SEED=1 npm run e2e -w web   # seeded stack: data-dependent specs fail, not skip
 
 # lint (all six workspaces; runs the root config then web's own)
 npm run lint

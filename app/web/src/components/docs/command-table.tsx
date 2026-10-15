@@ -68,7 +68,7 @@ export function CommandTable({ name }: { name: BotCommandName }) {
             {visibility}
           </span>
           {command.linkRequired && (
-            <span className={`${PILL} border-syntax-option/55 text-syntax-option`}>
+            <span className={`${PILL} border-secondary-ink/55 text-secondary-ink`}>
               <Link2 aria-hidden className="size-3.5" />
               {t('commandTable.linkRequired')}
             </span>
@@ -123,7 +123,7 @@ export function CommandTable({ name }: { name: BotCommandName }) {
                         ` ${t('commandTable.maxLength', { max: option.maxLength })}`}
                       {option.autocomplete && (
                         <span className="mt-1.5 flex">
-                          <span className="inline-flex items-center gap-1 rounded border border-syntax-option/55 px-1.5 py-0.5 text-[0.68rem] leading-none font-medium text-syntax-option">
+                          <span className="inline-flex items-center gap-1 rounded border border-secondary-ink/55 px-1.5 py-0.5 text-[0.68rem] leading-none font-medium text-secondary-ink">
                             <Keyboard aria-hidden className="size-3.5" />
                             {t('commandTable.autocompletes')}
                           </span>

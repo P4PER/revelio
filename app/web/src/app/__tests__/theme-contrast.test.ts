@@ -70,6 +70,9 @@ describe('light theme contrast', () => {
     // --primary is a FILL (dark ink sits on it). Gold used as text needs its
     // own darker value: #F0C458 on parchment is 1.51:1, effectively invisible.
     ['hover border on card', '--light-secondary-border', '--light-card'],
+    ['indigo ink on page', '--light-secondary-ink', '--light-background'],
+    ['indigo ink on card', '--light-secondary-ink', '--light-card'],
+    ['indigo ink on muted', '--light-secondary-ink', '--light-muted'],
     ['heading on page', '--light-heading', '--light-background'],
     ['heading on card', '--light-heading', '--light-card'],
     ['gold ink on page', '--light-primary-ink', '--light-background'],
@@ -141,6 +144,20 @@ describe('dark theme ink', () => {
   it('the hover border and the selected ring stay visible on a card', () => {
     expect(contrast(hex('--dark-secondary-border'), hex('--dark-card'))).toBeGreaterThanOrEqual(GRAPHIC)
     expect(contrast(hex('--dark-secondary-border'), hex('--dark-muted'))).toBeGreaterThanOrEqual(GRAPHIC)
+  })
+
+  // secondary-ink is the indigo text token, so like primary-ink it has to read
+  // on every ground text sits on. Its old dark value (#6E66C9) was the border
+  // value at 3.16:1 on muted, which is why command-example grew syntax-option
+  // and the deck import dialog mixed its own.
+  it('indigo ink clears AA on the page, on cards and on muted', () => {
+    for (const ground of ['--dark-background', '--dark-card', '--dark-muted']) {
+      expect(contrast(hex('--dark-secondary-ink'), hex(ground))).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
+  it('there is one indigo text token', () => {
+    expect(css).not.toMatch(/syntax-option/)
   })
 
   it('gold ink clears AA on the page and on cards', () => {

@@ -20,7 +20,7 @@ describe('CommandExample', () => {
   it('colours the command, the option names and the values differently', () => {
     render(<CommandExample>/card name:Alohomora</CommandExample>)
     expect(screen.getByText('/card')).toHaveClass('text-primary-ink')
-    expect(screen.getByText('name:')).toHaveClass('text-syntax-option')
+    expect(screen.getByText('name:')).toHaveClass('text-secondary-ink')
     expect(screen.getByText('Alohomora')).toHaveClass('text-foreground')
   })
 

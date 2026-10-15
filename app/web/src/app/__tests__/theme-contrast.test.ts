@@ -67,14 +67,13 @@ describe('light theme contrast', () => {
     ['muted text', '--light-muted-foreground', '--light-background'],
     ['muted text on card', '--light-muted-foreground', '--light-card'],
     ['primary button label', '--light-primary-foreground', '--light-primary'],
-    // --primary is a FILL (dark ink sits on it). Gold used as text needs its
-    // own darker value: #F0C458 on parchment is 1.51:1, effectively invisible.
-    ['hover border on card', '--light-secondary-border', '--light-card'],
     ['indigo ink on page', '--light-secondary-ink', '--light-background'],
     ['indigo ink on card', '--light-secondary-ink', '--light-card'],
     ['indigo ink on muted', '--light-secondary-ink', '--light-muted'],
     ['heading on page', '--light-heading', '--light-background'],
     ['heading on card', '--light-heading', '--light-card'],
+    // --primary is a FILL (dark ink sits on it). Gold used as text needs its
+    // own darker value: #F0C458 on parchment is 1.51:1, effectively invisible.
     ['gold ink on page', '--light-primary-ink', '--light-background'],
     ['gold ink on card', '--light-primary-ink', '--light-card'],
     ['gold ink on muted', '--light-primary-ink', '--light-muted'],
@@ -88,6 +87,12 @@ describe('light theme contrast', () => {
       expect(contrast(hex(fg), hex(bg))).toBeGreaterThanOrEqual(AA)
     })
   }
+
+  // A border is a graphic, so like its dark side it is held to WCAG 1.4.11's
+  // 3:1, not to text AA.
+  it('the hover border on a card clears 3:1', () => {
+    expect(contrast(hex('--light-secondary-border'), hex('--light-card'))).toBeGreaterThanOrEqual(3)
+  })
 
   // Not a WCAG rule - a hierarchy one. --secondary is a quiet surface: on
   // midnight it sits 1.79:1 off the page while the gold primary shouts at

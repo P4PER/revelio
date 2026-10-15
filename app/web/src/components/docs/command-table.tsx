@@ -67,6 +67,8 @@ export function CommandTable({ name }: { name: BotCommandName }) {
             <VisibilityIcon aria-hidden className="size-3.5" />
             {visibility}
           </span>
+          {/* The indigo pills are text: their outline takes the label's ink, not
+              secondary-border, so border and label stay one colour. */}
           {command.linkRequired && (
             <span className={`${PILL} border-secondary-ink/55 text-secondary-ink`}>
               <Link2 aria-hidden className="size-3.5" />

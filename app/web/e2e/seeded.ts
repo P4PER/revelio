@@ -6,11 +6,16 @@ import { test, expect, type Locator } from '@playwright/test'
 // exactly like an empty index - so E2E_REQUIRE_SEED=1 turns it into a failure.
 const REQUIRE_SEED = process.env.E2E_REQUIRE_SEED === '1'
 
+// Under the flag a miss is a failure that blames seeding, so give a cold
+// production server's first Meilisearch query or SSR room to answer. Without
+// it a miss only skips, and every skipped spec on an empty stack pays the wait.
+const WAIT_MS = REQUIRE_SEED ? 15_000 : 5_000
+
 // Waits for `locator` rather than probing it once: right after a navigation it
 // may simply not have rendered yet.
 export async function requireSeeded(locator: Locator, what: string) {
   const present = await locator
-    .waitFor({ state: 'visible', timeout: 5_000 })
+    .waitFor({ state: 'visible', timeout: WAIT_MS })
     .then(() => true, () => false)
   if (present) return
   if (REQUIRE_SEED) {

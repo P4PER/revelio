@@ -66,6 +66,22 @@ describe('DeckPanel violations', () => {
     expect(within(row('character-ron')).getByText('Not a starting character')).toBeInTheDocument()
   })
 
+  it('marks a starting character that is not legal in the format', () => {
+    const entries = [view('fanchar', 'character', 1, { isOfficial: false })]
+    const { status, violations } = evaluate(entries, 'classic')
+    renderWithIntl(<DeckPanel entries={entries} imageBase="http://img.test" status={status} violations={violations} onQuantityChange={() => {}} />)
+    expect(row('character-fanchar')).toHaveAttribute('data-violation', 'card_not_in_format')
+    expect(within(row('character-fanchar')).getByText('Not in Classic')).toBeInTheDocument()
+  })
+
+  it('keeps the copy limit off the character slot, which it does not count', () => {
+    const entries = [view('harry', 'character', 1), view('harry', 'main', 5, { isStartingCharacter: true })]
+    const { status, violations } = evaluate(entries, 'classic')
+    renderWithIntl(<DeckPanel entries={entries} imageBase="http://img.test" status={status} violations={violations} onQuantityChange={() => {}} />)
+    expect(row('main-harry')).toHaveAttribute('data-violation', 'too_many_copies')
+    expect(row('character-harry')).not.toHaveAttribute('data-violation')
+  })
+
   it('jumps from a reason to the main-deck row and flashes it', async () => {
     const entries = [view('harry', 'character', 1), view('wing', 'main', 3), view('wing', 'sideboard', 2)]
     const { status, violations } = evaluate(entries, 'classic')

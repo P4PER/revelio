@@ -130,12 +130,13 @@ export function DeckPanel({
     if (zone) flashRow(`${zone}-${cardId}`)
   }
 
-  // Codes shown on a row: the character slot only shows whether it can start;
-  // deck rows show everything else about that card.
+  // Codes shown on a row. Whether a card can start is about the character slot
+  // alone, and the copy limit never counts that slot; format codes are per
+  // card, so they show on every row it sits in, the character slot included.
   function codesFor(e: DeckCardView): RowViolationCode[] {
     const codes = marks.get(e.cardId) ?? []
     return e.zone === 'character'
-      ? codes.filter((c) => c === 'invalid_character')
+      ? codes.filter((c) => c !== 'too_many_copies')
       : codes.filter((c) => c !== 'invalid_character')
   }
 

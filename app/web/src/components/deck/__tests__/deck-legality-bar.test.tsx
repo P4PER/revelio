@@ -10,6 +10,7 @@ const violations: Violation[] = [
   { code: 'main_deck_size', actual: 58 },
 ]
 const soft: Violation[] = [{ code: 'main_deck_size', actual: 58 }]
+const over: Violation[] = [{ code: 'main_deck_size', actual: 62 }]
 const names = { wing: 'Wingardium Leviosa' }
 
 describe('DeckLegalityBar reasons', () => {
@@ -26,6 +27,44 @@ describe('DeckLegalityBar reasons', () => {
     const button = screen.getByRole('button', { name: /Illegal · 1 issue$/ })
     expect(button).toHaveAttribute('aria-expanded', 'true')
     expect(screen.getAllByRole('listitem')).toHaveLength(2)
+  })
+
+  it('starts open when the main deck is over 60, though only incomplete', () => {
+    renderWithIntl(<DeckLegalityBar status="incomplete" mainCount={62} hasCharacter violations={over} names={names} />)
+    expect(screen.getByRole('button', { name: /2 cards too many/ })).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('list')).toBeInTheDocument()
+  })
+
+  it('keeps an over-60 list shut once collapsed, and reopens it on the next overfill', async () => {
+    const { rerender } = renderWithIntl(
+      <DeckLegalityBar status="incomplete" mainCount={62} hasCharacter violations={over} names={names} />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: /too many/ }))
+    rerender(<DeckLegalityBar status="incomplete" mainCount={61} hasCharacter violations={[{ code: 'main_deck_size', actual: 61 }]} names={names} />)
+    expect(screen.queryByRole('list')).not.toBeInTheDocument()
+    rerender(<DeckLegalityBar status="incomplete" mainCount={58} hasCharacter violations={soft} names={names} />)
+    expect(screen.queryByRole('list')).not.toBeInTheDocument()
+    rerender(<DeckLegalityBar status="incomplete" mainCount={62} hasCharacter violations={over} names={names} />)
+    expect(screen.getByRole('list')).toBeInTheDocument()
+  })
+
+  it('keeps a list the user opened open through an overfill and back', async () => {
+    const { rerender } = renderWithIntl(
+      <DeckLegalityBar status="incomplete" mainCount={58} hasCharacter violations={soft} names={names} />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: /Incomplete/ }))
+    rerender(<DeckLegalityBar status="incomplete" mainCount={61} hasCharacter violations={[{ code: 'main_deck_size', actual: 61 }]} names={names} />)
+    rerender(<DeckLegalityBar status="incomplete" mainCount={59} hasCharacter violations={[{ code: 'main_deck_size', actual: 59 }]} names={names} />)
+    expect(screen.getByRole('list')).toBeInTheDocument()
+  })
+
+  it('reopens a collapsed over-60 list when the deck turns illegal by rule', async () => {
+    const { rerender } = renderWithIntl(
+      <DeckLegalityBar status="incomplete" mainCount={62} hasCharacter violations={over} names={names} />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: /too many/ }))
+    rerender(<DeckLegalityBar status="illegal" mainCount={62} hasCharacter violations={[...over, { code: 'banned_card', cardId: 'fred' }]} names={names} />)
+    expect(screen.getByRole('list')).toBeInTheDocument()
   })
 
   it('starts closed when the deck is only incomplete', () => {

@@ -24,7 +24,7 @@ type DeckLegalityBarProps = {
 // (builder) and the deck overview so both read the same whole-deck legality: the
 // bar fills toward the 60-card main target and recolors with the status. When
 // the deck has problems, the label toggles the list of every reason; the list
-// opens by itself when the deck becomes illegal.
+// opens by itself when the deck becomes illegal or overfills its main deck.
 export function DeckLegalityBar({
   status,
   mainCount,
@@ -35,24 +35,28 @@ export function DeckLegalityBar({
   className,
 }: DeckLegalityBarProps) {
   const t = useTranslations('decks')
-  // What the user did with the toggle since the status last changed; null
-  // means follow the default, which is open only for an illegal deck. Only a
-  // change of status drops the choice: a collapsed list stays shut while the
-  // deck stays illegal, even as its reasons change, and opens again once the
-  // deck leaves illegal and comes back. A deck still being built (incomplete)
-  // stays closed until asked.
-  const [choice, setChoice] = useState<boolean | null>(null)
-  const [seenStatus, setSeenStatus] = useState(status)
-  if (status !== seenStatus) {
-    setSeenStatus(status)
-    setChoice(null)
-  }
-  const open = choice ?? status === 'illegal'
-  const listId = useId()
-  const pct = Math.min(100, Math.round((mainCount / MAIN_TARGET) * 100))
   // Overfilling the main deck isn't a "hard" violation in evaluateDeck (status
   // stays 'incomplete'), but it's a clear error - surface it in red here.
-  const ui = mainCount > MAIN_TARGET ? STATUS_UI.illegal : STATUS_UI[status]
+  const over = mainCount > MAIN_TARGET
+  const red = status === 'illegal' || over
+  // What the user did with the toggle; null means follow the default, which is
+  // open only while the bar is red. A change of status drops the choice, so a
+  // collapsed list stays shut while the deck stays illegal, even as its
+  // reasons change, and opens again once the deck leaves illegal and comes
+  // back. Going over 60 reopens a collapsed list but never closes one the user
+  // opened, and dropping back to 60 leaves the choice alone. A deck still being
+  // built (incomplete, at or under 60) stays closed until asked.
+  const [choice, setChoice] = useState<boolean | null>(null)
+  const [seen, setSeen] = useState({ status, over })
+  if (status !== seen.status || over !== seen.over) {
+    setSeen({ status, over })
+    if (status !== seen.status) setChoice(null)
+    else if (over && choice === false) setChoice(null)
+  }
+  const open = choice ?? red
+  const listId = useId()
+  const pct = Math.min(100, Math.round((mainCount / MAIN_TARGET) * 100))
+  const ui = over ? STATUS_UI.illegal : STATUS_UI[status]
   const hasReasons = violations.length > 0
   // The count says why the deck is illegal, so it leaves out the soft reasons
   // (deck size, no character yet) the list still shows with a muted marker.

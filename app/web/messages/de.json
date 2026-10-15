@@ -336,6 +336,7 @@
     "save": "Deck speichern",
     "saved": "Deck gespeichert.",
     "saveError": "Deck konnte nicht gespeichert werden.",
+    "saveTwoCharacters": "Ein Deck hat genau einen Startcharakter. Wähle einen im Kartenbrowser, er ersetzt beide, und speichere dann.",
     "loginToSave": "Zum Speichern anmelden",
     "draftNotice": "Dein Entwurf wird auf diesem Gerät gespeichert. Melde dich an, damit wir ihn in deinem Konto sichern können.",
     "savePrompt": {
@@ -392,7 +393,8 @@
       "emptyInput": "Füge zuerst eine Deckliste ein oder wähle eine Datei aus.",
       "noLines": "In diesem Text wurden keine Kartenzeilen gefunden.",
       "unparsedTitle": "Diese Zeilen konnten nicht gelesen werden:",
-      "unresolvedTitle": "Diese Karten konnten nicht zugeordnet werden:"
+      "unresolvedTitle": "Diese Karten konnten nicht zugeordnet werden:",
+      "extraCharactersTitle": "Ein Deck beginnt mit einem Charakter, daher wurden diese ausgelassen:"
     },
     "sheet": {
       "toggle": "Deck, {count, plural, one {# Karte} other {# Karten}}",

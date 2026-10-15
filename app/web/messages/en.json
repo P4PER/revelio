@@ -336,6 +336,7 @@
     "save": "Save deck",
     "saved": "Deck saved.",
     "saveError": "Could not save the deck.",
+    "saveTwoCharacters": "A deck takes one starting character. Pick one in the card browser to replace both, then save.",
     "loginToSave": "Log in to save",
     "draftNotice": "Your draft is kept on this device. Log in and we'll offer to save it to your account.",
     "savePrompt": {
@@ -392,7 +393,8 @@
       "emptyInput": "Paste a deck list or choose a file first.",
       "noLines": "No card lines were found in that text.",
       "unparsedTitle": "These lines couldn't be read:",
-      "unresolvedTitle": "These cards couldn't be matched:"
+      "unresolvedTitle": "These cards couldn't be matched:",
+      "extraCharactersTitle": "A deck starts with one character, so these were left out:"
     },
     "sheet": {
       "toggle": "Deck, {count, plural, one {# card} other {# cards}}",

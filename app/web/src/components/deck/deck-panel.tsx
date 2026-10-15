@@ -13,7 +13,7 @@ import {
 import { cn } from '@/lib/utils'
 import { MAIN_TARGET } from '@/lib/deck-legality'
 import { groupColor, groupLabel } from '@/lib/deck-groups'
-import { cardNames, rowViolations, type RowViolationCode } from '@/lib/deck-violations'
+import { cardNames, jumpZone, rowViolations, type RowViolationCode } from '@/lib/deck-violations'
 import { LessonCost } from '@/components/card/lesson-cost'
 import { DeckArt } from '@/components/deck/deck-art'
 import { DeckLegalityBar } from '@/components/deck/deck-legality-bar'
@@ -28,11 +28,6 @@ type DeckPanelProps = {
   onQuantityChange?: (cardId: string, zone: DeckZone, qty: number) => void
   readOnly?: boolean
 }
-
-// The zone a jump from the reasons list lands on when a card sits in several:
-// the main deck is where a copy-limit fix is usually made. A reason about the
-// starting character always goes to the character slot instead.
-const JUMP_ORDER: DeckZone[] = ['main', 'sideboard', 'character']
 
 // Editable quantity sitting between the stepper buttons. While the field is
 // being typed into, `draft` holds the raw text; committing clears it so the
@@ -106,18 +101,22 @@ export function DeckPanel({
     flashTimer.current = setTimeout(() => setFlashKey(null), 1200)
   }, [])
 
-  // When a card is added upstream, `highlight` arrives with a fresh nonce. The
-  // nonce makes re-adding the same card (a new object identity) re-trigger it.
+  // When a card is added upstream (the builder) or a reason's name is clicked
+  // in a bar outside the panel (the overview), `highlight` arrives with a
+  // fresh nonce. The nonce makes the same row (a new object identity)
+  // re-trigger it.
   useEffect(() => {
     if (!highlight) return
-    // Flashing the row is a deliberate response to an external add event.
+    // Flashing the row is a deliberate response to an external event.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     flashRow(`${highlight.zone}-${highlight.cardId}`)
   }, [highlight, flashRow])
 
   useEffect(() => () => clearTimeout(flashTimer.current), [])
 
-  const character = entries.find((e) => e.zone === 'character')
+  // One character in a deck the builder made, but an import can bring two;
+  // each line renders so a reason about the second has a row to land on.
+  const characters = entries.filter((e) => e.zone === 'character')
   const main = entries.filter((e) => e.zone === 'main')
   const sideboard = entries.filter((e) => e.zone === 'sideboard')
   const mainCount = main.reduce((n, e) => n + e.quantity, 0)
@@ -127,10 +126,7 @@ export function DeckPanel({
   const marks = rowViolations(violations ?? [])
 
   function jumpTo(cardId: string, code: Violation['code']) {
-    const zone =
-      code === 'invalid_character'
-        ? 'character'
-        : JUMP_ORDER.find((z) => entries.some((e) => e.zone === z && e.cardId === cardId))
+    const zone = jumpZone(entries, cardId, code)
     if (zone) flashRow(`${zone}-${cardId}`)
   }
 
@@ -154,8 +150,6 @@ export function DeckPanel({
       </span>
     ))
   }
-
-  const characterCodes = character ? codesFor(character) : []
 
   function row(e: DeckCardView) {
     const codes = codesFor(e)
@@ -229,13 +223,51 @@ export function DeckPanel({
     )
   }
 
+  function characterRow(character: DeckCardView) {
+    const codes = codesFor(character)
+    return (
+      <div
+        key={character.cardId}
+        data-row-key={`character-${character.cardId}`}
+        data-violation={codes.length ? codes.join(' ') : undefined}
+        className={cn(
+          'mx-4 mb-2 flex items-center gap-3 rounded-lg border bg-gradient-to-r from-primary/10 to-transparent p-3 transition-shadow',
+          flashKey === `character-${character.cardId}`
+            ? 'border-primary ring-1 ring-primary'
+            : codes.length > 0
+              ? 'border-destructive'
+              : 'border-primary/60',
+        )}
+      >
+        <DeckArt
+          cardId={character.cardId}
+          version={character.artCropVersion}
+          lessons={character.lesson ? [character.lesson] : []}
+          imageBase={imageBase}
+          alt={character.name}
+          className="h-11 w-16 shrink-0 rounded-md"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-semibold">{character.name}</div>
+          <div className="text-xs text-muted-foreground">
+            {character.setCode} · #{character.number}
+          </div>
+        </div>
+        {chips(codes)}
+        <span className="rounded-full border border-primary/60 px-2 py-0.5 text-xs tracking-wide text-primary-ink uppercase">
+          {t('panel.characterBadge')}
+        </span>
+      </div>
+    )
+  }
+
   return (
     <div ref={scrollRef} className="flex h-full flex-col overflow-y-auto pb-1.5">
       {status && (
         <DeckLegalityBar
           status={status}
           mainCount={mainCount}
-          hasCharacter={Boolean(character)}
+          hasCharacter={characters.length > 0}
           violations={violations}
           names={cardNames(entries)}
           onJump={jumpTo}
@@ -245,38 +277,8 @@ export function DeckPanel({
       <div className="px-4 pt-3 pb-1.5 text-xs font-semibold tracking-widest text-heading uppercase">
         {t('panel.character')}
       </div>
-      {character ? (
-        <div
-          data-row-key={`character-${character.cardId}`}
-          data-violation={characterCodes.length ? characterCodes.join(' ') : undefined}
-          className={cn(
-            'mx-4 mb-2 flex items-center gap-3 rounded-lg border bg-gradient-to-r from-primary/10 to-transparent p-3 transition-shadow',
-            flashKey === `character-${character.cardId}`
-              ? 'border-primary ring-1 ring-primary'
-              : characterCodes.length > 0
-                ? 'border-destructive'
-                : 'border-primary/60',
-          )}
-        >
-          <DeckArt
-            cardId={character.cardId}
-            version={character.artCropVersion}
-            lessons={character.lesson ? [character.lesson] : []}
-            imageBase={imageBase}
-            alt={character.name}
-            className="h-11 w-16 shrink-0 rounded-md"
-          />
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-semibold">{character.name}</div>
-            <div className="text-xs text-muted-foreground">
-              {character.setCode} · #{character.number}
-            </div>
-          </div>
-          {chips(characterCodes)}
-          <span className="rounded-full border border-primary/60 px-2 py-0.5 text-xs tracking-wide text-primary-ink uppercase">
-            {t('panel.characterBadge')}
-          </span>
-        </div>
+      {characters.length > 0 ? (
+        characters.map(characterRow)
       ) : (
         <p className="mx-4 mb-2 text-sm text-muted-foreground">{t('panel.noCharacter')}</p>
       )}

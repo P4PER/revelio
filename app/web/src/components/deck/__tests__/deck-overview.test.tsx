@@ -11,11 +11,16 @@ vi.mock('@/../i18n/navigation', () => ({
 vi.mock('@/components/deck/deck-overview-actions', () => ({
   DeckOverviewActions: () => <div data-testid="actions" />,
 }))
-// The stub echoes the violation codes it is handed, so a test can see the
-// overview passes them to the list view; row marking is DeckPanel's own test.
+// The stub echoes the violation codes and the row it is told to highlight, so
+// a test can see what the overview hands the list view; row marking and the
+// flash itself are DeckPanel's own tests.
 vi.mock('@/components/deck/deck-panel', () => ({
-  DeckPanel: ({ violations }: { violations?: Violation[] }) => (
-    <div data-testid="list-view" data-violations={(violations ?? []).map((v) => v.code).join(' ')} />
+  DeckPanel: ({ violations, highlight }: { violations?: Violation[]; highlight?: { zone: string; cardId: string } | null }) => (
+    <div
+      data-testid="list-view"
+      data-violations={(violations ?? []).map((v) => v.code).join(' ')}
+      data-highlight={highlight ? `${highlight.zone}-${highlight.cardId}` : undefined}
+    />
   ),
 }))
 vi.mock('@/components/deck/deck-gallery', () => ({ DeckGallery: () => <div data-testid="gallery-view" /> }))
@@ -62,16 +67,33 @@ describe('DeckOverview', () => {
     expect(document.cookie).toContain('revelio.deck-view=gallery')
   })
 
-  it('lists why a deck is illegal, by name and without jump buttons, and hands the reasons to the list', () => {
-    const banned: DeckCardView[] = [
-      ...views,
-      { cardId: 'fred', zone: 'main', quantity: 1, name: 'Fred Weasley', cost: 2, setCode: 'BS', number: '3', lesson: null, isOfficial: true, legality: 'banned', isLesson: false, isStartingCharacter: false },
-    ]
+  const banned: DeckCardView[] = [
+    ...views,
+    { cardId: 'fred', zone: 'main', quantity: 1, name: 'Fred Weasley', cost: 2, setCode: 'BS', number: '3', lesson: null, isOfficial: true, legality: 'banned', isLesson: false, isStartingCharacter: false },
+  ]
+
+  it('lists why a deck is illegal and hands the reasons to the list', () => {
     renderWithIntl(<DeckOverview {...props} views={banned} />)
     // An illegal deck shows its reasons on arrival.
+    expect(screen.getByRole('list')).toHaveTextContent('Fred Weasley is banned in Revival')
+    expect(screen.getByTestId('list-view').getAttribute('data-violations')).toContain('banned_card')
+  })
+
+  it('jumps from a reason to the card row in the list view', () => {
+    renderWithIntl(<DeckOverview {...props} views={banned} />)
+    expect(screen.getByTestId('list-view')).not.toHaveAttribute('data-highlight')
+    fireEvent.click(within(screen.getByRole('list')).getByRole('button', { name: 'Fred Weasley' }))
+    expect(screen.getByTestId('list-view')).toHaveAttribute('data-highlight', 'main-fred')
+    // Back from the gallery, the list must not flash that row again.
+    fireEvent.click(screen.getByRole('button', { name: 'Gallery' }))
+    fireEvent.click(screen.getByRole('button', { name: 'List' }))
+    expect(screen.getByTestId('list-view')).not.toHaveAttribute('data-highlight')
+  })
+
+  it('names the card in plain text in the gallery view, which has no rows', () => {
+    renderWithIntl(<DeckOverview {...props} views={banned} initialView="gallery" />)
     const list = screen.getByRole('list')
     expect(list).toHaveTextContent('Fred Weasley is banned in Revival')
     expect(within(list).queryByRole('button')).not.toBeInTheDocument()
-    expect(screen.getByTestId('list-view').getAttribute('data-violations')).toContain('banned_card')
   })
 })

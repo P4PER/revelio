@@ -45,13 +45,18 @@ export function resolveKey(name: string, setCode: string | null, number: string 
 // null) or whose resolved card has no view metadata are collected into
 // `unresolved` rather than dropped. Lines resolving to the same card in the
 // same zone are merged so the builder doesn't end up with duplicate rows.
+// A deck starts with exactly one character, so the first resolved character
+// line wins; a different card under the heading is reported in
+// `extraCharacters`, and the same card again is a no-op.
 export function textLinesToEntries(
   lines: ParsedTextLine[],
   resolved: Record<string, string | null>,
   views: Record<string, CardViewMeta>,
-): { entries: DeckCardView[]; unresolved: ParsedTextLine[] } {
+): { entries: DeckCardView[]; unresolved: ParsedTextLine[]; extraCharacters: ParsedTextLine[] } {
   const byKey = new Map<string, DeckCardView>()
   const unresolved: ParsedTextLine[] = []
+  const extraCharacters: ParsedTextLine[] = []
+  let characterId: string | null = null
   for (const line of lines) {
     const cardId = resolved[resolveKey(line.name, line.setCode, line.number)]
     const meta = cardId ? views[cardId] : undefined
@@ -59,10 +64,19 @@ export function textLinesToEntries(
       unresolved.push(line)
       continue
     }
+    if (line.zone === 'character') {
+      if (characterId === null) {
+        characterId = cardId
+        byKey.set(`character:${cardId}`, { ...meta, zone: 'character', quantity: 1 })
+      } else if (characterId !== cardId) {
+        extraCharacters.push(line)
+      }
+      continue
+    }
     const key = `${line.zone}:${cardId}`
     const existing = byKey.get(key)
     if (existing) existing.quantity += line.quantity
     else byKey.set(key, { ...meta, zone: line.zone, quantity: line.quantity })
   }
-  return { entries: [...byKey.values()], unresolved }
+  return { entries: [...byKey.values()], unresolved, extraCharacters }
 }

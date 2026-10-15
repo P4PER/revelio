@@ -79,6 +79,19 @@ it('rejects meta update on a deck owned by someone else', async () => {
   expect(m.updateDeckMeta).not.toHaveBeenCalled()
 })
 
+it('refuses a deck with more than one starting character', async () => {
+  const two = { ...validInput, cards: [{ cardId: 'harry', zone: 'character', quantity: 1 }, { cardId: 'ron', zone: 'character', quantity: 1 }] }
+  const doubled = { ...validInput, cards: [{ cardId: 'harry', zone: 'character', quantity: 2 }] }
+  expect(await createDeckAction(two)).toEqual({ ok: false, error: 'invalid' })
+  expect(await createDeckAction(doubled)).toEqual({ ok: false, error: 'invalid' })
+  expect(await updateDeckAction('d1', two)).toEqual({ ok: false, error: 'invalid' })
+  expect(m.createDeck).not.toHaveBeenCalled()
+  expect(m.updateDeck).not.toHaveBeenCalled()
+  // One character, with other characters in the main deck, is a normal deck.
+  const one = { ...validInput, cards: [{ cardId: 'harry', zone: 'character', quantity: 1 }, { cardId: 'ron', zone: 'main', quantity: 1 }] }
+  expect(await createDeckAction(one)).toEqual({ ok: true, id: 'new-id' })
+})
+
 it('rejects invalid meta input', async () => {
   expect(await updateDeckMetaAction('d1', { name: '' })).toEqual({ ok: false, error: 'invalid' })
   expect(await updateDeckMetaAction('d1', { visibility: 'nope' })).toEqual({ ok: false, error: 'invalid' })

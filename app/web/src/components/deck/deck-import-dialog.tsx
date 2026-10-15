@@ -76,8 +76,9 @@ export const EXAMPLE_LIST = EXAMPLE_LINES.map((line) =>
 
 // Import Sheet for the deck builder's command bar. Auto-detects JSON vs the
 // plain-text list format, resolves card ids/names against the DB, and
-// replaces the builder state on success. Unresolved/unparsed lines are always
-// surfaced to the user (never silently dropped) so partial imports are visible.
+// replaces the builder state on success. Unresolved/unparsed lines, and any
+// starting character past the first, are always surfaced to the user (never
+// silently dropped) so partial imports are visible.
 export function DeckImportDialog({ state, onImport }: { state: BuilderState; onImport: (next: BuilderState) => void }) {
   const t = useTranslations('decks')
   const textareaId = useId()
@@ -88,12 +89,14 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
   const [busy, setBusy] = useState(false)
   const [unresolved, setUnresolved] = useState<string[]>([])
   const [unparsed, setUnparsed] = useState<string[]>([])
+  const [extraCharacters, setExtraCharacters] = useState<string[]>([])
   const [inputError, setInputError] = useState('')
 
   function reset() {
     setRaw('')
     setUnresolved([])
     setUnparsed([])
+    setExtraCharacters([])
     setInputError('')
   }
 
@@ -152,11 +155,12 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
     const resolved = await resolveImportNames(lines.map((l) => ({ name: l.name, setCode: l.setCode, number: l.number })))
     const ids = [...new Set(Object.values(resolved).filter((id): id is string => id !== null))]
     const views = await getCardViewsAction(ids)
-    const { entries, unresolved: badLines2 } = textLinesToEntries(lines, resolved, views)
+    const { entries, unresolved: badLines2, extraCharacters: extras } = textLinesToEntries(lines, resolved, views)
     setUnresolved(badLines2.map(lineLabel))
+    setExtraCharacters(extras.map(lineLabel))
     onImport({ ...state, entries })
     toast.success(t('import.success'))
-    if (badLines.length === 0 && badLines2.length === 0) {
+    if (badLines.length === 0 && badLines2.length === 0 && extras.length === 0) {
       setOpen(false)
       reset()
     }
@@ -172,6 +176,7 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
     setBusy(true)
     setUnresolved([])
     setUnparsed([])
+    setExtraCharacters([])
     try {
       const asJson = tryParseJsonObject(text)
       if (asJson !== undefined) await importJson(asJson)
@@ -285,6 +290,16 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
               <p className="font-medium text-destructive">{t('import.unresolvedTitle')}</p>
               <ul className="mt-1 list-disc pl-4">
                 {unresolved.map((line, i) => (
+                  <li key={i}>{line}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {extraCharacters.length > 0 && (
+            <div className="rounded-md border border-destructive/40 bg-destructive/5 p-2.5 text-sm" role="alert">
+              <p className="font-medium text-destructive">{t('import.extraCharactersTitle')}</p>
+              <ul className="mt-1 list-disc pl-4">
+                {extraCharacters.map((line, i) => (
                   <li key={i}>{line}</li>
                 ))}
               </ul>

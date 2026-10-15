@@ -1,4 +1,4 @@
-import { EyeOff, Keyboard, Link, Users } from 'lucide-react'
+import { EyeOff, Keyboard, Link2, Users } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import {
   ATTRIBUTES,
@@ -54,6 +54,9 @@ export function CommandTable({ name }: { name: BotCommandName }) {
   const locale = useLocale()
   const command = BOT_COMMANDS.find((entry) => entry.name === name)
   if (!command) return null
+  const [VisibilityIcon, visibility] = command.ephemeral
+    ? [EyeOff, t('commandTable.ephemeral')]
+    : [Users, t('commandTable.public')]
 
   return (
     <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
@@ -61,16 +64,12 @@ export function CommandTable({ name }: { name: BotCommandName }) {
         <span className="font-mono text-sm font-medium text-primary-ink">/{command.name}</span>
         <span className="ml-auto flex flex-wrap gap-2">
           <span className={`${PILL} border-border bg-muted text-muted-foreground`}>
-            {command.ephemeral ? (
-              <EyeOff aria-hidden className="size-3.5" />
-            ) : (
-              <Users aria-hidden className="size-3.5" />
-            )}
-            {command.ephemeral ? t('commandTable.ephemeral') : t('commandTable.public')}
+            <VisibilityIcon aria-hidden className="size-3.5" />
+            {visibility}
           </span>
           {command.linkRequired && (
             <span className={`${PILL} border-syntax-option/55 text-syntax-option`}>
-              <Link aria-hidden className="size-3.5" />
+              <Link2 aria-hidden className="size-3.5" />
               {t('commandTable.linkRequired')}
             </span>
           )}
@@ -124,7 +123,7 @@ export function CommandTable({ name }: { name: BotCommandName }) {
                         ` ${t('commandTable.maxLength', { max: option.maxLength })}`}
                       {option.autocomplete && (
                         <span className="mt-1.5 flex">
-                          <span className="inline-flex items-center gap-1 rounded border border-syntax-option/55 px-1.5 py-0.5 text-[0.68rem] font-medium text-syntax-option">
+                          <span className="inline-flex items-center gap-1 rounded border border-syntax-option/55 px-1.5 py-0.5 text-[0.68rem] leading-none font-medium text-syntax-option">
                             <Keyboard aria-hidden className="size-3.5" />
                             {t('commandTable.autocompletes')}
                           </span>

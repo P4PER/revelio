@@ -81,4 +81,12 @@ describe('light-mode sweep', () => {
     expect(src).not.toMatch(/(?:border|ring|from)-secondary-ink/)
     expect(src).toMatch(/(?:border|ring)-secondary-border/)
   })
+
+  // secondary-ink clears AA in both themes, so a dark: override that re-mixes
+  // it is a stale workaround rather than a fix.
+  it('deck-import-dialog paints its zone headings in plain secondary-ink', async () => {
+    const src = await read('deck/deck-import-dialog.tsx')
+    expect(src).toMatch(/font-medium text-secondary-ink"/)
+    expect(src).not.toMatch(/color-mix\(in_srgb,var\(--secondary-ink\)/)
+  })
 })

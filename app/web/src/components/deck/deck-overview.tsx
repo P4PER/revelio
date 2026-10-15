@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { LayoutGrid, List } from 'lucide-react'
 import type { DeckCardView, DeckFormat } from '@revelio/core'
 import { deckStats } from '@/lib/deck-stats'
+import { cardNames } from '@/lib/deck-violations'
 import { DeckHeader } from '@/components/deck/deck-header'
 import { DeckPanel } from '@/components/deck/deck-panel'
 import { DeckGallery } from '@/components/deck/deck-gallery'
@@ -56,7 +57,7 @@ export function DeckOverview(props: DeckOverviewProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deckId])
 
-  const { status, mainCount } = deckStats(views, format)
+  const { status, violations, mainCount } = deckStats(views, format)
   const starter = views.find((v) => v.zone === 'character')
   const lessons = [...new Set(views.map((v) => v.lesson).filter((l): l is string => Boolean(l)))]
 
@@ -107,10 +108,12 @@ export function DeckOverview(props: DeckOverviewProps) {
           status={status}
           mainCount={mainCount}
           hasCharacter={views.some((e) => e.zone === 'character')}
+          violations={violations}
+          names={cardNames(views)}
           className="border-b border-border/60 px-4 py-3"
         />
         {view === 'list' ? (
-          <DeckPanel entries={views} imageBase={imageBase} readOnly />
+          <DeckPanel entries={views} imageBase={imageBase} violations={violations} readOnly />
         ) : (
           <div className="p-4">
             <DeckGallery entries={views} imageBase={imageBase} />

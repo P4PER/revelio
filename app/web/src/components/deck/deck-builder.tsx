@@ -270,6 +270,7 @@ export function DeckBuilder({
             entries={state.entries}
             imageBase={imageBase}
             status={evaluation.status}
+            violations={evaluation.violations}
             highlight={highlight}
             onQuantityChange={handleQuantityChange}
           />

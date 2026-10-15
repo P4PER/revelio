@@ -1,15 +1,37 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Info, Minus, Plus } from 'lucide-react'
-import { attrLabel, groupMainEntries, type DeckCardView, type DeckStatus, type DeckZone } from '@revelio/core'
+import {
+  attrLabel,
+  groupMainEntries,
+  type DeckCardView,
+  type DeckStatus,
+  type DeckZone,
+  type Violation,
+} from '@revelio/core'
 import { cn } from '@/lib/utils'
 import { MAIN_TARGET } from '@/lib/deck-legality'
 import { groupColor, groupLabel } from '@/lib/deck-groups'
+import { cardNames, rowViolations, type RowViolationCode } from '@/lib/deck-violations'
 import { LessonCost } from '@/components/card/lesson-cost'
 import { DeckArt } from '@/components/deck/deck-art'
 import { DeckLegalityBar } from '@/components/deck/deck-legality-bar'
 import { CardDetailSheet } from '@/components/card/card-detail-sheet'
+
+type DeckPanelProps = {
+  entries: DeckCardView[]
+  imageBase: string
+  status?: DeckStatus
+  violations?: Violation[]
+  highlight?: { zone: DeckZone; cardId: string; nonce: number } | null
+  onQuantityChange?: (cardId: string, zone: DeckZone, qty: number) => void
+  readOnly?: boolean
+}
+
+// The zone a jump from the reasons list lands on when a card sits in several:
+// the main deck is where a copy-limit fix is usually made.
+const JUMP_ORDER: DeckZone[] = ['main', 'sideboard', 'character']
 
 // Editable quantity sitting between the stepper buttons. While the field is
 // being typed into, `draft` holds the raw text; committing clears it so the
@@ -60,39 +82,39 @@ export function DeckPanel({
   entries,
   imageBase,
   status,
+  violations,
   highlight,
   onQuantityChange,
   readOnly = false,
-}: {
-  entries: DeckCardView[]
-  imageBase: string
-  status?: DeckStatus
-  highlight?: { zone: DeckZone; cardId: string; nonce: number } | null
-  onQuantityChange?: (cardId: string, zone: DeckZone, qty: number) => void
-  readOnly?: boolean
-}) {
+}: DeckPanelProps) {
   const t = useTranslations('decks')
   const locale = useLocale()
   const [detail, setDetail] = useState<{ id: string; orientation?: string | null } | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [flashKey, setFlashKey] = useState<string | null>(null)
 
-  // When a card is added upstream, `highlight` arrives with a fresh nonce.
-  // Scroll that row into view within the panel and flash it briefly so the
-  // user sees where the card landed. The nonce makes re-adding the same card
-  // (a new object identity) re-trigger the effect.
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  // Scroll a row into view within the panel and flash it briefly. Used for a
+  // card added upstream and for a jump from the reasons list; one timer, so a
+  // newer flash is never cut short by an older one ending.
+  const flashRow = useCallback((key: string) => {
+    scrollRef.current?.querySelector(`[data-row-key="${key}"]`)?.scrollIntoView({ block: 'nearest' })
+    setFlashKey(key)
+    clearTimeout(flashTimer.current)
+    flashTimer.current = setTimeout(() => setFlashKey(null), 1200)
+  }, [])
+
+  // When a card is added upstream, `highlight` arrives with a fresh nonce. The
+  // nonce makes re-adding the same card (a new object identity) re-trigger it.
   useEffect(() => {
     if (!highlight) return
-    const key = `${highlight.zone}-${highlight.cardId}`
-    scrollRef.current
-      ?.querySelector(`[data-row-key="${key}"]`)
-      ?.scrollIntoView({ block: 'nearest' })
     // Flashing the row is a deliberate response to an external add event.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFlashKey(key)
-    const timer = setTimeout(() => setFlashKey(null), 1200)
-    return () => clearTimeout(timer)
-  }, [highlight])
+    flashRow(`${highlight.zone}-${highlight.cardId}`)
+  }, [highlight, flashRow])
+
+  useEffect(() => () => clearTimeout(flashTimer.current), [])
 
   const character = entries.find((e) => e.zone === 'character')
   const main = entries.filter((e) => e.zone === 'main')
@@ -101,14 +123,45 @@ export function DeckPanel({
   const sideCount = sideboard.reduce((n, e) => n + e.quantity, 0)
 
   const groups = groupMainEntries(main)
+  const marks = rowViolations(violations ?? [])
+
+  function jumpTo(cardId: string) {
+    const zone = JUMP_ORDER.find((z) => entries.some((e) => e.zone === z && e.cardId === cardId))
+    if (zone) flashRow(`${zone}-${cardId}`)
+  }
+
+  // Codes shown on a row: the character slot only shows whether it can start;
+  // deck rows show everything else about that card.
+  function codesFor(e: DeckCardView): RowViolationCode[] {
+    const codes = marks.get(e.cardId) ?? []
+    return e.zone === 'character'
+      ? codes.filter((c) => c === 'invalid_character')
+      : codes.filter((c) => c !== 'invalid_character')
+  }
+
+  function chips(codes: RowViolationCode[]) {
+    return codes.map((c) => (
+      <span
+        key={c}
+        className="shrink-0 rounded-full border border-destructive/45 px-1.5 text-[0.65rem] font-semibold whitespace-nowrap text-destructive"
+      >
+        {t(`violationChip.${c}`)}
+      </span>
+    ))
+  }
+
+  const characterCodes = character ? codesFor(character) : []
 
   function row(e: DeckCardView) {
+    const codes = codesFor(e)
     return (
       <div
         key={`${e.zone}-${e.cardId}`}
         data-row-key={`${e.zone}-${e.cardId}`}
+        data-violation={codes.length ? codes.join(' ') : undefined}
         className={cn(
           'group flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted',
+          codes.length > 0 && 'bg-destructive/10 shadow-[inset_2px_0_0_var(--destructive)] hover:bg-destructive/15',
           flashKey === `${e.zone}-${e.cardId}` && 'bg-primary/15',
         )}
       >
@@ -158,6 +211,7 @@ export function DeckPanel({
             {e.setCode} · #{e.number}
           </span>
         </div>
+        {chips(codes)}
         <button
           type="button"
           aria-label={t('browse.infoAria', { name: e.name })}
@@ -177,6 +231,9 @@ export function DeckPanel({
           status={status}
           mainCount={mainCount}
           hasCharacter={Boolean(character)}
+          violations={violations}
+          names={cardNames(entries)}
+          onJump={jumpTo}
           className="border-b border-border/60 px-4 py-3"
         />
       )}
@@ -186,9 +243,14 @@ export function DeckPanel({
       {character ? (
         <div
           data-row-key={`character-${character.cardId}`}
+          data-violation={characterCodes.length ? characterCodes.join(' ') : undefined}
           className={cn(
             'mx-4 mb-2 flex items-center gap-3 rounded-lg border bg-gradient-to-r from-primary/10 to-transparent p-3 transition-shadow',
-            flashKey === `character-${character.cardId}` ? 'border-primary ring-1 ring-primary' : 'border-primary/60',
+            flashKey === `character-${character.cardId}`
+              ? 'border-primary ring-1 ring-primary'
+              : characterCodes.length > 0
+                ? 'border-destructive'
+                : 'border-primary/60',
           )}
         >
           <DeckArt
@@ -205,6 +267,7 @@ export function DeckPanel({
               {character.setCode} · #{character.number}
             </div>
           </div>
+          {chips(characterCodes)}
           <span className="rounded-full border border-primary/60 px-2 py-0.5 text-xs tracking-wide text-primary-ink uppercase">
             {t('panel.characterBadge')}
           </span>

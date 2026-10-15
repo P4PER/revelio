@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, fireEvent } from '@testing-library/react'
-import type { DeckCardView } from '@revelio/core'
+import { screen, fireEvent, within } from '@testing-library/react'
+import type { DeckCardView, Violation } from '@revelio/core'
 import { renderWithIntl } from '@/test/intl'
 import { DeckOverview } from '@/components/deck/deck-overview'
 
@@ -11,7 +11,13 @@ vi.mock('@/../i18n/navigation', () => ({
 vi.mock('@/components/deck/deck-overview-actions', () => ({
   DeckOverviewActions: () => <div data-testid="actions" />,
 }))
-vi.mock('@/components/deck/deck-panel', () => ({ DeckPanel: () => <div data-testid="list-view" /> }))
+// The stub echoes the violation codes it is handed, so a test can see the
+// overview passes them to the list view; row marking is DeckPanel's own test.
+vi.mock('@/components/deck/deck-panel', () => ({
+  DeckPanel: ({ violations }: { violations?: Violation[] }) => (
+    <div data-testid="list-view" data-violations={(violations ?? []).map((v) => v.code).join(' ')} />
+  ),
+}))
 vi.mock('@/components/deck/deck-gallery', () => ({ DeckGallery: () => <div data-testid="gallery-view" /> }))
 vi.mock('@/components/deck/deck-header', () => ({
   DeckHeader: ({ name }: { name: string }) => <h1>{name}</h1>,
@@ -54,5 +60,18 @@ describe('DeckOverview', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Gallery' }))
     expect(screen.getByTestId('gallery-view')).toBeInTheDocument()
     expect(document.cookie).toContain('revelio.deck-view=gallery')
+  })
+
+  it('lists why a deck is illegal, by name and without jump buttons, and hands the reasons to the list', () => {
+    const banned: DeckCardView[] = [
+      ...views,
+      { cardId: 'fred', zone: 'main', quantity: 1, name: 'Fred Weasley', cost: 2, setCode: 'BS', number: '3', lesson: null, isOfficial: true, legality: 'banned', isLesson: false, isStartingCharacter: false },
+    ]
+    renderWithIntl(<DeckOverview {...props} views={banned} />)
+    // An illegal deck shows its reasons on arrival.
+    const list = screen.getByRole('list')
+    expect(list).toHaveTextContent('Fred Weasley is banned in Revival')
+    expect(within(list).queryByRole('button')).not.toBeInTheDocument()
+    expect(screen.getByTestId('list-view').getAttribute('data-violations')).toContain('banned_card')
   })
 })

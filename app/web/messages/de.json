@@ -409,7 +409,8 @@
       "incompleteNeeds": "Unvollständig · noch {count, plural, one {# Karte} other {# Karten}} nötig",
       "needsCharacter": "Startcharakter fehlt",
       "tooMany": "{count, plural, one {# Karte} other {# Karten}} zu viel",
-      "illegal": "Nicht legal"
+      "illegal": "Nicht legal",
+      "illegalIssues": "Nicht legal · {count, plural, one {# Problem} other {# Probleme}}"
     },
     "seal": {
       "ariaLabel": "{count} von {total} Hauptdeck-Karten"
@@ -432,6 +433,7 @@
       "lessonCards": "{count, plural, one {# Lektionskarte} other {# Lektionskarten}}"
     },
     "panel": {
+      "jumpToCard": "{name} im Deck zeigen",
       "character": "Startcharakter",
       "characterBadge": "Charakter",
       "noCharacter": "Noch kein Startcharakter gewählt.",
@@ -477,12 +479,18 @@
     "violation": {
       "no_character": "Kein Startcharakter gewählt",
       "multiple_characters": "Nur ein Startcharakter ist erlaubt",
-      "invalid_character": "{cardId} kann kein Startcharakter sein",
+      "invalid_character": "<card>{name}</card> kann kein Startcharakter sein",
       "main_deck_size": "Hauptdeck hat {actual} / 60 Karten",
       "sideboard_too_large": "Sideboard hat {actual} Karten (max. 15)",
-      "too_many_copies": "{count} Kopien von {cardId} (max. 4)",
-      "card_not_in_format": "{cardId} ist in diesem Format nicht legal",
-      "banned_card": "{cardId} ist in Revival verboten"
+      "too_many_copies": "{count} Kopien von <card>{name}</card> (max. 4)",
+      "card_not_in_format": "<card>{name}</card> ist in diesem Format nicht legal",
+      "banned_card": "<card>{name}</card> ist in Revival verboten"
+    },
+    "violationChip": {
+      "invalid_character": "Kein Startcharakter",
+      "too_many_copies": "Max. 4",
+      "card_not_in_format": "Nicht in Classic",
+      "banned_card": "Verboten"
     },
     "list": {
       "title": "Meine Decks",

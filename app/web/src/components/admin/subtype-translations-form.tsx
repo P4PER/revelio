@@ -129,7 +129,7 @@ export function SubTypeTranslationsForm({ locales, rows }: { locales: string[]; 
                   onClick={() => setDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
                 >
                   {t('code')}
-                  {dir === 'asc' ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />}
+                  {dir === 'asc' ? <ArrowUp className="size-3.5" /> : <ArrowDown className="size-3.5" />}
                 </button>
               </TableHead>
               {locales.map((l) => (

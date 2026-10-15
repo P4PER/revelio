@@ -44,7 +44,7 @@ function NavSection({ section }: { section: DocSection }) {
   if (section.pages.length === 0) {
     return (
       <p className={`${SECTION_LABEL} font-medium text-muted-foreground`}>
-        <ChevronRight className="size-3 text-muted-foreground" aria-hidden />
+        <ChevronRight className="size-3.5 text-muted-foreground" aria-hidden />
         {title}
         {section.status === 'planned' && (
           <span className="rounded-full border border-border px-1.5 py-px text-[0.62rem] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -65,7 +65,7 @@ function NavSection({ section }: { section: DocSection }) {
         className={`${SECTION_LABEL} mb-1.5 w-full py-2 text-left text-foreground min-[860px]:py-0`}
       >
         <ChevronDown
-          className={`size-3 text-muted-foreground transition-transform ${open ? '' : '-rotate-90'}`}
+          className={`size-3.5 text-muted-foreground transition-transform ${open ? '' : '-rotate-90'}`}
           aria-hidden
         />
         {title}

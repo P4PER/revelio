@@ -100,7 +100,7 @@ export default async function EditCardPage({
                 title={!card.localizations[l] ? t('addLanguage') : undefined}
               >
                 {l.toUpperCase()}
-                {!card.localizations[l] && <Plus className="size-3 opacity-60" />}
+                {!card.localizations[l] && <Plus className="size-3.5 opacity-60" />}
               </Link>
             </Button>
           ))}

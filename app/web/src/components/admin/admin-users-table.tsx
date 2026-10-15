@@ -167,8 +167,8 @@ export function AdminUsersTable({ users }: { users: UserAdminRow[] }) {
                           onClick={h.column.getToggleSortingHandler()}
                         >
                           {flexRender(h.column.columnDef.header, h.getContext())}
-                          {dir === 'asc' ? <ArrowUp className="size-3" />
-                            : dir === 'desc' ? <ArrowDown className="size-3" />
+                          {dir === 'asc' ? <ArrowUp className="size-3.5" />
+                            : dir === 'desc' ? <ArrowDown className="size-3.5" />
                               : <ChevronsUpDown className="size-3 opacity-50" />}
                         </button>
                       ) : (

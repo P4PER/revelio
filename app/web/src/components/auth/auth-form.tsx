@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { FieldError } from '@/components/ui/field-error'
 import { FormCard } from '@/components/auth/form-card'
-import { makeEmailStepSchema, makeCodeSchema } from '@/lib/schemas/auth'
+import { makeEmailStepSchema, makeCodeSchema, type EmailStepValues } from '@/lib/schemas/auth'
 import { REGEXP_ONLY_DIGITS } from 'input-otp'
 
 // Shared passwordless (email OTP) form. `register` collects a username and sets
@@ -42,7 +42,7 @@ export function AuthForm({
   const [step, setStep] = useState<'email' | 'code'>('email')
   const [email, setEmail] = useState('')
 
-  const emailForm = useForm<{ email: string; name?: string }>({
+  const emailForm = useForm<EmailStepValues>({
     resolver: zodResolver(makeEmailStepSchema((k) => tv(k), register)),
     defaultValues: { email: '', name: '' },
     mode: 'onSubmit',
@@ -52,7 +52,7 @@ export function AuthForm({
   const [codeError, setCodeError] = useState<string | null>(null)
   const [verifying, setVerifying] = useState(false)
 
-  async function requestCode(values: { email: string; name?: string }) {
+  async function requestCode(values: EmailStepValues) {
     // /login is for existing users only — account creation happens via /register.
     if (!register && !(await emailHasAccount(values.email))) {
       emailForm.setError('email', { message: tv('noAccount') })

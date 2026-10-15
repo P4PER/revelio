@@ -12,12 +12,16 @@ COPY db/package.json ./db/package.json
 COPY search/package.json ./search/package.json
 COPY ingest/package.json ./ingest/package.json
 COPY web/package.json ./web/package.json
-RUN npm ci
+# npm may nest a package under web/node_modules when it cannot hoist it (the
+# lockfile decides, not us); the build stage copies that folder too, and the
+# mkdir keeps the COPY valid when nothing is nested.
+RUN npm ci && mkdir -p web/node_modules
 
 # --- build: compile the Next.js app in standalone mode ---
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/web/node_modules ./web/node_modules
 COPY package.json package-lock.json tsconfig.base.json ./
 # ingest is a workspace in the root package.json; its manifest must exist so
 # npm can resolve the workspace map (its source is not needed for the web build).

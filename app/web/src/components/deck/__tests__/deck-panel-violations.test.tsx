@@ -91,6 +91,18 @@ describe('DeckPanel violations', () => {
     expect(row('main-ron').className).not.toContain('bg-primary/15')
   })
 
+  it('renders every character line of a deck that holds two, and jumps to the second', async () => {
+    // An import can bring two character lines; the builder never makes one.
+    const entries = [view('harry', 'character', 1), view('ron', 'character', 1, { isStartingCharacter: false })]
+    const { status, violations } = evaluate(entries, 'classic')
+    renderWithIntl(<DeckPanel entries={entries} imageBase="http://img.test" status={status} violations={violations} onQuantityChange={() => {}} />)
+    expect(row('character-harry')).toBeInTheDocument()
+    expect(row('character-ron')).toHaveAttribute('data-violation', 'invalid_character')
+    await userEvent.click(screen.getByRole('button', { name: 'ron' }))
+    expect(row('character-ron').className).toContain('ring-primary')
+    expect(row('character-harry').className).not.toContain('ring-primary')
+  })
+
   it('jumps from a reason to the main-deck row and flashes it', async () => {
     const entries = [view('harry', 'character', 1), view('wing', 'main', 3), view('wing', 'sideboard', 2)]
     const { status, violations } = evaluate(entries, 'classic')

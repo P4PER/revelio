@@ -40,7 +40,7 @@ export default async function DeckOverviewPage({
   const initialView = savedView === 'gallery' || savedView === 'list' ? savedView : undefined
 
   return (
-    <main className="mx-auto max-w-[2100px] px-6 py-6">
+    <main className="mx-auto max-w-[2100px] px-6 page-y">
       <DeckOverview
         deckId={id}
         name={existing.deck.name}

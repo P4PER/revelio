@@ -53,7 +53,7 @@ export default async function DecksBrowsePage({
   const initialView = savedView === 'gallery' || savedView === 'list' ? savedView : undefined
 
   return (
-    <main className="mx-auto max-w-[76rem] px-6 py-8">
+    <main className="mx-auto max-w-[76rem] px-6 page-y">
       <DeckBrowse
         state={state}
         entries={result.entries}

@@ -17,7 +17,7 @@ export function AuthCard({
   redirectTo?: string | null
 }) {
   return (
-    <main className="mx-auto flex w-full max-w-[430px] flex-col px-4 py-6 sm:min-h-[calc(100dvh-var(--header-h))] sm:justify-center sm:px-0 md:py-12">
+    <main className="mx-auto flex w-full max-w-[430px] flex-col px-4 page-y sm:min-h-[calc(100dvh-var(--header-h))] sm:justify-center sm:px-0">
       <AuthCardFan />
       <AuthForm mode={mode} redirectTo={redirectTo} />
     </main>

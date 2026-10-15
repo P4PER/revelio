@@ -35,7 +35,7 @@ export async function PublicCollection({
   const t = await getTranslations({ locale, namespace: 'collection' })
 
   return (
-    <main className="mx-auto max-w-[76rem] px-6 py-8">
+    <main className="mx-auto max-w-[76rem] px-6 page-y">
       <h1 className="text-2xl font-semibold text-heading">{owner.username ?? t('title')}</h1>
       <div className="mt-1"><CollectionSummary summary={data.summary} /></div>
       <div className="mt-6">

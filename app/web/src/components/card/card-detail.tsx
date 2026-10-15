@@ -46,7 +46,7 @@ export function CardDetail({
   const horizontal = isHorizontal(card.orientation)
 
   return (
-    <article className="mx-auto grid max-w-[76rem] gap-8 px-6 py-8 md:grid-cols-[auto_1fr]">
+    <article className="mx-auto grid max-w-[76rem] gap-8 px-6 page-y md:grid-cols-[auto_1fr]">
       <div className={cn('w-full', horizontal ? 'md:w-[476px]' : 'md:w-[340px]')}>
         <CardNav
           prev={prev}

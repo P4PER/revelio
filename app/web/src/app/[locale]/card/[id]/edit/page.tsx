@@ -73,7 +73,7 @@ export default async function EditCardPage({
   const fallbackLang = imgLang && imgLang !== lang ? imgLang : null
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
+    <main className="mx-auto max-w-5xl px-6 page-y">
       <div className="mb-6 flex items-center justify-between gap-4">
         <Link
           href={`/card/${id}`}

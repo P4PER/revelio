@@ -21,7 +21,10 @@ type Initial = {
   match: { prize: string; toWin: string }
 }
 
-export type LocalizationFormHandle = { save: () => Promise<SaveResult> }
+export type LocalizationFormHandle = {
+  validate: (focus: boolean) => Promise<boolean>
+  save: () => Promise<SaveResult>
+}
 
 export function LocalizationForm({
   cardId, lang, initial, kind, ref,
@@ -49,11 +52,15 @@ export function LocalizationForm({
     reValidateMode: 'onChange',
   })
 
-  // Persist just this localization; validate name first so CardEditForm gets
-  // { ok:false, error:'invalid' } without a network call.
+  // Shows the inline name error as a side effect, so CardEditForm can check
+  // every section before it writes any of them. `focus` moves focus to the
+  // field when it is invalid.
+  function validate(focus: boolean) {
+    return form.trigger('name', { shouldFocus: focus })
+  }
+
+  // Persist just this localization. CardEditForm has already validated it.
   async function save(): Promise<SaveResult> {
-    const valid = await form.trigger('name')
-    if (!valid) return { ok: false, error: 'invalid' }
     return updateLocalization({
       cardId, lang, name: form.getValues('name'), text, flavorText, status,
       ...(kind === 'adventure' ? { adventure } : {}),
@@ -61,7 +68,7 @@ export function LocalizationForm({
     })
   }
 
-  useImperativeHandle(ref, () => ({ save }))
+  useImperativeHandle(ref, () => ({ validate, save }))
 
   return (
     <Form {...form}>

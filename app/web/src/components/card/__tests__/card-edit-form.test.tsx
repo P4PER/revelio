@@ -15,39 +15,76 @@ vi.mock('@/../i18n/navigation', () => ({
   useRouter: () => ({ refresh: vi.fn() }),
   Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,
 }))
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() } }))
+const toastError = vi.fn()
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: (...a: unknown[]) => toastError(...a), warning: vi.fn() } }))
 
 import { CardEditForm } from '@/components/card/card-edit-form'
 import en from '@/../messages/en.json'
 
+function renderForm() {
+  return render(
+    <NextIntlClientProvider locale="en" messages={en}>
+      <CardEditForm
+        cardId="x-1"
+        lang="en"
+        kind={null}
+        locInitial={{
+          name: 'Card',
+          text: '',
+          flavorText: '',
+          status: 'machine',
+          adventure: { effect: '', reward: '', toSolve: '' },
+          match: { prize: '', toWin: '' },
+        }}
+        rulingsInitial={[]}
+        sources={['POJO', 'Revival']}
+      />
+    </NextIntlClientProvider>,
+  )
+}
+
 beforeEach(() => {
   updateLocalization.mockClear()
   saveRulingsAction.mockClear()
+  toastError.mockClear()
 })
 
 describe('CardEditForm', () => {
   it('saves both the localization and the rulings on a single Save click', async () => {
-    render(
-      <NextIntlClientProvider locale="en" messages={en}>
-        <CardEditForm
-          cardId="x-1"
-          lang="en"
-          kind={null}
-          locInitial={{
-            name: 'Card',
-            text: '',
-            flavorText: '',
-            status: 'machine',
-            adventure: { effect: '', reward: '', toSolve: '' },
-            match: { prize: '', toWin: '' },
-          }}
-          rulingsInitial={[]}
-          sources={['POJO', 'Revival']}
-        />
-      </NextIntlClientProvider>,
-    )
+    renderForm()
     await userEvent.click(screen.getByRole('button', { name: en.edit.save }))
     expect(updateLocalization).toHaveBeenCalledTimes(1)
     expect(saveRulingsAction).toHaveBeenCalledTimes(1)
+  })
+
+  it('saves nothing while a ruling row is incomplete', async () => {
+    renderForm()
+    await userEvent.click(screen.getByRole('button', { name: en.edit.addRuling }))
+    await userEvent.click(screen.getByRole('button', { name: en.edit.save }))
+    expect(updateLocalization).not.toHaveBeenCalled()
+    expect(saveRulingsAction).not.toHaveBeenCalled()
+    expect(toastError).toHaveBeenCalledWith(en.edit.invalid)
+  })
+
+  it('flags both sections at once and focuses the first invalid field', async () => {
+    renderForm()
+    const name = screen.getByLabelText(en.edit.name)
+    await userEvent.clear(name)
+    await userEvent.click(screen.getByRole('button', { name: en.edit.addRuling }))
+    await userEvent.click(screen.getByRole('button', { name: en.edit.save }))
+    expect(name).toHaveAttribute('aria-invalid', 'true')
+    // The card's own Text field shares the label; the ruling's comes last.
+    expect(screen.getAllByLabelText(en.edit.rulingText).at(-1)).toHaveAttribute('aria-invalid', 'true')
+    expect(name).toHaveFocus()
+    expect(updateLocalization).not.toHaveBeenCalled()
+    expect(saveRulingsAction).not.toHaveBeenCalled()
+  })
+
+  it('reports a server-side localization failure as a failed save, not a form error', async () => {
+    updateLocalization.mockResolvedValueOnce({ ok: false, error: 'invalid' } as never)
+    renderForm()
+    await userEvent.click(screen.getByRole('button', { name: en.edit.save }))
+    expect(toastError).toHaveBeenCalledWith(en.edit.localizationFailed)
+    expect(saveRulingsAction).not.toHaveBeenCalled()
   })
 })

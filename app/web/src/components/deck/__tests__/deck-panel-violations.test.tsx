@@ -82,11 +82,20 @@ describe('DeckPanel violations', () => {
     expect(row('character-harry')).not.toHaveAttribute('data-violation')
   })
 
+  it('jumps a starting-character reason to the character slot, not the main deck', async () => {
+    const entries = [view('ron', 'character', 1, { isStartingCharacter: false }), view('ron', 'main', 2, { isStartingCharacter: false })]
+    const { status, violations } = evaluate(entries, 'classic')
+    renderWithIntl(<DeckPanel entries={entries} imageBase="http://img.test" status={status} violations={violations} onQuantityChange={() => {}} />)
+    await userEvent.click(screen.getByRole('button', { name: 'ron' }))
+    expect(row('character-ron').className).toContain('ring-primary')
+    expect(row('main-ron').className).not.toContain('bg-primary/15')
+  })
+
   it('jumps from a reason to the main-deck row and flashes it', async () => {
     const entries = [view('harry', 'character', 1), view('wing', 'main', 3), view('wing', 'sideboard', 2)]
     const { status, violations } = evaluate(entries, 'classic')
     renderWithIntl(<DeckPanel entries={entries} imageBase="http://img.test" status={status} violations={violations} onQuantityChange={() => {}} />)
-    await userEvent.click(screen.getByRole('button', { name: 'Show wing in the deck' }))
+    await userEvent.click(screen.getByRole('button', { name: 'wing' }))
     expect(scrollIntoView).toHaveBeenCalled()
     expect(row('main-wing').className).toContain('bg-primary/15')
   })
@@ -123,7 +132,7 @@ describe('DeckPanel violations', () => {
         highlight={{ zone: 'main', cardId: 'accio', nonce: 1 }} onQuantityChange={() => {}} />,
     )
     act(() => { vi.advanceTimersByTime(600) })
-    fireEvent.click(screen.getByRole('button', { name: 'Show wing in the deck' }))
+    fireEvent.click(screen.getByRole('button', { name: 'wing' }))
     expect(row('main-wing').className).toContain('bg-primary/15')
     // The add's timer would have ended at 1200 ms; the jump's runs to 1800.
     act(() => { vi.advanceTimersByTime(700) })

@@ -13,9 +13,10 @@ type DeckLegalityBarProps = {
   hasCharacter: boolean
   violations?: Violation[]
   names?: Record<string, string>
-  // Scrolls the deck panel to a card's row. Absent where there is no row to
-  // go to (the overview's gallery view), and the names are then plain text.
-  onJump?: (cardId: string) => void
+  // Scrolls the deck panel to the row a reason is about. The code tells the
+  // panel which of the card's rows that is. Absent on the deck overview, whose
+  // bar sits outside the panel, and the names are then plain text.
+  onJump?: (cardId: string, code: Violation['code']) => void
   className?: string
 }
 
@@ -35,10 +36,11 @@ export function DeckLegalityBar({
 }: DeckLegalityBarProps) {
   const t = useTranslations('decks')
   // What the user did with the toggle since the status last changed; null
-  // means follow the default, which is open only for an illegal deck. A new
-  // status drops the choice, so a deck that breaks a rule again reopens even
-  // if the list was collapsed last time, while a deck still being built
-  // (incomplete) stays closed until asked.
+  // means follow the default, which is open only for an illegal deck. Only a
+  // change of status drops the choice: a collapsed list stays shut while the
+  // deck stays illegal, even as its reasons change, and opens again once the
+  // deck leaves illegal and comes back. A deck still being built (incomplete)
+  // stays closed until asked.
   const [choice, setChoice] = useState<boolean | null>(null)
   const [seenStatus, setSeenStatus] = useState(status)
   if (status !== seenStatus) {
@@ -112,8 +114,10 @@ export function DeckLegalityBar({
                       return onJump && cardId ? (
                         <button
                           type="button"
-                          aria-label={t('panel.jumpToCard', { name: String(values.name) })}
-                          onClick={() => onJump(cardId)}
+                          // A tooltip, not aria-label: the label would replace the
+                          // name mid-sentence for a screen reader.
+                          title={t('panel.jumpToCard', { name: String(values.name) })}
+                          onClick={() => onJump(cardId, v.code)}
                           className="cursor-pointer rounded-sm underline decoration-foreground/45 decoration-dotted underline-offset-3 hover:decoration-current hover:decoration-solid focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                         >
                           {name}

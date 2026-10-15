@@ -84,8 +84,12 @@ describe('DeckLegalityBar reasons', () => {
     const { unmount } = renderWithIntl(
       <DeckLegalityBar status="illegal" mainCount={58} hasCharacter violations={violations} names={names} onJump={onJump} />,
     )
-    await userEvent.click(within(screen.getByRole('list')).getByRole('button', { name: 'Show Wingardium Leviosa in the deck' }))
-    expect(onJump).toHaveBeenCalledWith('wing')
+    // Named by the card alone, so a screen reader reads the reason as a
+    // sentence; the "show in deck" hint is a tooltip, not the name.
+    const jump = within(screen.getByRole('list')).getByRole('button', { name: 'Wingardium Leviosa' })
+    expect(jump).toHaveAttribute('title', 'Show Wingardium Leviosa in the deck')
+    await userEvent.click(jump)
+    expect(onJump).toHaveBeenCalledWith('wing', 'too_many_copies')
     unmount()
 
     // Read-only overview: no onJump, so the name is plain text.

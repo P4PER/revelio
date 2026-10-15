@@ -30,7 +30,8 @@ type DeckPanelProps = {
 }
 
 // The zone a jump from the reasons list lands on when a card sits in several:
-// the main deck is where a copy-limit fix is usually made.
+// the main deck is where a copy-limit fix is usually made. A reason about the
+// starting character always goes to the character slot instead.
 const JUMP_ORDER: DeckZone[] = ['main', 'sideboard', 'character']
 
 // Editable quantity sitting between the stepper buttons. While the field is
@@ -125,8 +126,11 @@ export function DeckPanel({
   const groups = groupMainEntries(main)
   const marks = rowViolations(violations ?? [])
 
-  function jumpTo(cardId: string) {
-    const zone = JUMP_ORDER.find((z) => entries.some((e) => e.zone === z && e.cardId === cardId))
+  function jumpTo(cardId: string, code: Violation['code']) {
+    const zone =
+      code === 'invalid_character'
+        ? 'character'
+        : JUMP_ORDER.find((z) => entries.some((e) => e.zone === z && e.cardId === cardId))
     if (zone) flashRow(`${zone}-${cardId}`)
   }
 

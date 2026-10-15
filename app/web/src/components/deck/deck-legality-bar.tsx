@@ -40,18 +40,17 @@ export function DeckLegalityBar({
   const over = mainCount > MAIN_TARGET
   const red = status === 'illegal' || over
   // What the user did with the toggle; null means follow the default, which is
-  // open only while the bar is red. A change of status drops the choice, so a
-  // collapsed list stays shut while the deck stays illegal, even as its
-  // reasons change, and opens again once the deck leaves illegal and comes
-  // back. Going over 60 reopens a collapsed list but never closes one the user
-  // opened, and dropping back to 60 leaves the choice alone. A deck still being
-  // built (incomplete, at or under 60) stays closed until asked.
+  // open only while the bar is red. The bar turning red reopens a list the
+  // user collapsed; nothing else touches the choice. So a collapsed list stays
+  // shut while the bar stays red, whichever rule keeps it red and however the
+  // reasons change, and a list the user opened is never closed for them. A
+  // deck still being built (incomplete, at or under 60) stays closed until
+  // asked.
   const [choice, setChoice] = useState<boolean | null>(null)
-  const [seen, setSeen] = useState({ status, over })
-  if (status !== seen.status || over !== seen.over) {
-    setSeen({ status, over })
-    if (status !== seen.status) setChoice(null)
-    else if (over && choice === false) setChoice(null)
+  const [wasRed, setWasRed] = useState(red)
+  if (red !== wasRed) {
+    setWasRed(red)
+    if (red && choice === false) setChoice(null)
   }
   const open = choice ?? red
   const listId = useId()

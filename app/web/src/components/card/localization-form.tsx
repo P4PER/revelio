@@ -2,13 +2,10 @@
 import { useImperativeHandle, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useRouter, Link } from '@/../i18n/navigation'
 import { useTranslations } from 'next-intl'
-import { toast } from 'sonner'
 import { updateLocalization, type SaveResult } from '@/lib/actions/localization-actions'
 import { Input } from '@/components/ui/input'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
-import { Button } from '@/components/ui/button'
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select'
@@ -27,18 +24,16 @@ type Initial = {
 export type LocalizationFormHandle = { save: () => Promise<SaveResult> }
 
 export function LocalizationForm({
-  cardId, lang, initial, kind, embedded = false, ref,
+  cardId, lang, initial, kind, ref,
 }: {
   cardId: string
   lang: string
   initial: Initial
   kind: 'adventure' | 'match' | null
-  embedded?: boolean
   ref?: React.Ref<LocalizationFormHandle>
 }) {
   const t = useTranslations('edit')
   const tv = useTranslations('validation')
-  const router = useRouter()
   const [text, setText] = useState(initial.text)
   const [flavorText, setFlavor] = useState(initial.flavorText)
   const [status, setStatus] = useState<'machine' | 'official'>(initial.status)
@@ -53,20 +48,9 @@ export function LocalizationForm({
     mode: 'onSubmit',
     reValidateMode: 'onChange',
   })
-  // React Compiler skips this component by design: react-hook-form watch() cannot be memoized.
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const name = form.watch('name')
 
-  const dirty =
-    name !== initial.name ||
-    text !== initial.text ||
-    flavorText !== initial.flavorText ||
-    status !== initial.status ||
-    JSON.stringify(adventure) !== JSON.stringify(initial.adventure) ||
-    JSON.stringify(match) !== JSON.stringify(initial.match)
-
-  // Persist just this localization; validate name first so an embedding parent
-  // (CardEditForm) gets { ok:false, error:'invalid' } without a network call.
+  // Persist just this localization; validate name first so CardEditForm gets
+  // { ok:false, error:'invalid' } without a network call.
   async function save(): Promise<SaveResult> {
     const valid = await form.trigger('name')
     if (!valid) return { ok: false, error: 'invalid' }
@@ -79,18 +63,9 @@ export function LocalizationForm({
 
   useImperativeHandle(ref, () => ({ save }))
 
-  async function onSubmit() {
-    if (embedded) return
-    const res = await save()
-    if (!res.ok) return // the inline FormMessage already shows the name error
-    if (res.warning) toast.warning(t('reindexWarning'))
-    else toast.success(t('saved'))
-    router.refresh()
-  }
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
+      <div className="space-y-4">
         <FormField
           control={form.control}
           name="name"
@@ -180,15 +155,7 @@ export function LocalizationForm({
             </SelectContent>
           </Select>
         </div>
-        {!embedded && (
-          <div className="flex items-center gap-2">
-            <Button type="submit" disabled={form.formState.isSubmitting || !dirty}>{t('save')}</Button>
-            <Button type="button" variant="ghost" asChild>
-              <Link href={`/card/${cardId}`}>{t('cancel')}</Link>
-            </Button>
-          </div>
-        )}
-      </form>
+      </div>
     </Form>
   )
 }

@@ -155,8 +155,6 @@
     "moveUp": "Move up",
     "moveDown": "Move down",
     "removeRuling": "Remove",
-    "saveRulings": "Save rulings",
-    "rulingsSaved": "Rulings saved.",
     "rulingsFailed": "Could not save the rulings.",
     "image": "Image",
     "chooseFile": "Choose file…",

@@ -59,11 +59,32 @@ describe('CardEditForm', () => {
 
   it('saves nothing while a ruling row is incomplete', async () => {
     renderForm()
-    await userEvent.type(screen.getByLabelText(en.edit.name), ' renamed')
     await userEvent.click(screen.getByRole('button', { name: en.edit.addRuling }))
     await userEvent.click(screen.getByRole('button', { name: en.edit.save }))
     expect(updateLocalization).not.toHaveBeenCalled()
     expect(saveRulingsAction).not.toHaveBeenCalled()
     expect(toastError).toHaveBeenCalledWith(en.edit.invalid)
+  })
+
+  it('flags both sections at once and focuses the first invalid field', async () => {
+    renderForm()
+    const name = screen.getByLabelText(en.edit.name)
+    await userEvent.clear(name)
+    await userEvent.click(screen.getByRole('button', { name: en.edit.addRuling }))
+    await userEvent.click(screen.getByRole('button', { name: en.edit.save }))
+    expect(name).toHaveAttribute('aria-invalid', 'true')
+    // The card's own Text field shares the label; the ruling's comes last.
+    expect(screen.getAllByLabelText(en.edit.rulingText).at(-1)).toHaveAttribute('aria-invalid', 'true')
+    expect(name).toHaveFocus()
+    expect(updateLocalization).not.toHaveBeenCalled()
+    expect(saveRulingsAction).not.toHaveBeenCalled()
+  })
+
+  it('reports a server-side localization failure as a failed save, not a form error', async () => {
+    updateLocalization.mockResolvedValueOnce({ ok: false, error: 'invalid' } as never)
+    renderForm()
+    await userEvent.click(screen.getByRole('button', { name: en.edit.save }))
+    expect(toastError).toHaveBeenCalledWith(en.edit.localizationFailed)
+    expect(saveRulingsAction).not.toHaveBeenCalled()
   })
 })

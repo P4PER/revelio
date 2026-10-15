@@ -13,6 +13,7 @@ import en from '@/../messages/en.json'
 // Saved through the ref handle, the way CardEditForm, its only caller, saves it.
 const handle = createRef<LocalizationFormHandle>()
 const save = () => act(() => handle.current!.save())
+const validate = () => act(() => handle.current!.validate(true))
 
 function renderForm(kind: 'adventure' | 'match' | null = null) {
   return render(
@@ -35,12 +36,14 @@ function renderForm(kind: 'adventure' | 'match' | null = null) {
 beforeEach(() => updateLocalization.mockClear())
 
 describe('LocalizationForm', () => {
-  it('blocks an empty name with an inline error and does not call the action', async () => {
+  it('fails validation on an empty name, shows the error and focuses the field', async () => {
     renderForm()
-    await userEvent.clear(screen.getByLabelText(en.edit.name))
-    await save()
+    const name = screen.getByLabelText(en.edit.name)
+    await userEvent.clear(name)
+    await userEvent.tab()
+    expect(await validate()).toBe(false)
     expect(await screen.findByText(en.validation.required)).toBeInTheDocument()
-    expect(updateLocalization).not.toHaveBeenCalled()
+    expect(name).toHaveFocus()
   })
 
   it('submits the edited fields', async () => {

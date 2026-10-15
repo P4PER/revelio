@@ -43,13 +43,17 @@ export function CardEditForm({
   async function onSave() {
     setBusy(true)
     try {
-      // Both sections are checked before either is written: saving the
-      // localization and then finding an incomplete ruling would leave the card
-      // half-saved. Both run, so both show their inline errors at once.
-      const valid = await Promise.all([locRef.current!.validate(), rulRef.current!.validate()])
-      if (!valid.every(Boolean)) return toast.error(t('invalid'))
+      // Both sections are checked before either is written, so an incomplete
+      // ruling cannot leave the localization saved on its own. Both run, so both
+      // show their inline errors; focus goes to the first invalid field in page
+      // order. A server failure on the rulings after the localization is
+      // written can still split the save - only one action writing both in a
+      // transaction would close that.
+      const locValid = await locRef.current!.validate(true)
+      const rulingsValid = await rulRef.current!.validate(locValid)
+      if (!locValid || !rulingsValid) return toast.error(t('invalid'))
       const loc = await locRef.current!.save()
-      if (!loc.ok) return toast.error(t('invalid'))
+      if (!loc.ok) return toast.error(t('localizationFailed'))
       const rulings = await rulRef.current!.save()
       if (!rulings.ok) return toast.error(t('rulingsFailed'))
       if (loc.warning) toast.warning(t('reindexWarning'))

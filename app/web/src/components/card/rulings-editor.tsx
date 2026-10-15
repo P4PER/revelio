@@ -17,7 +17,10 @@ import { makeRulingsSchema } from '@/lib/schemas/rulings'
 type Row = { id: string | null; date: string; source: string; text: string }
 type Initial = { id: string; date: string; source: string; text: string }
 
-export type RulingsEditorHandle = { save: () => Promise<RulingsSaveResult> }
+export type RulingsEditorHandle = {
+  validate: () => Promise<boolean>
+  save: () => Promise<RulingsSaveResult>
+}
 
 export function RulingsEditor({
   cardId,
@@ -64,11 +67,16 @@ export function RulingsEditor({
     append({ id: null, date: '', source: '', text: '' })
   }
 
+  // Shows the inline row errors as a side effect, so CardEditForm can check
+  // every section before it writes any of them.
+  function validate() {
+    return form.trigger()
+  }
+
   // Persist the rulings; validate all rows first so CardEditForm gets
   // { ok:false, error:'invalid' } when a row is incomplete.
   async function save(): Promise<RulingsSaveResult> {
-    const valid = await form.trigger()
-    if (!valid) return { ok: false, error: 'invalid' }
+    if (!(await validate())) return { ok: false, error: 'invalid' }
     const rows = form.getValues('rows')
     return saveRulingsAction({
       cardId,
@@ -77,7 +85,7 @@ export function RulingsEditor({
     })
   }
 
-  useImperativeHandle(ref, () => ({ save }))
+  useImperativeHandle(ref, () => ({ validate, save }))
 
   return (
     <Form {...form}>

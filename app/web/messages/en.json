@@ -136,7 +136,7 @@
     "statusOfficial": "Official",
     "save": "Save",
     "saved": "Saved.",
-    "invalid": "Please fill in the name.",
+    "invalid": "Please fill in the highlighted fields.",
     "reindexWarning": "Saved, but search re-indexing failed; it will catch up later.",
     "cancel": "Cancel",
     "back": "Back to card",

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cardNames, rowViolations, violationMessage } from '@/lib/deck-violations'
+import { cardNames, jumpZone, rowViolations, violationMessage } from '@/lib/deck-violations'
 
 describe('violationMessage', () => {
   const names = { wing: 'Wingardium Leviosa' }
@@ -40,5 +40,29 @@ describe('rowViolations', () => {
 describe('cardNames', () => {
   it('maps ids to names', () => {
     expect(cardNames([{ cardId: 'a', name: 'Accio' }])).toEqual({ a: 'Accio' })
+  })
+})
+
+describe('jumpZone', () => {
+  const entries = [
+    { cardId: 'ron', zone: 'character' as const },
+    { cardId: 'ron', zone: 'sideboard' as const },
+    { cardId: 'wing', zone: 'sideboard' as const },
+    { cardId: 'wing', zone: 'main' as const },
+  ]
+
+  it('prefers the main deck, then the sideboard', () => {
+    expect(jumpZone(entries, 'wing', 'too_many_copies')).toBe('main')
+    expect(jumpZone(entries, 'ron', 'banned_card')).toBe('sideboard')
+  })
+
+  it('sends a starting-character reason to the character slot', () => {
+    expect(jumpZone(entries, 'ron', 'invalid_character')).toBe('character')
+  })
+
+  it('finds no zone for a card the deck does not hold', () => {
+    expect(jumpZone(entries, 'zz', 'banned_card')).toBeUndefined()
+    // A stale reason about a character since replaced has no row either.
+    expect(jumpZone(entries, 'wing', 'invalid_character')).toBeUndefined()
   })
 })

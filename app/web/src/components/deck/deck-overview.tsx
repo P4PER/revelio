@@ -2,9 +2,9 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { LayoutGrid, List } from 'lucide-react'
-import type { DeckCardView, DeckFormat } from '@revelio/core'
+import type { DeckCardView, DeckFormat, DeckZone, Violation } from '@revelio/core'
 import { deckStats } from '@/lib/deck-stats'
-import { cardNames } from '@/lib/deck-violations'
+import { cardNames, jumpZone } from '@/lib/deck-violations'
 import { DeckHeader } from '@/components/deck/deck-header'
 import { DeckPanel } from '@/components/deck/deck-panel'
 import { DeckGallery } from '@/components/deck/deck-gallery'
@@ -39,9 +39,19 @@ export function DeckOverview(props: DeckOverviewProps) {
   const { deckId, name, format, visibility, updatedAt, views, isOwner, loggedIn, imageBase } = props
   const t = useTranslations('decks')
   const [view, setView] = useState<View>(props.initialView ?? 'list')
+  // The row a reason's jump link points the list view at. The nonce makes a
+  // second click on the same name flash the row again.
+  const [highlight, setHighlight] = useState<{ zone: DeckZone; cardId: string; nonce: number } | null>(null)
+
+  function jumpTo(cardId: string, code: Violation['code']) {
+    const zone = jumpZone(views, cardId, code)
+    if (zone) setHighlight((h) => ({ zone, cardId, nonce: (h?.nonce ?? 0) + 1 }))
+  }
 
   function changeView(next: View) {
     setView(next)
+    // A remounted list would flash the last jump's row again.
+    setHighlight(null)
     // Persist in a cookie (not localStorage) so the server can pre-render this
     // view on the next reload, avoiding a flash of the default view.
     document.cookie = `${DECK_VIEW_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`
@@ -110,10 +120,12 @@ export function DeckOverview(props: DeckOverviewProps) {
           hasCharacter={views.some((e) => e.zone === 'character')}
           violations={violations}
           names={cardNames(views)}
+          // The gallery has no rows to land on, so its names stay plain text.
+          onJump={view === 'list' ? jumpTo : undefined}
           className="border-b border-border/60 px-4 py-3"
         />
         {view === 'list' ? (
-          <DeckPanel entries={views} imageBase={imageBase} violations={violations} readOnly />
+          <DeckPanel entries={views} imageBase={imageBase} violations={violations} highlight={highlight} readOnly />
         ) : (
           <div className="p-4">
             <DeckGallery entries={views} imageBase={imageBase} />

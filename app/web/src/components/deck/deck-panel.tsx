@@ -13,7 +13,7 @@ import {
 import { cn } from '@/lib/utils'
 import { MAIN_TARGET } from '@/lib/deck-legality'
 import { groupColor, groupLabel } from '@/lib/deck-groups'
-import { cardNames, rowViolations, type RowViolationCode } from '@/lib/deck-violations'
+import { cardNames, jumpZone, rowViolations, type RowViolationCode } from '@/lib/deck-violations'
 import { LessonCost } from '@/components/card/lesson-cost'
 import { DeckArt } from '@/components/deck/deck-art'
 import { DeckLegalityBar } from '@/components/deck/deck-legality-bar'
@@ -28,11 +28,6 @@ type DeckPanelProps = {
   onQuantityChange?: (cardId: string, zone: DeckZone, qty: number) => void
   readOnly?: boolean
 }
-
-// The zone a jump from the reasons list lands on when a card sits in several:
-// the main deck is where a copy-limit fix is usually made. A reason about the
-// starting character always goes to the character slot instead.
-const JUMP_ORDER: DeckZone[] = ['main', 'sideboard', 'character']
 
 // Editable quantity sitting between the stepper buttons. While the field is
 // being typed into, `draft` holds the raw text; committing clears it so the
@@ -106,11 +101,13 @@ export function DeckPanel({
     flashTimer.current = setTimeout(() => setFlashKey(null), 1200)
   }, [])
 
-  // When a card is added upstream, `highlight` arrives with a fresh nonce. The
-  // nonce makes re-adding the same card (a new object identity) re-trigger it.
+  // When a card is added upstream (the builder) or a reason's name is clicked
+  // in a bar outside the panel (the overview), `highlight` arrives with a
+  // fresh nonce. The nonce makes the same row (a new object identity)
+  // re-trigger it.
   useEffect(() => {
     if (!highlight) return
-    // Flashing the row is a deliberate response to an external add event.
+    // Flashing the row is a deliberate response to an external event.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     flashRow(`${highlight.zone}-${highlight.cardId}`)
   }, [highlight, flashRow])
@@ -129,10 +126,7 @@ export function DeckPanel({
   const marks = rowViolations(violations ?? [])
 
   function jumpTo(cardId: string, code: Violation['code']) {
-    const zone =
-      code === 'invalid_character'
-        ? 'character'
-        : JUMP_ORDER.find((z) => entries.some((e) => e.zone === z && e.cardId === cardId))
+    const zone = jumpZone(entries, cardId, code)
     if (zone) flashRow(`${zone}-${cardId}`)
   }
 

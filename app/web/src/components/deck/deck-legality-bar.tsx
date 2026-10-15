@@ -14,8 +14,8 @@ type DeckLegalityBarProps = {
   violations?: Violation[]
   names?: Record<string, string>
   // Scrolls the deck panel to the row a reason is about. The code tells the
-  // panel which of the card's rows that is. Absent on the deck overview, whose
-  // bar sits outside the panel, and the names are then plain text.
+  // panel which of the card's rows that is. Absent in the overview's gallery
+  // view, which has no rows, and the names are then plain text.
   onJump?: (cardId: string, code: Violation['code']) => void
   className?: string
 }

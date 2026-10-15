@@ -25,7 +25,7 @@ export function AboutContent({ githubUrl }: { githubUrl: string | null }) {
     <main className="relative mx-auto max-w-[76rem] px-6">
       <StarField />
 
-      <section className="relative flex flex-col items-center pt-20 pb-16 text-center sm:pt-28">
+      <section className="relative flex flex-col items-center pt-16 pb-16 text-center sm:pt-20">
         <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-5xl">
           {t('titlePrefix')} <span className="text-heading">{BRAND_NAME}</span>
         </h1>

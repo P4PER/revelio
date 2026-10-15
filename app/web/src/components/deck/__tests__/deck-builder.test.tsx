@@ -5,6 +5,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import type { DeckBrowseResult } from '@/lib/search-projections'
 import en from '@/../messages/en.json'
 import type { BuilderState } from '@/lib/deck-model'
+import { toast } from 'sonner'
 import { DeckBuilder } from '@/components/deck/deck-builder'
 
 const EMPTY_RESULT: DeckBrowseResult = { hits: [], total: 0, page: 1, hitsPerPage: 24 }
@@ -418,5 +419,31 @@ describe('DeckBuilder mobile deck sheet', () => {
     await user.click(await screen.findByRole('menuitem', { name: en.decks.browse.addToMain }))
 
     await waitFor(() => expect(screen.getByTestId('deck-sheet-count')).not.toBe(before))
+  })
+})
+
+describe('DeckBuilder with two starting characters', () => {
+  // Only a deck saved, or a draft imported, before the one-character rule
+  // can hold two; the server now refuses it, so the builder says why.
+  const harry = { ...draftEntry, cardId: 'harry', zone: 'character' as const, quantity: 1, name: 'Harry', isStartingCharacter: true }
+  const ron = { ...harry, cardId: 'ron', name: 'Ron' }
+  const twoChars: BuilderState = { ...emptyState, name: 'Old deck', entries: [harry, ron] }
+
+  it('names the rule instead of sending a save the server refuses', async () => {
+    vi.mocked(toast.error).mockClear()
+    renderBuilder({ loggedIn: true, deckId: 'd1', initial: twoChars })
+    await userEvent.setup().click(screen.getAllByRole('button', { name: en.decks.save })[0])
+    expect(toast.error).toHaveBeenCalledWith(en.decks.violation.multiple_characters)
+    expect(updateDeckAction).not.toHaveBeenCalled()
+  })
+
+  it('does the same for a guest draft saved to the account', async () => {
+    vi.mocked(toast.error).mockClear()
+    draftBox.current = twoChars
+    renderBuilder({ loggedIn: true, deckId: null })
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Save to account' }))
+    expect(toast.error).toHaveBeenCalledWith(en.decks.violation.multiple_characters)
+    expect(createDeckAction).not.toHaveBeenCalled()
+    expect(draftBox.current).toEqual(twoChars)
   })
 })

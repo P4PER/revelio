@@ -126,7 +126,17 @@ export function DeckBuilder({
     metaMap,
   )
 
+  // The server refuses a deck with two starting characters. The builder never
+  // makes one, but a deck saved, or a draft imported, before that rule can
+  // hold two: say why rather than let the save fail as a generic error.
+  function refuseExtraCharacters(entries: BuilderState['entries']): boolean {
+    if (entries.filter((e) => e.zone === 'character').length <= 1) return false
+    toast.error(t('violation.multiple_characters'))
+    return true
+  }
+
   async function handleSave() {
+    if (refuseExtraCharacters(state.entries)) return
     setSaving(true)
     try {
       const input = {
@@ -154,6 +164,7 @@ export function DeckBuilder({
       setShowSavePrompt(false)
       return
     }
+    if (refuseExtraCharacters(draft.entries)) return
     setSavingDraft(true)
     try {
       const input = {

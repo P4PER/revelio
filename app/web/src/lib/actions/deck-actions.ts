@@ -17,11 +17,16 @@ const writeSchema = z.object({
   name: z.string().trim().min(1).max(DECK_NAME_MAX),
   format: DeckFormat,
   visibility: DeckVisibility,
+  // A deck starts with exactly one character (the builder replaces the slot,
+  // import keeps the first), so a write with more is a crafted request.
   cards: z.array(z.object({
     cardId: z.string().min(1),
     zone: DeckZone,
     quantity: z.number().int().positive(),
-  })),
+  })).refine((cards) => {
+    const chars = cards.filter((c) => c.zone === 'character')
+    return chars.length <= 1 && chars.every((c) => c.quantity === 1)
+  }),
 })
 
 async function requireUserId(): Promise<string | null> {

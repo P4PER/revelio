@@ -57,7 +57,7 @@ export default async function SetPage({
   )
 
   return (
-    <main className="mx-auto max-w-[76rem] px-6 py-8">
+    <main className="mx-auto max-w-[76rem] px-6 page-y">
       <header className="mb-6">
         <h1 className="text-2xl font-semibold text-heading">{set.name}</h1>
         <p className="text-sm text-muted-foreground">

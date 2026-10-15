@@ -25,7 +25,7 @@ export default async function DecksPage() {
 
   if (!session?.user) {
     return (
-      <main className="mx-auto max-w-[76rem] px-6 py-8">
+      <main className="mx-auto max-w-[76rem] px-6 page-y">
         {/* Same heading, same position as the signed-in page: a visitor should
             never have to guess which page they landed on. */}
         <h1 className="mb-6 text-2xl font-semibold text-heading">{t('list.title')}</h1>
@@ -44,7 +44,7 @@ export default async function DecksPage() {
   const decks = await listDecksByUser(getDb(), session.user.id)
 
   return (
-    <main className="mx-auto max-w-[76rem] px-6 py-8">
+    <main className="mx-auto max-w-[76rem] px-6 page-y">
       <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold text-heading">{t('list.title')}</h1>
         <Button asChild>

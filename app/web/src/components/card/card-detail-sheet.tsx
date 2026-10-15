@@ -94,7 +94,7 @@ function CardDetailSkeleton({ label, orientation }: { label: string; orientation
     <div
       role="status"
       aria-label={label}
-      className="mx-auto grid w-full max-w-[76rem] gap-8 px-6 py-8 md:grid-cols-[auto_1fr]"
+      className="mx-auto grid w-full max-w-[76rem] gap-8 px-6 page-y md:grid-cols-[auto_1fr]"
     >
       <div className={cn('w-full', horizontal ? 'md:w-[476px]' : 'md:w-[340px]')}>
         <Skeleton className={cn('w-full rounded-xl', horizontal ? 'aspect-[7/5]' : 'aspect-[5/7]')} />

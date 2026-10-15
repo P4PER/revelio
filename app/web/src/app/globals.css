@@ -37,6 +37,17 @@
   }
 }
 
+/* The one top/bottom padding every page wrapper uses, tighter on phones.
+   Not used by the hero pages (home, about, discord), the full-height error
+   state, or the deck builder, whose md height subtracts its own md:py-6
+   (deck-builder.tsx). */
+@utility page-y {
+  padding-block: --spacing(4);
+  @variant md {
+    padding-block: --spacing(8);
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

@@ -51,7 +51,7 @@ export function DocsHub() {
       {/* The hub has no headings of its own, so the bar carries the map alone
           and disappears at 860px, where the rail is back in the gutter. */}
       <DocsMobileBar title={t('hubTitle')} toc={[]} editUrl={null} />
-      <main className="px-0 pb-10 min-[860px]:px-12">
+      <main className="px-0 min-[860px]:px-12">
         <h1 className="text-3xl font-semibold tracking-tight text-foreground">{t('hubTitle')}</h1>
         <p className="mt-4 max-w-[62ch] text-base leading-relaxed text-muted-foreground">
           {t('hubLede')}

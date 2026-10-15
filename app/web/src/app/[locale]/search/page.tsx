@@ -46,7 +46,7 @@ export default async function SearchPage({
   const sets = await listSets(getDb(), locale)
 
   return (
-    <main className="mx-auto max-w-[76rem] px-6 py-8">
+    <main className="mx-auto max-w-[76rem] px-6 page-y">
       <SearchControls locale={locale} sets={sets} />
       {/* Results bar: the count, the applied advanced filters and the clear
           control on the left; Sort right-aligned above the grid (Sort orders

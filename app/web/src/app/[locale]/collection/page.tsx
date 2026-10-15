@@ -53,7 +53,7 @@ export default async function CollectionPage({
     const qs = sp.toString()
     const here = qs ? `/collection?${qs}` : '/collection'
     return (
-      <main className="mx-auto max-w-[76rem] px-6 py-8">
+      <main className="mx-auto max-w-[76rem] px-6 page-y">
         {/* Same heading, same position as the signed-in page: a visitor should
             never have to guess which page they landed on. */}
         <h1 className="mb-6 text-2xl font-semibold text-heading">{t('title')}</h1>
@@ -89,7 +89,7 @@ export default async function CollectionPage({
   const shareUrl = `${BASE_URL}${path}`
 
   return (
-    <main className="mx-auto max-w-[76rem] px-6 py-8">
+    <main className="mx-auto max-w-[76rem] px-6 page-y">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-heading">{t('title')}</h1>

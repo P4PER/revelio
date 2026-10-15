@@ -43,6 +43,18 @@
 - [ ] `DeckOverview` keeps a `highlight` state with a nonce and passes `onJump` only in the list view.
 - [ ] Commit `feat(deck): jump to a card from the overview's reasons list`.
 
-### Task 5: Verification
+### Task 5: One starting character, enforced at the door
+
+The 2001 rules give a deck exactly one starting character (a witch or wizard); further characters may sit in the main deck. The builder already replaces the slot, but two paths still let a second one in.
+
+- [ ] Failing test in `deck-import.test.ts`: a text list with two character lines keeps the first resolved one and reports the other in `extraCharacters`.
+- [ ] `textLinesToEntries` keeps the first character and collects the rest; the import dialog lists them under a new `import.extraCharactersTitle` (en + de) and stays open, like the other two lists.
+- [ ] Failing test in `deck-actions.test.ts`: create and update reject two character rows, and a character row with quantity above 1.
+- [ ] `writeSchema` refines `cards` to at most one character row of quantity 1.
+- [ ] Commits `fix(deck): import only one starting character` and `fix(deck): refuse to save a deck with two starting characters`.
+
+Decks saved before this can still hold two; the panel keeps showing both and the `multiple_characters` reason stays, and picking a character in the builder replaces both. No migration: a unique index would fail on those rows.
+
+### Task 6: Verification
 
 - [ ] `npm test -w web`, `npm run typecheck`, `npm run lint`.

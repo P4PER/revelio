@@ -102,4 +102,18 @@ describe('DeckLegalityBar reasons', () => {
     expect(screen.queryByRole('list')).not.toBeInTheDocument()
     expect(screen.getByText('Tournament legal')).toBeInTheDocument()
   })
+
+  it('sets the card name apart from the muted reason around it', () => {
+    const { unmount } = renderWithIntl(
+      <DeckLegalityBar status="illegal" mainCount={58} hasCharacter violations={violations} names={names} onJump={() => {}} />,
+    )
+    const linked = within(screen.getByRole('list')).getByText('Wingardium Leviosa')
+    expect(linked.tagName).toBe('STRONG')
+    expect(linked.closest('li')?.querySelector('.text-muted-foreground')).toHaveTextContent('5 copies of Wingardium Leviosa (max 4)')
+    unmount()
+
+    // Read-only: no jump button, but the name is still bold.
+    renderWithIntl(<DeckLegalityBar status="illegal" mainCount={58} hasCharacter violations={violations} names={names} />)
+    expect(within(screen.getByRole('list')).getByText('Wingardium Leviosa').tagName).toBe('STRONG')
+  })
 })

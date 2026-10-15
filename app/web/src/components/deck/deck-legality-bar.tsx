@@ -102,22 +102,26 @@ export function DeckLegalityBar({
                 >
                   {hard ? '!' : '·'}
                 </span>
-                <span className="min-w-0">
+                {/* The sentence is muted so the card name, in full-strength
+                    semibold, is what the eye lands on. */}
+                <span className="min-w-0 text-muted-foreground">
                   {t.rich(key, {
                     ...values,
-                    card: (chunks) =>
-                      onJump && cardId ? (
+                    card: (chunks) => {
+                      const name = <strong className="font-semibold text-foreground">{chunks}</strong>
+                      return onJump && cardId ? (
                         <button
                           type="button"
                           aria-label={t('panel.jumpToCard', { name: String(values.name) })}
                           onClick={() => onJump(cardId)}
-                          className="cursor-pointer rounded-sm underline decoration-border underline-offset-3 hover:decoration-current focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                          className="cursor-pointer rounded-sm underline decoration-foreground/45 decoration-dotted underline-offset-3 hover:decoration-current hover:decoration-solid focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                         >
-                          {chunks}
+                          {name}
                         </button>
                       ) : (
-                        chunks
-                      ),
+                        name
+                      )
+                    },
                   })}
                 </span>
               </li>

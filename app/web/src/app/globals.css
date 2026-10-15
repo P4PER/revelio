@@ -162,9 +162,10 @@
   --dark-secondary: #3B3194;
   --dark-secondary-foreground: #FBF3DC;
   --dark-secondary-ink: #6E66C9;
-  /* The option name in a slash-command example. secondary-ink is the obvious
-     pick and cannot be used: on --dark-muted it measures 3.16:1, under the 4.5
-     AA needs for text this size. This is the same hue lifted to 6.28:1. */
+  /* The option name in a slash-command example, and the indigo badges on a
+     command table. secondary-ink is the obvious pick and cannot be used: on
+     --dark-muted it measures 3.16:1 (3.56:1 on --dark-card), under the 4.5 AA
+     needs for text this size. This is the same hue lifted to 6.28:1 (7.09:1). */
   --dark-syntax-option: #A79FE8;
   --dark-brand-indigo: #3B3194;
   --dark-muted: #252246;

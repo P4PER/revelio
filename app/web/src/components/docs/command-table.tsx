@@ -1,3 +1,4 @@
+import { EyeOff, Keyboard, Link, Users } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import {
   ATTRIBUTES,
@@ -10,6 +11,11 @@ import {
 const CELL = 'border-b border-border/60 px-4 py-2.5 align-top text-muted-foreground'
 const HEAD =
   'border-b border-border px-4 py-2 text-left text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground'
+// Both header pills share one box and each carries a size-3.5 icon. leading-none
+// lets that icon set the height, so no pill takes a taller line box from
+// whatever line-height it happens to inherit.
+const PILL =
+  'inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[0.62rem] leading-none font-semibold uppercase tracking-wider'
 
 // A scoped option names a scope rather than listing values, so a new lesson or
 // card type reaches the docs without anyone editing them. ATTRIBUTES is keyed
@@ -54,11 +60,17 @@ export function CommandTable({ name }: { name: BotCommandName }) {
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3">
         <span className="font-mono text-sm font-medium text-primary-ink">/{command.name}</span>
         <span className="ml-auto flex flex-wrap gap-2">
-          <span className="rounded-full border border-border px-2 py-0.5 text-[0.62rem] font-semibold uppercase tracking-wider text-muted-foreground">
+          <span className={`${PILL} border-border bg-muted text-muted-foreground`}>
+            {command.ephemeral ? (
+              <EyeOff aria-hidden className="size-3.5" />
+            ) : (
+              <Users aria-hidden className="size-3.5" />
+            )}
             {command.ephemeral ? t('commandTable.ephemeral') : t('commandTable.public')}
           </span>
           {command.linkRequired && (
-            <span className="rounded-full border border-secondary-ink/45 px-2 py-0.5 text-[0.62rem] font-semibold uppercase tracking-wider text-secondary-ink">
+            <span className={`${PILL} border-syntax-option/55 text-syntax-option`}>
+              <Link aria-hidden className="size-3.5" />
               {t('commandTable.linkRequired')}
             </span>
           )}
@@ -112,7 +124,8 @@ export function CommandTable({ name }: { name: BotCommandName }) {
                         ` ${t('commandTable.maxLength', { max: option.maxLength })}`}
                       {option.autocomplete && (
                         <span className="mt-1.5 flex">
-                          <span className="rounded border border-secondary-ink/45 px-1.5 py-0.5 text-[0.68rem] font-medium text-secondary-ink">
+                          <span className="inline-flex items-center gap-1 rounded border border-syntax-option/55 px-1.5 py-0.5 text-[0.68rem] font-medium text-syntax-option">
+                            <Keyboard aria-hidden className="size-3.5" />
                             {t('commandTable.autocompletes')}
                           </span>
                         </span>

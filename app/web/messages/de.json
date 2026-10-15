@@ -336,6 +336,7 @@
     "save": "Deck speichern",
     "saved": "Deck gespeichert.",
     "saveError": "Deck konnte nicht gespeichert werden.",
+    "saveTwoCharacters": "Ein Deck hat genau einen Startcharakter. Wähle einen im Kartenbrowser, er ersetzt beide, und speichere dann.",
     "loginToSave": "Zum Speichern anmelden",
     "draftNotice": "Dein Entwurf wird auf diesem Gerät gespeichert. Melde dich an, damit wir ihn in deinem Konto sichern können.",
     "savePrompt": {

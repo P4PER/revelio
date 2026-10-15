@@ -433,7 +433,7 @@ describe('DeckBuilder with two starting characters', () => {
     vi.mocked(toast.error).mockClear()
     renderBuilder({ loggedIn: true, deckId: 'd1', initial: twoChars })
     await userEvent.setup().click(screen.getAllByRole('button', { name: en.decks.save })[0])
-    expect(toast.error).toHaveBeenCalledWith(en.decks.violation.multiple_characters)
+    expect(toast.error).toHaveBeenCalledWith(en.decks.saveTwoCharacters)
     expect(updateDeckAction).not.toHaveBeenCalled()
   })
 
@@ -442,8 +442,17 @@ describe('DeckBuilder with two starting characters', () => {
     draftBox.current = twoChars
     renderBuilder({ loggedIn: true, deckId: null })
     await userEvent.setup().click(await screen.findByRole('button', { name: 'Save to account' }))
-    expect(toast.error).toHaveBeenCalledWith(en.decks.violation.multiple_characters)
+    expect(toast.error).toHaveBeenCalledWith(en.decks.saveTwoCharacters)
     expect(createDeckAction).not.toHaveBeenCalled()
     expect(draftBox.current).toEqual(twoChars)
+  })
+
+  it('saves an older character line of quantity 2 as the one card it is', async () => {
+    // Before the one-character rule, an import merged a repeated character
+    // line into one row of quantity 2; the server now takes only 1.
+    renderBuilder({ loggedIn: true, deckId: 'd1', initial: { ...emptyState, name: 'Old deck', entries: [{ ...harry, quantity: 2 }] } })
+    await userEvent.setup().click(screen.getAllByRole('button', { name: en.decks.save })[0])
+    await waitFor(() => expect(updateDeckAction).toHaveBeenCalledTimes(1))
+    expect(updateDeckAction).toHaveBeenCalledWith('d1', expect.objectContaining({ cards: [{ cardId: 'harry', zone: 'character', quantity: 1 }] }))
   })
 })

@@ -336,6 +336,7 @@
     "save": "Save deck",
     "saved": "Deck saved.",
     "saveError": "Could not save the deck.",
+    "saveTwoCharacters": "A deck takes one starting character. Pick one in the card browser to replace both, then save.",
     "loginToSave": "Log in to save",
     "draftNotice": "Your draft is kept on this device. Log in and we'll offer to save it to your account.",
     "savePrompt": {

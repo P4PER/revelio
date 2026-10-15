@@ -26,6 +26,13 @@ import { DeckSaveButton } from '@/components/deck/deck-save-button'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+// The rows a save sends. A character is one card: before the one-character
+// rule, an import merged a repeated character line into quantity 2, which
+// the server now refuses, so send it as the 1 it always meant.
+function saveCards(entries: BuilderState['entries']) {
+  return entries.map((e) => ({ cardId: e.cardId, zone: e.zone, quantity: e.zone === 'character' ? 1 : e.quantity }))
+}
+
 // Owns BuilderState for the whole builder. Below md browsing is the whole
 // screen and the deck lives in DeckSheet, a bottom sheet that peeks a handle
 // and carries the command bar and the save action inside it; from md up the
@@ -131,7 +138,7 @@ export function DeckBuilder({
   // hold two: say why rather than let the save fail as a generic error.
   function refuseExtraCharacters(entries: BuilderState['entries']): boolean {
     if (entries.filter((e) => e.zone === 'character').length <= 1) return false
-    toast.error(t('violation.multiple_characters'))
+    toast.error(t('saveTwoCharacters'))
     return true
   }
 
@@ -143,7 +150,7 @@ export function DeckBuilder({
         name: clampDeckName(state.name) || t('namePlaceholder'),
         format: state.format,
         visibility: state.visibility,
-        cards: state.entries.map((e) => ({ cardId: e.cardId, zone: e.zone, quantity: e.quantity })),
+        cards: saveCards(state.entries),
       }
       const result = deckId ? await updateDeckAction(deckId, input) : await createDeckAction(input)
       if (!result.ok) {
@@ -171,7 +178,7 @@ export function DeckBuilder({
         name: clampDeckName(draft.name) || t('namePlaceholder'),
         format: draft.format,
         visibility: draft.visibility,
-        cards: draft.entries.map((e) => ({ cardId: e.cardId, zone: e.zone, quantity: e.quantity })),
+        cards: saveCards(draft.entries),
       }
       const result = await createDeckAction(input)
       if (!result.ok) {

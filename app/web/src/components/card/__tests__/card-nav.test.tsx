@@ -162,17 +162,12 @@ describe('CardNav', () => {
     expect(screen.getByText('to flip between cards')).toBeInTheDocument()
 
     // Animation done → start fading (still mounted, now opacity-0).
-    // jsdom's AnimationEvent.animationName is read-only, so build the event by hand.
-    const ae = new Event('animationend', { bubbles: true })
-    Object.defineProperty(ae, 'animationName', { value: 'chevron-hint' })
-    fireEvent(frame(container), ae)
+    fireEvent(frame(container), new AnimationEvent('animationend', { bubbles: true, animationName: 'chevron-hint' }))
     expect(hint()).toBeInTheDocument()
     expect(hint()).toHaveClass('opacity-0')
 
     // Fade finished → unmounts.
-    const te = new Event('transitionend', { bubbles: true })
-    Object.defineProperty(te, 'propertyName', { value: 'opacity' })
-    fireEvent(hint()!, te)
+    fireEvent(hint()!, new TransitionEvent('transitionend', { bubbles: true, propertyName: 'opacity' }))
     expect(screen.queryByText('to flip between cards')).toBeNull()
   })
 

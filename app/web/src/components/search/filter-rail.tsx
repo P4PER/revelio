@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState, type ComponentProps } from 'react'
+import { useEffect, useRef, useState, type ComponentProps, type CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
 
 // A facet lane that scrolls sideways instead of wrapping. The nine type chips
@@ -72,8 +72,8 @@ export function FilterRail({
   return (
     <div
       ref={ref}
-      // Spread first: the lane's own scroll handler, classes and mask are not
-      // things a caller should be able to displace by passing a style prop.
+      // Spread first: the lane's own scroll handler, classes and fade stops are
+      // not things a caller should be able to displace by passing a style prop.
       {...props}
       onScroll={(e) => sync(e.currentTarget)}
       // -mr-6 pr-6 bleeds the lane into the page gutter (px-6) so a chip is
@@ -88,15 +88,18 @@ export function FilterRail({
         'no-scrollbar relative -my-1.5 -ml-1.5 -mr-6 flex min-w-0 snap-x snap-proximity gap-2 overflow-x-auto py-1.5 pr-6 pl-1.5 scroll-pr-6 scroll-pl-1.5 [&>*]:snap-start',
         !alwaysScrolls && 'md:mr-0 md:flex-wrap md:overflow-visible md:pr-0',
         className,
+        !fits && 'lane-fade',
       )}
+      // The stops go in as custom properties, read by the lane-fade utility in
+      // globals.css. Not a maskImage string: jsdom 29 rejects a calc() stop in
+      // a gradient and stores "", so tests could not see the fade at all.
       style={
         fits
           ? undefined
-          : {
-              maskImage: `linear-gradient(to right, transparent 0, #000 ${
-                atStart ? '0px' : '2rem'
-              }, #000 ${atEnd ? '100%' : 'calc(100% - 2rem)'}, transparent 100%)`,
-            }
+          : ({
+              '--lane-fade-start': atStart ? '0px' : '2rem',
+              '--lane-fade-end': atEnd ? '100%' : 'calc(100% - 2rem)',
+            } as CSSProperties)
       }
     >
       {children}

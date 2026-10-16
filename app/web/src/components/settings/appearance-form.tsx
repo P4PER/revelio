@@ -77,6 +77,12 @@ export function AppearanceForm({ current }: { current: ThemeChoice }) {
             <ThemePreview choice={value} />
             <span className="flex min-w-0 flex-col gap-0.5">
               <span className="font-semibold">{t(value)}</span>
+              {/* The space is for the accessible name, not the layout: the
+                  flex container drops it. Without it the name depends on CSS -
+                  only the flex column's blockified spans keep "Dark" and its
+                  hint apart, and jsdom or an unstyled render reads
+                  "DarkMidnight". */}
+              {' '}
               <span className="text-sm font-normal text-muted-foreground">
                 {t(`${value}Hint`)}
               </span>

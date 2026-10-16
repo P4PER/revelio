@@ -152,10 +152,14 @@ describe('DeckSheet', () => {
     render(<Harness />)
     const handle = screen.getByRole('button', { name: 'Deck, 12 cards' })
 
-    // A drag that is cancelled mid-gesture, with no click after it.
+    // A drag that is cancelled mid-gesture, with no click after it. Downward,
+    // so the collapsed sheet clamps and stays shut: an upward flick snaps it
+    // open on cancel (cancel ends a drag like pointerup does), and the tap
+    // after it would then close the sheet for an unrelated reason.
     fireEvent.pointerDown(handle, { pointerId: 1, clientY: 400 })
-    fireEvent.pointerMove(handle, { pointerId: 1, clientY: 300 })
-    fireEvent.pointerCancel(handle, { pointerId: 1, clientY: 300 })
+    fireEvent.pointerMove(handle, { pointerId: 1, clientY: 500 })
+    fireEvent.pointerCancel(handle, { pointerId: 1, clientY: 500 })
+    expect(handle).toHaveAttribute('aria-expanded', 'false')
 
     await userEvent.setup().click(handle)
     expect(handle).toHaveAttribute('aria-expanded', 'true')

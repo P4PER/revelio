@@ -37,6 +37,18 @@
   }
 }
 
+/* Filter-rail lane fade. The two stops move with the scroll position and are set
+   inline as custom properties by filter-rail.tsx; the gradient itself is static. */
+@utility lane-fade {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--lane-fade-start),
+    #000 var(--lane-fade-end),
+    transparent 100%
+  );
+}
+
 /* The one top/bottom padding every page wrapper uses, tighter on phones.
    Not used by the hero pages (home, about, discord), the full-height error
    state, or the deck builder, whose md height subtracts its own md:py-6

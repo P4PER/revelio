@@ -1,7 +1,18 @@
+import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { act } from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { FilterRail } from '@/components/search/filter-rail'
+
+// Read off this file's own location rather than the cwd, as theme-preview's
+// test does. fileURLToPath on the string: jsdom replaces the global URL class,
+// and node:fs rejects those.
+const GLOBALS_CSS = readFileSync(
+  resolve(dirname(fileURLToPath(import.meta.url)), '../../../app/globals.css'),
+  'utf8',
+)
 
 // jsdom has no layout: offsets are 0 and scrollLeft is read-only. Back the four
 // geometry properties the rail reads with values the test can author (chips
@@ -103,23 +114,41 @@ describe('FilterRail', () => {
     renderRail()
     const lane = screen.getByRole('group', { name: 'Type' })
     // Resting at the start: the far end is cut off, the near end is not.
-    expect(lane.style.maskImage).toContain('#000 0px')
-    expect(lane.style.maskImage).toContain('calc(100% - 2rem)')
+    expect(lane.style.getPropertyValue('--lane-fade-start')).toBe('0px')
+    expect(lane.style.getPropertyValue('--lane-fade-end')).toBe('calc(100% - 2rem)')
 
     lane.scrollLeft = 100
     fireEvent.scroll(lane)
-    expect(lane.style.maskImage).toContain('#000 2rem')
-    expect(lane.style.maskImage).toContain('#000 100%')
+    expect(lane.style.getPropertyValue('--lane-fade-start')).toBe('2rem')
+    expect(lane.style.getPropertyValue('--lane-fade-end')).toBe('100%')
   })
 
   it('drops the fade once the lane is wide enough to stop scrolling', () => {
     renderRail()
     const lane = screen.getByRole('group', { name: 'Type' })
-    expect(lane.style.maskImage).not.toBe('')
+    expect(lane).toHaveClass('lane-fade')
     // What md does: the lane wraps instead of scrolling, so nothing overflows.
     lane.dataset.clientwidth = '400'
     act(() => resize?.())
-    expect(lane.style.maskImage).toBe('')
+    expect(lane).not.toHaveClass('lane-fade')
+    expect(lane.style.getPropertyValue('--lane-fade-start')).toBe('')
+  })
+
+  // The stops are set here and read by the lane-fade utility in globals.css.
+  // Rename either side and every other test still passes while the browser
+  // drops the whole mask-image as invalid, so tie the two names together.
+  it('sets exactly the custom properties the lane-fade utility reads', () => {
+    renderRail()
+    const lane = screen.getByRole('group', { name: 'Type' })
+    expect(lane).toHaveClass('lane-fade')
+    const set = Array.from(lane.style).filter((name) => name.startsWith('--')).sort()
+
+    const utility = GLOBALS_CSS.match(/@utility lane-fade \{([^}]*)\}/)
+    expect(utility, 'no @utility lane-fade in globals.css').not.toBeNull()
+    const read = [...utility![1].matchAll(/var\((--[\w-]+)\)/g)].map(([, name]) => name).sort()
+
+    expect(set).toEqual(['--lane-fade-end', '--lane-fade-start'])
+    expect(read).toEqual(set)
   })
 
   it('watches the chips as well as the lane', () => {

@@ -3,18 +3,12 @@ import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { ArrowDown, ArrowUp, ChevronsUpDown, X } from 'lucide-react'
 import {
-  type ColumnDef,
-  type SortingState,
-  type FilterFn,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  getPaginationRowModel,
-  useReactTable,
+  type ColumnDef, type FilterFn, type SortingState,
+  flexRender, useTable,
 } from '@tanstack/react-table'
 import { Link } from '@/../i18n/navigation'
 import type { SetDTO } from '@revelio/core'
+import { adminTableFeatures, type AdminTableFeatures } from '@/lib/admin-table'
 import { SetSymbol } from '@/components/set/set-symbol'
 import { PaginationNav } from '@/components/search/pagination-nav'
 import { formatReleaseMonth } from '@/lib/set-sort'
@@ -24,7 +18,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
 
-const nameOrCode: FilterFn<SetDTO> = (row, _id, value) => {
+const nameOrCode: FilterFn<AdminTableFeatures, SetDTO> = (row, _id, value) => {
   const q = String(value).trim().toLowerCase()
   if (!q) return true
   return (
@@ -47,7 +41,7 @@ export function AdminSetsTable({ sets, imageBase }: { sets: SetDTO[]; imageBase:
     return sets.filter((s) => (showOfficial && s.isOfficial) || (showFan && !s.isOfficial))
   }, [sets, showOfficial, showFan])
 
-  const columns = useMemo<ColumnDef<SetDTO>[]>(
+  const columns = useMemo<ColumnDef<AdminTableFeatures, SetDTO>[]>(
     () => [
       {
         id: 'symbol',
@@ -108,20 +102,15 @@ export function AdminSetsTable({ sets, imageBase }: { sets: SetDTO[]; imageBase:
     [t, imageBase],
   )
 
-  // React Compiler skips this component by design: useReactTable returns unmemoizable functions.
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const table = useReactTable({
+  const table = useTable({
+    features: adminTableFeatures,
     data,
     columns,
     state: { sorting, globalFilter },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: nameOrCode,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 20 } },
+    initialState: { pagination: { pageIndex: 0, pageSize: 20 } },
   })
 
   const rows = table.getRowModel().rows
@@ -190,7 +179,7 @@ export function AdminSetsTable({ sets, imageBase }: { sets: SetDTO[]; imageBase:
             {rows.length ? (
               rows.map((row) => (
                 <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
+                  {row.getAllCells().map((cell) => (
                     <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                   ))}
                 </TableRow>
@@ -207,8 +196,8 @@ export function AdminSetsTable({ sets, imageBase }: { sets: SetDTO[]; imageBase:
       </div>
 
       <PaginationNav
-        page={table.getState().pagination.pageIndex + 1}
-        pageSize={table.getState().pagination.pageSize}
+        page={table.state.pagination.pageIndex + 1}
+        pageSize={table.state.pagination.pageSize}
         total={table.getFilteredRowModel().rows.length}
         onPrev={() => table.previousPage()}
         onNext={() => table.nextPage()}

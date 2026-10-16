@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { createTranslator } from 'next-intl'
 import { render } from '@react-email/render'
-import { Heading, Hr, Section, Text } from '@react-email/components'
+import { Heading, Hr, Section, Text } from 'react-email'
 import en from '@/../messages/en.json'
 import { EmailLayout, emailHeading, emailText } from './layout'
 import type { RenderedEmail } from './types'
@@ -93,4 +93,7 @@ const fine: CSSProperties = {
   color: '#5d5878',
 }
 
-const hr: CSSProperties = { borderColor: '#d9d5e8', margin: '22px 0 16px' }
+// The full shorthand, not borderColor: react-email 6's Hr defaults list
+// borderColor before borderTop, so a caller's borderColor takes that early
+// slot and the default border-top (#eaeaea) still wins.
+const hr: CSSProperties = { borderTop: '1px solid #d9d5e8', margin: '22px 0 16px' }

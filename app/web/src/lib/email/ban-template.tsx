@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { createTranslator } from 'next-intl'
 import { render } from '@react-email/render'
-import { Heading, Link, Text } from '@react-email/components'
+import { Heading, Link, Text } from 'react-email'
 import { FORMATS } from '@/../i18n/formats'
 import { getPathname } from '@/../i18n/navigation'
 import { TIME_ZONE } from '@/../i18n/time-zone'

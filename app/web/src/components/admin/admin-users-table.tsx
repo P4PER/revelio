@@ -3,12 +3,12 @@ import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { ArrowDown, ArrowUp, ChevronsUpDown, X } from 'lucide-react'
 import {
-  type ColumnDef, type SortingState, type FilterFn,
-  flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, getPaginationRowModel,
-  useReactTable,
+  type ColumnDef, type FilterFn, type SortingState,
+  flexRender, useTable,
 } from '@tanstack/react-table'
 import { Link } from '@/../i18n/navigation'
 import type { UserAdminRow } from '@revelio/db'
+import { adminTableFeatures, type AdminTableFeatures } from '@/lib/admin-table'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/table'
 import { PaginationNav } from '@/components/search/pagination-nav'
 
-const usernameOrEmail: FilterFn<UserAdminRow> = (row, _id, value) => {
+const usernameOrEmail: FilterFn<AdminTableFeatures, UserAdminRow> = (row, _id, value) => {
   const q = String(value).trim().toLowerCase()
   if (!q) return true
   const u = row.original
@@ -40,7 +40,7 @@ export function AdminUsersTable({ users }: { users: UserAdminRow[] }) {
     return users.filter((u) => (showActive && !u.banned) || (showBanned && u.banned))
   }, [users, showActive, showBanned])
 
-  const columns = useMemo<ColumnDef<UserAdminRow>[]>(() => [
+  const columns = useMemo<ColumnDef<AdminTableFeatures, UserAdminRow>[]>(() => [
     {
       id: 'username',
       accessorFn: (u) => u.displayUsername ?? u.username ?? '',
@@ -101,20 +101,15 @@ export function AdminUsersTable({ users }: { users: UserAdminRow[] }) {
     },
   ], [t])
 
-  // React Compiler skips this component by design: useReactTable returns unmemoizable functions.
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const table = useReactTable({
+  const table = useTable({
+    features: adminTableFeatures,
     data,
     columns,
     state: { sorting, globalFilter },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: usernameOrEmail,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 20 } },
+    initialState: { pagination: { pageIndex: 0, pageSize: 20 } },
   })
 
   const rows = table.getRowModel().rows
@@ -190,7 +185,7 @@ export function AdminUsersTable({ users }: { users: UserAdminRow[] }) {
             ) : (
               rows.map((r) => (
                 <TableRow key={r.id}>
-                  {r.getVisibleCells().map((c) => (
+                  {r.getAllCells().map((c) => (
                     <TableCell key={c.id}>{flexRender(c.column.columnDef.cell, c.getContext())}</TableCell>
                   ))}
                 </TableRow>
@@ -201,8 +196,8 @@ export function AdminUsersTable({ users }: { users: UserAdminRow[] }) {
       </div>
 
       <PaginationNav
-        page={table.getState().pagination.pageIndex + 1}
-        pageSize={table.getState().pagination.pageSize}
+        page={table.state.pagination.pageIndex + 1}
+        pageSize={table.state.pagination.pageSize}
         total={table.getFilteredRowModel().rows.length}
         onPrev={() => table.previousPage()}
         onNext={() => table.nextPage()}

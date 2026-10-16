@@ -51,6 +51,13 @@ describe('renderBanEmail', () => {
     expect(text).not.toContain('Your account')
   })
 
+  it('marks every element of a German mail as German', async () => {
+    const { html } = await renderBanEmail({ reason: 'Spam', expiresAt: null, contactEmail: '', locale: 'de' })
+    const langs = [...html.matchAll(/\slang="([^"]*)"/g)].map((m) => m[1])
+    expect(langs.length).toBeGreaterThan(0)
+    expect(new Set(langs)).toEqual(new Set(['de']))
+  })
+
   it('links the terms and the contact form', async () => {
     const { html } = await renderBanEmail({ reason: 'Spam', expiresAt: null, contactEmail: '' })
     expect(html).toMatch(/<a[^>]*href="https:\/\/revelio\.test\/terms"[^>]*>Terms of Service<\/a>/)

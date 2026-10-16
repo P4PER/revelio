@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { createTranslator } from 'next-intl'
 import {
   Body, Column, Container, Head, Html, Img, Link, Preview, Row, Section, Text,
-} from '@react-email/components'
+} from 'react-email'
 import { EMAIL_MESSAGES } from './messages'
 import type { EmailLocale } from './types'
 
@@ -109,7 +109,9 @@ export function EmailLayout({ locale, preview, contactEmail, children }: EmailLa
         />
       </Head>
       {preview ? <Preview>{preview}</Preview> : null}
-      <Body style={main}>
+      {/* react-email 6's Body writes lang="en" on <body> and its inner cell
+          unless told otherwise, which would override the Html lang. */}
+      <Body style={main} lang={locale}>
         {/* Full-width gold gradient band, flush at the very top of the email. */}
         <Row>
           <Column style={band}>{' '}</Column>

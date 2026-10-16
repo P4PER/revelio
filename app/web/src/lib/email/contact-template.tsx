@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { createTranslator } from 'next-intl'
 import { render } from '@react-email/render'
-import { Body, Container, Heading, Html, Section, Text } from '@react-email/components'
+import { Body, Container, Heading, Html, Section, Text } from 'react-email'
 import en from '@/../messages/en.json'
 import type { RenderedEmail } from './types'
 

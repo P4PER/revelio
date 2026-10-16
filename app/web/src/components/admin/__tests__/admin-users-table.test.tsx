@@ -71,4 +71,27 @@ describe('AdminUsersTable', () => {
     expect(screen.getByText('Showing 21–25 of 25')).toBeInTheDocument()
     expect(rowNames()).toHaveLength(5)
   })
+
+  it('lists the newest user first by default', () => {
+    renderTable()
+    expect(rowNames()).toEqual(['BobBanned', 'EdEditor', 'AnnAdmin'])
+  })
+
+  it('sorts usernames naturally when the column is clicked, user2 before user10', () => {
+    renderTable([
+      { ...users[0], id: 'a', username: 'user10', displayUsername: 'user10' },
+      { ...users[1], id: 'b', username: 'user2', displayUsername: 'user2' },
+    ])
+    fireEvent.click(screen.getByRole('button', { name: en.admin.users.username }))
+    expect(rowNames()).toEqual(['user2', 'user10'])
+  })
+
+  it('finds a user by email when the first row has no username', () => {
+    renderTable([
+      { ...users[0], id: 'a', username: null, displayUsername: null },
+      users[1],
+    ])
+    fireEvent.change(screen.getByPlaceholderText(en.admin.users.searchPlaceholder), { target: { value: 'ed@x' } })
+    expect(rowNames()).toHaveLength(1)
+  })
 })

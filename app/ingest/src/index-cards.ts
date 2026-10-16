@@ -8,11 +8,14 @@ import { buildDocuments } from './build-documents.js'
 // populated index on a cold host; timing out there would fail the job over a
 // task that goes on to succeed.
 export const INDEX_TASK_TIMEOUT_MS = 5 * 60_000
+// How often such a wait polls. The client polls every 50 ms by default, which over
+// a 5-minute wait is 6000 task reads against a server busy indexing.
+export const INDEX_TASK_INTERVAL_MS = 500
 
 export async function indexCards(db: DB, client: Meilisearch): Promise<string[]> {
   const byLang = await buildDocuments(db)
   const langs = Object.keys(byLang)
-  const wait = { timeout: INDEX_TASK_TIMEOUT_MS }
+  const wait = { timeout: INDEX_TASK_TIMEOUT_MS, interval: INDEX_TASK_INTERVAL_MS }
   for (const lang of langs) {
     const index = client.index(cardsIndex(lang))
     // updateSettings auto-creates the index if it does not exist.

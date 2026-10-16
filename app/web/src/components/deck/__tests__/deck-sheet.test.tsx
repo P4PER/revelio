@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 import { useState } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -152,10 +152,7 @@ describe('DeckSheet', () => {
     render(<Harness />)
     const handle = screen.getByRole('button', { name: 'Deck, 12 cards' })
 
-    // A drag that is cancelled mid-gesture, with no click after it. Downward,
-    // so the collapsed sheet clamps and stays shut: an upward flick snaps it
-    // open on cancel (cancel ends a drag like pointerup does), and the tap
-    // after it would then close the sheet for an unrelated reason.
+    // A drag that is cancelled mid-gesture, with no click after it.
     fireEvent.pointerDown(handle, { pointerId: 1, clientY: 400 })
     fireEvent.pointerMove(handle, { pointerId: 1, clientY: 500 })
     fireEvent.pointerCancel(handle, { pointerId: 1, clientY: 500 })
@@ -163,6 +160,36 @@ describe('DeckSheet', () => {
 
     await userEvent.setup().click(handle)
     expect(handle).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('springs back to where it rested when a drag is cancelled', () => {
+    // A cancel is the browser taking the gesture away (a system swipe, an
+    // incoming call), not the reader letting go, so it decides nothing. An
+    // upward drag that got cancelled used to snap the shut sheet open.
+    //
+    // jsdom has no layout, so give the sheet a height: with zero travel the
+    // old code only opened on the flick branch, which hangs on the clock.
+    // 600 - 72 leaves 528px of travel, and 300px up is past a quarter of it.
+    const height = vi
+      .spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
+      .mockImplementation(function (this: HTMLElement) {
+        return this.hasAttribute('data-deck-sheet') ? 600 : 72
+      })
+    try {
+      render(<Harness />)
+      const handle = screen.getByRole('button', { name: 'Deck, 12 cards' })
+      const sheet = handle.closest('[data-deck-sheet]') as HTMLElement
+
+      fireEvent.pointerDown(handle, { pointerId: 1, clientY: 500 })
+      fireEvent.pointerMove(handle, { pointerId: 1, clientY: 200 })
+      expect(sheet.style.transform).toBe('translateY(228px)')
+
+      fireEvent.pointerCancel(handle, { pointerId: 1, clientY: 200 })
+      expect(handle).toHaveAttribute('aria-expanded', 'false')
+      expect(sheet.style.transform).toBe('')
+    } finally {
+      height.mockRestore()
+    }
   })
 })
 

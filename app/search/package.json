@@ -3,15 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "main": "src/index.ts",
-  "exports": {
-    ".": "./src/index.ts"
-  },
-  "scripts": {
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@revelio/core": "*",
-    "meilisearch": "^0.62.0"
-  }
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "test": "vitest run", "typecheck": "tsc --noEmit" },
+  "dependencies": { "meilisearch": "^0.62.0", "@revelio/core": "*" }
 }

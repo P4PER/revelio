@@ -3,7 +3,7 @@ import type { Meilisearch } from 'meilisearch'
 import { createMeiliClient } from '@revelio/search'
 
 // A Meilisearch client authenticated with the SCOPED write key (documents.add
-// /update on the card indexes only) — never the master key, never sent to the
+// and tasks.get on the card indexes only) — never the master key, never sent to the
 // browser (no NEXT_PUBLIC_ prefix).
 export function getWriteClient(): Meilisearch {
   const host = process.env.MEILI_HOST

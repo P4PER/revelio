@@ -1,5 +1,6 @@
-import type { Settings, Meilisearch } from 'meilisearch'
+import { MeilisearchApiError, type Index, type Settings, type Meilisearch } from 'meilisearch'
 import { effectiveImageLang } from '@revelio/core'
+import { waitForSuccess } from './tasks'
 
 export type SearchDocument = {
   id: string
@@ -120,16 +121,41 @@ export function buildCardDocument(d: CardIndexData, lang: string): SearchDocumen
   }
 }
 
+// Whether ingest has created this index. Asked first because adding a document
+// to a missing index creates it, with none of CARD_INDEX_SETTINGS, under any key
+// that may create indexes.
+async function indexExists(index: Index): Promise<boolean> {
+  try {
+    await index.getRawInfo()
+    return true
+  } catch (err) {
+    if (err instanceof MeilisearchApiError && err.cause?.code === 'index_not_found') return false
+    throw err
+  }
+}
+
 // Re-index one card's document into each language index it has a localization for.
-// Waits for each task so callers observe a consistent index.
+// Waits for each task so callers observe a consistent index. A language whose
+// index ingest never created is skipped: it holds nothing to go stale. Every
+// language is attempted, and one error naming each that failed is thrown after.
+// Settings are ingest's: the scoped write key web calls this with may add
+// documents, look an index up and read tasks, nothing more.
 export async function reindexCard(
   client: Meilisearch,
   data: CardIndexData,
   langs: string[] = Object.keys(data.localizations),
 ): Promise<void> {
+  const failures: string[] = []
   for (const lang of langs) {
     const index = client.index(cardsIndex(lang))
-    await index.updateSettings(CARD_INDEX_SETTINGS).waitTask()
-    await index.addDocuments([buildCardDocument(data, lang)], { primaryKey: 'id' }).waitTask()
+    try {
+      if (!(await indexExists(index))) continue
+      await waitForSuccess(index.addDocuments([buildCardDocument(data, lang)], { primaryKey: 'id' }))
+    } catch (err) {
+      failures.push(`${lang} (${err instanceof Error ? err.message : String(err)})`)
+    }
+  }
+  if (failures.length > 0) {
+    throw new Error(`reindexCard ${data.id} failed for ${failures.join('; ')}`)
   }
 }

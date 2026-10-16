@@ -167,9 +167,7 @@ describe('CardNav', () => {
     expect(hint()).toHaveClass('opacity-0')
 
     // Fade finished → unmounts.
-    const te = new Event('transitionend', { bubbles: true })
-    Object.defineProperty(te, 'propertyName', { value: 'opacity' })
-    fireEvent(hint()!, te)
+    fireEvent(hint()!, new TransitionEvent('transitionend', { bubbles: true, propertyName: 'opacity' }))
     expect(screen.queryByText('to flip between cards')).toBeNull()
   })
 

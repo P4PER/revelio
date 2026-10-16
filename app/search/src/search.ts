@@ -143,7 +143,7 @@ async function readWindow(
   }
   const res = await client.multiSearch(federated)
   return {
-    hits: res.hits.map((hit) => stripFederation(hit as Record<string, unknown>)),
+    hits: res.hits.map(stripFederation),
     total: res.estimatedTotalHits ?? 0,
   }
 }

@@ -91,7 +91,7 @@ describe('AdminSetsTable', () => {
     expect(screen.getAllByText('BS')).toHaveLength(1)
   })
 
-  it('paginates when there are more than one page of sets', () => {
+  it('paginates when there are more than one page of sets', async () => {
     const many: SetDTO[] = Array.from({ length: 25 }, (_, i) => ({
       code: `S${i}`, name: `Set ${String(i).padStart(2, '0')}`, releaseDate: '2001-01-01', isOfficial: true, cardCount: i, symbolVersion: null,
     }))
@@ -99,5 +99,19 @@ describe('AdminSetsTable', () => {
     expect(screen.getAllByRole('link')).toHaveLength(20) // pageSize 20
     fireEvent.click(screen.getByRole('button', { name: 'Next' }))
     expect(screen.getAllByRole('link')).toHaveLength(5)  // remaining 5 on page 2
+    // A search from page 2 goes back to page 1 instead of leaving an empty page 2.
+    // TanStack 9 resets the page index after the render that filtered, so wait for it.
+    fireEvent.change(screen.getByPlaceholderText('Search name or code…'), { target: { value: 'Set 03' } })
+    expect(await screen.findByRole('link', { name: 'Set 03' })).toBeInTheDocument()
+    expect(rowNames()).toEqual(['Set 03'])
+  })
+
+  it('sorts set names naturally when the column is clicked, Set 2 before Set 10', () => {
+    renderTable([
+      { ...sets[0], code: 'S10', name: 'Set 10' },
+      { ...sets[1], code: 'S2', name: 'Set 2' },
+    ])
+    fireEvent.click(screen.getByRole('button', { name: en.admin.sets.name }))
+    expect(rowNames()).toEqual(['Set 2', 'Set 10'])
   })
 })

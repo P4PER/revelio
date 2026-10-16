@@ -34,7 +34,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./vitest.setup.ts'],
+    // animation-event first: React reads it when react-dom loads.
+    setupFiles: ['./vitest-stubs/animation-event.ts', './vitest.setup.ts'],
     // mdx/ and i18n/ both sit beside src/ because next.config.ts imports them
     // at build time, so their tests need collecting too.
     include: ['src/**/*.test.{ts,tsx}', 'i18n/**/*.test.ts', 'mdx/**/*.test.ts'],

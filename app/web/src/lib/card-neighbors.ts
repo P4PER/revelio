@@ -1,4 +1,4 @@
-import type { MeiliSearch } from 'meilisearch'
+import type { Meilisearch } from 'meilisearch'
 import type { CardDetailDTO } from '@revelio/core'
 import { MAX_TOTAL_HITS, searchCardIds } from '@revelio/search'
 import { contextHref, parseSearchParams, toSearchOptions } from './search-params'
@@ -40,7 +40,7 @@ export function neighborsFromWindow(
 // own set ordered by numberSort. Both walks read ids only - card content is
 // irrelevant here, and this runs on every card view plus its two prefetches.
 export async function getCardNeighbors(
-  client: MeiliSearch,
+  client: Meilisearch,
   locale: string,
   card: CardDetailDTO,
   ctx: NeighborContext | null,
@@ -86,7 +86,7 @@ export async function getCardNeighbors(
 // Meilisearch outage costs the chevrons, not the page. The client is resolved
 // in here rather than by the caller so the factory's throw is caught too.
 export async function getCardNeighborsSafe(
-  getClient: () => MeiliSearch,
+  getClient: () => Meilisearch,
   locale: string,
   card: CardDetailDTO,
   ctx: NeighborContext | null,

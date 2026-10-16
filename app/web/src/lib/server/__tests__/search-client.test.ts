@@ -17,10 +17,8 @@ const docs: SearchDocument[] = [
 ]
 
 beforeAll(async () => {
-  const s = await client.index(cardsIndex(lang)).updateSettings(CARD_INDEX_SETTINGS)
-  await client.waitForTask(s.taskUid)
-  const a = await client.index(cardsIndex(lang)).addDocuments(docs, { primaryKey: 'id' })
-  await client.waitForTask(a.taskUid)
+  await client.index(cardsIndex(lang)).updateSettings(CARD_INDEX_SETTINGS).waitTask()
+  await client.index(cardsIndex(lang)).addDocuments(docs, { primaryKey: 'id' }).waitTask()
 }, 60_000)
 afterAll(async () => { await client.deleteIndex(cardsIndex(lang)) })
 

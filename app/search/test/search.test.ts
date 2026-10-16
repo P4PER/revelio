@@ -15,10 +15,8 @@ const docs: SearchDocument[] = [
 ]
 
 beforeAll(async () => {
-  const s = await client.index(uid).updateSettings(CARD_INDEX_SETTINGS)
-  await client.waitForTask(s.taskUid)
-  const a = await client.index(uid).addDocuments(docs, { primaryKey: 'id' })
-  await client.waitForTask(a.taskUid)
+  await client.index(uid).updateSettings(CARD_INDEX_SETTINGS).waitTask()
+  await client.index(uid).addDocuments(docs, { primaryKey: 'id' }).waitTask()
 }, 60_000)
 afterAll(async () => { await client.deleteIndex(uid) })
 
@@ -57,11 +55,9 @@ describe('sorting by card number', () => {
   }))
 
   beforeAll(async () => {
-    const s = await client.index(sortUid).updateSettings(CARD_INDEX_SETTINGS)
-    await client.waitForTask(s.taskUid)
+    await client.index(sortUid).updateSettings(CARD_INDEX_SETTINGS).waitTask()
     const docs = cards.map((c) => buildCardDocument(c, 'en'))
-    const a = await client.index(sortUid).addDocuments(docs, { primaryKey: 'id' })
-    await client.waitForTask(a.taskUid)
+    await client.index(sortUid).addDocuments(docs, { primaryKey: 'id' }).waitTask()
   }, 60_000)
   afterAll(async () => { await client.deleteIndex(sortUid) })
 
@@ -88,10 +84,8 @@ describe('name matches rank above text and flavor matches', () => {
   ]
 
   beforeAll(async () => {
-    const s = await client.index(rankUid).updateSettings(CARD_INDEX_SETTINGS)
-    await client.waitForTask(s.taskUid)
-    const a = await client.index(rankUid).addDocuments(rankDocs, { primaryKey: 'id' })
-    await client.waitForTask(a.taskUid)
+    await client.index(rankUid).updateSettings(CARD_INDEX_SETTINGS).waitTask()
+    await client.index(rankUid).addDocuments(rankDocs, { primaryKey: 'id' }).waitTask()
   }, 60_000)
   afterAll(async () => { await client.deleteIndex(rankUid) })
 

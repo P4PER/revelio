@@ -15,8 +15,7 @@ const data: CardIndexData = {
 
 afterAll(async () => {
   for (const l of [lang, missingLang]) {
-    const del = await client.index(cardsIndex(l)).delete()
-    await client.waitForTask(del.taskUid)
+    await client.index(cardsIndex(l)).delete().waitTask()
   }
 })
 

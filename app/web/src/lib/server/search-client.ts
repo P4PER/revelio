@@ -1,5 +1,5 @@
 import 'server-only'
-import type { MeiliSearch } from 'meilisearch'
+import type { Meilisearch } from 'meilisearch'
 import {
   createMeiliClient,
   searchCardFields,
@@ -8,7 +8,7 @@ import {
 } from '@revelio/search'
 import { toSearchOptions, type SearchState } from '@/lib/search-params'
 
-export function getSearchClient(): MeiliSearch {
+export function getSearchClient(): Meilisearch {
   const host = process.env.MEILI_HOST
   if (!host) throw new Error('MEILI_HOST is required')
   return createMeiliClient(host, process.env.MEILI_SEARCH_KEY ?? '')
@@ -18,7 +18,7 @@ export function getSearchClient(): MeiliSearch {
 // surface asked for. `fields` is required rather than optional: an omitted projection
 // is exactly the mistake this signature is here to prevent.
 export async function runSearch<K extends keyof SearchDocument>(
-  client: MeiliSearch,
+  client: Meilisearch,
   lang: string,
   state: SearchState,
   fields: readonly K[],

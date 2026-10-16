@@ -228,6 +228,17 @@ export function DeckSheet({
     [expanded, onExpandedChange],
   )
 
+  // A cancel is the browser taking the gesture away - a system swipe, an
+  // incoming call, the phone turning - not the reader letting go, so it
+  // decides nothing: the sheet goes back to where it rested. Treating it as
+  // a pointerup fed its last position to snapExpanded, and a cancelled upward
+  // flick snapped the shut sheet open.
+  const handlePointerCancel = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
+    if (drag.current?.id !== event.pointerId) return
+    drag.current = null
+    setOffset(null)
+  }, [])
+
   function handleClick() {
     if (dragged.current) {
       dragged.current = false
@@ -284,7 +295,7 @@ export function DeckSheet({
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
+          onPointerCancel={handlePointerCancel}
           // touch-none, or the browser scrolls the page instead of letting the
           // drag through. Only the handle drags, so the deck list below keeps
           // its own scrolling.

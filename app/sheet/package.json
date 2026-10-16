@@ -12,6 +12,6 @@
   "dependencies": {
     "@revelio/core": "*",
     "sharp": "^0.35.5",
-    "zod": "^3.23.0"
+    "zod": "^4.6.7"
   }
 }

@@ -16,7 +16,7 @@ describe('parseEnv', () => {
   })
 
   // Same trap as the bot's SHEET_SERVICE_URL: zod runs a refinement on a value
-  // that already failed .url(), so an unguarded new URL() throws a TypeError out
+  // that already failed z.url(), so an unguarded new URL() throws a TypeError out
   // of safeParse and past the handler that formats env problems.
   it('still reports a value new URL() cannot parse as an env problem', () => {
     for (const value of ['', 'nonsense', '9000', 'http://']) {

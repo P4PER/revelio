@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// zod marks a failed .url() dirty rather than aborted, so a refinement below
+// zod marks a failed z.url() dirty rather than aborted, so a refinement below
 // still runs on a value new URL() cannot parse - and an unguarded `new URL(v)`
 // throws a TypeError straight out of safeParse, past the reporting in parseEnv.
 // Declared above the schema because the schema reads it at module init.
@@ -19,7 +19,7 @@ const Env = z.object({
   // The scheme check is not redundant: zod's url() accepts any scheme, so a
   // value like "rustfs:9000" - a hostname someone forgot to prefix - passes it
   // and then fails on the first fetch instead of at boot.
-  IMAGE_BASE_URL: z.string().url()
+  IMAGE_BASE_URL: z.url()
     .refine((v) => /^https?:$/.test(parseUrl(v)?.protocol ?? ''), { message: 'must be an http(s) URL' })
     // A query or fragment on the base would survive into every art URL, where
     // the key is appended after it - so every card would resolve to the same

@@ -118,3 +118,40 @@ export async function waitForSuccess(enqueued: EnqueuedTaskPromise, options?: Wa
 - [ ] Push, `gh pr create --base chore/upgrade-meilisearch`. `## Deployment`: production's
   `MEILI_WRITE_KEY` must carry `documents.add` and `tasks.get` on `cards-*`; without `tasks.get`
   editor reindexes already fail today. No ingest run needed.
+
+---
+
+## Review follow-up (code review of #173)
+
+Verified against the code and Meilisearch v1.10.3:
+
+- `buildDocuments` creates an index only for a language with localization rows, but web
+  reindexes every routing locale. Under the scoped key a missing index fails every save; under a
+  key that can create indexes, `addDocuments` creates it **without** `CARD_INDEX_SETTINGS`
+  (no filterable/sortable attributes), which this PR's removal of `updateSettings` introduced.
+- `reindexCard` throws from inside its loop, so one failed language skips the rest.
+- A scoped key with `indexes.get` answers `GET /indexes/cards-xx` with 404 `index_not_found` and
+  an existing index with 200.
+
+### Task 6: `reindexCard` skips missing indexes and tries every language
+
+**Files:** `search/src/documents.ts`, `search/test/reindex-card.test.ts`, `search/test/helpers.ts`,
+`web/.env.example`, `web/src/lib/server/reindex.ts`, `CLAUDE.md`.
+
+- [ ] **Failing tests:** (a) a language whose index does not exist is skipped and not created;
+  (b) when one language's task fails (an index created with a different primary key), the other
+  language is still written and `reindexCard` rejects naming the failed language. The existing
+  fallback-document test creates its index first; the scoped key gains `indexes.get`; the scoped
+  test takes its host from an exported `testMeiliHost()`.
+- [ ] **Implement:** check existence with `getRawInfo()` (404 `index_not_found` means skip), wrap
+  each language in try/catch, throw one error listing every failed language.
+- [ ] Recipe, `reindex.ts` comment (ASCII only) and CLAUDE.md: `documents.add` + `indexes.get` +
+  `tasks.get`.
+- [ ] Commit `fix(search): skip a missing language index and reindex the rest on a failure`.
+
+### Task 7: Ingest poll interval and order
+
+- [ ] **Failing test:** both waits pass `{ timeout: INDEX_TASK_TIMEOUT_MS, interval: INDEX_TASK_INTERVAL_MS }`,
+  settings before documents.
+- [ ] **Implement:** `INDEX_TASK_INTERVAL_MS = 500`, so a 5-minute wait polls at most 600 times.
+- [ ] Commit `fix(ingest): poll long index tasks every half second`.

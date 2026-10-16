@@ -1,4 +1,4 @@
-import type { FederatedMultiSearchParams, Meilisearch, SearchResponse } from 'meilisearch'
+import type { FederatedMultiSearchParams, Meilisearch } from 'meilisearch'
 import { cardsIndex, type SearchDocument } from './documents'
 
 export type CardFilters = {
@@ -141,10 +141,7 @@ async function readWindow(
       { indexUid, q: query, ...params, federationOptions: { weight: 1 } },
     ],
   }
-  // The client's two multiSearch overloads resolve to the non-federated one for any
-  // argument that also satisfies MultiSearchParams, which a federated request does, so
-  // the federated response type has to be named here or `hits` does not exist on it.
-  const res = (await client.multiSearch(federated)) as unknown as SearchResponse
+  const res = await client.multiSearch(federated)
   return {
     hits: res.hits.map((hit) => stripFederation(hit as Record<string, unknown>)),
     total: res.estimatedTotalHits ?? 0,

@@ -1,4 +1,4 @@
-import type { FederatedMultiSearchParams, MeiliSearch, SearchResponse } from 'meilisearch'
+import type { FederatedMultiSearchParams, Meilisearch } from 'meilisearch'
 import { cardsIndex, type SearchDocument } from './documents'
 
 export type CardFilters = {
@@ -119,7 +119,7 @@ function stripFederation(hit: Record<string, unknown>): Record<string, unknown> 
 // through it, so a result grid and the card page's prev/next walk cannot end up ordering
 // the same result set differently.
 async function readWindow(
-  client: MeiliSearch,
+  client: Meilisearch,
   lang: string,
   query: string,
   params: ReadParams,
@@ -141,12 +141,9 @@ async function readWindow(
       { indexUid, q: query, ...params, federationOptions: { weight: 1 } },
     ],
   }
-  // The client's two multiSearch overloads resolve to the non-federated one for any
-  // argument that also satisfies MultiSearchParams, which a federated request does, so
-  // the federated response type has to be named here or `hits` does not exist on it.
-  const res = (await client.multiSearch(federated)) as unknown as SearchResponse
+  const res = await client.multiSearch(federated)
   return {
-    hits: res.hits.map((hit) => stripFederation(hit as Record<string, unknown>)),
+    hits: res.hits.map(stripFederation),
     total: res.estimatedTotalHits ?? 0,
   }
 }
@@ -155,7 +152,7 @@ async function readWindow(
 // how much of each document comes back. Hits stay untyped here: the caller knows
 // which shape its attributesToRetrieve asked for.
 async function pagedSearch(
-  client: MeiliSearch,
+  client: Meilisearch,
   lang: string,
   query: string,
   opts: SearchOptions,
@@ -199,7 +196,7 @@ export function buildFilter(f: CardFilters): string[] {
 }
 
 export async function searchCards(
-  client: MeiliSearch,
+  client: Meilisearch,
   lang: string,
   query: string,
   opts: SearchOptions = {},
@@ -211,7 +208,7 @@ export async function searchCards(
 // The one place a projected read is built. Callers pass a tuple declared `as const`,
 // which both goes to Meilisearch as attributesToRetrieve and fixes the hit type.
 export async function searchCardFields<K extends keyof SearchDocument>(
-  client: MeiliSearch,
+  client: Meilisearch,
   lang: string,
   query: string,
   fields: readonly K[],
@@ -225,7 +222,7 @@ export async function searchCardFields<K extends keyof SearchDocument>(
 // slice as autocomplete, not whole documents: a page of 10 otherwise ships ten
 // cards' rules text, flavor text and all 24 indexed fields to render three.
 export async function searchCardSummaries(
-  client: MeiliSearch,
+  client: Meilisearch,
   lang: string,
   query: string,
   opts: SearchOptions = {},
@@ -235,7 +232,7 @@ export async function searchCardSummaries(
 
 // The Discord bot's result rows: identity, a thumbnail and a stats line.
 export async function searchCardBrowseRows(
-  client: MeiliSearch,
+  client: Meilisearch,
   lang: string,
   query: string,
   opts: SearchOptions = {},
@@ -247,7 +244,7 @@ export async function searchCardBrowseRows(
 // not card content, so ask Meilisearch for a single attribute instead of whole
 // documents: a set walk then transfers 500 ids, not 500 full card records.
 export async function searchCardIds(
-  client: MeiliSearch,
+  client: Meilisearch,
   lang: string,
   query: string,
   opts: IdWindowOptions,
@@ -266,7 +263,7 @@ export async function searchCardIds(
 // A picker only ever reads the first page, so the summary read's page 1 is the
 // whole of it and the caller's limit is that page's size.
 export async function searchCardSuggestions(
-  client: MeiliSearch,
+  client: Meilisearch,
   lang: string,
   query: string,
   limit: number,

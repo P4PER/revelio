@@ -179,7 +179,7 @@ Design specs and phased implementation plans live in `docs/superpowers/specs/` a
 - **Derive from Zod, don't restate.** Where `@revelio/core` owns a schema, the type comes from it:
   `export type DeckFormat = z.infer<typeof DeckFormat>` (`core/src/deck.ts`). A hand-written twin of
   a schema is a drift bug waiting to happen.
-- **Type-only imports say `type`.** `import type { MeiliSearch } from 'meilisearch'` for a pure type
+- **Type-only imports say `type`.** `import type { Meilisearch } from 'meilisearch'` for a pure type
   import, and the inline form when one module gives you both:
   `import { cardsIndex, type SearchDocument } from './documents'`. Enforced by
   `@typescript-eslint/consistent-type-imports`, which also bans inline `import('...')` type

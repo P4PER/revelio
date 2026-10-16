@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import type { MeiliSearch } from 'meilisearch'
+import type { Meilisearch } from 'meilisearch'
 
 // The stub honours attributesToRetrieve the way Meilisearch does. Handing back
 // whole fixtures regardless would let a caller narrow its projection and still
@@ -38,5 +38,5 @@ export function stubMeili(hits: unknown[], estimatedTotalHits: number) {
   )
   const index = vi.fn().mockReturnValue({ search })
   const multiSearch = vi.fn().mockImplementation(federatedToSearch(index))
-  return { client: { index, multiSearch } as unknown as MeiliSearch, index, search, multiSearch }
+  return { client: { index, multiSearch } as unknown as Meilisearch, index, search, multiSearch }
 }

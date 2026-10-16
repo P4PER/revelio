@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import type { MeiliSearch } from 'meilisearch'
+import type { Meilisearch } from 'meilisearch'
 import { suggestCards, findCardById, MAX_CHOICES } from '../src/data/cards'
 
 function hit(n: number, name = `Card ${n}`) {
@@ -32,7 +32,7 @@ function stubMeili(hits: unknown[]) {
   const getDocument = vi.fn()
   const index = vi.fn().mockReturnValue({ search, getDocument })
   const multiSearch = vi.fn().mockImplementation(federatedToSearch(index))
-  return { client: { index, multiSearch } as unknown as MeiliSearch, index, search, getDocument }
+  return { client: { index, multiSearch } as unknown as Meilisearch, index, search, getDocument }
 }
 
 describe('suggestCards', () => {

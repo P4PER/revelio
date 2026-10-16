@@ -1,5 +1,5 @@
 import 'server-only'
-import type { MeiliSearch } from 'meilisearch'
+import type { Meilisearch } from 'meilisearch'
 import type { DB } from '@revelio/db'
 import type { SetDTO, SetProgress, CollectionSummary, OwnedQuantities } from '@revelio/core'
 import { searchCardFields } from '@revelio/search'
@@ -40,7 +40,7 @@ export type CollectionPageData = {
 // (/collection/[username]) views — computes a set progress dashboard plus the
 // two card grids (selected set, and the ownership-filtered browse) for one owner.
 export async function loadCollectionPage(
-  db: DB, client: MeiliSearch, locale: string, ownerId: string,
+  db: DB, client: Meilisearch, locale: string, ownerId: string,
   sp: URLSearchParams, imageBase: string,
 ): Promise<CollectionPageData> {
   const tab = sp.get('tab') === 'browse' ? 'browse' : 'sets'

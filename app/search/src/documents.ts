@@ -1,4 +1,4 @@
-import type { Settings, MeiliSearch } from 'meilisearch'
+import type { Settings, Meilisearch } from 'meilisearch'
 import { effectiveImageLang } from '@revelio/core'
 
 export type SearchDocument = {
@@ -123,15 +123,13 @@ export function buildCardDocument(d: CardIndexData, lang: string): SearchDocumen
 // Re-index one card's document into each language index it has a localization for.
 // Waits for each task so callers observe a consistent index.
 export async function reindexCard(
-  client: MeiliSearch,
+  client: Meilisearch,
   data: CardIndexData,
   langs: string[] = Object.keys(data.localizations),
 ): Promise<void> {
   for (const lang of langs) {
     const index = client.index(cardsIndex(lang))
-    const s = await index.updateSettings(CARD_INDEX_SETTINGS)
-    await client.waitForTask(s.taskUid)
-    const a = await index.addDocuments([buildCardDocument(data, lang)], { primaryKey: 'id' })
-    await client.waitForTask(a.taskUid)
+    await index.updateSettings(CARD_INDEX_SETTINGS).waitTask()
+    await index.addDocuments([buildCardDocument(data, lang)], { primaryKey: 'id' }).waitTask()
   }
 }

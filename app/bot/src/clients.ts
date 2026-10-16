@@ -1,10 +1,10 @@
-import type { MeiliSearch } from 'meilisearch'
+import type { Meilisearch } from 'meilisearch'
 import { createMeiliClient } from '@revelio/search'
 import { createClient, type DB } from '@revelio/db'
 import { createSetNames, type SetNames } from './data/sets'
 import type { BotEnv } from './env'
 
-export type Deps = { meili: MeiliSearch; db: DB; sets: SetNames; env: BotEnv }
+export type Deps = { meili: Meilisearch; db: DB; sets: SetNames; env: BotEnv }
 
 // MEILI_SEARCH_KEY is the same read-only key the web app uses. The bot never
 // writes, so it never sees MEILI_WRITE_KEY or the master key.

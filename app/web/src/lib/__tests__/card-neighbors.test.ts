@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import type { MeiliSearch } from 'meilisearch'
+import type { Meilisearch } from 'meilisearch'
 import type { CardDetailDTO } from '@revelio/core'
 import { MAX_TOTAL_HITS } from '@revelio/search'
 import {
@@ -29,7 +29,7 @@ function fakeClient(calls: Record<string, unknown>[], hits: { id: string }[] = [
       calls.push({ ...rest, ...req.federation })
       return result
     },
-  } as unknown as MeiliSearch
+  } as unknown as Meilisearch
 }
 
 afterEach(() => vi.restoreAllMocks())
@@ -110,7 +110,7 @@ describe('getCardNeighborsSafe', () => {
     const down = {
       index: () => ({ search: async () => { throw new Error('meilisearch is down') } }),
       multiSearch: async () => { throw new Error('meilisearch is down') },
-    } as unknown as MeiliSearch
+    } as unknown as Meilisearch
     expect(await getCardNeighborsSafe(() => down, 'en', card('c'), null))
       .toEqual({ prev: null, next: null })
   })

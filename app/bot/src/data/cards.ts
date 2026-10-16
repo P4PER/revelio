@@ -1,4 +1,4 @@
-import type { MeiliSearch } from 'meilisearch'
+import type { Meilisearch } from 'meilisearch'
 import {
   searchCardBrowseRows,
   searchCardSuggestions,
@@ -57,7 +57,7 @@ export function clampLabel(value: string): string {
 
 // Reads browse rows (identity, thumbnail and stats fields) rather than whole
 // documents - see searchCardBrowseRows.
-export async function findCards(meili: MeiliSearch, input: CardSearchInput): Promise<CardPage> {
+export async function findCards(meili: Meilisearch, input: CardSearchInput): Promise<CardPage> {
   const pageSize = input.pageSize ?? DEFAULT_PAGE_SIZE
   const page = Math.max(1, Math.floor(input.page ?? 1))
   const res = await searchCardBrowseRows(meili, input.locale, input.query, {
@@ -75,7 +75,7 @@ export async function findCards(meili: MeiliSearch, input: CardSearchInput): Pro
 }
 
 export async function findOneCard(
-  meili: MeiliSearch,
+  meili: Meilisearch,
   input: { query: string; locale: string },
 ): Promise<SearchDocument | null> {
   const res = await searchCards(meili, input.locale, input.query, { hitsPerPage: 1 })
@@ -104,7 +104,7 @@ export async function resolveCardRulings(
 // Autocomplete cannot be deferred and must answer inside 3 seconds, so this is
 // deliberately one Meilisearch call and nothing else.
 export async function suggestCards(
-  meili: MeiliSearch,
+  meili: Meilisearch,
   input: { query: string; locale: string },
 ): Promise<CardSuggestion[]> {
   const query = input.query.trim()
@@ -123,7 +123,7 @@ export async function suggestCards(
 // answers 403, which would silently kill the fast path everywhere but a
 // master-key dev stack. `id` is already a filterable attribute.
 export async function findCardById(
-  meili: MeiliSearch,
+  meili: Meilisearch,
   id: string,
   locale: string,
 ): Promise<SearchDocument | null> {

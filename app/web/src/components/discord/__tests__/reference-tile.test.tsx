@@ -35,6 +35,17 @@ describe('ReferenceTile', () => {
     expect(cta.querySelector('svg')?.getAttribute('class')).toMatch(/lucide-arrow-right/)
   })
 
+  // The call to action never wraps, so a bare 1fr text column (minmax(auto,
+  // 1fr)) would widen to fit it and push the button past the tile's padding
+  // on a narrow phone. The column has to be allowed to shrink.
+  it('lets the text column shrink below the button width', () => {
+    renderTile()
+    const link = screen.getByRole('link', { name: /Full reference/ })
+    const columns = link.className.match(/\bgrid-cols-\[[^\]]+\]/g) ?? []
+    expect(columns.length).toBeGreaterThan(0)
+    for (const c of columns) expect(c, c).not.toMatch(/[[_]1fr/)
+  })
+
   // The call to action looks like a button but is part of the one link, so the
   // tile costs a keyboard user a single tab stop.
   it('is a single tab stop', () => {

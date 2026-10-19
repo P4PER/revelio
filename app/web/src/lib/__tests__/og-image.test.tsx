@@ -80,13 +80,28 @@ describe('share image logo', () => {
     expect(reads(LOGO)).toBe(1)
   })
 
-  it.each(RENDERS)('renders the %s image without the logo when it cannot be read, then retries', async (_, render) => {
+  it.each(RENDERS)('fails the %s image when the logo cannot be read, then reads it again', async (_, render) => {
     const og = await import('../og-image')
     failures.set(LOGO, 1)
-    await expectOgPng(await render(og))
+    // Caught by hand: rejects.toThrow is unreliable in this workspace.
+    let failed: unknown = null
+    await render(og).catch((err: unknown) => {
+      failed = err
+    })
+    expect(String(failed)).toContain(LOGO)
     await expectOgPng(await render(og))
     // One failed read, then a fresh one: the failure was not cached.
     expect(reads(LOGO)).toBe(2)
+  })
+})
+
+describe('renderDeckOgImage', () => {
+  it('reads a missing lesson symbol once, not on every render', async () => {
+    const og = await import('../og-image')
+    const deck = { name: 'Charms', formatLabel: 'Classic', lessonCodes: ['NO_SUCH_LESSON'], artDataUri: `data:image/png;base64,${PNG_1X1}` }
+    await expectOgPng(await og.renderDeckOgImage(deck))
+    await expectOgPng(await og.renderDeckOgImage(deck))
+    expect(reads('lessons/NO_SUCH_LESSON.svg')).toBe(1)
   })
 })
 

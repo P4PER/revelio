@@ -43,51 +43,54 @@ function loadFont(): Promise<Buffer> {
   return fontPromise
 }
 
-// Static SVGs from public/ (the logo, the dark icon, lesson symbols), inlined as
-// data URIs because satori can't resolve a relative URL. Best-effort: a failed read
-// resolves to null and the image is drawn without it. Only a success is cached, so
-// one transient error cannot drop a logo or icon until the process restarts.
-const publicSvgCache = new Map<string, Promise<string | null>>()
-function loadPublicSvg(file: string): Promise<string | null> {
-  let uri = publicSvgCache.get(file)
+// Files the share images inline as data URIs (satori can't resolve a relative URL),
+// read once per process. A success is cached, and so is a missing file (ENOENT),
+// which will not appear on a retry: a lesson code with no symbol costs one read, not
+// one per render. Any other failure is evicted, so one transient error cannot drop a
+// file until the process restarts.
+const dataUriCache = new Map<string, Promise<string | null>>()
+function loadDataUri(path: string, mime: string): Promise<string | null> {
+  let uri = dataUriCache.get(path)
   if (!uri) {
-    uri = readFile(join(process.cwd(), 'public', file)).then(
-      (buf) => `data:image/svg+xml;base64,${buf.toString('base64')}`,
-      () => {
-        publicSvgCache.delete(file)
+    uri = readFile(path).then(
+      (buf) => `data:${mime};base64,${buf.toString('base64')}`,
+      (err: NodeJS.ErrnoException) => {
+        if (err.code !== 'ENOENT') dataUriCache.delete(path)
         return null
       },
     )
-    publicSvgCache.set(file, uri)
+    dataUriCache.set(path, uri)
   }
   return uri
+}
+
+// Static SVGs from public/ (the logo, the dark icon, lesson symbols). Best-effort: a
+// failed read resolves to null and the image is drawn without that file.
+function loadPublicSvg(file: string): Promise<string | null> {
+  return loadDataUri(join(process.cwd(), 'public', file), 'image/svg+xml')
 }
 
 function loadLessonIcon(code: string): Promise<string | null> {
   return loadPublicSvg(`lessons/${code}.svg`)
 }
 
-// The dark logo at `height`, or nothing when its file could not be read.
-function Logo({ uri, height }: { uri: string | null; height: number }) {
-  if (!uri) return null
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={uri} width={Math.round(height * LOGO_ASPECT)} height={height} alt="" />
+// The logo is the image's only branding, so like the font it is required: a share
+// image without it would be cached by every site it was posted to. A failed read
+// fails this render, and the next request reads the file again.
+async function loadLogo(): Promise<string> {
+  const uri = await loadPublicSvg(LOGO_FILE)
+  if (!uri) throw new Error(`og-image: cannot read public/${LOGO_FILE}`)
+  return uri
 }
 
-// Best-effort like the lesson icons: a failed read omits the art. A failure is not
-// cached, so one transient error cannot drop the art until the process restarts.
-let discordCardPromise: Promise<string | null> | null = null
 function loadDiscordCard(): Promise<string | null> {
-  if (!discordCardPromise) {
-    discordCardPromise = readFile(fileURLToPath(DISCORD_CARD_URL)).then(
-      (buf) => `data:image/jpeg;base64,${buf.toString('base64')}`,
-      () => {
-        discordCardPromise = null
-        return null
-      },
-    )
-  }
-  return discordCardPromise
+  return loadDataUri(fileURLToPath(DISCORD_CARD_URL), 'image/jpeg')
+}
+
+// The dark logo at `height`, at its own proportions.
+function Logo({ uri, height }: { uri: string; height: number }) {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={uri} width={Math.round(height * LOGO_ASPECT)} height={height} alt="" />
 }
 
 // The bot bolds each label of a card's labelled pairs (bot/src/discord/v2/card-view.ts).
@@ -118,7 +121,7 @@ export async function renderBrandOgImage(opts: {
   title: string
   subtitle: string
 }): Promise<ImageResponse> {
-  const [font, logoUri] = await Promise.all([loadFont(), loadPublicSvg(LOGO_FILE)])
+  const [font, logoUri] = await Promise.all([loadFont(), loadLogo()])
   return new ImageResponse(
     (
       <div
@@ -171,7 +174,7 @@ export async function renderDeckOgImage(opts: {
   lessonCodes: string[]
   artDataUri: string
 }): Promise<ImageResponse> {
-  const [font, logoUri] = await Promise.all([loadFont(), loadPublicSvg(LOGO_FILE)])
+  const [font, logoUri] = await Promise.all([loadFont(), loadLogo()])
   const lessonUris = (await Promise.all(opts.lessonCodes.slice(0, 4).map(loadLessonIcon))).filter(
     (u): u is string => u != null,
   )
@@ -235,7 +238,7 @@ export async function renderDeckOgImage(opts: {
 export async function renderDiscordOgImage(locale: string): Promise<ImageResponse> {
   const [font, logoUri, iconUri, cardUri, t] = await Promise.all([
     loadFont(),
-    loadPublicSvg(LOGO_FILE),
+    loadLogo(),
     loadPublicSvg(DARK_ICON_FILE),
     loadDiscordCard(),
     getTranslations({ locale, namespace: 'discord' }),

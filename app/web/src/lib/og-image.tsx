@@ -1,6 +1,8 @@
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
+import type { ReactNode } from 'react'
+import sharp from 'sharp'
 import { ImageResponse } from 'next/og'
 import { getTranslations } from 'next-intl/server'
 import { OG_SIZE, clampOgTitle } from '@/lib/seo'
@@ -38,6 +40,44 @@ async function loadLessonIcon(code: string): Promise<string | null> {
   }
   lessonIconCache.set(code, uri)
   return uri
+}
+
+// Discord's surface palette, as hardcoded in components/discord/command-channel.tsx:
+// the image depicts Discord's UI, which does not follow the Revelio theme.
+const DISCORD_CHANNEL = '#313338'
+const DISCORD_EMBED = '#2b2d31'
+const DISCORD_HEADING = '#f2f3f5'
+const DISCORD_TEXT = '#dbdee1'
+const DISCORD_MUTED = '#949ba4'
+const DISCORD_BLURPLE = '#5865F2'
+const DISCORD_MENTION = '#c2c5f7'
+const LESSON_CHARMS = '#0069A9'
+
+// The /discord page's sample card, converted to PNG because satori cannot decode
+// WebP. Best-effort like the lesson icons: a failure omits the art.
+let discordCardPromise: Promise<string | null> | null = null
+function loadDiscordCard(): Promise<string | null> {
+  if (!discordCardPromise) {
+    discordCardPromise = readFile(join(process.cwd(), 'public', 'discord', 'alohomora-thumb.webp'))
+      .then((buf) => sharp(buf).png().toBuffer())
+      .then((png) => `data:image/png;base64,${png.toString('base64')}`)
+      .catch(() => null)
+  }
+  return discordCardPromise
+}
+
+// The bot bolds each label of a card's labelled pairs (bot/src/discord/v2/card-view.ts).
+// There is one font weight here, so the label is set apart by colour instead.
+const pairLabel = (chunks: ReactNode) => <span style={{ color: '#ffffff' }}>{chunks}</span>
+
+// Satori trims the spaces at both ends of every text run in a flex row, which glues
+// "Type" to "Spell" in a rich message. So each word becomes its own flex item and the
+// row's columnGap stands in for the space; a long line then wraps between words.
+function splitWords(node: ReactNode): ReactNode[] {
+  if (typeof node === 'string') {
+    return node.split(/\s+/).filter(Boolean).map((word, i) => <span key={`w${i}`}>{word}</span>)
+  }
+  return Array.isArray(node) ? node.flatMap(splitWords) : [node]
 }
 
 /**
@@ -150,6 +190,109 @@ export async function renderDeckOgImage(opts: {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      </div>
+    ),
+    {
+      width: OG_SIZE.width,
+      height: OG_SIZE.height,
+      fonts: [{ name: 'Poppins', data: font, weight: 600, style: 'normal' }],
+    },
+  )
+}
+
+/**
+ * The /discord page's share card: the page headline on the left, and on the right
+ * a /card answer drawn as the bot sends it (the page's CommandChannel, cropped by
+ * the canvas edge). Every string is the page's own, so the image follows the locale.
+ */
+export async function renderDiscordOgImage(locale: string): Promise<ImageResponse> {
+  const [font, cardUri, t] = await Promise.all([
+    loadFont(),
+    loadDiscordCard(),
+    getTranslations({ locale, namespace: 'discord' }),
+  ])
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: '100%', height: '100%', display: 'flex', overflow: 'hidden',
+          padding: '64px 0 0 72px', fontFamily: 'Poppins',
+          background: 'linear-gradient(135deg, #13122A 0%, #181634 60%, #3B3194 160%)',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: 520, paddingBottom: 72 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={MARK_DATA_URI} width={64} height={64} alt="" />
+            <span style={{ fontSize: 40, color: '#FBF3DC', letterSpacing: '-1px' }}>revelio</span>
+          </div>
+          {/* The <b> part of the heading takes its own line, in gold. */}
+          <div style={{ display: 'flex', flexDirection: 'column', fontSize: 62, lineHeight: 1.08, color: '#FBF3DC' }}>
+            {t.rich('heading', { b: (chunks) => <span style={{ color: '#E8B23A' }}>{chunks}</span> })}
+            <span style={{ fontSize: 28, lineHeight: 1.4, color: '#B9B4D6', marginTop: 18 }}>revelio.cards/discord</span>
+          </div>
+        </div>
+        <div
+          style={{
+            display: 'flex', flexDirection: 'column', marginLeft: 40, width: 600, minHeight: 640,
+            padding: '22px 28px', borderRadius: '20px 0 0 0', background: DISCORD_CHANNEL,
+            boxShadow: '0 30px 80px rgba(0,0,0,0.5)',
+          }}
+        >
+          <div style={{ display: 'flex', fontSize: 20, color: DISCORD_MUTED, marginBottom: 18 }}>
+            <span style={{ marginRight: 10 }}>#</span>
+            <span style={{ color: DISCORD_HEADING }}>{t('channelName')}</span>
+          </div>
+          <div style={{ display: 'flex', columnGap: 5, fontSize: 17, color: DISCORD_MUTED, marginLeft: 66, marginBottom: 6 }}>
+            {splitWords(t.rich('usedCommand', {
+              userName: t('you'),
+              command: '/card',
+              user: (chunks) => <span style={{ color: DISCORD_TEXT }}>{chunks}</span>,
+              cmd: (chunks) => <span style={{ color: DISCORD_MENTION }}>{chunks}</span>,
+            }))}
+          </div>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <div
+              style={{
+                display: 'flex', width: 50, height: 50, borderRadius: 50, flexShrink: 0,
+                alignItems: 'center', justifyContent: 'center', background: '#13122A',
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={MARK_DATA_URI} width={33} height={33} alt="" />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <span style={{ fontSize: 22, color: DISCORD_HEADING }}>{t('botName')}</span>
+                <span
+                  style={{
+                    display: 'flex', fontSize: 14, color: '#ffffff', background: DISCORD_BLURPLE,
+                    borderRadius: 4, padding: '1px 6px', textTransform: 'uppercase',
+                  }}
+                >
+                  {t('appTag')}
+                </span>
+                <span style={{ fontSize: 15, color: DISCORD_MUTED }}>21:04</span>
+              </div>
+              <div style={{ display: 'flex', width: 470, borderRadius: 6, overflow: 'hidden', background: DISCORD_EMBED }}>
+                <div style={{ display: 'flex', width: 6, background: LESSON_CHARMS }} />
+                <div style={{ display: 'flex', flexDirection: 'column', flex: 1, padding: '16px 20px' }}>
+                  <span style={{ fontSize: 28, color: DISCORD_HEADING }}>{t('sample.cardName')}</span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', columnGap: 5, fontSize: 18, color: '#b5bac1', marginBottom: 2 }}>
+                    {splitWords(t.rich('sample.cardTags', { b: pairLabel }))}
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', columnGap: 5, fontSize: 18, color: '#b5bac1', marginBottom: 14 }}>
+                    {splitWords(t.rich('sample.cardStats', { b: pairLabel }))}
+                  </div>
+                  {cardUri && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={cardUri} width={240} height={335} style={{ borderRadius: 8 }} alt="" />
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

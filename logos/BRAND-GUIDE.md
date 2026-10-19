@@ -70,7 +70,14 @@ text (website, headings) Poppins is the recommended house font (e.g. via Google 
 File names say **what** the file is, then **which background** it is for:
 `revelio-<part>-<background>`. The parts are `logo` (icon and wordmark), `icon` (wand
 and star only), `wordmark` (the text only) and `app-icon` (the icon on its square
-tile); the background is `on-light` or `on-dark`.
+tile); the background is `on-light` or `on-dark`. The app icon has no background
+suffix, because it carries its own tile.
+
+`app/web/public/` also holds two files cut for one use each, not kept here:
+`revelio-wordmark-on-dark.svg`, and `revelio-icon-parchment.svg`, the app icon's glyph
+without its tile, whose wand is parchment rather than the dark logo's indigo. The
+sign-in card uses both. For the icon on a dark surface anywhere else, use
+`revelio-icon-on-dark.svg`.
 
 | File | Purpose |
 |---|---|

@@ -1,6 +1,18 @@
 import Image from 'next/image'
 import { ChevronDown } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import {
+  DISCORD_BLURPLE,
+  DISCORD_CHANNEL,
+  DISCORD_EMBED,
+  DISCORD_HEADING,
+  DISCORD_INPUT,
+  DISCORD_MENTION,
+  DISCORD_MUTED,
+  DISCORD_SELECT,
+  DISCORD_TEXT,
+  LESSON_CHARMS,
+} from '@/lib/discord-palette'
 
 type ShareRow = { name: string; setCode: string; number: string; cost: number; thumb: string }
 
@@ -23,22 +35,9 @@ type ShareRow = { name: string; setCode: string; number: string; cost: number; t
  *   - both link buttons are left off here: the visitor is already on
  *     revelio.cards
  *
- * The colours below are Discord's own surface palette, deliberately hardcoded
- * rather than taken from the Revelio theme tokens: this depicts Discord's UI,
- * which does not follow the visitor's light/dark choice. The /discord share
- * image (lib/og-image.tsx) draws the same channel, so it imports them from here.
+ * The Discord colours come from lib/discord-palette.ts, which the /discord
+ * share image draws from too.
  */
-export const DISCORD_CHANNEL = '#313338'
-export const DISCORD_EMBED = '#2b2d31'
-const DISCORD_INPUT = '#383a40'
-export const DISCORD_HEADING = '#f2f3f5'
-export const DISCORD_TEXT = '#dbdee1'
-export const DISCORD_MUTED = '#949ba4'
-export const DISCORD_BLURPLE = '#5865F2'
-export const DISCORD_MENTION = '#c2c5f7'
-const DISCORD_SELECT = '#1e1f22'
-
-export const LESSON_CHARMS = '#0069A9'
 const BRAND_GOLD = '#d4a83a'
 
 // Card names and printings are data, not copy: they read the same in both

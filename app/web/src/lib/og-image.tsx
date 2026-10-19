@@ -14,7 +14,7 @@ import {
   DISCORD_MUTED,
   DISCORD_TEXT,
   LESSON_CHARMS,
-} from '@/components/discord/command-channel'
+} from '@/lib/discord-palette'
 import { OG_SIZE, clampOgTitle } from '@/lib/seo'
 import { SITE_URL } from '@/lib/site'
 

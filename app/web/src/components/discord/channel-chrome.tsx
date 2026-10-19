@@ -1,4 +1,5 @@
 import { useTranslations } from 'next-intl'
+import type { BotCommandName } from '@revelio/core'
 import {
   DISCORD_ACTIVE,
   DISCORD_HEADING,
@@ -11,8 +12,9 @@ import {
 } from '@/lib/discord-palette'
 
 type MessageBoxProps = {
-  // Command and option are the literal names the bot registers, not copy.
-  command: string
+  // Command and option are the literal names the bot registers, not copy;
+  // command-picker.test.tsx holds the option to the command's registered ones.
+  command: BotCommandName
   option: string
   value: string
 }
@@ -38,7 +40,7 @@ export function ChannelHeader() {
         {t('channelName')}
       </span>
       <span className="ml-1 h-4 w-px shrink-0" style={{ background: DISCORD_ACTIVE }} />
-      <span className="truncate pl-1.5 text-[0.82rem] font-normal">{t('picker.topic')}</span>
+      <span className="truncate pl-1.5 text-[0.82rem] font-normal">{t('channelTopic')}</span>
     </div>
   )
 }
@@ -60,8 +62,9 @@ export function MessageBox({ command, option, value }: MessageBoxProps) {
         +
       </span>
       <span className="flex min-w-0 items-center gap-1.5">
-        <span>/{command}</span>
+        <span data-command>/{command}</span>
         <span
+          data-option
           className="rounded px-1.5 font-mono text-[0.82rem] leading-[22px] after:content-[':']"
           style={{ background: DISCORD_PILL_LIVE, color: DISCORD_MENTION }}
         >

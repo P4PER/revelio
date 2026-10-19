@@ -1,7 +1,6 @@
 import Image from 'next/image'
 import { ChevronDown } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { BOT_COMMANDS } from '@revelio/core'
 import {
   DISCORD_BLURPLE,
   DISCORD_CHANNEL,
@@ -53,9 +52,6 @@ const SHARE_ROWS: readonly ShareRow[] = [
 
 const SAMPLE_CARD_THUMB = '/discord/alohomora-thumb.webp'
 
-// The option the message box is typing into, as the bot registers it.
-const TYPED_OPTION = BOT_COMMANDS.find((c) => c.name === 'collection')!.options[0].name
-
 function CommandContext({ command }: { command: string }) {
   const t = useTranslations('discord')
   return (
@@ -86,7 +82,7 @@ function BotMessage({ time, children }: { time: string; children: React.ReactNod
           >
             {t('appTag')}
           </span>
-          <span className="text-[0.68rem]" style={{ color: DISCORD_MUTED }}>
+          <span className="text-[0.69rem]" style={{ color: DISCORD_MUTED }}>
             {time}
           </span>
         </div>
@@ -197,7 +193,7 @@ export function CommandChannel() {
         </div>
       </div>
 
-      <MessageBox command="collection" option={TYPED_OPTION} value={t('sample.typing')} />
+      <MessageBox command="collection" option="set" value={t('sample.typing')} />
     </div>
   )
 }

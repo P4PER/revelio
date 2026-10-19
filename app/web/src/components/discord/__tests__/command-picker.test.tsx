@@ -112,7 +112,19 @@ describe('the two Discord windows', () => {
     expect(avatar.className).toMatch(/(^|\s)size-9(\s|$)/)
   })
 
-  it('types the option the bot registers, outside the localized value', async () => {
+  // Command and option names are literals at each call site; this holds them
+  // to what the bot registers, so a rename in core fails here, not on the page.
+  it('type only options their command registers', async () => {
+    const { container } = await renderBoth()
+    for (const box of container.querySelectorAll('[data-message-box]')) {
+      const command = box.querySelector('[data-command]')!.textContent!.replace(/^\//, '')
+      const option = box.querySelector('[data-option]')!.textContent
+      const spec = BOT_COMMANDS.find((c) => c.name === command)
+      expect(spec?.options.map((o) => o.name)).toContain(option)
+    }
+  })
+
+  it('keep the typed value outside the option name', async () => {
     const { container } = await renderBoth()
     const box = container.querySelector('[data-window="hero"] [data-message-box]')!
     expect(box.textContent).toBe(`+/collectionset${en.discord.sample.typing}`)

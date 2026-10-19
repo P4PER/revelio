@@ -771,6 +771,7 @@
       "privateReplies": "Persönliche Antworten bleiben privat"
     },
     "channelName": "deck-talk",
+    "channelTopic": "Decks bauen, tauschen und über Regeln streiten",
     "usedCommand": "<user>{userName}</user> nutzte <cmd>{command}</cmd>",
     "botName": "Revelio",
     "appTag": "App",
@@ -830,7 +831,6 @@
     },
     "picker": {
       "label": "Revelios Befehle, wie Discord sie anzeigt",
-      "topic": "Decks bauen, tauschen und über Regeln streiten",
       "history1": "Moment, kann Alohomora auch ein Abenteuer holen?",
       "history2": "glaube schon, ich schau nach",
       "channel": "Kanal",

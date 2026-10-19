@@ -36,6 +36,6 @@ describe('ChannelHeader', () => {
   it('names the channel and its topic', () => {
     renderChrome(<ChannelHeader />)
     expect(screen.getByText(en.discord.channelName)).toBeInTheDocument()
-    expect(screen.getByText(en.discord.picker.topic)).toBeInTheDocument()
+    expect(screen.getByText(en.discord.channelTopic)).toBeInTheDocument()
   })
 })

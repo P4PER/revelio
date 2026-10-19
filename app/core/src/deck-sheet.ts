@@ -271,7 +271,7 @@ export const DECK_SHEET = {
   // painter clamped it.
   placeholderInset: 16,
   footerHeight: 72,
-  // logos/revelio-logo-dark.svg is 262 x 78.
+  // logos/revelio-logo-on-dark.svg is 262 x 78.
   logo: { height: 34, aspect: 262 / 78 },
   fontSize: { eyebrow: 12, title: 44, titleMin: 32, subtitle: 15, legend: 12, zone: 13, group: 12, chipSign: 11, chip: 14, placeholder: 12 },
   tracking: { eyebrow: 0.2, zone: 0.2, group: 0.14 },

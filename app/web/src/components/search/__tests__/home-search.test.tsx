@@ -13,4 +13,14 @@ describe('HomeSearch', () => {
     fireEvent.submit(screen.getByRole('search'))
     expect(push).toHaveBeenCalledWith('/search?q=harry')
   })
+
+  it('shows the icon for the theme, as decoration', () => {
+    const { container } = render(<HomeSearch placeholder="Search" />)
+    const icons = [...container.querySelectorAll('img')]
+    const light = icons.find((i) => i.getAttribute('src') === '/revelio-icon-on-light.svg')
+    const dark = icons.find((i) => i.getAttribute('src') === '/revelio-icon-on-dark.svg')
+    expect(light).toHaveClass('dark:hidden')
+    expect(dark).toHaveClass('hidden', 'dark:block')
+    for (const icon of [light, dark]) expect(icon).toHaveAttribute('alt', '')
+  })
 })

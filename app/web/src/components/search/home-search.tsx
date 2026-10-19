@@ -15,11 +15,18 @@ export function HomeSearch({ placeholder }: { placeholder: string }) {
       }}
       className="relative mx-auto mt-8 w-full max-w-3xl"
     >
+      {/* One icon per theme; CSS shows the one that reads on the field behind it. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/revelio-icon.svg"
+        src="/revelio-icon-on-light.svg"
         alt=""
-        className="pointer-events-none absolute left-4 top-1/2 size-9 -translate-y-1/2"
+        className="pointer-events-none absolute left-4 top-1/2 size-9 -translate-y-1/2 dark:hidden"
+      />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/revelio-icon-on-dark.svg"
+        alt=""
+        className="pointer-events-none absolute left-4 top-1/2 hidden size-9 -translate-y-1/2 dark:block"
       />
       <Input
         type="search"

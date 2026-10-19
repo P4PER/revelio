@@ -13,14 +13,25 @@ export function HeaderBrandMark() {
 
   return (
     <>
-      <Image
-        src="/revelio-icon.svg"
-        alt={BRAND_NAME}
-        width={68}
-        height={68}
-        priority
-        className="h-9 w-auto min-[640px]:hidden"
-      />
+      {/* Both icons ship and CSS picks one for the theme, as BrandMark does for the
+          wordmark (its comment says why neither is preloaded). The breakpoint sits on
+          the wrapper so it never competes with the theme variant for display. */}
+      <span className="flex min-[640px]:hidden">
+        <Image
+          src="/revelio-icon-on-light.svg"
+          alt={BRAND_NAME}
+          width={68}
+          height={68}
+          className="h-9 w-auto dark:hidden"
+        />
+        <Image
+          src="/revelio-icon-on-dark.svg"
+          alt={BRAND_NAME}
+          width={68}
+          height={68}
+          className="hidden h-9 w-auto dark:block"
+        />
+      </span>
       <div className="hidden min-[640px]:block">
         <BrandMark />
       </div>

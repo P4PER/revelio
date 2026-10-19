@@ -52,8 +52,8 @@ export function AuthCardFan() {
       >
         <div className="absolute inset-1 rounded-sm border border-[color-mix(in_srgb,var(--dark-primary)_65%,transparent)] sm:inset-[7px] sm:rounded-[5px]" />
         <div className="relative flex flex-col items-center gap-1 sm:gap-2">
-          <Image src="/revelio-icon-dark.svg" alt="" width={56} height={56} className="size-9 sm:size-14" />
-          <Image src="/revelio-wordmark-dark.svg" alt="" width={86} height={24} className="h-auto w-[52px] sm:w-[86px]" />
+          <Image src="/revelio-icon-parchment.svg" alt="" width={56} height={56} className="size-9 sm:size-14" />
+          <Image src="/revelio-wordmark-on-dark.svg" alt="" width={86} height={24} className="h-auto w-[52px] sm:w-[86px]" />
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 <svg width="176" height="48" viewBox="112 62 176 48" xmlns="http://www.w3.org/2000/svg">
-  <!-- The wordmark of revelio-logo-dark.svg on its own, for a dark background:
+  <!-- The wordmark of revelio-logo-on-dark.svg on its own, for a dark background:
        the same glyph outlines, without the icon. -->
   <g>
     <path transform="translate(109.00,108) scale(0.05400,-0.05400)" fill="#FBF3DC" d="M379 562V415H342Q276 415 242.5 384.0Q209 353 209 276V0H69V554H209V468Q236 512 279.5 537.0Q323 562 379 562Z"/>

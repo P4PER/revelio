@@ -11,12 +11,22 @@ type Step = (typeof STEPS)[number]
 
 function StepAction({ step, inviteUrl }: { step: Step; inviteUrl: string | null }) {
   const t = useTranslations('discord')
-  if (step === 'add') return <DiscordCta inviteUrl={inviteUrl} size="sm" />
+  // The step column is narrow on a phone and the German label is long, so
+  // here the button may wrap; the hero's stays on one line.
+  if (step === 'add') {
+    return (
+      <DiscordCta
+        inviteUrl={inviteUrl}
+        size="sm"
+        className="h-auto min-h-8 max-w-full py-1.5 whitespace-normal"
+      />
+    )
+  }
   if (step === 'link') {
     return (
       <Link
         href="/settings/connections"
-        className="inline-flex items-center gap-1 rounded-md border border-primary/50 px-3 py-1 text-sm font-medium text-primary-ink transition-colors hover:bg-primary/10"
+        className="inline-flex max-w-full flex-wrap items-center gap-x-1 rounded-md border border-primary/50 px-3 py-1 text-sm font-medium text-primary-ink transition-colors hover:bg-primary/10"
       >
         {t.rich('steps.linkAction', {
           sep: () => <ChevronRight className="size-3.5" aria-hidden />,

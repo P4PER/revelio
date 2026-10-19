@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { DiscordMark } from '@/components/discord-mark'
 
 /**
@@ -11,14 +12,20 @@ import { DiscordMark } from '@/components/discord-mark'
 export function DiscordCta({
   inviteUrl,
   size,
+  className,
 }: {
   inviteUrl: string | null
   size?: 'sm' | 'default'
+  className?: string
 }) {
   const t = useTranslations('discord')
   if (!inviteUrl) return null
   return (
-    <Button asChild size={size} className="bg-brand-discord text-white hover:bg-brand-discord/90">
+    <Button
+      asChild
+      size={size}
+      className={cn('bg-brand-discord text-white hover:bg-brand-discord/90', className)}
+    >
       <a href={inviteUrl} target="_blank" rel="noopener noreferrer">
         <DiscordMark className="size-4" />
         {t('install')}

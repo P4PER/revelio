@@ -67,6 +67,24 @@ describe('GetStarted', () => {
     expect(radius(settings)).toBe(radius(install))
   })
 
+  // "Einstellungen > Verbindungen" is wider than the step column on a 320 px
+  // phone; held to one line it scrolled the German page sideways.
+  it('lets the settings link wrap inside its column', () => {
+    renderSteps()
+    const settings = screen.getByRole('link', { name: /Settings.*Connections/ })
+    expect(settings.className).toMatch(/\bflex-wrap\b/)
+    expect(settings.className).toMatch(/\bmax-w-full\b/)
+  })
+
+  // "Zu Discord hinzufuegen" overran the same column; Button's default
+  // whitespace-nowrap has to give way here, not in the hero.
+  it('lets the install button wrap inside its column', () => {
+    renderSteps()
+    const install = screen.getByRole('link', { name: /Add to Discord/ })
+    expect(install.className).toMatch(/\bwhitespace-normal\b/)
+    expect(install.className).toMatch(/\bmax-w-full\b/)
+  })
+
   it('shows the slash as a key', () => {
     renderSteps()
     expect(screen.getByText('/', { selector: 'kbd' })).toBeInTheDocument()

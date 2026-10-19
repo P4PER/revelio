@@ -852,12 +852,14 @@
       "description": "Every option each command takes, how account linking works, and exactly what the bot can and cannot read."
     },
     "steps": {
+      "title": "Get started",
       "addTitle": "Add the bot",
       "addBody": "One click, no permissions beyond posting.",
       "linkTitle": "Link your account",
-      "linkBody": "Only needed for <cmd>/collection</cmd> and <cmd>/mydecks</cmd>, from Settings then Connections.",
+      "linkBody": "Only for <cmd>/collection</cmd> and <cmd>/mydecks</cmd>.",
+      "linkAction": "Settings <sep></sep> Connections",
       "typeTitle": "Type a slash",
-      "typeBody": "Commands appear in every channel the bot can see."
+      "typeBody": "in any channel the bot can see"
     },
     "sample": {
       "cardName": "Alohomora",

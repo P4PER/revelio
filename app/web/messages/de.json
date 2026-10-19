@@ -804,12 +804,14 @@
       "description": "Jede Option jedes Befehls, wie die Kontoverknüpfung funktioniert und was der Bot lesen kann und was nicht."
     },
     "steps": {
+      "title": "Loslegen",
       "addTitle": "Bot hinzufügen",
       "addBody": "Ein Klick, keine Rechte außer Schreiben.",
       "linkTitle": "Konto verknüpfen",
-      "linkBody": "Nur für <cmd>/collection</cmd> und <cmd>/mydecks</cmd> nötig, unter Einstellungen und dann Verbindungen.",
+      "linkBody": "Nur für <cmd>/collection</cmd> und <cmd>/mydecks</cmd>.",
+      "linkAction": "Einstellungen <sep></sep> Verbindungen",
       "typeTitle": "Slash tippen",
-      "typeBody": "Die Befehle erscheinen in jedem Kanal, den der Bot sieht."
+      "typeBody": "in jedem Kanal, den der Bot sieht"
     },
     "sample": {
       "cardName": "Alohomora",

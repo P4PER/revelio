@@ -51,9 +51,9 @@ const SHARE_ROWS: readonly ShareRow[] = [
 
 const SAMPLE_CARD_THUMB = '/discord/alohomora-thumb.webp'
 
-// The real wand mark, on the midnight circle a Discord avatar crops to. The
-// mark's own indigo would nearly vanish against Discord's grey surface, so the
-// circle carries the brand's background rather than being transparent.
+// The dark-background wand mark, on the midnight circle a Discord avatar crops
+// to: the circle carries the brand's background so the avatar reads as Revelio
+// against Discord's grey surface.
 // Decorative: the bot's name is printed beside it on every message.
 function BotAvatar() {
   return (
@@ -62,7 +62,7 @@ function BotAvatar() {
       style={{ background: '#13122A' }}
     >
       <Image
-        src="/revelio-icon-on-light.svg"
+        src="/revelio-icon-on-dark.svg"
         alt=""
         width={68}
         height={68}

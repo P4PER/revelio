@@ -20,6 +20,17 @@ function line(text: string) {
 }
 
 describe('CommandChannel', () => {
+  it('draws the bot avatar with the dark-background icon on its midnight circle', () => {
+    const { container } = render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        <CommandChannel />
+      </NextIntlClientProvider>,
+    )
+    const srcs = [...container.querySelectorAll('img')].map((i) => i.getAttribute('src') ?? '')
+    expect(srcs.some((s) => s.includes('revelio-icon-on-dark.svg'))).toBe(true)
+    expect(srcs.some((s) => s.includes('revelio-icon-on-light.svg'))).toBe(false)
+  })
+
   it('shows the /card reply as card-view.ts builds it', () => {
     renderChannel('en', en)
     expect(screen.getByRole('heading', { name: 'Alohomora' })).toBeInTheDocument()

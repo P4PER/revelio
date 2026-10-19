@@ -16,6 +16,7 @@ import {
   DISCORD_PILL_BORDER,
   DISCORD_PILL_LIVE,
   DISCORD_RULE,
+  DISCORD_SECONDARY,
   DISCORD_SELECT,
   DISCORD_TEXT,
 } from '@/lib/discord-palette'
@@ -86,7 +87,7 @@ function CommandRow({ command, selected }: { command: BotCommandSpec; selected: 
             </span>
           )}
         </div>
-        <p className="text-[0.82rem] leading-snug" style={{ color: DISCORD_MUTED }}>
+        <p className="text-[0.82rem] leading-snug" style={{ color: DISCORD_SECONDARY }}>
           {t(`commands.${command.name}.description`)}
         </p>
       </div>
@@ -94,7 +95,7 @@ function CommandRow({ command, selected }: { command: BotCommandSpec; selected: 
           phone, where it would squeeze the description. */}
       <span
         className="flex shrink-0 items-center gap-1.5 text-xs whitespace-nowrap"
-        style={{ color: command.ephemeral ? DISCORD_MUTED : DISCORD_MENTION }}
+        style={{ color: command.ephemeral ? DISCORD_SECONDARY : DISCORD_MENTION }}
       >
         <Icon className="size-3.5" aria-hidden />
         <span className="sr-only sm:not-sr-only">

@@ -67,6 +67,21 @@ describe('CommandPicker', () => {
     expect(caret.className).not.toMatch(/(^|\s)-m[lx]-/)
   })
 
+  // The muted grey fell to 3.6:1 on the selected row. Descriptions and the
+  // private label carry content, so they take Discord's secondary text
+  // colour (#b5bac1, 5.1:1 there); the muted grey stays for metadata.
+  it('draws descriptions and the private label in the readable grey', () => {
+    renderPicker()
+    const secondary = 'rgb(181, 186, 193)'
+    for (const command of BOT_COMMANDS) {
+      const li = row(command.name)
+      expect(li.querySelector('p')!.style.color, command.name).toBe(secondary)
+      if (command.ephemeral) {
+        expect(li.lastElementChild!.getAttribute('style'), command.name).toMatch(/181, 186, 193|#b5bac1/i)
+      }
+    }
+  })
+
   it('names the window for assistive tech', () => {
     renderPicker()
     expect(

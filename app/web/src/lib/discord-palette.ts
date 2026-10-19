@@ -10,6 +10,9 @@ export const DISCORD_INPUT = '#383a40'
 export const DISCORD_HEADING = '#f2f3f5'
 export const DISCORD_TEXT = '#dbdee1'
 export const DISCORD_MUTED = '#949ba4'
+// Discord's secondary text: descriptions and labels that carry content.
+// DISCORD_MUTED is for metadata only; it drops to 3.6:1 on DISCORD_ACTIVE.
+export const DISCORD_SECONDARY = '#b5bac1'
 export const DISCORD_BLURPLE = '#5865F2'
 export const DISCORD_MENTION = '#c2c5f7'
 export const DISCORD_SELECT = '#1e1f22'

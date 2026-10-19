@@ -5,6 +5,16 @@ import type { ReactNode } from 'react'
 import { ImageResponse } from 'next/og'
 import { getTranslations } from 'next-intl/server'
 import { getPathname } from '@/../i18n/navigation'
+import {
+  DISCORD_BLURPLE,
+  DISCORD_CHANNEL,
+  DISCORD_EMBED,
+  DISCORD_HEADING,
+  DISCORD_MENTION,
+  DISCORD_MUTED,
+  DISCORD_TEXT,
+  LESSON_CHARMS,
+} from '@/components/discord/command-channel'
 import { OG_SIZE, clampOgTitle } from '@/lib/seo'
 import { SITE_URL } from '@/lib/site'
 
@@ -16,6 +26,9 @@ const MARK_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(MARK_SVG).toStrin
 // Satori cannot decode WebP, so the /discord share image carries its own JPEG of
 // the page's sample card (public/discord/alohomora-thumb.webp), made once with sharp.
 const DISCORD_CARD_URL = new URL('./og-assets/alohomora-card.jpg', import.meta.url)
+
+// One font weight, so a labelled pair's label is set apart by colour, not bold.
+const PAIR_LABEL_COLOR = '#ffffff'
 
 // Read the font from disk (not fetch): on the Node runtime `new URL(…,
 // import.meta.url)` is a file:// URL, which undici's fetch rejects with
@@ -47,17 +60,6 @@ async function loadLessonIcon(code: string): Promise<string | null> {
   return uri
 }
 
-// Discord's surface palette, as hardcoded in components/discord/command-channel.tsx:
-// the image depicts Discord's UI, which does not follow the Revelio theme.
-const DISCORD_CHANNEL = '#313338'
-const DISCORD_EMBED = '#2b2d31'
-const DISCORD_HEADING = '#f2f3f5'
-const DISCORD_TEXT = '#dbdee1'
-const DISCORD_MUTED = '#949ba4'
-const DISCORD_BLURPLE = '#5865F2'
-const DISCORD_MENTION = '#c2c5f7'
-const LESSON_CHARMS = '#0069A9'
-
 // Best-effort like the lesson icons: a failed read omits the art. A failure is not
 // cached, so one transient error cannot drop the art until the process restarts.
 let discordCardPromise: Promise<string | null> | null = null
@@ -75,17 +77,22 @@ function loadDiscordCard(): Promise<string | null> {
 }
 
 // The bot bolds each label of a card's labelled pairs (bot/src/discord/v2/card-view.ts).
-// There is one font weight here, so the label is set apart by colour instead.
-const pairLabel = (chunks: ReactNode) => <span style={{ color: '#ffffff' }}>{chunks}</span>
+function pairLabel(chunks: ReactNode) {
+  return <span style={{ color: PAIR_LABEL_COLOR }}>{chunks}</span>
+}
 
 // Satori trims the spaces at both ends of every text run in a flex row, which glues
 // "Type" to "Spell" in a rich message. So each word becomes its own flex item and the
 // row's columnGap stands in for the space; a long line then wraps between words.
 function splitWords(node: ReactNode): ReactNode[] {
-  if (typeof node === 'string') {
-    return node.split(/\s+/).filter(Boolean).map((word, i) => <span key={`w${i}`}>{word}</span>)
+  let key = 0
+  const split = (n: ReactNode): ReactNode[] => {
+    if (typeof n === 'string') {
+      return n.split(/\s+/).filter(Boolean).map((word) => <span key={`w${key++}`}>{word}</span>)
+    }
+    return Array.isArray(n) ? n.flatMap(split) : [n]
   }
-  return Array.isArray(node) ? node.flatMap(splitWords) : [node]
+  return split(node)
 }
 
 /**

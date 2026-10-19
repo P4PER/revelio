@@ -6,6 +6,7 @@ import {
   buildSiteMetadata,
   setOgSubtitle,
   ogImageAlt,
+  discordOgImageAlt,
   hasOgAltForAllLocales,
   ogImageMetadata,
   clampOgTitle,
@@ -49,6 +50,13 @@ describe('seo helpers', () => {
     expect(ogImageAlt('en')).toBe(en.meta.ogImageAlt)
     expect(ogImageAlt('de')).toBe(de.meta.ogImageAlt)
     expect(ogImageAlt('en')).not.toBe(ogImageAlt('de'))
+  })
+
+  it('resolves the discord OG alt per locale, falling back to the default locale', () => {
+    expect(discordOgImageAlt('en')).toBe(en.discord.ogImageAlt)
+    expect(discordOgImageAlt('de')).toBe(de.discord.ogImageAlt)
+    expect(discordOgImageAlt('en')).not.toBe(discordOgImageAlt('de'))
+    expect(discordOgImageAlt('fr')).toBe(en.discord.ogImageAlt)
   })
 
   it('has an OG alt for every configured locale (no silent fallback)', () => {

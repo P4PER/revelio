@@ -808,6 +808,7 @@
   "discord": {
     "metaTitle": "Revelio for Discord",
     "metaDescription": "Look up any Harry Potter TCG card, share a decklist and check your collection without leaving Discord.",
+    "ogImageAlt": "Revelio answering /card in a Discord channel",
     "heading": "Summon any card <b>without leaving the chat</b>",
     "tagline": "Look up a card mid-argument. Share a decklist without a screenshot. Check what you are missing from a set - privately.",
     "install": "Add to Discord",

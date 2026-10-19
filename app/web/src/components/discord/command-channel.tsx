@@ -25,19 +25,20 @@ type ShareRow = { name: string; setCode: string; number: string; cost: number; t
  *
  * The colours below are Discord's own surface palette, deliberately hardcoded
  * rather than taken from the Revelio theme tokens: this depicts Discord's UI,
- * which does not follow the visitor's light/dark choice.
+ * which does not follow the visitor's light/dark choice. The /discord share
+ * image (lib/og-image.tsx) draws the same channel, so it imports them from here.
  */
-const DISCORD_CHANNEL = '#313338'
-const DISCORD_EMBED = '#2b2d31'
+export const DISCORD_CHANNEL = '#313338'
+export const DISCORD_EMBED = '#2b2d31'
 const DISCORD_INPUT = '#383a40'
-const DISCORD_HEADING = '#f2f3f5'
-const DISCORD_TEXT = '#dbdee1'
-const DISCORD_MUTED = '#949ba4'
-const DISCORD_BLURPLE = '#5865F2'
-const DISCORD_MENTION = '#c2c5f7'
+export const DISCORD_HEADING = '#f2f3f5'
+export const DISCORD_TEXT = '#dbdee1'
+export const DISCORD_MUTED = '#949ba4'
+export const DISCORD_BLURPLE = '#5865F2'
+export const DISCORD_MENTION = '#c2c5f7'
 const DISCORD_SELECT = '#1e1f22'
 
-const LESSON_CHARMS = '#0069A9'
+export const LESSON_CHARMS = '#0069A9'
 const BRAND_GOLD = '#d4a83a'
 
 // Card names and printings are data, not copy: they read the same in both

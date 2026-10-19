@@ -776,9 +776,10 @@
     "appTag": "App",
     "you": "du",
     "cardImageAlt": "Karte {name}",
-    "commandsTitle": "Was du tippen kannst",
-    "commandsIntro": "Tippe <slash>/</slash> in jedem Kanal, den der Bot sieht. Den Rest ergänzt Discord.",
-    "channelNote": "<cmd>/card</cmd> und <cmd>/deck</cmd> antworten im Kanal. Alles andere antwortet nur dir, bis du es teilst.",
+    "commandsTitle": "Slash tippen. <b>Befehl wählen.</b>",
+    "commandsIntro": "Jeder Befehl erscheint in jedem Kanal, den der Bot sieht. Die Optionen ergänzt Discord beim Tippen.",
+    "channelNote": "<cmd>/card</cmd> und <cmd>/deck</cmd> antworten im Kanal.",
+    "privateNote": "Alles andere antwortet nur dir, bis du es teilst.",
     "commands": {
       "card": {
         "description": "Die ganze Karte: Text, Flavour, Kosten, Lektion, Seltenheit, Legalität, Rulings und das Artwork."
@@ -800,16 +801,19 @@
       }
     },
     "reference": {
+      "action": "Zur Referenz",
       "title": "Vollständige Referenz",
       "description": "Jede Option jedes Befehls, wie die Kontoverknüpfung funktioniert und was der Bot lesen kann und was nicht."
     },
     "steps": {
+      "title": "Loslegen",
       "addTitle": "Bot hinzufügen",
       "addBody": "Ein Klick, keine Rechte außer Schreiben.",
       "linkTitle": "Konto verknüpfen",
-      "linkBody": "Nur für <cmd>/collection</cmd> und <cmd>/mydecks</cmd> nötig, unter Einstellungen und dann Verbindungen.",
+      "linkBody": "Nur für <cmd>/collection</cmd> und <cmd>/mydecks</cmd>.",
+      "linkAction": "Einstellungen <sep></sep> Verbindungen",
       "typeTitle": "Slash tippen",
-      "typeBody": "Die Befehle erscheinen in jedem Kanal, den der Bot sieht."
+      "typeBody": "in jedem Kanal, den der Bot sieht"
     },
     "sample": {
       "cardName": "Alohomora",
@@ -823,6 +827,15 @@
       "rowStats": "Zauber · Zauberkunst · Kosten {cost}",
       "viewCard": "Karte ansehen ...",
       "typing": "set: Kammer des Schreckens"
+    },
+    "picker": {
+      "label": "Revelios Befehle, wie Discord sie anzeigt",
+      "topic": "Decks bauen, tauschen und über Regeln streiten",
+      "history1": "Moment, kann Alohomora auch ein Abenteuer holen?",
+      "history2": "glaube schon, ich schau nach",
+      "channel": "Kanal",
+      "onlyYou": "Nur du",
+      "noOptions": "keine Optionen"
     }
   },
   "docs": {

@@ -40,9 +40,12 @@ describe('DiscordContent', () => {
     ).toBeInTheDocument()
   })
 
-  it('shows the install button when the invite url is set', () => {
+  // Once in the hero and once as the first step of Get started.
+  it('shows the install button in the steps too', () => {
     renderPage('en', en, INVITE)
-    expect(screen.getByRole('link', { name: /Add to Discord/i })).toHaveAttribute('href', INVITE)
+    const links = screen.getAllByRole('link', { name: /Add to Discord/i })
+    expect(links).toHaveLength(2)
+    for (const link of links) expect(link).toHaveAttribute('href', INVITE)
   })
 
   // A fresh database has no invite URL. The page must still be worth serving.
@@ -51,14 +54,18 @@ describe('DiscordContent', () => {
     expect(screen.queryByRole('link', { name: /Add to Discord/i })).not.toBeInTheDocument()
     // Scoped to the commands landmark: the channel mockup above it also prints
     // "/card", in its "you used /card" context line.
-    const commands = screen.getByRole('region', { name: 'What you can type' })
-    expect(within(commands).getByText('/card', { selector: 'span' })).toBeInTheDocument()
-    expect(within(commands).getByText('/mydecks', { selector: 'span' })).toBeInTheDocument()
+    // Within that, the menu's list: the message box under it types "/card" too.
+    const commands = screen.getByRole('region', { name: 'Type a slash. Pick a command.' })
+    const menu = within(commands).getByRole('group', { name: "Revelio's commands as Discord lists them" })
+    expect(within(menu).getByRole('list')).toHaveTextContent('/card')
+    expect(within(menu).getByRole('list')).toHaveTextContent('/mydecks')
   })
 
   it('shows the channel mockup', () => {
     renderPage('en', en, INVITE)
-    expect(screen.getByText('Alohomora')).toBeInTheDocument()
+    // A heading, not bare text: the slash menu's message box below prints the
+    // card's name as well.
+    expect(screen.getByRole('heading', { level: 3, name: 'Alohomora' })).toBeInTheDocument()
     expect(screen.getByText('View a card...')).toBeInTheDocument()
   })
 

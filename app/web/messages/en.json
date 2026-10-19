@@ -824,9 +824,10 @@
     "appTag": "App",
     "you": "you",
     "cardImageAlt": "{name} card",
-    "commandsTitle": "What you can type",
-    "commandsIntro": "Type <slash>/</slash> in any channel the bot can see. Discord fills in the rest.",
-    "channelNote": "<cmd>/card</cmd> and <cmd>/deck</cmd> answer in the channel. Everything else answers only you until you share it.",
+    "commandsTitle": "Type a slash. <b>Pick a command.</b>",
+    "commandsIntro": "Every command shows up in any channel the bot can see. Discord fills in the options as you go.",
+    "channelNote": "<cmd>/card</cmd> and <cmd>/deck</cmd> answer in the channel.",
+    "privateNote": "Everything else answers only you until you share it.",
     "commands": {
       "card": {
         "description": "The full card: text, flavour, cost, lesson, rarity, legality, rulings, and the art."
@@ -848,16 +849,19 @@
       }
     },
     "reference": {
+      "action": "Read the reference",
       "title": "Full reference",
       "description": "Every option each command takes, how account linking works, and exactly what the bot can and cannot read."
     },
     "steps": {
+      "title": "Get started",
       "addTitle": "Add the bot",
       "addBody": "One click, no permissions beyond posting.",
       "linkTitle": "Link your account",
-      "linkBody": "Only needed for <cmd>/collection</cmd> and <cmd>/mydecks</cmd>, from Settings then Connections.",
+      "linkBody": "Only for <cmd>/collection</cmd> and <cmd>/mydecks</cmd>.",
+      "linkAction": "Settings <sep></sep> Connections",
       "typeTitle": "Type a slash",
-      "typeBody": "Commands appear in every channel the bot can see."
+      "typeBody": "in any channel the bot can see"
     },
     "sample": {
       "cardName": "Alohomora",
@@ -871,6 +875,15 @@
       "rowStats": "Spell · Charms · Cost {cost}",
       "viewCard": "View a card...",
       "typing": "set: Chamber of Secrets"
+    },
+    "picker": {
+      "label": "Revelio's commands as Discord lists them",
+      "topic": "Brewing, trading and arguing about rulings",
+      "history1": "wait, can Alohomora fetch an Adventure too?",
+      "history2": "pretty sure, let me check",
+      "channel": "Channel",
+      "onlyYou": "Only you",
+      "noOptions": "no options"
     }
   },
   "docs": {

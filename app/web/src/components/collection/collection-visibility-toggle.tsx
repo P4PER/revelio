@@ -2,7 +2,7 @@
 import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { ChevronDown, Globe, Link2, Lock } from 'lucide-react'
+import { ChevronDown, Link2, Lock, Share2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -64,7 +64,7 @@ export function CollectionVisibilityToggle({
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button size="sm" variant="outline" disabled={pending}>
-            <Globe className="size-4" />
+            <Share2 className="size-4" />
             {t('share')}
           </Button>
         </AlertDialogTrigger>
@@ -88,7 +88,7 @@ export function CollectionVisibilityToggle({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant="outline" disabled={pending}>
-          <Globe className="size-4" />
+          <Share2 className="size-4" />
           {t('shared')}
           <ChevronDown className="size-4" />
         </Button>

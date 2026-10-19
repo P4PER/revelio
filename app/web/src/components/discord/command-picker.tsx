@@ -3,19 +3,17 @@ import { Lock, Users } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { BOT_COMMANDS, type BotCommandName, type BotCommandSpec } from '@revelio/core'
 import { BotAvatar } from '@/components/discord/bot-avatar'
+import { ChannelHeader, MessageBox } from '@/components/discord/channel-chrome'
 import {
   DISCORD_ACTIVE,
   DISCORD_BLURPLE,
   DISCORD_CHANNEL,
   DISCORD_EMBED,
   DISCORD_HEADING,
-  DISCORD_INPUT,
   DISCORD_MENTION,
   DISCORD_MUTED,
   DISCORD_PILL,
   DISCORD_PILL_BORDER,
-  DISCORD_PILL_LIVE,
-  DISCORD_RULE,
   DISCORD_SECONDARY,
   DISCORD_SELECT,
   DISCORD_TEXT,
@@ -122,17 +120,7 @@ export function CommandPicker() {
       className="overflow-hidden rounded-xl text-left text-sm leading-[1.375] shadow-2xl"
       style={{ background: DISCORD_CHANNEL, color: DISCORD_TEXT }}
     >
-      <div
-        className="flex min-w-0 items-center gap-1.5 border-b px-4 py-2.5 text-[0.94rem] font-semibold"
-        style={{ borderColor: DISCORD_RULE, color: DISCORD_MUTED }}
-      >
-        <span className="text-xl leading-none font-normal">#</span>
-        <span className="shrink-0" style={{ color: DISCORD_HEADING }}>
-          {t('channelName')}
-        </span>
-        <span className="ml-1 h-4 w-px shrink-0" style={{ background: DISCORD_ACTIVE }} />
-        <span className="truncate pl-1.5 text-[0.82rem] font-normal">{t('picker.topic')}</span>
-      </div>
+      <ChannelHeader />
 
       <div
         aria-hidden
@@ -193,34 +181,7 @@ export function CommandPicker() {
         </div>
       </div>
 
-      <div
-        aria-hidden
-        className="mx-4 mt-2 mb-5 flex items-center gap-3 rounded-lg px-4 py-[11px] text-[0.94rem]"
-        style={{ background: DISCORD_INPUT }}
-      >
-        <span
-          className="flex size-6 shrink-0 items-center justify-center rounded-full font-bold leading-none"
-          style={{ background: DISCORD_MUTED, color: DISCORD_INPUT }}
-        >
-          +
-        </span>
-        <span className="flex min-w-0 items-center gap-1.5">
-          <span>/card</span>
-          <span
-            className="rounded px-1.5 font-mono text-[0.82rem] leading-[22px] after:content-[':']"
-            style={{ background: DISCORD_PILL_LIVE, color: DISCORD_MENTION }}
-          >
-            name
-          </span>
-          <span className="truncate">{t('sample.cardName')}</span>
-          {/* globals.css owns the keyframes as --animate-caret-blink. */}
-          <span
-            data-caret
-            className="inline-block h-[18px] w-[1.5px] shrink-0 animate-caret-blink motion-reduce:animate-none"
-            style={{ background: DISCORD_TEXT }}
-          />
-        </span>
-      </div>
+      <MessageBox command="card" option="name" value={t('sample.cardName')} />
     </div>
   )
 }

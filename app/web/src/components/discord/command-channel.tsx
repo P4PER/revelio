@@ -6,16 +6,14 @@ import {
   DISCORD_CHANNEL,
   DISCORD_EMBED,
   DISCORD_HEADING,
-  DISCORD_INPUT,
   DISCORD_MENTION,
   DISCORD_MUTED,
-  DISCORD_PILL_LIVE,
-  DISCORD_RULE,
   DISCORD_SELECT,
   DISCORD_TEXT,
   LESSON_CHARMS,
 } from '@/lib/discord-palette'
 import { BotAvatar } from '@/components/discord/bot-avatar'
+import { ChannelHeader, MessageBox } from '@/components/discord/channel-chrome'
 
 type ShareRow = { name: string; setCode: string; number: string; cost: number; thumb: string }
 
@@ -57,7 +55,7 @@ const SAMPLE_CARD_THUMB = '/discord/alohomora-thumb.webp'
 function CommandContext({ command }: { command: string }) {
   const t = useTranslations('discord')
   return (
-    <p className="pl-11 text-xs" style={{ color: DISCORD_MUTED }}>
+    <p className="pl-12.5 text-xs" style={{ color: DISCORD_MUTED }}>
       {t.rich('usedCommand', {
         userName: t('you'),
         command,
@@ -71,11 +69,11 @@ function CommandContext({ command }: { command: string }) {
 function BotMessage({ time, children }: { time: string; children: React.ReactNode }) {
   const t = useTranslations('discord')
   return (
-    <div className="flex gap-3">
-      <BotAvatar />
+    <div className="flex gap-3.5">
+      <BotAvatar className="size-9" />
       <div className="min-w-0 flex-1">
         <div className="mb-0.5 flex items-center gap-1.5">
-          <span className="text-sm font-semibold" style={{ color: DISCORD_HEADING }}>
+          <span className="font-medium" style={{ color: DISCORD_HEADING }}>
             {t('botName')}
           </span>
           <span
@@ -84,7 +82,7 @@ function BotMessage({ time, children }: { time: string; children: React.ReactNod
           >
             {t('appTag')}
           </span>
-          <span className="text-[0.68rem]" style={{ color: DISCORD_MUTED }}>
+          <span className="text-[0.69rem]" style={{ color: DISCORD_MUTED }}>
             {time}
           </span>
         </div>
@@ -96,7 +94,7 @@ function BotMessage({ time, children }: { time: string; children: React.ReactNod
 
 function Container({ accent, children }: { accent: string; children: React.ReactNode }) {
   return (
-    <div className="flex max-w-[27rem] overflow-hidden rounded" style={{ background: DISCORD_EMBED }}>
+    <div className="flex max-w-[30rem] overflow-hidden rounded" style={{ background: DISCORD_EMBED }}>
       <span className="w-1 shrink-0" style={{ background: accent }} />
       <div className="min-w-0 flex-1 px-3 py-2.5">{children}</div>
     </div>
@@ -107,7 +105,7 @@ function Container({ accent, children }: { accent: string; children: React.React
 function SelectMenu({ placeholder }: { placeholder: string }) {
   return (
     <span
-      className="flex items-center justify-between rounded px-3 py-1.5 text-[0.78rem]"
+      className="flex items-center justify-between rounded px-3 py-1.5"
       style={{ background: DISCORD_SELECT, color: DISCORD_MUTED }}
     >
       {placeholder}
@@ -123,26 +121,20 @@ export function CommandChannel() {
   const t = useTranslations('discord')
   return (
     <div
-      className="overflow-hidden rounded-xl text-left text-[0.84rem] shadow-2xl"
+      className="overflow-hidden rounded-xl text-left text-sm leading-[1.375] shadow-2xl"
       style={{ background: DISCORD_CHANNEL, color: DISCORD_TEXT }}
     >
-      <div
-        className="flex items-center gap-1.5 border-b px-3.5 py-2 text-[0.78rem] font-semibold"
-        style={{ borderColor: DISCORD_RULE, color: DISCORD_MUTED }}
-      >
-        <span className="text-base leading-none">#</span>
-        <span style={{ color: DISCORD_HEADING }}>{t('channelName')}</span>
-      </div>
+      <ChannelHeader />
 
-      <div className="flex flex-col gap-3 px-3.5 pt-3.5 pb-4">
+      <div className="flex flex-col gap-3.5 px-4 pt-4 pb-2">
         <CommandContext command="/card" />
         <BotMessage time="21:04">
           <Container accent={LESSON_CHARMS}>
-            <h3 className="text-base font-bold" style={{ color: DISCORD_HEADING }}>
+            <h3 className="text-lg font-bold" style={{ color: DISCORD_HEADING }}>
               {t('sample.cardName')}
             </h3>
-            <p className="text-[0.8rem]">{t.rich('sample.cardTags', { b: bold })}</p>
-            <p className="mb-2 text-[0.8rem]">{t.rich('sample.cardStats', { b: bold })}</p>
+            <p>{t.rich('sample.cardTags', { b: bold })}</p>
+            <p className="mb-2">{t.rich('sample.cardStats', { b: bold })}</p>
             <Image
               src={SAMPLE_CARD_THUMB}
               alt={t('cardImageAlt', { name: t('sample.cardName') })}
@@ -150,11 +142,11 @@ export function CommandChannel() {
               height={419}
               className="mb-2 h-auto w-40 rounded"
             />
-            <p className="mb-2 text-[0.8rem]">{t('sample.cardText')}</p>
-            <p className="mb-2 text-[0.8rem]">
+            <p className="mb-2">{t('sample.cardText')}</p>
+            <p className="mb-2">
               <em>{t('sample.cardFlavor')}</em>
             </p>
-            <p className="text-[0.69rem]" style={{ color: DISCORD_MUTED }}>
+            <p className="text-xs" style={{ color: DISCORD_MUTED }}>
               {t('sample.cardFooter')}
             </p>
           </Container>
@@ -163,10 +155,10 @@ export function CommandChannel() {
         {/* On a phone the panel sits between the CTA and the commands, so the
             second answer is hidden there: one message already proves the point
             and saves a screen of scrolling. */}
-        <div className="hidden flex-col gap-3 sm:flex">
+        <div className="hidden flex-col gap-3.5 sm:flex">
           <BotMessage time="21:05">
             <Container accent={BRAND_GOLD}>
-              <p className="mb-2 text-[0.8rem]">
+              <p className="mb-2">
                 {t.rich('sample.shareLead', {
                   userName: t('you'),
                   query: t('sample.shareQuery'),
@@ -180,7 +172,7 @@ export function CommandChannel() {
               <ul className="mb-2 flex flex-col gap-2">
                 {SHARE_ROWS.map((row) => (
                   <li key={row.name} className="flex items-center justify-between gap-3">
-                    <span className="text-[0.8rem]">
+                    <span>
                       <b style={{ color: DISCORD_HEADING }}>{row.name}</b> &middot; {row.setCode} #{row.number}
                       <br />
                       {t('sample.rowStats', { cost: row.cost })}
@@ -201,25 +193,7 @@ export function CommandChannel() {
         </div>
       </div>
 
-      <div
-        className="mx-3.5 mb-3.5 flex items-center gap-1.5 rounded-lg px-3 py-2 text-[0.82rem]"
-        style={{ background: DISCORD_INPUT }}
-      >
-        <span
-          className="rounded-sm px-1"
-          style={{ background: DISCORD_PILL_LIVE, color: DISCORD_MENTION }}
-        >
-          /collection
-        </span>
-        <span>{t('sample.typing')}</span>
-        {/* Discord's own caret, so the line reads as mid-typing rather than sent.
-            globals.css owns the keyframes as --animate-caret-blink. */}
-        <span
-          className="inline-block h-[18px] w-[1.5px] animate-caret-blink motion-reduce:animate-none"
-          style={{ background: DISCORD_TEXT }}
-          aria-hidden
-        />
-      </div>
+      <MessageBox command="collection" option="set" value={t('sample.typing')} />
     </div>
   )
 }

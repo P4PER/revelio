@@ -819,6 +819,7 @@
       "privateReplies": "Personal answers stay private"
     },
     "channelName": "deck-talk",
+    "channelTopic": "Brewing, trading and arguing about rulings",
     "usedCommand": "<user>{userName}</user> used <cmd>{command}</cmd>",
     "botName": "Revelio",
     "appTag": "App",
@@ -874,11 +875,10 @@
       "shareQuery": "charm",
       "rowStats": "Spell · Charms · Cost {cost}",
       "viewCard": "View a card...",
-      "typing": "set: Chamber of Secrets"
+      "typing": "Chamber of Secrets"
     },
     "picker": {
       "label": "Revelio's commands as Discord lists them",
-      "topic": "Brewing, trading and arguing about rulings",
       "history1": "wait, can Alohomora fetch an Adventure too?",
       "history2": "pretty sure, let me check",
       "channel": "Channel",

@@ -25,7 +25,9 @@ import { setCollectionVisibilityAction } from '@/lib/actions/collection-actions'
 
 // Shaped like the deck overview's Publish/Published control, but worded as
 // sharing: an outline "Share" button (with a confirm dialog) while private, and
-// a "Shared" dropdown with Copy link / Stop sharing while public.
+// a "Shared" dropdown with Copy link / Stop sharing while public. The wording
+// differs on purpose: a public deck is listed on Explore, so it is published,
+// while a public collection is listed nowhere and only reached by its link.
 export function CollectionVisibilityToggle({
   initial, shareUrl,
 }: {

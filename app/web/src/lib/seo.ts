@@ -66,14 +66,27 @@ const OG_IMAGE_ALT: Record<string, string> = {
   de: de.meta.ogImageAlt,
 }
 
+// The same, for the /discord page's own image (see opengraph-image.tsx there).
+const DISCORD_OG_IMAGE_ALT: Record<string, string> = {
+  en: en.discord.ogImageAlt,
+  de: de.discord.ogImageAlt,
+}
+
 /** The localized alt text for the default (brand) OG image. */
 export function ogImageAlt(locale: string): string {
   return OG_IMAGE_ALT[locale] ?? OG_IMAGE_ALT[routing.defaultLocale]
 }
 
-/** True if every configured locale has an OG alt string (guards the map). */
+/** The localized alt text for the /discord page's OG image. */
+export function discordOgImageAlt(locale: string): string {
+  return DISCORD_OG_IMAGE_ALT[locale] ?? DISCORD_OG_IMAGE_ALT[routing.defaultLocale]
+}
+
+/** True if every configured locale has an OG alt string (guards both maps). */
 export function hasOgAltForAllLocales(): boolean {
-  return routing.locales.every((l) => typeof OG_IMAGE_ALT[l] === 'string')
+  return routing.locales.every(
+    (l) => typeof OG_IMAGE_ALT[l] === 'string' && typeof DISCORD_OG_IMAGE_ALT[l] === 'string',
+  )
 }
 
 /**

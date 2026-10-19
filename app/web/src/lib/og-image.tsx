@@ -18,10 +18,11 @@ import {
 import { OG_SIZE, clampOgTitle } from '@/lib/seo'
 import { SITE_URL } from '@/lib/site'
 
-// The wand-and-star mark, inlined from logos/revelio-icon-on-light.svg and embedded as a
-// data URI so the renderer makes no external image request.
-const MARK_SVG = `<svg width="80" height="80" viewBox="16 15 68 68" xmlns="http://www.w3.org/2000/svg"><g transform="translate(-7,2.5)"><polygon points="26.51,72.70 33.49,79.30 65.16,41.10 62.84,38.90" fill="#3B3194"/><line x1="40.12" y1="73.30" x2="32.12" y2="65.74" stroke="#C8881E" stroke-width="2.6" stroke-linecap="round"/><path d="M70,16 Q73.4,30.6 88,34 Q73.4,37.4 70,52 Q66.6,37.4 52,34 Q66.6,30.6 70,16 Z" fill="#E8B23A"/><path d="M70,26 Q71.6,32.4 78,34 Q71.6,35.6 70,42 Q68.4,35.6 62,34 Q68.4,32.4 70,26 Z" fill="#F6D58B"/><path d="M52,14 Q53.2,18.8 58,20 Q53.2,21.2 52,26 Q50.8,21.2 46,20 Q50.8,18.8 52,14 Z" fill="#E8B23A"/><path d="M78,53.5 Q78.9,57.1 82.5,58 Q78.9,58.9 78,62.5 Q77.1,58.9 73.5,58 Q77.1,57.1 78,53.5 Z" fill="#E8B23A"/></g></svg>`
-const MARK_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(MARK_SVG).toString('base64')}`
+// The brand files the share images draw, from public/ (see loadPublicSvg).
+const LOGO_FILE = 'revelio-logo-on-dark.svg'
+const DARK_ICON_FILE = 'revelio-icon-on-dark.svg'
+// The logo's own proportions (262 x 78), so a height fixes its width.
+const LOGO_ASPECT = 262 / 78
 
 // Satori cannot decode WebP, so the /discord share image carries its own JPEG of
 // the page's sample card (public/discord/alohomora-thumb.webp), made once with sharp.
@@ -42,22 +43,35 @@ function loadFont(): Promise<Buffer> {
   return fontPromise
 }
 
-// Lesson symbols are static public SVGs; read from disk and inline as data URIs
-// (satori can't resolve a relative URL). Best-effort: a missing/unreadable icon
-// resolves to null and is simply omitted — it never fails the image.
-const lessonIconCache = new Map<string, string | null>()
-async function loadLessonIcon(code: string): Promise<string | null> {
-  const cached = lessonIconCache.get(code)
-  if (cached !== undefined) return cached
-  let uri: string | null = null
-  try {
-    const buf = await readFile(join(process.cwd(), 'public', 'lessons', `${code}.svg`))
-    uri = `data:image/svg+xml;base64,${buf.toString('base64')}`
-  } catch {
-    uri = null
+// Static SVGs from public/ (the logo, the dark icon, lesson symbols), inlined as
+// data URIs because satori can't resolve a relative URL. Best-effort: a failed read
+// resolves to null and the image is drawn without it. Only a success is cached, so
+// one transient error cannot drop a logo or icon until the process restarts.
+const publicSvgCache = new Map<string, Promise<string | null>>()
+function loadPublicSvg(file: string): Promise<string | null> {
+  let uri = publicSvgCache.get(file)
+  if (!uri) {
+    uri = readFile(join(process.cwd(), 'public', file)).then(
+      (buf) => `data:image/svg+xml;base64,${buf.toString('base64')}`,
+      () => {
+        publicSvgCache.delete(file)
+        return null
+      },
+    )
+    publicSvgCache.set(file, uri)
   }
-  lessonIconCache.set(code, uri)
   return uri
+}
+
+function loadLessonIcon(code: string): Promise<string | null> {
+  return loadPublicSvg(`lessons/${code}.svg`)
+}
+
+// The dark logo at `height`, or nothing when its file could not be read.
+function Logo({ uri, height }: { uri: string | null; height: number }) {
+  if (!uri) return null
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={uri} width={Math.round(height * LOGO_ASPECT)} height={height} alt="" />
 }
 
 // Best-effort like the lesson icons: a failed read omits the art. A failure is not
@@ -104,7 +118,7 @@ export async function renderBrandOgImage(opts: {
   title: string
   subtitle: string
 }): Promise<ImageResponse> {
-  const font = await loadFont()
+  const [font, logoUri] = await Promise.all([loadFont(), loadPublicSvg(LOGO_FILE)])
   return new ImageResponse(
     (
       <div
@@ -119,10 +133,8 @@ export async function renderBrandOgImage(opts: {
           fontFamily: 'Poppins',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={MARK_DATA_URI} width={64} height={64} alt="" />
-          <span style={{ fontSize: 40, color: '#FBF3DC', letterSpacing: '-1px' }}>revelio</span>
+        <div style={{ display: 'flex' }}>
+          <Logo uri={logoUri} height={64} />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <span style={{ fontSize: 76, color: '#FBF3DC', lineHeight: 1.05 }}>
@@ -159,7 +171,7 @@ export async function renderDeckOgImage(opts: {
   lessonCodes: string[]
   artDataUri: string
 }): Promise<ImageResponse> {
-  const font = await loadFont()
+  const [font, logoUri] = await Promise.all([loadFont(), loadPublicSvg(LOGO_FILE)])
   const lessonUris = (await Promise.all(opts.lessonCodes.slice(0, 4).map(loadLessonIcon))).filter(
     (u): u is string => u != null,
   )
@@ -181,10 +193,8 @@ export async function renderDeckOgImage(opts: {
             background: 'linear-gradient(to bottom, rgba(0,0,0,0.75), transparent)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={MARK_DATA_URI} width={44} height={44} alt="" />
-            <span style={{ fontSize: 30, color: '#FBF3DC', letterSpacing: '-1px' }}>revelio</span>
+          <div style={{ display: 'flex' }}>
+            <Logo uri={logoUri} height={44} />
           </div>
         </div>
         <div
@@ -223,8 +233,10 @@ export async function renderDeckOgImage(opts: {
  * the canvas edge). Every string is the page's own, so the image follows the locale.
  */
 export async function renderDiscordOgImage(locale: string): Promise<ImageResponse> {
-  const [font, cardUri, t] = await Promise.all([
+  const [font, logoUri, iconUri, cardUri, t] = await Promise.all([
     loadFont(),
+    loadPublicSvg(LOGO_FILE),
+    loadPublicSvg(DARK_ICON_FILE),
     loadDiscordCard(),
     getTranslations({ locale, namespace: 'discord' }),
   ])
@@ -240,10 +252,8 @@ export async function renderDiscordOgImage(locale: string): Promise<ImageRespons
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: 520, paddingBottom: 72 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={MARK_DATA_URI} width={64} height={64} alt="" />
-            <span style={{ fontSize: 40, color: '#FBF3DC', letterSpacing: '-1px' }}>revelio</span>
+          <div style={{ display: 'flex' }}>
+            <Logo uri={logoUri} height={64} />
           </div>
           {/* The <b> part of the heading takes its own line, in gold. */}
           <div style={{ display: 'flex', flexDirection: 'column', fontSize: 62, lineHeight: 1.08, color: '#FBF3DC' }}>
@@ -277,8 +287,10 @@ export async function renderDiscordOgImage(locale: string): Promise<ImageRespons
                 alignItems: 'center', justifyContent: 'center', background: '#13122A',
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={MARK_DATA_URI} width={33} height={33} alt="" />
+              {iconUri && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={iconUri} width={33} height={33} alt="" />
+              )}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>

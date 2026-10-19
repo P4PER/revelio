@@ -215,7 +215,7 @@ export function CommandPicker() {
         {/* globals.css owns the keyframes as --animate-caret-blink. */}
         <span
           data-caret
-            className="-ml-1.5 inline-block h-[18px] w-[1.5px] shrink-0 animate-caret-blink motion-reduce:animate-none"
+            className="inline-block h-[18px] w-[1.5px] shrink-0 animate-caret-blink motion-reduce:animate-none"
             style={{ background: DISCORD_TEXT }}
           />
         </span>

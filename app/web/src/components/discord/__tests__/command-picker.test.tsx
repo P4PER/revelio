@@ -59,6 +59,14 @@ describe('CommandPicker', () => {
     expect(caret.className).toMatch(/motion-reduce:animate-none/)
   })
 
+  // The hero's message box leaves its flex gap before the caret; this one
+  // must not pull the caret flush against the typed name.
+  it('spaces the caret like the hero mock', () => {
+    renderPicker()
+    const caret = document.querySelector('[data-caret]')!
+    expect(caret.className).not.toMatch(/(^|\s)-m[lx]-/)
+  })
+
   it('names the window for assistive tech', () => {
     renderPicker()
     expect(

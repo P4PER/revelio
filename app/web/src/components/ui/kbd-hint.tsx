@@ -1,6 +1,6 @@
 'use client'
 import { useSyncExternalStore } from 'react'
-import { Kbd, KbdGroup } from '@/components/ui/kbd'
+import { Kbd } from '@/components/ui/kbd'
 import { cn } from '@/lib/utils'
 
 // Platform read via useSyncExternalStore: the server snapshot assumes macOS (⌘),
@@ -16,7 +16,9 @@ function useIsMac() {
 }
 
 // A search-field keyboard affordance built on the shadcn Kbd. `cmdk` renders ⌘K
-// (Ctrl K off macOS); `slash` renders a single "/". Hidden on touch-first widths
+// (Ctrl K off macOS) as one keycap, the way GitHub's KeybindingHint draws a
+// chord, rather than a box per key. Each key is its own span so the Kbd's gap
+// spaces them; "⌘K" as one string runs the glyphs together. `slash` renders a single "/". Hidden on touch-first widths
 // where there's no keyboard, and fades out on focus / once the sibling `peer`
 // input has text (so callers only pass positioning).
 export function KbdHint({
@@ -29,21 +31,21 @@ export function KbdHint({
   const mac = useIsMac()
 
   return (
-    <KbdGroup
+    <Kbd
       aria-hidden
       className={cn(
-        'pointer-events-none hidden select-none transition-opacity peer-focus:opacity-0 peer-[:not(:placeholder-shown)]:opacity-0 sm:inline-flex',
+        'pointer-events-none hidden px-1.5 select-none transition-opacity peer-focus:opacity-0 peer-[:not(:placeholder-shown)]:opacity-0 sm:inline-flex',
         className,
       )}
     >
       {shortcut === 'slash' ? (
-        <Kbd>/</Kbd>
+        '/'
       ) : (
         <>
-          <Kbd>{mac ? '⌘' : 'Ctrl'}</Kbd>
-          <Kbd>K</Kbd>
+          <span>{mac ? '⌘' : 'Ctrl'}</span>
+          <span>K</span>
         </>
       )}
-    </KbdGroup>
+    </Kbd>
   )
 }

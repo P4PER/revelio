@@ -5,7 +5,9 @@ import type { ReactNode } from 'react'
 import sharp from 'sharp'
 import { ImageResponse } from 'next/og'
 import { getTranslations } from 'next-intl/server'
+import { getPathname } from '@/../i18n/navigation'
 import { OG_SIZE, clampOgTitle } from '@/lib/seo'
+import { SITE_URL } from '@/lib/site'
 
 // The wand-and-star mark, inlined from logos/revelio-icon.svg and embedded as a
 // data URI so the renderer makes no external image request.
@@ -213,6 +215,8 @@ export async function renderDiscordOgImage(locale: string): Promise<ImageRespons
     loadDiscordCard(),
     getTranslations({ locale, namespace: 'discord' }),
   ])
+  // The page being shared, as the reader would type it: /discord or /de/discord.
+  const pageUrl = `${new URL(SITE_URL).host}${getPathname({ href: '/discord', locale })}`
   return new ImageResponse(
     (
       <div
@@ -231,7 +235,7 @@ export async function renderDiscordOgImage(locale: string): Promise<ImageRespons
           {/* The <b> part of the heading takes its own line, in gold. */}
           <div style={{ display: 'flex', flexDirection: 'column', fontSize: 62, lineHeight: 1.08, color: '#FBF3DC' }}>
             {t.rich('heading', { b: (chunks) => <span style={{ color: '#E8B23A' }}>{chunks}</span> })}
-            <span style={{ fontSize: 28, lineHeight: 1.4, color: '#B9B4D6', marginTop: 18 }}>revelio.cards/discord</span>
+            <span style={{ fontSize: 28, lineHeight: 1.4, color: '#B9B4D6', marginTop: 18 }}>{pageUrl}</span>
           </div>
         </div>
         <div

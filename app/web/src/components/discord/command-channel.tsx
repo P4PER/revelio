@@ -9,6 +9,7 @@ import {
   DISCORD_INPUT,
   DISCORD_MENTION,
   DISCORD_MUTED,
+  DISCORD_PILL_LIVE,
   DISCORD_RULE,
   DISCORD_SELECT,
   DISCORD_TEXT,
@@ -206,7 +207,7 @@ export function CommandChannel() {
       >
         <span
           className="rounded-sm px-1"
-          style={{ background: '#3f4270', color: DISCORD_MENTION }}
+          style={{ background: DISCORD_PILL_LIVE, color: DISCORD_MENTION }}
         >
           /collection
         </span>
@@ -214,7 +215,7 @@ export function CommandChannel() {
         {/* Discord's own caret, so the line reads as mid-typing rather than sent.
             globals.css owns the keyframes as --animate-caret-blink. */}
         <span
-          className="inline-block h-4 w-px animate-caret-blink motion-reduce:animate-none"
+          className="inline-block h-[18px] w-[1.5px] animate-caret-blink motion-reduce:animate-none"
           style={{ background: DISCORD_TEXT }}
           aria-hidden
         />

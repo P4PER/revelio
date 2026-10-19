@@ -89,3 +89,25 @@ describe('CommandPicker', () => {
     ).toBeInTheDocument()
   })
 })
+
+// The hero's channel mock and the slash menu both end in Discord's message box,
+// on the same page; the same control must look the same in both.
+describe('the two message boxes', () => {
+  it('draw the same caret and the same typed-option tint', async () => {
+    const { CommandChannel } = await import('@/components/discord/command-channel')
+    const { container } = render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        <CommandChannel />
+        <CommandPicker />
+      </NextIntlClientProvider>,
+    )
+    const carets = [...container.querySelectorAll('.animate-caret-blink')]
+    expect(carets).toHaveLength(2)
+    const size = (el: Element) => el.className.match(/\b[hw]-\S+/g)
+    expect(size(carets[0])).toEqual(size(carets[1]))
+    // The span the caret follows holds the typed option in each box.
+    const tint = (el: Element) =>
+      (el.parentElement!.querySelector('[style*="color"][class*="rounded"]') as HTMLElement).style.background
+    expect(tint(carets[0])).toBe(tint(carets[1]))
+  })
+})

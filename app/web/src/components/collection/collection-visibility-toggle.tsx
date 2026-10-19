@@ -2,7 +2,7 @@
 import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { ChevronDown, Globe, Link2, Lock } from 'lucide-react'
+import { ChevronDown, Link2, Lock, Share2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -23,9 +23,11 @@ import {
 } from '@/components/ui/alert-dialog'
 import { setCollectionVisibilityAction } from '@/lib/actions/collection-actions'
 
-// Mirrors the deck overview's Publish/Published control: an outline "Publish"
-// button (with a confirm dialog) while private, and a "Published" dropdown with
-// Copy link / Unpublish while public.
+// Shaped like the deck overview's Publish/Published control, but worded as
+// sharing: an outline "Share" button (with a confirm dialog) while private, and
+// a "Shared" dropdown with Copy link / Stop sharing while public. The wording
+// differs on purpose: a public deck is listed on Explore, so it is published,
+// while a public collection is listed nowhere and only reached by its link.
 export function CollectionVisibilityToggle({
   initial, shareUrl,
 }: {
@@ -61,20 +63,20 @@ export function CollectionVisibilityToggle({
     return (
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="outline" disabled={pending}>
-            <Globe className="size-4" />
-            {t('publish')}
+          <Button size="sm" variant="outline" disabled={pending}>
+            <Share2 className="size-4" />
+            {t('share')}
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('publishDialog.title')}</AlertDialogTitle>
-            <AlertDialogDescription>{t('publishDialog.description')}</AlertDialogDescription>
+            <AlertDialogTitle>{t('shareDialog.title')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('shareDialog.description')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('publishDialog.cancel')}</AlertDialogCancel>
+            <AlertDialogCancel>{t('shareDialog.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={() => setVisibility('public')}>
-              {t('publishDialog.confirm')}
+              {t('shareDialog.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -85,9 +87,9 @@ export function CollectionVisibilityToggle({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" disabled={pending}>
-          <Globe className="size-4" />
-          {t('published')}
+        <Button size="sm" variant="outline" disabled={pending}>
+          <Share2 className="size-4" />
+          {t('shared')}
           <ChevronDown className="size-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -98,7 +100,7 @@ export function CollectionVisibilityToggle({
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => setVisibility('private')}>
           <Lock />
-          {t('unpublish')}
+          {t('stopSharing')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

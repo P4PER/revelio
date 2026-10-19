@@ -5,9 +5,9 @@ import { Kbd } from '@/components/ui/kbd'
 import { CommandCode } from '@/components/discord/command-code'
 import { DiscordCta } from '@/components/discord/discord-cta'
 
-const STEPS = ['add', 'link', 'type'] as const
-
 type Step = (typeof STEPS)[number]
+
+const STEPS = ['add', 'link', 'type'] as const
 
 function StepAction({ step, inviteUrl }: { step: Step; inviteUrl: string | null }) {
   const t = useTranslations('discord')

@@ -213,9 +213,9 @@ export function CommandPicker() {
             name
           </span>
           <span className="truncate">{t('sample.cardName')}</span>
-        {/* globals.css owns the keyframes as --animate-caret-blink. */}
-        <span
-          data-caret
+          {/* globals.css owns the keyframes as --animate-caret-blink. */}
+          <span
+            data-caret
             className="inline-block h-[18px] w-[1.5px] shrink-0 animate-caret-blink motion-reduce:animate-none"
             style={{ background: DISCORD_TEXT }}
           />

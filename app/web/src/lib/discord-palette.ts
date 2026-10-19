@@ -1,9 +1,10 @@
 // Discord's own surface palette, deliberately hardcoded rather than taken from the
 // Revelio theme tokens: it depicts Discord's UI, which does not follow the visitor's
 // light/dark choice. The /discord page's channel mock (components/discord/
-// command-channel.tsx), its slash-command menu (command-picker.tsx) and its share image (lib/og-image.tsx) both draw that
-// channel. It is a plain module so the server-only image renderer reads eight
-// strings without importing a React component tree.
+// command-channel.tsx), its slash-command menu (command-picker.tsx) and its
+// share image (lib/og-image.tsx) all draw from it. It is a plain module so the
+// server-only image renderer reads these strings without importing a React
+// component tree.
 export const DISCORD_CHANNEL = '#313338'
 export const DISCORD_EMBED = '#2b2d31'
 export const DISCORD_INPUT = '#383a40'

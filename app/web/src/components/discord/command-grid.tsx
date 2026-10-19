@@ -38,10 +38,11 @@ export function CommandGrid({
             })}
           </h2>
           <p className="max-w-[42ch] text-muted-foreground">{t('commandsIntro')}</p>
-          {/* Most commands answer privately, so the legend names the
-              exceptions: the commands that post where everyone can see, which
-              is what a visitor worries about. command-grid.test.tsx holds the
-              named ones to the manifest. The icons match the menu's rows. */}
+          {/* The menu labels every row with who sees the answer; the legend
+              states the rule once in words, naming the exceptions that post
+              where everyone can see, which is what a visitor worries about.
+              command-grid.test.tsx holds the named ones to the manifest. Its
+              icons are the menu's, so the two read as one key. */}
           <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
             <li className="flex items-start gap-2.5">
               <Users className="mt-0.5 size-4 shrink-0 text-primary-ink" aria-hidden />

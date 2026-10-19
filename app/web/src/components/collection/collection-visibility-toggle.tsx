@@ -23,9 +23,9 @@ import {
 } from '@/components/ui/alert-dialog'
 import { setCollectionVisibilityAction } from '@/lib/actions/collection-actions'
 
-// Mirrors the deck overview's Publish/Published control: an outline "Publish"
-// button (with a confirm dialog) while private, and a "Published" dropdown with
-// Copy link / Unpublish while public.
+// Shaped like the deck overview's Publish/Published control, but worded as
+// sharing: an outline "Share" button (with a confirm dialog) while private, and
+// a "Shared" dropdown with Copy link / Stop sharing while public.
 export function CollectionVisibilityToggle({
   initial, shareUrl,
 }: {
@@ -61,20 +61,20 @@ export function CollectionVisibilityToggle({
     return (
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="outline" disabled={pending}>
+          <Button size="sm" variant="outline" disabled={pending}>
             <Globe className="size-4" />
-            {t('publish')}
+            {t('share')}
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('publishDialog.title')}</AlertDialogTitle>
-            <AlertDialogDescription>{t('publishDialog.description')}</AlertDialogDescription>
+            <AlertDialogTitle>{t('shareDialog.title')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('shareDialog.description')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('publishDialog.cancel')}</AlertDialogCancel>
+            <AlertDialogCancel>{t('shareDialog.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={() => setVisibility('public')}>
-              {t('publishDialog.confirm')}
+              {t('shareDialog.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -85,9 +85,9 @@ export function CollectionVisibilityToggle({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" disabled={pending}>
+        <Button size="sm" variant="outline" disabled={pending}>
           <Globe className="size-4" />
-          {t('published')}
+          {t('shared')}
           <ChevronDown className="size-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -98,7 +98,7 @@ export function CollectionVisibilityToggle({
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => setVisibility('private')}>
           <Lock />
-          {t('unpublish')}
+          {t('stopSharing')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

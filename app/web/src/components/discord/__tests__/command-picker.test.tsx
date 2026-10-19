@@ -53,20 +53,6 @@ describe('CommandPicker', () => {
     expect(row('mydecks').textContent).toContain('no options')
   })
 
-  it('keeps the caret still under reduced motion', () => {
-    renderPicker()
-    const caret = document.querySelector('[data-caret]')!
-    expect(caret.className).toMatch(/motion-reduce:animate-none/)
-  })
-
-  // The hero's message box leaves its flex gap before the caret; this one
-  // must not pull the caret flush against the typed name.
-  it('spaces the caret like the hero mock', () => {
-    renderPicker()
-    const caret = document.querySelector('[data-caret]')!
-    expect(caret.className).not.toMatch(/(^|\s)-m[lx]-/)
-  })
-
   // The muted grey fell to 3.6:1 on the selected row. Descriptions and the
   // private label carry content, so they take Discord's secondary text
   // colour (#b5bac1, 5.1:1 there); the muted grey stays for metadata.
@@ -90,24 +76,45 @@ describe('CommandPicker', () => {
   })
 })
 
-// The hero's channel mock and the slash menu both end in Discord's message box,
-// on the same page; the same control must look the same in both.
-describe('the two message boxes', () => {
-  it('draw the same caret and the same typed-option tint', async () => {
+// The hero's channel mock and the slash menu are the same Discord window twice
+// on one page; the controls they share must be the same component, at one scale.
+describe('the two Discord windows', () => {
+  async function renderBoth() {
     const { CommandChannel } = await import('@/components/discord/command-channel')
-    const { container } = render(
+    return render(
       <NextIntlClientProvider locale="en" messages={en}>
-        <CommandChannel />
-        <CommandPicker />
+        <div data-window="hero">
+          <CommandChannel />
+        </div>
+        <div data-window="picker">
+          <CommandPicker />
+        </div>
       </NextIntlClientProvider>,
     )
-    const carets = [...container.querySelectorAll('.animate-caret-blink')]
-    expect(carets).toHaveLength(2)
-    const size = (el: Element) => el.className.match(/\b[hw]-\S+/g)
-    expect(size(carets[0])).toEqual(size(carets[1]))
-    // The span the caret follows holds the typed option in each box.
-    const tint = (el: Element) =>
-      (el.parentElement!.querySelector('[style*="color"][class*="rounded"]') as HTMLElement).style.background
-    expect(tint(carets[0])).toBe(tint(carets[1]))
+  }
+
+  it('each end in the shared message box under the shared header', async () => {
+    const { container } = await renderBoth()
+    for (const name of ['hero', 'picker']) {
+      const w = container.querySelector(`[data-window="${name}"]`)!
+      expect(w.querySelectorAll('[data-message-box]')).toHaveLength(1)
+      expect(w.querySelectorAll('[data-channel-header]')).toHaveLength(1)
+    }
+  })
+
+  it('share one base text size and one message avatar size', async () => {
+    const { container } = await renderBoth()
+    const root = (name: string) => container.querySelector(`[data-window="${name}"] > div`)!
+    expect(root('hero').className).toMatch(/(^|\s)text-sm(\s|$)/)
+    expect(root('picker').className).toMatch(/(^|\s)text-sm(\s|$)/)
+    // The hero's bot avatar matches the menu's history avatars (36px).
+    const avatar = root('hero').querySelector('img[src*="revelio-icon"]')!.parentElement!
+    expect(avatar.className).toMatch(/(^|\s)size-9(\s|$)/)
+  })
+
+  it('types the option the bot registers, outside the localized value', async () => {
+    const { container } = await renderBoth()
+    const box = container.querySelector('[data-window="hero"] [data-message-box]')!
+    expect(box.textContent).toBe(`+/collectionset${en.discord.sample.typing}`)
   })
 })

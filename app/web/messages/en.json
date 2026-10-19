@@ -874,7 +874,7 @@
       "shareQuery": "charm",
       "rowStats": "Spell · Charms · Cost {cost}",
       "viewCard": "View a card...",
-      "typing": "set: Chamber of Secrets"
+      "typing": "Chamber of Secrets"
     },
     "picker": {
       "label": "Revelio's commands as Discord lists them",

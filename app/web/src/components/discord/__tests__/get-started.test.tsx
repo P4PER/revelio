@@ -5,7 +5,11 @@ import { describe, it, expect, vi } from 'vitest'
 import en from '@/../messages/en.json'
 
 vi.mock('@/../i18n/navigation', () => ({
-  Link: ({ href, children }: { href: string; children: ReactNode }) => <a href={href}>{children}</a>,
+  Link: ({ href, children, className }: { href: string; children: ReactNode; className?: string }) => (
+    <a href={href} className={className}>
+      {children}
+    </a>
+  ),
 }))
 
 import { GetStarted } from '@/components/discord/get-started'
@@ -50,6 +54,17 @@ describe('GetStarted', () => {
       'href',
       '/settings/connections',
     )
+  })
+
+  // The two step actions sit one above the other; a pill under a rounded
+  // rectangle read as two unrelated controls.
+  it('rounds the settings link like the install button', () => {
+    renderSteps()
+    const radius = (el: HTMLElement) => el.className.match(/\brounded-(?:sm|md|lg|xl|full)\b/g)?.at(-1)
+    const install = screen.getByRole('link', { name: /Add to Discord/ })
+    const settings = screen.getByRole('link', { name: /Settings.*Connections/ })
+    expect(radius(install)).toBeDefined()
+    expect(radius(settings)).toBe(radius(install))
   })
 
   it('shows the slash as a key', () => {

@@ -16,7 +16,7 @@ function StepAction({ step, inviteUrl }: { step: Step; inviteUrl: string | null 
     return (
       <Link
         href="/settings/connections"
-        className="inline-flex items-center gap-1 rounded-full border border-primary/50 px-3 py-1 text-sm font-medium text-primary-ink transition-colors hover:bg-primary/10"
+        className="inline-flex items-center gap-1 rounded-md border border-primary/50 px-3 py-1 text-sm font-medium text-primary-ink transition-colors hover:bg-primary/10"
       >
         {t.rich('steps.linkAction', {
           sep: () => <ChevronRight className="size-3.5" aria-hidden />,

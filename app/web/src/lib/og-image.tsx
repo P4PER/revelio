@@ -2,7 +2,6 @@ import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 import type { ReactNode } from 'react'
-import sharp from 'sharp'
 import { ImageResponse } from 'next/og'
 import { getTranslations } from 'next-intl/server'
 import { getPathname } from '@/../i18n/navigation'
@@ -13,6 +12,10 @@ import { SITE_URL } from '@/lib/site'
 // data URI so the renderer makes no external image request.
 const MARK_SVG = `<svg width="80" height="80" viewBox="16 15 68 68" xmlns="http://www.w3.org/2000/svg"><g transform="translate(-7,2.5)"><polygon points="26.51,72.70 33.49,79.30 65.16,41.10 62.84,38.90" fill="#3B3194"/><line x1="40.12" y1="73.30" x2="32.12" y2="65.74" stroke="#C8881E" stroke-width="2.6" stroke-linecap="round"/><path d="M70,16 Q73.4,30.6 88,34 Q73.4,37.4 70,52 Q66.6,37.4 52,34 Q66.6,30.6 70,16 Z" fill="#E8B23A"/><path d="M70,26 Q71.6,32.4 78,34 Q71.6,35.6 70,42 Q68.4,35.6 62,34 Q68.4,32.4 70,26 Z" fill="#F6D58B"/><path d="M52,14 Q53.2,18.8 58,20 Q53.2,21.2 52,26 Q50.8,21.2 46,20 Q50.8,18.8 52,14 Z" fill="#E8B23A"/><path d="M78,53.5 Q78.9,57.1 82.5,58 Q78.9,58.9 78,62.5 Q77.1,58.9 73.5,58 Q77.1,57.1 78,53.5 Z" fill="#E8B23A"/></g></svg>`
 const MARK_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(MARK_SVG).toString('base64')}`
+
+// Satori cannot decode WebP, so the /discord share image carries its own JPEG of
+// the page's sample card (public/discord/alohomora-thumb.webp), made once with sharp.
+const DISCORD_CARD_URL = new URL('./og-assets/alohomora-card.jpg', import.meta.url)
 
 // Read the font from disk (not fetch): on the Node runtime `new URL(…,
 // import.meta.url)` is a file:// URL, which undici's fetch rejects with
@@ -55,15 +58,18 @@ const DISCORD_BLURPLE = '#5865F2'
 const DISCORD_MENTION = '#c2c5f7'
 const LESSON_CHARMS = '#0069A9'
 
-// The /discord page's sample card, converted to PNG because satori cannot decode
-// WebP. Best-effort like the lesson icons: a failure omits the art.
+// Best-effort like the lesson icons: a failed read omits the art. A failure is not
+// cached, so one transient error cannot drop the art until the process restarts.
 let discordCardPromise: Promise<string | null> | null = null
 function loadDiscordCard(): Promise<string | null> {
   if (!discordCardPromise) {
-    discordCardPromise = readFile(join(process.cwd(), 'public', 'discord', 'alohomora-thumb.webp'))
-      .then((buf) => sharp(buf).png().toBuffer())
-      .then((png) => `data:image/png;base64,${png.toString('base64')}`)
-      .catch(() => null)
+    discordCardPromise = readFile(fileURLToPath(DISCORD_CARD_URL)).then(
+      (buf) => `data:image/jpeg;base64,${buf.toString('base64')}`,
+      () => {
+        discordCardPromise = null
+        return null
+      },
+    )
   }
   return discordCardPromise
 }

@@ -77,6 +77,7 @@ tile); the background is `on-light` or `on-dark`.
 | `revelio-logo-on-light.svg` | Main logo, light background (vector) |
 | `revelio-logo-on-dark.svg` | Logo for dark backgrounds (vector) |
 | `revelio-icon-on-light.svg` | Icon only, light background, transparent |
+| `revelio-icon-on-dark.svg` | Icon only, dark background: the dark logo's icon |
 | `revelio-app-icon.svg` | App icon: the icon on its square tile |
 | `revelio-logo-on-light-1200.png` | Main logo, 1200 px wide |
 | `revelio-logo-on-dark-1200.png` | Dark logo, 1200 px wide |

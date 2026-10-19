@@ -824,9 +824,10 @@
     "appTag": "App",
     "you": "you",
     "cardImageAlt": "{name} card",
-    "commandsTitle": "What you can type",
-    "commandsIntro": "Type <slash>/</slash> in any channel the bot can see. Discord fills in the rest.",
-    "channelNote": "<cmd>/card</cmd> and <cmd>/deck</cmd> answer in the channel. Everything else answers only you until you share it.",
+    "commandsTitle": "Type a slash. <b>Pick a command.</b>",
+    "commandsIntro": "Every command shows up in any channel the bot can see. Discord fills in the options as you go.",
+    "channelNote": "<cmd>/card</cmd> and <cmd>/deck</cmd> answer in the channel.",
+    "privateNote": "Everything else answers only you until you share it.",
     "commands": {
       "card": {
         "description": "The full card: text, flavour, cost, lesson, rarity, legality, rulings, and the art."

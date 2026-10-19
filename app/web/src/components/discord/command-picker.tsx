@@ -14,6 +14,7 @@ import {
   DISCORD_MUTED,
   DISCORD_PILL,
   DISCORD_PILL_BORDER,
+  DISCORD_PILL_LIVE,
   DISCORD_RULE,
   DISCORD_SELECT,
   DISCORD_TEXT,
@@ -43,7 +44,7 @@ const HISTORY: readonly HistoryMessage[] = [
 function OptionPill({ name }: { name: string }) {
   return (
     <code
-      className="rounded border px-1.5 py-px font-mono text-[0.72rem] whitespace-nowrap after:text-(--colon) after:content-[':']"
+      className="rounded border px-1.5 font-mono text-[0.78rem] leading-5 font-medium whitespace-nowrap after:text-(--colon) after:content-[':']"
       // The colon is a pseudo-element so it stays out of the pill's text; the
       // custom property is how a palette constant reaches it.
       style={
@@ -65,30 +66,34 @@ function CommandRow({ command, selected }: { command: BotCommandSpec; selected: 
   const Icon = command.ephemeral ? Lock : Users
   return (
     <li
-      className="flex items-center gap-3 rounded px-2 py-1.5"
+      className="mx-1.5 flex items-center gap-3 rounded px-3 py-2"
       style={selected ? { background: DISCORD_ACTIVE } : undefined}
     >
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[0.84rem] font-bold" style={{ color: DISCORD_HEADING }}>
+        <div className="mb-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <span className="text-[0.94rem] font-semibold" style={{ color: DISCORD_HEADING }}>
             /{command.name}
           </span>
           {command.options.length > 0 ? (
-            command.options.map((option) => <OptionPill key={option.name} name={option.name} />)
+            <span className="inline-flex flex-wrap gap-1">
+              {command.options.map((option) => (
+                <OptionPill key={option.name} name={option.name} />
+              ))}
+            </span>
           ) : (
-            <span className="text-[0.72rem] italic" style={{ color: DISCORD_MUTED }}>
+            <span className="text-xs italic" style={{ color: DISCORD_MUTED }}>
               {t('picker.noOptions')}
             </span>
           )}
         </div>
-        <p className="text-[0.74rem] leading-snug" style={{ color: DISCORD_MUTED }}>
+        <p className="text-[0.82rem] leading-snug" style={{ color: DISCORD_MUTED }}>
           {t(`commands.${command.name}.description`)}
         </p>
       </div>
       {/* Who sees the answer. The icon stays at every width; the word goes on a
           phone, where it would squeeze the description. */}
       <span
-        className="flex shrink-0 items-center gap-1 text-[0.7rem] font-medium"
+        className="flex shrink-0 items-center gap-1.5 text-xs whitespace-nowrap"
         style={{ color: command.ephemeral ? DISCORD_MUTED : DISCORD_MENTION }}
       >
         <Icon className="size-3.5" aria-hidden />
@@ -113,38 +118,38 @@ export function CommandPicker() {
     <div
       role="group"
       aria-label={t('picker.label')}
-      className="overflow-hidden rounded-xl text-left text-[0.84rem] shadow-2xl"
+      className="overflow-hidden rounded-xl text-left text-sm leading-[1.375] shadow-2xl"
       style={{ background: DISCORD_CHANNEL, color: DISCORD_TEXT }}
     >
       <div
-        className="flex min-w-0 items-center gap-1.5 border-b px-3.5 py-2 text-[0.78rem] font-semibold"
+        className="flex min-w-0 items-center gap-1.5 border-b px-4 py-2.5 text-[0.94rem] font-semibold"
         style={{ borderColor: DISCORD_RULE, color: DISCORD_MUTED }}
       >
-        <span className="text-base leading-none">#</span>
+        <span className="text-xl leading-none font-normal">#</span>
         <span className="shrink-0" style={{ color: DISCORD_HEADING }}>
           {t('channelName')}
         </span>
-        <span className="mx-1.5 h-4 w-px shrink-0" style={{ background: DISCORD_RULE }} />
-        <span className="truncate font-normal">{t('picker.topic')}</span>
+        <span className="ml-1 h-4 w-px shrink-0" style={{ background: DISCORD_ACTIVE }} />
+        <span className="truncate pl-1.5 text-[0.82rem] font-normal">{t('picker.topic')}</span>
       </div>
 
       <div
         aria-hidden
-        className="hidden flex-col gap-3 px-3.5 pt-4 [mask-image:linear-gradient(to_bottom,transparent,black_60%)] sm:flex"
+        className="hidden flex-col gap-3.5 px-4 pt-4 pb-2 [mask-image:linear-gradient(to_bottom,transparent,black_70%)] sm:flex"
       >
         {HISTORY.map((m) => (
-          <div key={m.key} className="flex gap-3">
+          <div key={m.key} className="flex gap-3.5">
             <span
-              className="flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
+              className="flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
               style={{ background: m.color }}
             >
               {m.initial}
             </span>
             <div className="min-w-0">
-              <span className="text-sm font-semibold" style={{ color: DISCORD_HEADING }}>
+              <span className="font-medium" style={{ color: DISCORD_HEADING }}>
                 {m.name}
               </span>{' '}
-              <span className="text-[0.68rem]" style={{ color: DISCORD_MUTED }}>
+              <span className="ml-0.5 text-[0.69rem]" style={{ color: DISCORD_MUTED }}>
                 {m.time}
               </span>
               <p>{t(`picker.${m.key}`)}</p>
@@ -153,23 +158,26 @@ export function CommandPicker() {
         ))}
       </div>
 
-      <div className="px-3.5 pt-3">
-        <div className="flex overflow-hidden rounded-lg" style={{ background: DISCORD_EMBED }}>
+      <div className="px-4 pt-2">
+        <div
+          className="flex overflow-hidden rounded-lg shadow-[0_0_0_1px_rgba(0,0,0,0.25),0_8px_24px_rgba(0,0,0,0.35)]"
+          style={{ background: DISCORD_EMBED }}
+        >
           {/* The app rail: Revelio picked, two other apps faded out. */}
           <div
             aria-hidden
-            className="hidden w-12 shrink-0 flex-col items-center gap-2 py-2.5 sm:flex"
+            className="hidden w-12 shrink-0 flex-col items-center gap-2 py-2 sm:flex"
             style={{ background: DISCORD_SELECT }}
           >
             <span className="rounded-full" style={{ boxShadow: `0 0 0 2px ${DISCORD_BLURPLE}` }}>
               <BotAvatar />
             </span>
-            <span className="size-8 rounded-full opacity-40" style={{ background: DISCORD_ACTIVE }} />
-            <span className="size-8 rounded-full opacity-40" style={{ background: DISCORD_ACTIVE }} />
+            <span className="size-8 rounded-full opacity-55" style={{ background: DISCORD_ACTIVE }} />
+            <span className="size-8 rounded-full opacity-55" style={{ background: DISCORD_ACTIVE }} />
           </div>
-          <div className="min-w-0 flex-1 p-2">
+          <div className="min-w-0 flex-1 pb-1.5">
             <div
-              className="flex items-center gap-1.5 px-2 pb-1.5 text-[0.68rem] font-semibold tracking-wide uppercase"
+              className="flex items-center gap-2 px-3 pt-2.5 pb-1.5 text-xs font-bold tracking-wide uppercase"
               style={{ color: DISCORD_MUTED }}
             >
               <BotAvatar className="size-4" />
@@ -186,29 +194,31 @@ export function CommandPicker() {
 
       <div
         aria-hidden
-        className="m-3.5 mt-2 flex items-center gap-2 rounded-lg px-3 py-2 text-[0.82rem]"
+        className="mx-4 mt-2 mb-5 flex items-center gap-3 rounded-lg px-4 py-[11px] text-[0.94rem]"
         style={{ background: DISCORD_INPUT }}
       >
         <span
-          className="flex size-5 shrink-0 items-center justify-center rounded-full text-sm leading-none"
+          className="flex size-6 shrink-0 items-center justify-center rounded-full font-bold leading-none"
           style={{ background: DISCORD_MUTED, color: DISCORD_INPUT }}
         >
           +
         </span>
-        <span style={{ color: DISCORD_HEADING }}>/card</span>
-        <span
-          className="rounded border px-1.5 py-px font-mono text-[0.72rem]"
-          style={{ background: DISCORD_PILL, borderColor: DISCORD_PILL_BORDER, color: DISCORD_MENTION }}
-        >
-          name
-        </span>
-        <span className="truncate">{t('sample.cardName')}</span>
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span>/card</span>
+          <span
+            className="rounded px-1.5 font-mono text-[0.82rem] leading-[22px] after:content-[':']"
+            style={{ background: DISCORD_PILL_LIVE, color: DISCORD_MENTION }}
+          >
+            name
+          </span>
+          <span className="truncate">{t('sample.cardName')}</span>
         {/* globals.css owns the keyframes as --animate-caret-blink. */}
         <span
           data-caret
-          className="-ml-1.5 inline-block h-4 w-px shrink-0 animate-caret-blink motion-reduce:animate-none"
-          style={{ background: DISCORD_TEXT }}
-        />
+            className="-ml-1.5 inline-block h-[18px] w-[1.5px] shrink-0 animate-caret-blink motion-reduce:animate-none"
+            style={{ background: DISCORD_TEXT }}
+          />
+        </span>
       </div>
     </div>
   )

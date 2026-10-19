@@ -776,9 +776,10 @@
     "appTag": "App",
     "you": "du",
     "cardImageAlt": "Karte {name}",
-    "commandsTitle": "Was du tippen kannst",
-    "commandsIntro": "Tippe <slash>/</slash> in jedem Kanal, den der Bot sieht. Den Rest ergänzt Discord.",
-    "channelNote": "<cmd>/card</cmd> und <cmd>/deck</cmd> antworten im Kanal. Alles andere antwortet nur dir, bis du es teilst.",
+    "commandsTitle": "Slash tippen. <b>Befehl wählen.</b>",
+    "commandsIntro": "Jeder Befehl erscheint in jedem Kanal, den der Bot sieht. Die Optionen ergänzt Discord beim Tippen.",
+    "channelNote": "<cmd>/card</cmd> und <cmd>/deck</cmd> antworten im Kanal.",
+    "privateNote": "Alles andere antwortet nur dir, bis du es teilst.",
     "commands": {
       "card": {
         "description": "Die ganze Karte: Text, Flavour, Kosten, Lektion, Seltenheit, Legalität, Rulings und das Artwork."

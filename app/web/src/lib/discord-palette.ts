@@ -19,6 +19,8 @@ export const DISCORD_RULE = '#26282c'
 // Option pills in the slash-command menu: blurple at low alpha, as Discord tints them.
 export const DISCORD_PILL = 'rgba(88, 101, 242, 0.18)'
 export const DISCORD_PILL_BORDER = 'rgba(88, 101, 242, 0.45)'
+// The option once picked, in the message box: a stronger tint, no border.
+export const DISCORD_PILL_LIVE = 'rgba(88, 101, 242, 0.3)'
 
 // The accent bar the bot gives a Charms card (the sample card is Alohomora).
 export const LESSON_CHARMS = '#0069A9'

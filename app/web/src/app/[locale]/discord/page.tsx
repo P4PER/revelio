@@ -67,7 +67,7 @@ export function DiscordContent({ inviteUrl }: { inviteUrl: string | null }) {
         <CommandChannel />
       </section>
 
-      <CommandGrid docsHref={DOCS_HREF} />
+      <CommandGrid docsHref={DOCS_HREF} inviteUrl={inviteUrl} />
     </main>
   )
 }

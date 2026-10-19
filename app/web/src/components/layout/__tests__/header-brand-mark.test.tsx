@@ -18,6 +18,7 @@ describe('HeaderBrandMark', () => {
     expect(srcs.some((s) => s?.includes('revelio-logo-on-light.svg'))).toBe(true)
     expect(srcs.some((s) => s?.includes('revelio-logo-on-dark.svg'))).toBe(true)
     expect(srcs.some((s) => s?.includes('revelio-icon-on-light.svg'))).toBe(false)
+    expect(srcs.some((s) => s?.includes('revelio-icon-on-dark.svg'))).toBe(false)
   })
 
   it('renders the icon for phones and the wordmark for >=640px off the home page', () => {

@@ -9,10 +9,12 @@ import {
   DISCORD_INPUT,
   DISCORD_MENTION,
   DISCORD_MUTED,
+  DISCORD_RULE,
   DISCORD_SELECT,
   DISCORD_TEXT,
   LESSON_CHARMS,
 } from '@/lib/discord-palette'
+import { BotAvatar } from '@/components/discord/bot-avatar'
 
 type ShareRow = { name: string; setCode: string; number: string; cost: number; thumb: string }
 
@@ -50,28 +52,6 @@ const SHARE_ROWS: readonly ShareRow[] = [
 ]
 
 const SAMPLE_CARD_THUMB = '/discord/alohomora-thumb.webp'
-
-// The dark-background wand mark, on the midnight circle a Discord avatar crops
-// to: the circle carries the brand's background so the avatar reads as Revelio
-// against Discord's grey surface.
-// Decorative: the bot's name is printed beside it on every message.
-function BotAvatar() {
-  return (
-    <span
-      className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full"
-      style={{ background: '#13122A' }}
-    >
-      <Image
-        src="/revelio-icon-on-dark.svg"
-        alt=""
-        width={68}
-        height={68}
-        aria-hidden
-        className="size-5"
-      />
-    </span>
-  )
-}
 
 function CommandContext({ command }: { command: string }) {
   const t = useTranslations('discord')
@@ -147,7 +127,7 @@ export function CommandChannel() {
     >
       <div
         className="flex items-center gap-1.5 border-b px-3.5 py-2 text-[0.78rem] font-semibold"
-        style={{ borderColor: '#26282c', color: DISCORD_MUTED }}
+        style={{ borderColor: DISCORD_RULE, color: DISCORD_MUTED }}
       >
         <span className="text-base leading-none">#</span>
         <span style={{ color: DISCORD_HEADING }}>{t('channelName')}</span>

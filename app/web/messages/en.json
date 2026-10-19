@@ -871,6 +871,15 @@
       "rowStats": "Spell · Charms · Cost {cost}",
       "viewCard": "View a card...",
       "typing": "set: Chamber of Secrets"
+    },
+    "picker": {
+      "label": "Revelio's commands as Discord lists them",
+      "topic": "Brewing, trading and arguing about rulings",
+      "history1": "wait, can Alohomora fetch an Adventure too?",
+      "history2": "pretty sure, let me check",
+      "channel": "Channel",
+      "onlyYou": "Only you",
+      "noOptions": "no options"
     }
   },
   "docs": {

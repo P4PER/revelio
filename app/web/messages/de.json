@@ -823,6 +823,15 @@
       "rowStats": "Zauber · Zauberkunst · Kosten {cost}",
       "viewCard": "Karte ansehen ...",
       "typing": "set: Kammer des Schreckens"
+    },
+    "picker": {
+      "label": "Revelios Befehle, wie Discord sie anzeigt",
+      "topic": "Decks bauen, tauschen und über Regeln streiten",
+      "history1": "Moment, kann Alohomora auch ein Abenteuer holen?",
+      "history2": "glaube schon, ich schau nach",
+      "channel": "Kanal",
+      "onlyYou": "Nur du",
+      "noOptions": "keine Optionen"
     }
   },
   "docs": {

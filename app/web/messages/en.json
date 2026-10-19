@@ -848,6 +848,7 @@
       }
     },
     "reference": {
+      "action": "Read the reference",
       "title": "Full reference",
       "description": "Every option each command takes, how account linking works, and exactly what the bot can and cannot read."
     },

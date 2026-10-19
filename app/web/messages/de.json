@@ -800,6 +800,7 @@
       }
     },
     "reference": {
+      "action": "Zur Referenz",
       "title": "Vollständige Referenz",
       "description": "Jede Option jedes Befehls, wie die Kontoverknüpfung funktioniert und was der Bot lesen kann und was nicht."
     },

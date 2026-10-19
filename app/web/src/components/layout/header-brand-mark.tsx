@@ -14,7 +14,7 @@ export function HeaderBrandMark() {
   return (
     <>
       <Image
-        src="/revelio-icon.svg"
+        src="/revelio-icon-on-light.svg"
         alt={BRAND_NAME}
         width={68}
         height={68}

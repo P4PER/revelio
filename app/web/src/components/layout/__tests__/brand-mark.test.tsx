@@ -9,8 +9,8 @@ describe('BrandMark', () => {
   it('renders a dark-background and a light-background wordmark', () => {
     const { container } = render(<BrandMark />)
     const srcs = [...container.querySelectorAll('img')].map((i) => i.getAttribute('src'))
-    expect(srcs.some((s) => s?.includes('revelio-logo-dark'))).toBe(true)
-    expect(srcs.some((s) => s?.includes('revelio-logo-primary'))).toBe(true)
+    expect(srcs.some((s) => s?.includes('revelio-logo-on-dark'))).toBe(true)
+    expect(srcs.some((s) => s?.includes('revelio-logo-on-light'))).toBe(true)
   })
 
   // display:none removes the hidden variant from the accessibility tree, so

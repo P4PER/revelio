@@ -94,7 +94,7 @@ const MIN_THUMB_DOWNSCALE = 1.5
 const BUDGET_SPENT = 'fetch budget spent'
 // Resolved against this module in dev and against sheet.mjs in the bundle, the
 // same way text.ts finds the font; build.mjs copies it next to the bundle.
-const LOGO_FILE = fileURLToPath(new URL('./revelio-logo.svg', import.meta.url))
+const LOGO_FILE = fileURLToPath(new URL('./revelio-logo-on-dark.svg', import.meta.url))
 // Upper bound on the painted sheet, in device pixels, and the only pixel cap in
 // the system - the browser painter's per-axis MAX_CANVAS_DIM went away with the
 // canvas. Two things scale with canvas area and this bounds both: peak RSS, at

@@ -17,7 +17,7 @@ export function HomeSearch({ placeholder }: { placeholder: string }) {
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/revelio-icon.svg"
+        src="/revelio-icon-on-light.svg"
         alt=""
         className="pointer-events-none absolute left-4 top-1/2 size-9 -translate-y-1/2"
       />

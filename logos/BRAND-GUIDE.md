@@ -67,14 +67,19 @@ text (website, headings) Poppins is the recommended house font (e.g. via Google 
 
 ## Files in the `logos/` folder
 
+File names say **what** the file is, then **which background** it is for:
+`revelio-<part>-<background>`. The parts are `logo` (icon and wordmark), `icon` (wand
+and star only), `wordmark` (the text only) and `app-icon` (the icon on its square
+tile); the background is `on-light` or `on-dark`.
+
 | File | Purpose |
 |---|---|
-| `revelio-logo-primary.svg` | Main logo, light background (vector) |
-| `revelio-logo-dark.svg` | Logo for dark backgrounds (vector) |
-| `revelio-icon.svg` | Mark only, transparent |
-| `revelio-icon-badge.svg` | App icon with badge |
-| `revelio-logo-primary-1200.png` | Main logo, 1200 px wide |
-| `revelio-logo-dark-1200.png` | Dark logo, 1200 px wide |
-| `revelio-icon-512/192/32/16.png` | Icon in several sizes |
-| `revelio-icon-badge-512/192/180.png` | App icon (180 = Apple touch) |
+| `revelio-logo-on-light.svg` | Main logo, light background (vector) |
+| `revelio-logo-on-dark.svg` | Logo for dark backgrounds (vector) |
+| `revelio-icon-on-light.svg` | Icon only, light background, transparent |
+| `revelio-app-icon.svg` | App icon: the icon on its square tile |
+| `revelio-logo-on-light-1200.png` | Main logo, 1200 px wide |
+| `revelio-logo-on-dark-1200.png` | Dark logo, 1200 px wide |
+| `revelio-icon-on-light-512/192/32/16.png` | Light icon in several sizes |
+| `revelio-app-icon-512/192/180.png` | App icon (180 = Apple touch) |
 | `favicon.ico` | Favicon (16/32/48 combined) |

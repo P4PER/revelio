@@ -8,7 +8,7 @@ type OwlPostEmblemProps = {
 }
 
 // The contact page's winged envelope: a gold flight trail, the envelope with
-// wings, and the four-point sparkle from the logo mark (logos/revelio-icon.svg)
+// wings, and the four-point sparkle from the logo mark (logos/revelio-icon-on-light.svg)
 // at the trail's head. Decorative; the copy next to it carries the meaning.
 export function OwlPostEmblem({ flying = false, className }: OwlPostEmblemProps) {
   return (

@@ -62,7 +62,7 @@ function BotAvatar() {
       style={{ background: '#13122A' }}
     >
       <Image
-        src="/revelio-icon.svg"
+        src="/revelio-icon-on-light.svg"
         alt=""
         width={68}
         height={68}

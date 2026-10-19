@@ -15,14 +15,14 @@ export function BrandMark() {
   return (
     <>
       <Image
-        src="/revelio-logo-primary.svg"
+        src="/revelio-logo-on-light.svg"
         alt={BRAND_NAME}
         width={426}
         height={78}
         className="h-9 w-auto dark:hidden"
       />
       <Image
-        src="/revelio-logo-dark.svg"
+        src="/revelio-logo-on-dark.svg"
         alt={BRAND_NAME}
         width={426}
         height={78}

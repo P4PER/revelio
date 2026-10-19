@@ -23,8 +23,8 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: THEME_COLOR_LIGHT,
     theme_color: THEME_COLOR_LIGHT,
     icons: [
-      { src: '/revelio-icon-badge-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-      { src: '/revelio-icon-badge-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: '/revelio-app-icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: '/revelio-app-icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
     ],
   }
 }

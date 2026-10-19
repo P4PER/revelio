@@ -15,17 +15,17 @@ describe('HeaderBrandMark', () => {
     // images is correct here. "Only the wordmark" is about the square icon
     // being absent, not about the count.
     const srcs = screen.getAllByAltText(BRAND_NAME).map((l) => l.getAttribute('src'))
-    expect(srcs.some((s) => s?.includes('revelio-logo-primary.svg'))).toBe(true)
-    expect(srcs.some((s) => s?.includes('revelio-logo-dark.svg'))).toBe(true)
-    expect(srcs.some((s) => s?.includes('revelio-icon.svg'))).toBe(false)
+    expect(srcs.some((s) => s?.includes('revelio-logo-on-light.svg'))).toBe(true)
+    expect(srcs.some((s) => s?.includes('revelio-logo-on-dark.svg'))).toBe(true)
+    expect(srcs.some((s) => s?.includes('revelio-icon-on-light.svg'))).toBe(false)
   })
 
   it('renders the icon for phones and the wordmark for >=640px off the home page', () => {
     mockPath.value = '/search'
     render(<HeaderBrandMark />)
     const logos = screen.getAllByAltText(BRAND_NAME)
-    const icon = logos.find((l) => l.getAttribute('src')?.includes('revelio-icon.svg'))
-    const wordmark = logos.find((l) => l.getAttribute('src')?.includes('revelio-logo-primary.svg'))
+    const icon = logos.find((l) => l.getAttribute('src')?.includes('revelio-icon-on-light.svg'))
+    const wordmark = logos.find((l) => l.getAttribute('src')?.includes('revelio-logo-on-light.svg'))
     expect(icon).toBeTruthy()
     expect(wordmark).toBeTruthy()
     // Icon shows on phones, hides at >=640px; wordmark is the inverse.

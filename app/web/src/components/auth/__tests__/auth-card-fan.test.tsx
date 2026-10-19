@@ -18,8 +18,8 @@ describe('AuthCardFan', () => {
     expect(srcs).toEqual([
       '/auth/bs-111-wingardium-leviosa.webp',
       '/auth/poa-71-lumos.webp',
-      '/revelio-icon-dark.svg',
-      '/revelio-wordmark-dark.svg',
+      '/revelio-icon-parchment.svg',
+      '/revelio-wordmark-on-dark.svg',
     ])
   })
 

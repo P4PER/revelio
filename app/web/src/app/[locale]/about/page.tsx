@@ -27,7 +27,7 @@ export function AboutContent({ githubUrl }: { githubUrl: string | null }) {
 
       <section
         data-testid="hero"
-        className="relative flex flex-col items-center pt-16 pb-16 text-center sm:pt-20"
+        className="relative flex flex-col items-center pt-8 pb-16 text-center sm:pt-20"
       >
         <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-5xl">
           {t('titlePrefix')} <span className="text-heading">{BRAND_NAME}</span>

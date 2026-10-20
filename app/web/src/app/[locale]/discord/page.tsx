@@ -59,7 +59,7 @@ export function DiscordContent({ inviteUrl }: { inviteUrl: string | null }) {
           under test. */}
       <section
         data-testid="hero"
-        className="relative grid min-h-lvh content-start items-center gap-10 pt-16 pb-14 sm:pt-20 md:grid-cols-[0.92fr_1.08fr]"
+        className="relative grid min-h-lvh content-start items-center gap-10 pt-8 pb-14 sm:pt-20 md:grid-cols-[0.92fr_1.08fr]"
       >
         <div data-testid="hero-copy" className="flex flex-col items-start gap-5">
           <h1 className="text-3xl leading-tight font-semibold tracking-tight text-foreground sm:text-4xl">

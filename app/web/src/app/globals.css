@@ -51,15 +51,29 @@
 
 /* The one top/bottom padding every page wrapper uses, tighter on phones.
    The bottom is larger than the top so a page's last row never crowds the
-   footer's border. Not used by the hero pages (home, about, discord), the full-height error
-   state, or the deck builder, whose md height subtracts its own md:py-6
-   (deck-builder.tsx). */
+   footer's border. Not used by the hero pages (home, about, discord), the
+   full-height error state, or the deck builder, whose md height subtracts
+   its own md:py-6 (deck-builder.tsx). */
 @utility page-y {
   padding-top: --spacing(4);
   padding-bottom: --spacing(12);
   @variant md {
     padding-top: --spacing(8);
     padding-bottom: --spacing(16);
+  }
+}
+
+/* page-y for the pages that centre their content from sm up (login, contact).
+   Even padding there, or the content sits above the true middle; on a phone
+   they stay at the top like any other page, so they keep page-y's bottom. */
+@utility page-y-centered {
+  padding-top: --spacing(4);
+  padding-bottom: --spacing(12);
+  @variant sm {
+    padding-bottom: --spacing(4);
+  }
+  @variant md {
+    padding-block: --spacing(8);
   }
 }
 

@@ -11,6 +11,9 @@ pages' first content up on phones.
   takes its block padding from the one utility in `globals.css`, so the bottom gets
   larger there: 16px top / 48px bottom on phones, 32px / 64px from `md`. Content then
   ends with a clear gap before the footer's border, the same on every page.
+- **Centred pages keep even padding from `sm`.** Login and contact centre their
+  content in the viewport from `sm` up, so uneven padding would lift it off-centre;
+  they take a `page-y-centered` sibling, the same as `page-y` on phones.
 - **The hero pages move together.** `/about` and `/discord` share `pt-16 sm:pt-20`, and
   `e2e/discord.spec.ts` asserts both heroes start at the same offset under the header.
   Both go to `pt-8 sm:pt-20`, so the phone offset halves and from `sm` nothing changes.

@@ -14,19 +14,24 @@ of its window peek in under the hero.
   no hard-coded header height (the header has none; its height comes from its padding
   and content). `lvh` rather than `svh`, which would let the section's top show once a
   phone's toolbar collapses, or `dvh`, which would resize the hero mid-scroll.
-- **Every width, not just `md:`, with `content-center`.** The stacked phone hero is
+- **Every width, not just `md:`, with `content-start`.** The stacked phone hero is
   already taller than a phone screen. On a tall narrow window it is not, and the
   default `align-content` would share the extra height between the two grid rows,
-  opening a ~225px band between the CTAs and the mock at 600x1500; `content-center`
+  opening a ~225px band between the CTAs and the mock at 600x1500; `content-start`
   keeps the rows packed at the grid's gap.
-- The hero keeps `items-center`, so on a tall window both columns sit centred in the
-  extra height instead of leaving it all below the mock.
+- **The extra height goes below the hero, not around it.** `/about` and `/discord`
+  share `pt-16 sm:pt-20`; centring the tracks (`content-center`) would push the
+  hero's first content to 137px under the header at 1200px tall and 257px at
+  1440px, against /about's 80. Packing them at the top keeps the two pages' heroes
+  starting at the same offset. The hero keeps `items-center`, which centres the
+  text column against the mock inside the one desktop row.
 
 ## Tasks
 
 1. Test first, in `e2e/discord.spec.ts` (jsdom cannot lay this out): `#commands`
    starts below the viewport at 1488x1200, 2560x1440 and 390x844, and at 600x1500 the
-   stacked text column and mock sit 40px apart. Watch them fail.
-2. Add `min-h-lvh content-center` to the hero section in `app/[locale]/discord/page.tsx`.
+   stacked text column and mock sit 40px apart, and the hero's topmost content sits as
+   far under the header as /about's at 1488x1200, 2560x1440 and 390x844. Watch them fail.
+2. Add `min-h-lvh content-start` to the hero section in `app/[locale]/discord/page.tsx`.
 3. `npm test -w web`, `npm run typecheck`, `npm run lint`, the e2e suite on a free port;
    screenshots of the first screen at 1488x1200 and 2560x1440 in both themes.

@@ -4,7 +4,6 @@ import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
 import { ChevronUp, ChevronDown, X } from 'lucide-react'
-import { saveRulingsAction, type RulingsSaveResult } from '@/lib/actions/rulings-actions'
 import { Button } from '@/components/ui/button'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { DatePicker } from '@/components/date-picker'
@@ -14,30 +13,26 @@ import {
 import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { makeRulingsSchema } from '@/lib/schemas/rulings'
 
-type Row = { id: string | null; date: string; source: string; text: string }
+export type RulingRow = { id: string | null; date: string; source: string; text: string }
 type Initial = { id: string; date: string; source: string; text: string }
 
 export type RulingsEditorHandle = {
   validate: (focus: boolean) => Promise<boolean>
-  save: () => Promise<RulingsSaveResult>
+  values: () => RulingRow[]
 }
 
 export function RulingsEditor({
-  cardId,
-  lang,
   initial,
   sources = [],
   ref,
 }: {
-  cardId: string
-  lang: string
   initial: Initial[]
   sources?: string[]
   ref?: React.Ref<RulingsEditorHandle>
 }) {
   const t = useTranslations('edit')
   const tv = useTranslations('validation')
-  const form = useForm<{ rows: Row[] }>({
+  const form = useForm<{ rows: RulingRow[] }>({
     resolver: zodResolver(makeRulingsSchema((k) => tv(k))),
     defaultValues: {
       rows: initial.map((r) => ({ id: r.id, date: r.date, source: r.source, text: r.text })),
@@ -74,17 +69,13 @@ export function RulingsEditor({
     return form.trigger(undefined, { shouldFocus: focus })
   }
 
-  // Persist the rulings. CardEditForm has already validated them.
-  async function save(): Promise<RulingsSaveResult> {
-    const rows = form.getValues('rows')
-    return saveRulingsAction({
-      cardId,
-      lang,
-      rulings: rows.map((r) => ({ id: r.id, date: r.date, source: r.source, text: r.text })),
-    })
+  // This section's part of the save. CardEditForm writes it together with the
+  // localization in one action, after validating both.
+  function values(): RulingRow[] {
+    return form.getValues('rows').map((r) => ({ id: r.id, date: r.date, source: r.source, text: r.text }))
   }
 
-  useImperativeHandle(ref, () => ({ validate, save }))
+  useImperativeHandle(ref, () => ({ validate, values }))
 
   return (
     <Form {...form}>

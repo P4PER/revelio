@@ -3,7 +3,6 @@ import { useImperativeHandle, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
-import { updateLocalization, type SaveResult } from '@/lib/actions/localization-actions'
 import { Input } from '@/components/ui/input'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
 import {
@@ -21,16 +20,23 @@ type Initial = {
   match: { prize: string; toWin: string }
 }
 
+export type LocalizationValues = {
+  name: string
+  text: string
+  flavorText: string
+  status: 'machine' | 'official'
+  adventure?: { effect: string; reward: string; toSolve: string }
+  match?: { prize: string; toWin: string }
+}
+
 export type LocalizationFormHandle = {
   validate: (focus: boolean) => Promise<boolean>
-  save: () => Promise<SaveResult>
+  values: () => LocalizationValues
 }
 
 export function LocalizationForm({
-  cardId, lang, initial, kind, ref,
+  initial, kind, ref,
 }: {
-  cardId: string
-  lang: string
   initial: Initial
   kind: 'adventure' | 'match' | null
   ref?: React.Ref<LocalizationFormHandle>
@@ -59,16 +65,17 @@ export function LocalizationForm({
     return form.trigger('name', { shouldFocus: focus })
   }
 
-  // Persist just this localization. CardEditForm has already validated it.
-  async function save(): Promise<SaveResult> {
-    return updateLocalization({
-      cardId, lang, name: form.getValues('name'), text, flavorText, status,
+  // This section's part of the save. CardEditForm writes it together with the
+  // rulings in one action, after validating both.
+  function values(): LocalizationValues {
+    return {
+      name: form.getValues('name'), text, flavorText, status,
       ...(kind === 'adventure' ? { adventure } : {}),
       ...(kind === 'match' ? { match } : {}),
-    })
+    }
   }
 
-  useImperativeHandle(ref, () => ({ validate, save }))
+  useImperativeHandle(ref, () => ({ validate, values }))
 
   return (
     <Form {...form}>

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { LocalizationForm, type LocalizationFormHandle } from '@/components/card/localization-form'
 import { RulingsEditor, type RulingsEditorHandle } from '@/components/card/rulings-editor'
+import { saveCardEditAction } from '@/lib/actions/card-edit-actions'
 import { Button } from '@/components/ui/button'
 
 type LocInitial = {
@@ -18,7 +19,7 @@ type LocInitial = {
 type RulingInitial = { id: string; date: string; source: string; text: string }
 
 // Orchestrates one shared Save/Cancel for the whole edit page: the localization
-// and the rulings are written together on a single click.
+// and the rulings go to one action, which writes both in one transaction.
 export function CardEditForm({
   cardId,
   lang,
@@ -43,20 +44,19 @@ export function CardEditForm({
   async function onSave() {
     setBusy(true)
     try {
-      // Both sections are checked before either is written, so an incomplete
-      // ruling cannot leave the localization saved on its own. Both run, so both
-      // show their inline errors; focus goes to the first invalid field in page
-      // order. A server failure on the rulings after the localization is
-      // written can still split the save - only one action writing both in a
-      // transaction would close that.
+      // Both sections run, so both show their inline errors; focus goes to the
+      // first invalid field in page order.
       const locValid = await locRef.current!.validate(true)
       const rulingsValid = await rulRef.current!.validate(locValid)
       if (!locValid || !rulingsValid) return toast.error(t('invalid'))
-      const loc = await locRef.current!.save()
-      if (!loc.ok) return toast.error(t('localizationFailed'))
-      const rulings = await rulRef.current!.save()
-      if (!rulings.ok) return toast.error(t('rulingsFailed'))
-      if (loc.warning) toast.warning(t('reindexWarning'))
+      const res = await saveCardEditAction({
+        cardId,
+        lang,
+        localization: locRef.current!.values(),
+        rulings: rulRef.current!.values(),
+      })
+      if (!res.ok) return toast.error(t('saveFailed'))
+      if (res.warning) toast.warning(t('reindexWarning'))
       else toast.success(t('saved'))
       router.refresh()
     } finally {
@@ -66,8 +66,8 @@ export function CardEditForm({
 
   return (
     <div className="space-y-8">
-      <LocalizationForm ref={locRef} cardId={cardId} lang={lang} initial={locInitial} kind={kind} />
-      <RulingsEditor ref={rulRef} cardId={cardId} lang={lang} initial={rulingsInitial} sources={sources} />
+      <LocalizationForm ref={locRef} initial={locInitial} kind={kind} />
+      <RulingsEditor ref={rulRef} initial={rulingsInitial} sources={sources} />
       <div className="flex items-center gap-2 border-t pt-6">
         <Button type="button" disabled={busy} onClick={onSave}>{t('save')}</Button>
         <Button type="button" variant="ghost" asChild>

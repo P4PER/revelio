@@ -2,17 +2,14 @@ import { createRef } from 'react'
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-
-const updateLocalization = vi.fn(async () => ({ ok: true as const }))
-vi.mock('@/lib/actions/localization-actions', () => ({ updateLocalization: (...a: unknown[]) => updateLocalization(...a) }))
+import { describe, it, expect } from 'vitest'
 
 import { LocalizationForm, type LocalizationFormHandle } from '@/components/card/localization-form'
 import en from '@/../messages/en.json'
 
-// Saved through the ref handle, the way CardEditForm, its only caller, saves it.
+// Read through the ref handle, the way CardEditForm, its only caller, saves it.
 const handle = createRef<LocalizationFormHandle>()
-const save = () => act(() => handle.current!.save())
+const values = () => handle.current!.values()
 const validate = () => act(() => handle.current!.validate(true))
 
 function renderForm(kind: 'adventure' | 'match' | null = null) {
@@ -20,8 +17,6 @@ function renderForm(kind: 'adventure' | 'match' | null = null) {
     <NextIntlClientProvider locale="en" messages={en}>
       <LocalizationForm
         ref={handle}
-        cardId="x-1"
-        lang="de"
         kind={kind}
         initial={{
           name: 'Alt', text: 'Rumpf', flavorText: '', status: 'machine',
@@ -32,8 +27,6 @@ function renderForm(kind: 'adventure' | 'match' | null = null) {
     </NextIntlClientProvider>,
   )
 }
-
-beforeEach(() => updateLocalization.mockClear())
 
 describe('LocalizationForm', () => {
   it('fails validation on an empty name, shows the error and focuses the field', async () => {
@@ -51,10 +44,7 @@ describe('LocalizationForm', () => {
     const name = screen.getByLabelText(en.edit.name)
     await userEvent.clear(name)
     await userEvent.type(name, 'Neuer Name')
-    await save()
-    expect(updateLocalization).toHaveBeenCalledWith(
-      expect.objectContaining({ cardId: 'x-1', lang: 'de', name: 'Neuer Name', status: 'machine' }),
-    )
+    expect(values()).toEqual({ name: 'Neuer Name', text: 'Rumpf', flavorText: '', status: 'machine' })
   })
 
   it('shows the Adventure section only for adventure cards', () => {
@@ -69,10 +59,10 @@ describe('LocalizationForm', () => {
   it('submits the adventure group', async () => {
     renderForm('adventure')
     await userEvent.type(screen.getByLabelText(en.edit.effect), 'boom')
-    await save()
-    expect(updateLocalization).toHaveBeenCalledWith(
+    expect(values()).toEqual(
       expect.objectContaining({ adventure: { effect: 'boom', reward: '', toSolve: '' } }),
     )
+    expect('match' in values()).toBe(false)
   })
 
   it('hides the generic Text field for adventure/match cards', () => {
@@ -92,8 +82,7 @@ describe('LocalizationForm', () => {
   it('submits the match group', async () => {
     renderForm('match')
     await userEvent.type(screen.getByLabelText(en.edit.prize), 'win it')
-    await save()
-    expect(updateLocalization).toHaveBeenCalledWith(
+    expect(values()).toEqual(
       expect.objectContaining({ match: { prize: 'win it', toWin: '' } }),
     )
   })

@@ -16,6 +16,7 @@
     "@revelio/search": "*",
     "discord.js": "^14.27.0",
     "drizzle-orm": "^0.45.4",
+    "intl-messageformat": "^11.2.15",
     "postgres": "^3.4.9",
     "zod": "^4.6.7"
   }

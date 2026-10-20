@@ -79,7 +79,7 @@
   "decks.sort.views": "Meiste Aufrufe",
   "decks.sort.newest": "Neueste",
   "decks.sort.updated": "Zuletzt aktualisiert",
-  "decks.row.stats": "{likes, plural, one {# Like} other {# Likes}} · {cards, plural, one {# Karte} other {# Karten}}",
+  "decks.row.stats": "{likes, plural, one {{likes} Like} other {{likes} Likes}} · {cards, plural, one {{cards} Karte} other {{cards} Karten}}",
   "error.generic": "Da ist etwas schiefgelaufen. Bitte versuche es gleich noch einmal.",
   "browse.expired": "Diese Ergebnisse sind veraltet. Führe den Befehl erneut aus.",
   "browse.prev": "Zurück",

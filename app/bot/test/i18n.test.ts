@@ -54,6 +54,15 @@ describe('t', () => {
       .toBe('Du besitzt **1** von **1200** Karten (0.1%), insgesamt **1** Exemplar.')
   })
 
+  it('prints a plural count the same way as a plain one', () => {
+    expect(t('en', 'decks.row.stats', { likes: 1234, cards: 60 })).toBe('1234 likes · 60 cards')
+  })
+
+  it('treats an explicit undefined as unsupplied', () => {
+    const cards = undefined as unknown as number
+    expect(t('en', 'decks.row.stats', { likes: 1, cards })).toBe('1 like · {cards}')
+  })
+
   it('leaves an unsupplied placeholder visible beside a plural', () => {
     expect(t('en', 'decks.row.stats', { likes: 1 })).toBe('1 like · {cards}')
   })

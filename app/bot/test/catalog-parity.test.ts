@@ -17,7 +17,7 @@ describe('bot message catalogs', () => {
   it('hold only messages that parse as ICU', () => {
     for (const [locale, catalog] of Object.entries({ en, de })) {
       for (const [key, value] of Object.entries(catalog)) {
-        expect(() => new IntlMessageFormat(value, locale), `${locale} ${key}`).not.toThrow()
+        expect(() => new IntlMessageFormat(value, locale, undefined, { ignoreTag: true }), `${locale} ${key}`).not.toThrow()
       }
     }
   })

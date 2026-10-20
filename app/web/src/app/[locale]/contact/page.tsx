@@ -3,6 +3,7 @@ import { Bug, ScrollText } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import { ContactForm } from '@/components/legal/contact-form'
 import { DiscordMark } from '@/components/discord-mark'
+import { IconTile } from '@/components/icon-tile'
 import { StarField } from '@/components/star-field'
 import { getSession } from '@/lib/server/session'
 import { getCachedSiteSettings } from '@/lib/server/site-settings'
@@ -56,12 +57,7 @@ export default async function ContactPage() {
             <ul aria-label={t('topicsLabel')} className="mt-12 hidden flex-col gap-9 lg:flex">
               {TOPICS.map(({ key, Icon }) => (
                 <li key={key} className="flex gap-3.5">
-                  <span
-                    aria-hidden="true"
-                    className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-primary-ink"
-                  >
-                    <Icon className="size-[18px]" />
-                  </span>
+                  <IconTile Icon={Icon} />
                   <div>
                     <p className="text-[15px] font-medium text-foreground">{t(`topic${key}Title`)}</p>
                     <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">{t(`topic${key}Body`)}</p>

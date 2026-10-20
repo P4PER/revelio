@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { ArrowDown } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { getTranslations } from 'next-intl/server'
 import { routing } from '@/../i18n/routing'
@@ -67,11 +68,24 @@ export function DiscordContent({ inviteUrl }: { inviteUrl: string | null }) {
             })}
           </h1>
           <p className="max-w-md text-base leading-relaxed text-muted-foreground">{t('tagline')}</p>
-          <div className="flex flex-wrap items-center gap-3">
-            <DiscordCta inviteUrl={inviteUrl} />
-            <Button variant="outline" asChild>
-              <a href="#commands">{t('seeAnswers')}</a>
-            </Button>
+          {/* One primary action: the way down to the commands is a ghost button,
+              so it reads as an aside rather than a second choice to weigh.
+              On a phone each takes a full-width row. From md the two sit side by
+              side once the column fits both (German needs ~440px); below that
+              they stack, and -ml-4 pulls the ghost button's label out by its
+              own padding (lg with an icon is px-4) so it lines up with the
+              button above. Measured on the column, not the viewport, since the
+              column narrows again at md. */}
+          <div className="@container w-full">
+            <div className="flex flex-col gap-2 md:items-start @md:flex-row @md:items-center @md:gap-3">
+              <DiscordCta inviteUrl={inviteUrl} size="lg" />
+              <Button variant="ghost" size="lg" className="md:-ml-4 @md:ml-0" asChild>
+                <a href="#commands">
+                  {t('seeAnswers')}
+                  <ArrowDown aria-hidden />
+                </a>
+              </Button>
+            </div>
           </div>
           <TrustRow />
         </div>

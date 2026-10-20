@@ -15,7 +15,7 @@ export function DiscordCta({
   className,
 }: {
   inviteUrl: string | null
-  size?: 'sm' | 'default'
+  size?: 'sm' | 'default' | 'lg'
   className?: string
 }) {
   const t = useTranslations('discord')
@@ -27,7 +27,8 @@ export function DiscordCta({
       className={cn('bg-brand-discord text-white hover:bg-brand-discord/90', className)}
     >
       <a href={inviteUrl} target="_blank" rel="noopener noreferrer">
-        <DiscordMark className="size-4" />
+        {/* The mark keeps its proportion to the button: 20px on lg, 16px below. */}
+        <DiscordMark className={size === 'lg' ? 'size-5' : 'size-4'} />
         {t('install')}
       </a>
     </Button>

@@ -1,5 +1,6 @@
 import { Server, EyeOff, Lock, type LucideIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { IconTile } from '@/components/icon-tile'
 
 type TrustKey = 'anyServer' | 'noMessages' | 'privateReplies'
 
@@ -23,11 +24,13 @@ export function TrustRow() {
   const t = useTranslations('discord.trust')
   return (
     // Stacked rather than wrapped: in the hero's narrow column a flex-wrap row
-    // breaks two-then-one, which reads as an accident instead of a list.
-    <ul className="flex flex-col gap-2">
+    // breaks two-then-one, which reads as an accident instead of a list. The
+    // tiles are /contact's topic list's, so the two pages' lists look alike.
+    // The labels stay muted like the tagline above: reassurance, not a heading.
+    <ul className="flex flex-col gap-3">
       {TRUST.map(({ key, Icon }) => (
-        <li key={key} className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Icon className="size-4 shrink-0 text-primary-ink" aria-hidden />
+        <li key={key} className="flex items-center gap-3.5 text-[15px] text-muted-foreground">
+          <IconTile Icon={Icon} />
           {t(key)}
         </li>
       ))}

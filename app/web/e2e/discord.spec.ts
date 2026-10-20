@@ -19,6 +19,32 @@ for (const viewport of [
   })
 }
 
+// The min-height's extra space goes below the hero, not above it, so the
+// hero's content starts as far under the header as /about's does.
+async function heroContentOffset(page: Page) {
+  return page.locator('main section').first().evaluate((section) => {
+    const header = document.querySelector('header')!.getBoundingClientRect().bottom
+    const tops = [...section.children].map((c) => c.getBoundingClientRect().top)
+    return Math.min(...tops) - header
+  })
+}
+
+for (const viewport of [
+  { width: 1488, height: 1200 },
+  { width: 2560, height: 1440 },
+  { width: 390, height: 844 },
+]) {
+  test(`/discord starts its hero as far under the header as /about at ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport)
+    await page.goto('/about')
+    const about = await heroContentOffset(page)
+    await page.goto('/discord')
+    expect(await heroContentOffset(page)).toBeCloseTo(about, 0)
+  })
+}
+
 // Stacked below md, the hero's two grid rows would share out the extra height
 // a tall, narrow window gives the min-height, opening a band between the CTAs
 // and the channel mock; the tracks stay packed at the grid's gap-10 instead.

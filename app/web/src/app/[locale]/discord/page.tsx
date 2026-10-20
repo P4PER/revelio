@@ -56,8 +56,11 @@ export function DiscordContent({ inviteUrl }: { inviteUrl: string | null }) {
           e2e/discord.spec.ts measures the fold, the offset and the stacked gap;
           desktop Chromium has no collapsing toolbar, so lvh over svh is not
           under test. */}
-      <section className="relative grid min-h-lvh content-start items-center gap-10 pt-16 pb-14 sm:pt-20 md:grid-cols-[0.92fr_1.08fr]">
-        <div className="flex flex-col items-start gap-5">
+      <section
+        data-testid="hero"
+        className="relative grid min-h-lvh content-start items-center gap-10 pt-16 pb-14 sm:pt-20 md:grid-cols-[0.92fr_1.08fr]"
+      >
+        <div data-testid="hero-copy" className="flex flex-col items-start gap-5">
           <h1 className="text-3xl leading-tight font-semibold tracking-tight text-foreground sm:text-4xl">
             {t.rich('heading', {
               b: (chunks) => <span className="text-heading">{chunks}</span>,

@@ -8,22 +8,26 @@ const VIEWPORTS = [
   { width: 390, height: 844 },
 ]
 
-// How far under the site header the hero's topmost content starts.
+// How far under the site header the hero's topmost content starts. Only
+// in-flow children count: a decoration positioned out of flow says nothing
+// about where the padding and track alignment put the content.
 async function heroContentOffset(page: Page) {
-  return page.locator('main section').first().evaluate((section) => {
-    const header = document.querySelector('header')!.getBoundingClientRect().bottom
-    const tops = [...section.children].map((c) => c.getBoundingClientRect().top)
-    return Math.min(...tops) - header
-  })
+  const header = await page.locator('header').first().boundingBox()
+  const top = await page.getByTestId('hero').evaluate((hero) =>
+    Math.min(
+      ...[...hero.children]
+        .filter((c) => !['absolute', 'fixed'].includes(getComputedStyle(c).position))
+        .map((c) => c.getBoundingClientRect().top),
+    ),
+  )
+  return top - header!.y - header!.height
 }
 
 // The space between the stacked hero's text column and its channel mock.
 async function stackedGap(page: Page) {
-  return page.getByRole('heading', { level: 1 }).evaluate((h1) => {
-    const text = h1.parentElement!
-    const mock = text.nextElementSibling!
-    return mock.getBoundingClientRect().top - text.getBoundingClientRect().bottom
-  })
+  const copy = await page.getByTestId('hero-copy').boundingBox()
+  const mock = await page.getByTestId('command-channel').boundingBox()
+  return mock!.y - (copy!.y + copy!.height)
 }
 
 // The hero takes a whole viewport so the commands section's slash menu never

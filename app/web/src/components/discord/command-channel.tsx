@@ -121,6 +121,7 @@ export function CommandChannel() {
   const t = useTranslations('discord')
   return (
     <div
+      data-testid="command-channel"
       className="overflow-hidden rounded-xl text-left text-sm leading-[1.375] shadow-2xl"
       style={{ background: DISCORD_CHANNEL, color: DISCORD_TEXT }}
     >

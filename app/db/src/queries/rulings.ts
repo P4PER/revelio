@@ -1,13 +1,16 @@
 import { eq, asc, inArray, and, isNotNull } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
-import type { DB } from '../client'
+import type { DB, DbExecutor } from '../client'
 import { cardRulings, cardRulingLocalizations } from '../schema'
 
+export type RulingInput = { id: string | null; date: string | null; source: string | null; text: string }
+
+// Given a transaction, the inner transaction() is a savepoint inside it.
 export async function saveRulings(
-  db: DB,
+  db: DbExecutor,
   cardId: string,
   lang: string,
-  rows: { id: string | null; date: string | null; source: string | null; text: string }[],
+  rows: RulingInput[],
 ): Promise<void> {
   const clean = rows.filter(
     (r) =>

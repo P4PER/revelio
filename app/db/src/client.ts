@@ -29,3 +29,8 @@ export function createClient(databaseUrl: string, options: ClientOptions = {}) {
 }
 
 export type DB = ReturnType<typeof createClient>['db']
+
+// A transaction handed to a query helper, so a caller can compose several writes
+// into one commit. Every helper that takes a DbExecutor works on either.
+export type Tx = Parameters<Parameters<DB['transaction']>[0]>[0]
+export type DbExecutor = DB | Tx

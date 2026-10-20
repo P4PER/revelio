@@ -47,7 +47,13 @@ export function DiscordContent({ inviteUrl }: { inviteUrl: string | null }) {
     <main className="relative mx-auto max-w-[76rem] px-6">
       <StarField />
 
-      <section className="relative grid items-center gap-10 pt-16 pb-14 sm:pt-20 md:grid-cols-[0.92fr_1.08fr]">
+      {/* min-h-lvh: under the site header, a whole viewport pushes the commands
+          section below the fold, so its slash menu never peeks in at the bottom
+          of the first screen. lvh, not svh, so that holds with a phone's toolbar
+          collapsed too. content-center keeps the stacked layout's two rows packed
+          rather than sharing out the extra height between them. e2e/discord.spec.ts
+          measures both. */}
+      <section className="relative grid min-h-lvh content-center items-center gap-10 pt-16 pb-14 sm:pt-20 md:grid-cols-[0.92fr_1.08fr]">
         <div className="flex flex-col items-start gap-5">
           <h1 className="text-3xl leading-tight font-semibold tracking-tight text-foreground sm:text-4xl">
             {t.rich('heading', {

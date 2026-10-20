@@ -9,8 +9,6 @@ import { reindexCard } from '@revelio/search'
 import { routing } from '@/../i18n/routing'
 import { CARD_NAME_MAX, type AdventureData, type MatchData } from '@revelio/core'
 
-export type SaveResult = { ok: true; warning?: string } | { ok: false; error: string }
-
 const adventureInput = z.object({ effect: z.string(), reward: z.string(), toSolve: z.string() })
 const matchInput = z.object({ prize: z.string(), toWin: z.string() })
 
@@ -29,6 +27,12 @@ const rulingRow = z.object({
   source: z.string(),
   text: z.string(),
 })
+
+// The edit page's sections build their payloads against these, so a field added
+// here cannot be forgotten on the client.
+export type LocalizationValues = z.infer<typeof localizationInput>
+export type RulingRow = z.infer<typeof rulingRow>
+export type SaveResult = { ok: true; warning?: string } | { ok: false; error: string }
 
 const schema = z.object({
   cardId: z.string().min(1),

@@ -4,6 +4,7 @@ import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
 import { ChevronUp, ChevronDown, X } from 'lucide-react'
+import type { RulingRow } from '@/lib/actions/card-edit-actions'
 import { Button } from '@/components/ui/button'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { DatePicker } from '@/components/date-picker'
@@ -13,7 +14,6 @@ import {
 import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { makeRulingsSchema } from '@/lib/schemas/rulings'
 
-export type RulingRow = { id: string | null; date: string; source: string; text: string }
 type Initial = { id: string; date: string; source: string; text: string }
 
 export type RulingsEditorHandle = {
@@ -72,7 +72,7 @@ export function RulingsEditor({
   // This section's part of the save. CardEditForm writes it together with the
   // localization in one action, after validating both.
   function values(): RulingRow[] {
-    return form.getValues('rows').map((r) => ({ id: r.id, date: r.date, source: r.source, text: r.text }))
+    return form.getValues('rows')
   }
 
   useImperativeHandle(ref, () => ({ validate, values }))

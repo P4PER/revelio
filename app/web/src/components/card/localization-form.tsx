@@ -3,6 +3,7 @@ import { useImperativeHandle, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
+import type { LocalizationValues } from '@/lib/actions/card-edit-actions'
 import { Input } from '@/components/ui/input'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
 import {
@@ -18,15 +19,6 @@ type Initial = {
   status: 'machine' | 'official'
   adventure: { effect: string; reward: string; toSolve: string }
   match: { prize: string; toWin: string }
-}
-
-export type LocalizationValues = {
-  name: string
-  text: string
-  flavorText: string
-  status: 'machine' | 'official'
-  adventure?: { effect: string; reward: string; toSolve: string }
-  match?: { prize: string; toWin: string }
 }
 
 export type LocalizationFormHandle = {

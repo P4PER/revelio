@@ -1,20 +1,19 @@
-import type { DB } from '../client'
+import type { DB, DbExecutor } from '../client'
 import { cardLocalizations } from '../schema'
 import type { AdventureData, MatchData } from '@revelio/core'
 
-export async function upsertLocalization(
-  db: DB,
-  input: {
-    cardId: string
-    lang: string
-    name: string
-    text: string | null
-    flavorText: string | null
-    status: string | null
-    adventure?: AdventureData | null
-    match?: MatchData | null
-  },
-): Promise<void> {
+export type LocalizationInput = {
+  cardId: string
+  lang: string
+  name: string
+  text: string | null
+  flavorText: string | null
+  status: string | null
+  adventure?: AdventureData | null
+  match?: MatchData | null
+}
+
+export async function upsertLocalization(db: DbExecutor, input: LocalizationInput): Promise<void> {
   const now = new Date()
   const base = {
     name: input.name,

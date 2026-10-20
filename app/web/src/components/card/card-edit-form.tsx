@@ -59,6 +59,12 @@ export function CardEditForm({
       if (res.warning) toast.warning(t('reindexWarning'))
       else toast.success(t('saved'))
       router.refresh()
+    } catch (err) {
+      // A thrown action (database down, lost connection, an expired session) is
+      // still a failed save. A write that failed rolled back as a whole, so the
+      // card is never left with new text and old rulings.
+      console.error('card edit save failed', err)
+      toast.error(t('saveFailed'))
     } finally {
       setBusy(false)
     }

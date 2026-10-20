@@ -84,4 +84,15 @@ describe('CardEditForm', () => {
     await userEvent.click(screen.getByRole('button', { name: en.edit.save }))
     expect(toastError).toHaveBeenCalledWith(en.edit.saveFailed)
   })
+
+  it('reports a thrown action as a failed save and re-enables Save', async () => {
+    saveCardEditAction.mockRejectedValueOnce(new Error('db down'))
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    renderForm()
+    const save = screen.getByRole('button', { name: en.edit.save })
+    await userEvent.click(save)
+    expect(toastError).toHaveBeenCalledWith(en.edit.saveFailed)
+    expect(save).toBeEnabled()
+    consoleError.mockRestore()
+  })
 })

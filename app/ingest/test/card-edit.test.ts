@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest'
 import { eq } from 'drizzle-orm'
 import { sets, cards, cardLocalizations, cardRulings, saveCardEdit, getCardById } from '@revelio/db'
 import { withMigratedDb } from './helpers'
@@ -15,6 +15,11 @@ beforeAll(async () => {
   await ctx.db.insert(cardLocalizations).values({ cardId: 'x-1', lang: 'en', name: 'Old Name', status: 'official' })
 }, 60_000)
 afterAll(async () => { await ctx.stop() })
+// Each test starts from the seeded card, so neither depends on the other's outcome.
+beforeEach(async () => {
+  await ctx.db.delete(cardRulings)
+  await ctx.db.update(cardLocalizations).set({ name: 'Old Name' }).where(eq(cardLocalizations.cardId, 'x-1'))
+})
 
 const localization = {
   cardId: 'x-1', lang: 'en', name: 'New Name', text: 'body', flavorText: null, status: 'official',

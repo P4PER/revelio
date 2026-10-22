@@ -24,7 +24,11 @@ export const user = pgTable("user", {
   // Better Auth never lets a client write them; only acceptTermsAction does.
   termsVersion: text("terms_version"),
   termsAcceptedAt: timestamp("terms_accepted_at"),
-});
+}, (table) => [
+  // pg_trgm, for the deck search's ILIKE '%q%' on the author handle
+  // (queries/deck-browse.ts).
+  index("user_username_trgm_idx").using("gin", table.username.op("gin_trgm_ops")),
+]);
 
 export const session = pgTable(
   "session",

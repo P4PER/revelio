@@ -156,6 +156,8 @@ export const decks = pgTable('decks', {
   byLikeCount: index('decks_like_count_idx').on(t.likeCount),
   byViewCount: index('decks_view_count_idx').on(t.viewCount),
   byLessons: index('decks_lessons_gin_idx').using('gin', t.lessons),
+  // pg_trgm, for the deck search's ILIKE '%q%' (queries/deck-browse.ts).
+  byNameTrgm: index('decks_name_trgm_idx').using('gin', t.name.op('gin_trgm_ops')),
 }))
 
 export const deckCards = pgTable('deck_cards', {

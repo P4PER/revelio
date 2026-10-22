@@ -25,7 +25,7 @@ export function CardImage({
 }) {
   if (upright && isHorizontal(orientation)) {
     return (
-      <div className={cn('relative aspect-[7/5] overflow-hidden', frameClassName)}>
+      <div className={cn('relative aspect-[7/5] overflow-hidden bg-muted', frameClassName)}>
         <div className="absolute top-1/2 left-1/2 h-[140%] w-[71.4286%] -translate-x-1/2 -translate-y-1/2 rotate-90">
           <Image src={src} alt={alt} fill sizes={sizes} priority={priority} className="object-cover" />
         </div>
@@ -33,7 +33,7 @@ export function CardImage({
     )
   }
   return (
-    <div className={cn('relative aspect-[5/7] overflow-hidden', frameClassName)}>
+    <div className={cn('relative aspect-[5/7] overflow-hidden bg-muted', frameClassName)}>
       <Image src={src} alt={alt} fill sizes={sizes} priority={priority} className="object-cover" />
     </div>
   )

@@ -32,4 +32,11 @@ describe('CardImage', () => {
     expect(container.querySelector('.aspect-\\[5\\/7\\]')).not.toBeNull()
     expect(container.querySelector('.rotate-90')).toBeNull()
   })
+
+  it('paints a muted placeholder behind the image in both frames', () => {
+    const portrait = render(<CardImage src="s" alt="Wand" />)
+    expect(portrait.container.firstElementChild).toHaveClass('bg-muted')
+    const landscape = render(<CardImage src="s" alt="Fluffy" orientation="horizontal" upright />)
+    expect(landscape.container.firstElementChild).toHaveClass('bg-muted')
+  })
 })

@@ -61,7 +61,7 @@ export function CardDetail({
               upright
               sizes="(min-width: 768px) 476px, 100vw"
               priority
-              frameClassName="rounded-xl border border-border/60 bg-card"
+              frameClassName="rounded-xl border border-border/60"
             />
           ) : (
             <div className={cn('relative flex items-center justify-center rounded-xl border border-border/60 bg-card p-4 text-center text-sm text-muted-foreground', horizontal ? 'aspect-[7/5]' : 'aspect-[5/7]')}>

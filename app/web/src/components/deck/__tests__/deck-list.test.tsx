@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import en from '@/../messages/en.json'
 import type { DeckSummary } from '@revelio/db'
+import { toast } from 'sonner'
+import { toastRemoved } from '@/components/ui/sonner'
 import { DeckList } from '@/components/deck/deck-list'
 
 const duplicateDeckAction = vi.fn(async () => ({ ok: true, id: 'new-id' }))
@@ -16,6 +18,7 @@ vi.mock('@/lib/actions/deck-actions', () => ({
   updateDeckMetaAction: (...a: unknown[]) => updateDeckMetaAction(...a),
 }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('@/components/ui/sonner', () => ({ toastRemoved: vi.fn() }))
 vi.mock('@/../i18n/navigation', () => ({
   Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,
 }))
@@ -39,6 +42,8 @@ beforeEach(() => {
   duplicateDeckAction.mockClear()
   deleteDeckAction.mockClear()
   updateDeckMetaAction.mockClear()
+  vi.mocked(toast.success).mockClear()
+  vi.mocked(toast.error).mockClear()
 })
 
 describe('DeckList', () => {
@@ -61,6 +66,11 @@ describe('DeckList', () => {
     await userEvent.click(screen.getByRole('button', { name: /Deck actions for My Revival Deck/ }))
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Duplicate' }))
     await waitFor(() => expect(duplicateDeckAction).toHaveBeenCalledWith('d1'))
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith('Deck duplicated.', {
+        description: 'A copy of \u201cMy Revival Deck\u201d is in your decks.',
+      }),
+    )
   })
 
   it('deletes a deck after confirming in the dialog', async () => {
@@ -71,6 +81,38 @@ describe('DeckList', () => {
     const dialog = await screen.findByRole('alertdialog')
     await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
     await waitFor(() => expect(deleteDeckAction).toHaveBeenCalledWith('d1'))
+    await waitFor(() =>
+      expect(toastRemoved).toHaveBeenCalledWith('Deck deleted.', {
+        description: '\u201cMy Revival Deck\u201d is gone for good.',
+      }),
+    )
+  })
+
+  it('tells a user whose session ended to sign in again when a delete fails', async () => {
+    deleteDeckAction.mockResolvedValueOnce({ ok: false, error: 'auth' } as never)
+    const user = userEvent.setup({ pointerEventsCheck: 0 })
+    renderList()
+    await user.click(screen.getByRole('button', { name: /Deck actions for My Revival Deck/ }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Delete' }))
+    const dialog = await screen.findByRole('alertdialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith('Could not delete the deck.', {
+        description: 'Your session has ended. Sign in again, then retry.',
+      }),
+    )
+  })
+
+  it('suggests a reload when a duplicate is refused', async () => {
+    duplicateDeckAction.mockResolvedValueOnce({ ok: false, error: 'forbidden' } as never)
+    renderList()
+    await userEvent.click(screen.getByRole('button', { name: /Deck actions for My Revival Deck/ }))
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Duplicate' }))
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith('Could not duplicate the deck.', {
+        description: 'Reload the page and try again.',
+      }),
+    )
   })
 
   it('does not delete when the dialog is cancelled', async () => {
@@ -88,6 +130,11 @@ describe('DeckList', () => {
     await userEvent.click(screen.getByRole('button', { name: /Deck actions for My Revival Deck/ }))
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Make public' }))
     await waitFor(() => expect(updateDeckMetaAction).toHaveBeenCalledWith('d1', { visibility: 'public' }))
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith('Visibility updated.', {
+        description: 'Anyone with the link can see \u201cMy Revival Deck\u201d.',
+      }),
+    )
   })
 
   it('renames a deck inline', async () => {
@@ -99,6 +146,11 @@ describe('DeckList', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(() =>
       expect(updateDeckMetaAction).toHaveBeenCalledWith('d1', { name: 'Renamed Deck' }),
+    )
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith('Deck renamed.', {
+        description: 'It\u2019s now called \u201cRenamed Deck\u201d.',
+      }),
     )
   })
 

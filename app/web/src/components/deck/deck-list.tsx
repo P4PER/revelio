@@ -2,6 +2,8 @@
 import { useState, useTransition } from 'react'
 import { useFormatter, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
+import { toastRemoved } from '@/components/ui/sonner'
+import { actionErrorHint } from '@/lib/action-error-hint'
 import { Ellipsis, Pencil, SquarePen, Copy, Trash, Eye, EyeOff, Check, X, Star } from 'lucide-react'
 import { Link } from '@/../i18n/navigation'
 import { DECK_NAME_MAX, clampDeckName } from '@revelio/core'
@@ -37,6 +39,7 @@ import {
 // invoked inside a transition — no manual router.refresh() needed.
 export function DeckList({ decks }: { decks: DeckSummary[] }) {
   const t = useTranslations('decks')
+  const te = useTranslations('actionErrors')
   const format = useFormatter()
   const [isPending, startTransition] = useTransition()
   const [pendingId, setPendingId] = useState<string | null>(null)
@@ -69,7 +72,7 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
       const res = await updateDeckMetaAction(deck.id, { name })
       setPendingId(null)
       if (res.ok) {
-        toast.success(t('list.renamed'))
+        toast.success(t('list.renamed'), { description: t('list.renamedDetail', { name }) })
         cancelRename()
       } else {
         // keep the inline editor open so the error shows where the user typed
@@ -84,8 +87,13 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
     startTransition(async () => {
       const res = await updateDeckMetaAction(deck.id, { visibility: next })
       setPendingId(null)
-      if (res.ok) toast.success(t('list.visibilityUpdated'))
-      else toast.error(t('list.visibilityError'))
+      if (res.ok) {
+        toast.success(t('list.visibilityUpdated'), {
+          description: t(next === 'public' ? 'list.visibilityPublicDetail' : 'list.visibilityPrivateDetail', {
+            name: deck.name,
+          }),
+        })
+      } else toast.error(t('list.visibilityError'), { description: te(actionErrorHint(res.error)) })
     })
   }
 
@@ -94,8 +102,8 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
     startTransition(async () => {
       const res = await duplicateDeckAction(deck.id)
       setPendingId(null)
-      if (res.ok) toast.success(t('list.duplicated'))
-      else toast.error(t('list.duplicateError'))
+      if (res.ok) toast.success(t('list.duplicated'), { description: t('list.duplicatedDetail', { name: deck.name }) })
+      else toast.error(t('list.duplicateError'), { description: te(actionErrorHint(res.error)) })
     })
   }
 
@@ -107,8 +115,8 @@ export function DeckList({ decks }: { decks: DeckSummary[] }) {
     startTransition(async () => {
       const res = await deleteDeckAction(deck.id)
       setPendingId(null)
-      if (res.ok) toast.success(t('list.deleted'))
-      else toast.error(t('list.deleteError'))
+      if (res.ok) toastRemoved(t('list.deleted'), { description: t('list.deletedDetail', { name: deck.name }) })
+      else toast.error(t('list.deleteError'), { description: te(actionErrorHint(res.error)) })
     })
   }
 

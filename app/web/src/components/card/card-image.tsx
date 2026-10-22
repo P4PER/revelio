@@ -1,8 +1,22 @@
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
+// The scans' own rounded corners: a circle of 4.5% of the card's short side
+// (3.22% of its long side), transparent outside it. A frame rounded any tighter
+// lets its background show in those corners after the image has loaded, so the
+// frame takes the card's radius. The 1px is for a frame that carries a border,
+// which insets the image by that much.
+const PORTRAIT_CORNERS = 'rounded-[calc(4.5%+1px)/calc(3.22%+1px)]'
+const LANDSCAPE_CORNERS = 'rounded-[calc(3.22%+1px)/calc(4.5%+1px)]'
+
 export function isHorizontal(orientation?: string | null): boolean {
   return orientation === 'horizontal'
+}
+
+// For a placeholder standing in for a card frame (a skeleton, a no-image
+// fallback), so it keeps the same corners as the image that replaces it.
+export function cardCorners(landscape: boolean): string {
+  return landscape ? LANDSCAPE_CORNERS : PORTRAIT_CORNERS
 }
 
 // Card faces are stored as portrait 745×1040 files; a "horizontal" card is a
@@ -25,7 +39,7 @@ export function CardImage({
 }) {
   if (upright && isHorizontal(orientation)) {
     return (
-      <div className={cn('relative aspect-[7/5] overflow-hidden bg-muted', frameClassName)}>
+      <div className={cn('relative aspect-[7/5] overflow-hidden bg-muted', LANDSCAPE_CORNERS, frameClassName)}>
         <div className="absolute top-1/2 left-1/2 h-[140%] w-[71.4286%] -translate-x-1/2 -translate-y-1/2 rotate-90">
           <Image src={src} alt={alt} fill sizes={sizes} priority={priority} className="object-cover" />
         </div>
@@ -33,7 +47,7 @@ export function CardImage({
     )
   }
   return (
-    <div className={cn('relative aspect-[5/7] overflow-hidden bg-muted', frameClassName)}>
+    <div className={cn('relative aspect-[5/7] overflow-hidden bg-muted', PORTRAIT_CORNERS, frameClassName)}>
       <Image src={src} alt={alt} fill sizes={sizes} priority={priority} className="object-cover" />
     </div>
   )

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
-import { CardImage, isHorizontal } from '@/components/card/card-image'
+import { CardImage, cardCorners, isHorizontal } from '@/components/card/card-image'
 
 vi.mock('next/image', () => ({ default: (p: Record<string, unknown>) => <img alt={p.alt as string} /> }))
 
@@ -38,5 +38,15 @@ describe('CardImage', () => {
     expect(portrait.container.firstElementChild).toHaveClass('bg-muted')
     const landscape = render(<CardImage src="s" alt="Fluffy" orientation="horizontal" upright />)
     expect(landscape.container.firstElementChild).toHaveClass('bg-muted')
+  })
+
+  // The scans have transparent rounded corners; a frame with any other radius
+  // shows its placeholder through them once the image has loaded.
+  it('rounds each frame to the card corners', () => {
+    const portrait = render(<CardImage src="s" alt="Wand" />)
+    expect(portrait.container.firstElementChild).toHaveClass(cardCorners(false))
+    const landscape = render(<CardImage src="s" alt="Fluffy" orientation="horizontal" upright />)
+    expect(landscape.container.firstElementChild).toHaveClass(cardCorners(true))
+    expect(cardCorners(true)).not.toBe(cardCorners(false))
   })
 })

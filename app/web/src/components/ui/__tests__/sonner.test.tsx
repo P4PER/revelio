@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { Toaster } from '../sonner'
+import { toast } from 'sonner'
+import { Toaster, toastRemoved } from '../sonner'
 
 const h = vi.hoisted(() => ({
   props: {} as Record<string, unknown>,
@@ -12,6 +13,7 @@ vi.mock('sonner', () => ({
     h.props = props
     return null
   },
+  toast: vi.fn(),
 }))
 vi.mock('@/../i18n/navigation', () => ({ usePathname: () => h.path }))
 
@@ -48,5 +50,17 @@ describe('Toaster', () => {
   it('lets a caller prop still win', () => {
     render(<Toaster theme="dark" position="bottom-center" />)
     expect(h.props.position).toBe('bottom-center')
+  })
+})
+
+describe('toastRemoved', () => {
+  // A deletion is a plain toast in the quiet removed style, never a success:
+  // the gold star would celebrate something that is gone.
+  it('fires a plain toast tagged for the removed style', () => {
+    toastRemoved('Deck deleted.', { description: 'Gone for good.' })
+    expect(toast).toHaveBeenCalledWith(
+      'Deck deleted.',
+      expect.objectContaining({ description: 'Gone for good.', className: 'toast-removed', icon: expect.anything() }),
+    )
   })
 })

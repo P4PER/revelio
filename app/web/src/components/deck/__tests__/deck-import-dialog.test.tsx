@@ -1,15 +1,21 @@
-import { render, screen, within, fireEvent } from '@testing-library/react'
+import { render, screen, within, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
-import { describe, it, expect, vi } from 'vitest'
+import { beforeEach, describe, it, expect, vi } from 'vitest'
 
 const actions = vi.hoisted(() => ({
   getCardViewsAction: vi.fn(async (): Promise<Record<string, unknown>> => ({})),
   resolveImportNames: vi.fn(async (): Promise<Record<string, string | null>> => ({})),
 }))
 vi.mock('@/lib/actions/deck-actions', () => actions)
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+
+beforeEach(() => {
+  vi.mocked(toast.success).mockClear()
+})
 
 import { parseText } from '@revelio/core'
+import { toast } from 'sonner'
 
 import { DeckImportDialog, EXAMPLE_LIST } from '@/components/deck/deck-import-dialog'
 import { emptyDeck } from '@/lib/deck-model'
@@ -134,5 +140,63 @@ describe('DeckImportDialog', () => {
     expect(notice.closest('[role="alert"]')).toHaveTextContent('Ron Weasley (BS 3)')
     const entries = onImport.mock.calls[0][0].entries
     expect(entries.map((e: { cardId: string; zone: string }) => `${e.zone}-${e.cardId}`)).toEqual(['character-bs-harry'])
+  })
+
+  it('says how many cards the import brought in', async () => {
+    const meta = { cost: null, setCode: 'BS', lesson: null, isOfficial: true, legality: 'legal', isLesson: false, isStartingCharacter: false }
+    actions.resolveImportNames.mockResolvedValueOnce({ 'accio|BS|1': 'bs-accio' })
+    actions.getCardViewsAction.mockResolvedValueOnce({
+      'bs-accio': { ...meta, cardId: 'bs-accio', name: 'Accio', number: '1' },
+    })
+    const user = userEvent.setup()
+    render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        <DeckImportDialog state={emptyDeck()} onImport={vi.fn()} />
+      </NextIntlClientProvider>,
+    )
+    await user.click(screen.getByRole('button', { name: en.decks.import.button }))
+    fireEvent.change(open().getByLabelText(en.decks.import.pasteLabel), {
+      target: { value: '3 Accio (BS 1)' },
+    })
+    await user.click(open().getByRole('button', { name: en.decks.import.submit }))
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith('Deck imported.', {
+        description: '3 cards are now in the builder.',
+      }),
+    )
+  })
+
+  // The builder was replaced and the dialog closed, so this toast is the only
+  // sign anything happened; it just has no count to give.
+  it('still confirms an empty deck that closed the dialog', async () => {
+    const user = userEvent.setup()
+    render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        <DeckImportDialog state={emptyDeck()} onImport={vi.fn()} />
+      </NextIntlClientProvider>,
+    )
+    await user.click(screen.getByRole('button', { name: en.decks.import.button }))
+    fireEvent.change(open().getByLabelText(en.decks.import.pasteLabel), {
+      target: { value: '{"name":"Empty","format":"classic","character":null,"main":[],"sideboard":[]}' },
+    })
+    await user.click(open().getByRole('button', { name: en.decks.import.submit }))
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Deck imported.', undefined))
+  })
+
+  it('does not celebrate an import that brought in no cards', async () => {
+    actions.resolveImportNames.mockResolvedValueOnce({ 'nonsense|BS|1': null })
+    const user = userEvent.setup()
+    render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        <DeckImportDialog state={emptyDeck()} onImport={vi.fn()} />
+      </NextIntlClientProvider>,
+    )
+    await user.click(screen.getByRole('button', { name: en.decks.import.button }))
+    fireEvent.change(open().getByLabelText(en.decks.import.pasteLabel), {
+      target: { value: '3 Nonsense (BS 1)' },
+    })
+    await user.click(open().getByRole('button', { name: en.decks.import.submit }))
+    expect((await screen.findAllByText('Nonsense (BS 1)', { exact: false })).length).toBeGreaterThan(0)
+    expect(toast.success).not.toHaveBeenCalled()
   })
 })

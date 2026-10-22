@@ -2,6 +2,7 @@
 import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
+import { actionErrorHint } from '@/lib/action-error-hint'
 import { ChevronDown, Link2, Lock, Share2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -35,6 +36,7 @@ export function CollectionVisibilityToggle({
   shareUrl: string
 }) {
   const t = useTranslations('collection')
+  const te = useTranslations('actionErrors')
   const [vis, setVis] = useState(initial)
   const [pending, start] = useTransition()
 
@@ -45,7 +47,7 @@ export function CollectionVisibilityToggle({
       const res = await setCollectionVisibilityAction(next)
       if (!res.ok) {
         setVis(prev)
-        toast.error(t('visibilityError'))
+        toast.error(t('visibilityError'), { description: te(actionErrorHint(res.error)) })
       }
     })
   }

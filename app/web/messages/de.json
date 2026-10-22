@@ -334,7 +334,9 @@
     "namePlaceholder": "Unbenanntes Deck",
     "save": "Deck speichern",
     "saved": "Deck gespeichert.",
+    "savedDetail": "„{name}“ liegt sicher in deinen Decks.",
     "saveError": "Deck konnte nicht gespeichert werden.",
+    "saveErrorDetail": "Deine Änderungen sind noch da. Melde dich in einem neuen Tab wieder an und speichere dann.",
     "saveTwoCharacters": "Ein Deck hat genau einen Startcharakter. Wähle einen im Kartenbrowser, er ersetzt beide, und speichere dann.",
     "loginToSave": "Zum Speichern anmelden",
     "draftNotice": "Dein Entwurf wird auf diesem Gerät gespeichert. Melde dich an, damit wir ihn in deinem Konto sichern können.",
@@ -388,6 +390,7 @@
       "fileChoose": "Datei auswählen",
       "submit": "Importieren",
       "success": "Deck importiert.",
+      "successDetail": "{count, plural, one {# Karte ist} other {# Karten sind}} jetzt im Builder.",
       "invalidJson": "Das sieht nicht nach gültigem Deck-JSON aus.",
       "emptyInput": "Füge zuerst eine Deckliste ein oder wähle eine Datei aus.",
       "noLines": "In diesem Text wurden keine Kartenzeilen gefunden.",
@@ -523,12 +526,17 @@
         "cancel": "Abbrechen"
       },
       "deleted": "Deck gelöscht.",
+      "deletedDetail": "„{name}“ ist endgültig gelöscht.",
       "deleteError": "Deck konnte nicht gelöscht werden.",
       "duplicated": "Deck dupliziert.",
+      "duplicatedDetail": "Eine Kopie von „{name}“ liegt in deinen Decks.",
       "duplicateError": "Deck konnte nicht dupliziert werden.",
       "renamed": "Deck umbenannt.",
+      "renamedDetail": "Es heißt jetzt „{name}“.",
       "renameError": "Deck konnte nicht umbenannt werden.",
       "visibilityUpdated": "Sichtbarkeit aktualisiert.",
+      "visibilityPublicDetail": "Jeder mit dem Link kann „{name}“ sehen.",
+      "visibilityPrivateDetail": "Nur du kannst „{name}“ jetzt sehen.",
       "visibilityError": "Sichtbarkeit konnte nicht aktualisiert werden.",
       "empty": {
         "title": "Noch keine Decks",
@@ -948,6 +956,10 @@
         "description": "Was zu tun ist, wenn ein Befehl sich nicht wie erwartet verhält."
       }
     }
+  },
+  "actionErrors": {
+    "signInHint": "Deine Sitzung ist abgelaufen. Melde dich wieder an und versuche es erneut.",
+    "reloadHint": "Lade die Seite neu und versuche es erneut."
   },
   "email": {
     "footer": {

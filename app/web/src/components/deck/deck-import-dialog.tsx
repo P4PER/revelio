@@ -113,6 +113,16 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
     setInputError('')
   }
 
+  // Counts copies, not rows: "3 Accio" is three cards in the builder. When
+  // nothing was placed and the dialog stays open listing the lines it could
+  // not place, that list is the message and a success would contradict it;
+  // otherwise the toast is the only sign the builder was replaced.
+  function toastImported(entries: { quantity: number }[], staysOpen: boolean) {
+    const count = entries.reduce((sum, e) => sum + e.quantity, 0)
+    if (count === 0 && staysOpen) return
+    toast.success(t('import.success'), count > 0 ? { description: t('import.successDetail', { count }) } : undefined)
+  }
+
   async function handleFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     e.target.value = ''
@@ -137,7 +147,7 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
     const { entries, missingIds } = jsonToEntries(deck, views)
     setUnresolved(missingIds)
     onImport({ name: clampDeckName(deck.name), format: deck.format, visibility: state.visibility, entries })
-    toast.success(t('import.success'))
+    toastImported(entries, missingIds.length > 0)
     if (missingIds.length === 0) {
       setOpen(false)
       reset()
@@ -159,8 +169,9 @@ export function DeckImportDialog({ state, onImport }: { state: BuilderState; onI
     setUnresolved(badLines2.map(lineLabel))
     setExtraCharacters(extras.map(lineLabel))
     onImport({ ...state, entries })
-    toast.success(t('import.success'))
-    if (badLines.length === 0 && badLines2.length === 0 && extras.length === 0) {
+    const complete = badLines.length === 0 && badLines2.length === 0 && extras.length === 0
+    toastImported(entries, !complete)
+    if (complete) {
       setOpen(false)
       reset()
     }

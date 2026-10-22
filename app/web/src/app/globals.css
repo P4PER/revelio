@@ -553,3 +553,103 @@ input[type='search']::-webkit-search-decoration {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
 }
+
+/* "Lumos star" toasts: the brand look for every toast a regular user sees.
+   Admin and editor toasts run with richColors on (see components/ui/sonner.tsx),
+   so keying on data-rich-colors leaves them on sonner's stock look. The extra
+   :not() also out-ranks sonner's own [data-sonner-toast][data-styled=true].
+   The accent bar is a box-shadow, not a pseudo-element: sonner already uses
+   both ::before and ::after on the toast for its swipe and gap areas. */
+[data-sonner-toast][data-styled='true']:not([data-rich-colors='true']) {
+  --toast-accent: var(--primary);
+  --toast-glow: color-mix(in oklab, var(--toast-accent) 55%, transparent);
+  --toast-drop: rgb(0 0 0 / 0.5);
+  /* The card colour is a shade off the page, so a toast on it got lost: it
+     sits on the raised muted surface instead, washed with its accent from the
+     bar, edged in the accent and lit by it from outside. */
+  --toast-shadow:
+    inset 3px 0 0 var(--toast-accent),
+    inset 10px 0 12px -10px var(--toast-glow),
+    0 0 20px -4px color-mix(in oklab, var(--toast-accent) 35%, transparent),
+    0 10px 30px -8px var(--toast-drop);
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--toast-accent) 14%, var(--muted)),
+    var(--muted) 45%
+  );
+  color: var(--card-foreground);
+  border: 1px solid color-mix(in oklab, var(--toast-accent) 45%, var(--border));
+  padding-left: 19px;
+  font-size: 14px;
+  box-shadow: var(--toast-shadow);
+}
+
+/* A half-black drop lifts the toast off the indigo page but smudges the
+   parchment one. */
+[data-sonner-toaster][data-sonner-theme='light']
+  [data-sonner-toast][data-styled='true']:not([data-rich-colors='true']) {
+  --toast-drop: rgb(0 0 0 / 0.16);
+}
+
+/* Title first, then a quieter line of context, as in the design mockup. */
+[data-sonner-toast][data-styled='true']:not([data-rich-colors='true']) [data-title] {
+  font-weight: 600;
+}
+
+[data-sonner-toast][data-styled='true']:not([data-rich-colors='true']) [data-description] {
+  margin-top: 2px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* The surface rule replaces sonner's own focus ring, which is a box-shadow too,
+   and sonner zeroes the outline: put a ring back for keyboard users (Alt+T). */
+[data-sonner-toast][data-styled='true']:not([data-rich-colors='true']):focus-visible {
+  box-shadow: var(--toast-shadow), 0 0 0 2px var(--ring);
+}
+
+/* Red, and a weaker glow, so an error never reads as a gold success. */
+[data-sonner-toast][data-styled='true']:not([data-rich-colors='true'])[data-type='error'] {
+  --toast-accent: var(--destructive);
+  --toast-glow: color-mix(in oklab, var(--toast-accent) 30%, transparent);
+}
+
+/* The icon carries the colour too, as the gold star does for a success. */
+[data-sonner-toast][data-styled='true']:not([data-rich-colors='true'])[data-type='error'] [data-icon] {
+  color: var(--destructive);
+}
+
+/* Something gone (toastRemoved in components/ui/sonner.tsx): confirmed
+   quietly, on the plain surface with a neutral bar and no glow, so it reads
+   neither as a gold win nor as a red failure. */
+[data-sonner-toast][data-styled='true'].toast-removed:not([data-rich-colors='true']) {
+  --toast-accent: var(--muted-foreground);
+  --toast-shadow:
+    inset 3px 0 0 var(--toast-accent),
+    0 10px 30px -8px var(--toast-drop);
+  background: var(--muted);
+  border-color: var(--border);
+}
+
+[data-sonner-toast].toast-removed:not([data-rich-colors='true']) [data-icon] {
+  color: var(--muted-foreground);
+}
+
+/* Scoped like the surface: an admin success keeps its star in sonner's green. */
+[data-sonner-toast]:not([data-rich-colors='true']) .toast-star {
+  color: var(--primary-ink);
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--primary) 85%, transparent));
+}
+
+@keyframes toast-twinkle {
+  0% { opacity: 0; transform: scale(0.2) rotate(-40deg); }
+  60% { opacity: 1; transform: scale(1.35) rotate(10deg); }
+  100% { transform: none; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-sonner-toast]:not([data-rich-colors='true']) .toast-star {
+    animation: toast-twinkle 0.7s 0.1s ease-out both;
+  }
+}

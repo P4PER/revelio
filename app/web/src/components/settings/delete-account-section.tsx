@@ -3,6 +3,7 @@ import { useRef, useState, useTransition } from 'react'
 import { REGEXP_ONLY_DIGITS } from 'input-otp'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
+import { toastRemoved } from '@/components/ui/sonner'
 import { requestAccountDeletion, confirmAccountDeletion } from '@/lib/actions/settings-actions'
 import { signOut } from '@/lib/auth-client'
 import { useRouter } from '@/../i18n/navigation'
@@ -51,7 +52,7 @@ export function DeleteAccountSection({ user }: { user: SettingsUser }) {
           setCodeError(t('invalidCode'))
           return
         }
-        toast.success(t('deleted'))
+        toastRemoved(t('deleted'))
         await signOut().catch(() => {})
         // Refresh the server tree so the header (which reads the server session)
         // drops the signed-in state — matches useSignOut.

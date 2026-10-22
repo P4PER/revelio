@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
+import { actionErrorHint } from '@/lib/action-error-hint'
 import { useRouter } from '@/../i18n/navigation'
 import type { DeckCardView, DeckZone, SetDTO } from '@revelio/core'
 import { clampDeckName, evaluateDeck } from '@revelio/core'
@@ -142,6 +143,13 @@ export function DeckBuilder({
     return true
   }
 
+  // Unlike the other deck actions, a failed save gets no reload hint: the deck
+  // is still in the builder, and a reload would lose it. Only an ended session
+  // has a fix that keeps it.
+  function toastSaveFailed(error: string) {
+    toast.error(t('saveError'), actionErrorHint(error) === 'signInHint' ? { description: t('saveErrorDetail') } : undefined)
+  }
+
   async function handleSave() {
     if (refuseExtraCharacters(state.entries)) return
     setSaving(true)
@@ -154,11 +162,11 @@ export function DeckBuilder({
       }
       const result = deckId ? await updateDeckAction(deckId, input) : await createDeckAction(input)
       if (!result.ok) {
-        toast.error(t('saveError'))
+        toastSaveFailed(result.error)
         return
       }
       if (!deckId) clearDraft()
-      toast.success(t('saved'))
+      toast.success(t('saved'), { description: t('savedDetail', { name: input.name }) })
       router.push(`/decks/${result.id}`)
     } finally {
       setSaving(false)
@@ -182,12 +190,12 @@ export function DeckBuilder({
       }
       const result = await createDeckAction(input)
       if (!result.ok) {
-        toast.error(t('saveError'))
+        toastSaveFailed(result.error)
         return
       }
       clearDraft()
       setShowSavePrompt(false)
-      toast.success(t('saved'))
+      toast.success(t('saved'), { description: t('savedDetail', { name: input.name }) })
       router.push(`/decks/${result.id}`)
     } finally {
       setSavingDraft(false)

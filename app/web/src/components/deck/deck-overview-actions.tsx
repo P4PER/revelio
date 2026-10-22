@@ -2,6 +2,8 @@
 import { useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
+import { toastRemoved } from '@/components/ui/sonner'
+import { actionErrorHint } from '@/lib/action-error-hint'
 import { ChevronDown, Copy, Globe, Link2, Lock, Pencil, Trash } from 'lucide-react'
 import { copyDeckName, type DeckCardView, type DeckFormat } from '@revelio/core'
 import { Link, useRouter } from '@/../i18n/navigation'
@@ -45,6 +47,7 @@ export function DeckOverviewActions({
   loggedIn: boolean
 }) {
   const t = useTranslations('decks')
+  const te = useTranslations('actionErrors')
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const state: BuilderState = { name, format, visibility, entries: views }
@@ -54,7 +57,7 @@ export function DeckOverviewActions({
       // Visibility alone: resending the name would fail a deck whose name was
       // stored before the bound, and leave it stuck at its visibility.
       const res = await updateDeckMetaAction(deckId, { visibility: next })
-      if (!res.ok) toast.error(t('list.visibilityError'))
+      if (!res.ok) toast.error(t('list.visibilityError'), { description: te(actionErrorHint(res.error)) })
     })
   }
 
@@ -71,10 +74,10 @@ export function DeckOverviewActions({
     startTransition(async () => {
       const res = await deleteDeckAction(deckId)
       if (res.ok) {
-        toast.success(t('list.deleted'))
+        toastRemoved(t('list.deleted'), { description: t('list.deletedDetail', { name }) })
         router.push('/decks/mine')
       } else {
-        toast.error(t('list.deleteError'))
+        toast.error(t('list.deleteError'), { description: te(actionErrorHint(res.error)) })
       }
     })
   }
@@ -84,7 +87,7 @@ export function DeckOverviewActions({
       startTransition(async () => {
         const res = await duplicateDeckAction(deckId)
         if (res.ok) router.push(`/decks/${res.id}/edit`)
-        else toast.error(t('list.duplicateError'))
+        else toast.error(t('list.duplicateError'), { description: te(actionErrorHint(res.error)) })
       })
     } else {
       saveDraft({ name: copyDeckName(name), format, visibility: 'private', entries: views })

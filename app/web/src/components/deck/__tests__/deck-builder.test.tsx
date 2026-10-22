@@ -102,6 +102,22 @@ describe('DeckBuilder save-on-login prompt', () => {
     })
     expect(draftBox.current).toBeNull()
     expect(push).toHaveBeenCalledWith('/decks/new-id')
+     expect(toast.success).toHaveBeenCalledWith('Deck saved.', {
+      description: '\u201cMy Draft\u201d is safe in your decks.',
+    })
+  })
+
+  it('tells a user whose session ended how to keep their changes', async () => {
+    createDeckAction.mockResolvedValueOnce({ ok: false, error: 'auth' } as never)
+    draftBox.current = { name: 'My Draft', format: 'revival', visibility: 'private', entries: [draftEntry] }
+    renderBuilder({ loggedIn: true, deckId: null })
+    const user = userEvent.setup()
+    await user.click(await screen.findByRole('button', { name: 'Save to account' }))
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith('Could not save the deck.', {
+        description: 'Your changes are still here. Sign in again in a new tab, then save.',
+      }),
+    )
   })
 
   it('clamps an over-long draft name to the deck name bound on save', async () => {

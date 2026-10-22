@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Sparkle } from 'lucide-react'
-import { Toaster as Sonner } from 'sonner'
+import { Sparkle, Trash2 } from 'lucide-react'
+import { toast, Toaster as Sonner, type ExternalToast } from 'sonner'
 import { usePathname } from '@/../i18n/navigation'
 import { parseTheme, type ThemeChoice } from '@/lib/theme'
 
@@ -14,6 +14,8 @@ const HEADER_OFFSET = { top: '4rem' }
 // Module scope, so sonner's toasts do not see a new icons object, and
 // re-render, on every navigation.
 const TOAST_ICONS = { success: <Sparkle className="toast-star size-4" fill="currentColor" /> }
+
+const REMOVED_ICON = <Trash2 className="size-4" />
 
 // The admin pages and the card editor, on the locale-stripped path.
 function isEditorPath(pathname: string): boolean {
@@ -67,4 +69,12 @@ export function Toaster({
       {...props}
     />
   )
+}
+
+// Confirms that something is gone: a plain toast in the quiet removed style
+// (toast-removed in globals.css), never a success, whose gold star would
+// celebrate a loss. Every deletion goes through here so that an Undo, once the
+// server can restore what was deleted, is one `action` added in one place.
+export function toastRemoved(title: string, options: Pick<ExternalToast, 'description'> = {}) {
+  return toast(title, { ...options, icon: REMOVED_ICON, className: 'toast-removed' })
 }

@@ -338,6 +338,9 @@
     "saveError": "Deck konnte nicht gespeichert werden.",
     "saveErrorDetail": "Deine Änderungen sind noch da. Melde dich in einem neuen Tab wieder an und speichere dann.",
     "saveTwoCharacters": "Ein Deck hat genau einen Startcharakter. Wähle einen im Kartenbrowser, er ersetzt beide, und speichere dann.",
+    "characterRemoved": "Startcharakter entfernt.",
+    "characterRemovedDetail": "{name} ist nicht mehr im Deck.",
+    "undo": "Rückgängig",
     "loginToSave": "Zum Speichern anmelden",
     "draftNotice": "Dein Entwurf wird auf diesem Gerät gespeichert. Melde dich an, damit wir ihn in deinem Konto sichern können.",
     "savePrompt": {
@@ -447,7 +450,8 @@
       "emptySideboard": "Keine Karten im Sideboard.",
       "quantity": "Anzahl von {name}",
       "increase": "{name} erhöhen",
-      "decrease": "{name} verringern"
+      "decrease": "{name} verringern",
+      "removeCharacter": "{name} als Startcharakter entfernen"
     },
     "group": {
       "creature": "Kreaturen",

@@ -620,20 +620,42 @@ input[type='search']::-webkit-search-decoration {
   color: var(--destructive);
 }
 
-/* Something gone (toastRemoved in components/ui/sonner.tsx): confirmed
-   quietly, on the plain surface with a neutral bar and no glow, so it reads
-   neither as a gold win nor as a red failure. */
+/* Something gone (toastRemoved in components/ui/sonner.tsx): a neutral
+   parchment accent, so it reads neither as a gold win nor as a red failure.
+   It keeps the surface's wash, edge and halo, at the error's weaker glow: a
+   flat toast on the muted surface got lost on the indigo page. */
 [data-sonner-toast][data-styled='true'].toast-removed:not([data-rich-colors='true']) {
   --toast-accent: var(--muted-foreground);
-  --toast-shadow:
-    inset 3px 0 0 var(--toast-accent),
-    0 10px 30px -8px var(--toast-drop);
-  background: var(--muted);
-  border-color: var(--border);
+  --toast-glow: color-mix(in oklab, var(--toast-accent) 30%, transparent);
 }
 
 [data-sonner-toast].toast-removed:not([data-rich-colors='true']) [data-icon] {
   color: var(--muted-foreground);
+}
+
+/* An action on any of these toasts (today toastRemoved's Undo) is a text
+   button, as a snackbar's is: a bordered box outweighs the toast it sits in,
+   and sonner's default pill is stark white on the dark theme. */
+[data-sonner-toast][data-styled='true']:not([data-rich-colors='true']) [data-button]:not([data-cancel]) {
+  height: 2rem;
+  padding: 0 0.75rem;
+  border: 0;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--primary-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background-color 0.15s;
+}
+
+[data-sonner-toast][data-styled='true']:not([data-rich-colors='true']) [data-button]:not([data-cancel]):hover {
+  background: color-mix(in oklab, var(--primary) 15%, transparent);
+}
+
+[data-sonner-toast][data-styled='true']:not([data-rich-colors='true']) [data-button]:not([data-cancel]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  box-shadow: none;
 }
 
 /* Scoped like the surface: an admin success keeps its star in sonner's green. */

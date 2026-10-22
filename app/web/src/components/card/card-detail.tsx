@@ -4,7 +4,7 @@ import { Link } from '@/../i18n/navigation'
 import { Button } from '@/components/ui/button'
 import type { CardDetailDTO } from '@revelio/core'
 import { attrLabel, effectiveImageLang, humanize, imageKey, imageUrl } from '@revelio/core'
-import { CardImage, isHorizontal } from '@/components/card/card-image'
+import { CardImage, cardCorners, isHorizontal } from '@/components/card/card-image'
 import { cn } from '@/lib/utils'
 import { pickLocalization } from '@/lib/card-view'
 import { Badge } from '@/components/ui/badge'
@@ -61,10 +61,10 @@ export function CardDetail({
               upright
               sizes="(min-width: 768px) 476px, 100vw"
               priority
-              frameClassName="rounded-xl border border-border/60 bg-card"
+              frameClassName="border border-border/60"
             />
           ) : (
-            <div className={cn('relative flex items-center justify-center rounded-xl border border-border/60 bg-card p-4 text-center text-sm text-muted-foreground', horizontal ? 'aspect-[7/5]' : 'aspect-[5/7]')}>
+            <div className={cn('relative flex items-center justify-center border border-border/60 bg-muted p-4 text-center text-sm text-muted-foreground', cardCorners(horizontal), horizontal ? 'aspect-[7/5]' : 'aspect-[5/7]')}>
               {loc.name}
             </div>
           )}

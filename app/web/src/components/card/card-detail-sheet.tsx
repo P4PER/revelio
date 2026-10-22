@@ -6,7 +6,7 @@ import { getCardDetailAction } from '@/lib/actions/deck-actions'
 import { pickLocalization } from '@/lib/card-view'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
-import { isHorizontal } from '@/components/card/card-image'
+import { cardCorners, isHorizontal } from '@/components/card/card-image'
 import { CardDetail } from '@/components/card/card-detail'
 import { cn } from '@/lib/utils'
 
@@ -97,7 +97,7 @@ function CardDetailSkeleton({ label, orientation }: { label: string; orientation
       className="mx-auto grid w-full max-w-[76rem] gap-8 px-6 page-y md:grid-cols-[auto_1fr]"
     >
       <div className={cn('w-full', horizontal ? 'md:w-[476px]' : 'md:w-[340px]')}>
-        <Skeleton className={cn('w-full rounded-xl', horizontal ? 'aspect-[7/5]' : 'aspect-[5/7]')} />
+        <Skeleton className={cn('w-full', cardCorners(horizontal), horizontal ? 'aspect-[7/5]' : 'aspect-[5/7]')} />
       </div>
       <div>
         <Skeleton className="h-9 w-2/3" />

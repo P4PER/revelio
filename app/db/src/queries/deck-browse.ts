@@ -42,6 +42,13 @@ const PUBLIC_PAGE_SIZE = 24
 // Discord's autocomplete ceiling, and the default for the bot's suggestions.
 const SUGGEST_LIMIT = 25
 
+// See deckSearchCondition. Past this many matching authors the id list stops
+// paying for itself; up to a thousand ids measured under 20 ms on 200k decks.
+const AUTHOR_MATCH_CAP = 500
+
+// pg_trgm indexes three-character trigrams; a shorter term has none to look up.
+const MIN_TRIGRAM_QUERY = 3
+
 // The user's text is matched literally: "%" and "_" are ILIKE wildcards and
 // "\" its default escape, so all three are escaped. Otherwise a query of "%"
 // would match every visible deck.
@@ -52,12 +59,29 @@ function escapeLike(value: string): string {
 // The browse page's matching rule, shared so the web and the bot can never
 // disagree on what a search finds: "@handle" narrows to the author, anything
 // else matches the deck name or the author.
-function deckSearchCondition(search: string): SQL | undefined {
+//
+// Both columns carry a pg_trgm index, but "decks.name ILIKE q OR
+// user.username ILIKE q" spans the join, so Postgres scans every public deck
+// whatever the indexes. Resolving the matching authors first and passing their
+// ids as a list keeps both sides of the OR on decks, where a BitmapOr combines
+// the name index with decks_user_id_idx. The ids must be values, not a
+// subquery: an ARRAY(subquery) has no size estimate and no hashing, and on a
+// term most authors match it walked the whole array once per deck (7.6 s
+// against 78 ms on 200k decks). Past AUTHOR_MATCH_CAP authors, or below three
+// characters where pg_trgm has no trigram to look up, the join-spanning OR is
+// the better plan anyway and is kept.
+async function deckSearchCondition(db: DB, search: string): Promise<SQL | undefined> {
   const s = search.trim()
   if (!s) return undefined
   if (s.startsWith('@')) return ilike(user.username, `%${escapeLike(s.slice(1))}%`)
   const q = `%${escapeLike(s)}%`
-  return or(ilike(decks.name, q), ilike(user.username, q))
+  const joined = or(ilike(decks.name, q), ilike(user.username, q))
+  if (s.length < MIN_TRIGRAM_QUERY) return joined
+  const authors = await db.select({ id: user.id }).from(user)
+    .where(ilike(user.username, q)).limit(AUTHOR_MATCH_CAP + 1)
+  if (authors.length > AUTHOR_MATCH_CAP) return joined
+  if (!authors.length) return ilike(decks.name, q)
+  return or(ilike(decks.name, q), inArray(decks.userId, authors.map((a) => a.id)))
 }
 
 export async function toggleLike(db: DB, deckId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
@@ -107,7 +131,7 @@ export async function listPublicDecks(db: DB, input: ListPublicDecksInput): Prom
   const pageSize = input.pageSize && input.pageSize >= 1 ? Math.floor(input.pageSize) : PUBLIC_PAGE_SIZE
   const conds = [eq(decks.visibility, 'public')]
 
-  const match = deckSearchCondition(input.search ?? '')
+  const match = await deckSearchCondition(db, input.search ?? '')
   if (match) conds.push(match)
   if (input.lessons?.length) conds.push(arrayOverlaps(decks.lessons, input.lessons))
   if (input.format) conds.push(eq(decks.format, input.format))
@@ -172,7 +196,7 @@ export async function suggestDecks(db: DB, input: SuggestDecksInput): Promise<De
   const visible = viewerId
     ? or(eq(decks.visibility, 'public'), eq(decks.userId, viewerId))!
     : eq(decks.visibility, 'public')
-  const match = deckSearchCondition(input.query)
+  const match = await deckSearchCondition(db, input.query)
   // An exact name first: the bot resolves typed free text by exact name among
   // these rows, so a poorly liked exact match must not fall past the limit.
   // Then own decks, most recently edited first; then public decks by likes.

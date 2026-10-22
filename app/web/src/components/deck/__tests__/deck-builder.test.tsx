@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 import type { DeckBrowseResult } from '@/lib/search-projections'
 import en from '@/../messages/en.json'
 import type { BuilderState } from '@/lib/deck-model'
 import { toast } from 'sonner'
+import { toastRemoved } from '@/components/ui/sonner'
 import { DeckBuilder } from '@/components/deck/deck-builder'
 
 const EMPTY_RESULT: DeckBrowseResult = { hits: [], total: 0, page: 1, hitsPerPage: 24 }
@@ -30,7 +31,8 @@ vi.mock('@/../i18n/navigation', () => ({
   useRouter: () => ({ push }),
   Link: (p: { href: string; children: React.ReactNode }) => <a href={p.href}>{p.children}</a>,
 }))
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), dismiss: vi.fn() } }))
+vi.mock('@/components/ui/sonner', () => ({ toastRemoved: vi.fn(() => 'removed-toast') }))
 
 // jsdom's localStorage is flaky under this test runner, and the guest-draft
 // persistence itself is out of scope here — stub the localStorage-backed
@@ -470,5 +472,92 @@ describe('DeckBuilder with two starting characters', () => {
     await userEvent.setup().click(screen.getAllByRole('button', { name: en.decks.save })[0])
     await waitFor(() => expect(updateDeckAction).toHaveBeenCalledTimes(1))
     expect(updateDeckAction).toHaveBeenCalledWith('d1', expect.objectContaining({ cards: [{ cardId: 'harry', zone: 'character', quantity: 1 }] }))
+  })
+})
+
+describe('DeckBuilder removing the starting character', () => {
+  const harry = { ...draftEntry, cardId: 'harry', zone: 'character' as const, quantity: 1, name: 'Harry Potter', isStartingCharacter: true }
+  const deck: BuilderState = { ...emptyState, name: 'Gryffindor', entries: [harry, draftEntry] }
+
+  it('empties the slot and offers an Undo that puts the card back', async () => {
+    const user = userEvent.setup()
+    vi.mocked(toastRemoved).mockClear()
+    renderBuilder({ initial: deck })
+    await user.click(screen.getByRole('button', { name: 'Remove Harry Potter as starting character' }))
+    expect(screen.getByText('No starting character chosen yet.')).toBeInTheDocument()
+
+    const [title, options] = vi.mocked(toastRemoved).mock.calls[0]
+    expect(title).toBe('Starting character removed.')
+    expect(options?.description).toBe('Harry Potter is out of the deck.')
+    const action = options?.action as { label: string; onClick: () => void }
+    expect(action.label).toBe('Undo')
+    act(() => action.onClick())
+    expect(screen.queryByText('No starting character chosen yet.')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Remove Harry Potter as starting character' })).toBeInTheDocument()
+  })
+
+  function undoOf(call: number) {
+    return vi.mocked(toastRemoved).mock.calls[call][1]?.action as { onClick: () => void }
+  }
+
+  it('keeps the other character of an imported pair through an Undo, in its place', async () => {
+    const user = userEvent.setup()
+    vi.mocked(toastRemoved).mockClear()
+    const ron = { ...harry, cardId: 'ron', name: 'Ron Weasley' }
+    renderBuilder({ initial: { ...deck, entries: [harry, ron, draftEntry] } })
+    await user.click(screen.getByRole('button', { name: 'Remove Harry Potter as starting character' }))
+    act(() => undoOf(0).onClick())
+    expect(screen.getAllByRole('button', { name: /as starting character/ }).map((b) => b.getAttribute('aria-label'))).toEqual([
+      'Remove Harry Potter as starting character',
+      'Remove Ron Weasley as starting character',
+    ])
+  })
+
+  it('restores nothing once the slot has changed since the removal', async () => {
+    const user = userEvent.setup()
+    vi.mocked(toastRemoved).mockClear()
+    const ron = { ...harry, cardId: 'ron', name: 'Ron Weasley' }
+    renderBuilder({ initial: { ...deck, entries: [harry, ron, draftEntry] } })
+    await user.click(screen.getByRole('button', { name: 'Remove Harry Potter as starting character' }))
+    await user.click(screen.getByRole('button', { name: 'Remove Ron Weasley as starting character' }))
+    act(() => undoOf(0).onClick())
+    expect(screen.getByText('No starting character chosen yet.')).toBeInTheDocument()
+  })
+
+  it('closes the toast once its Undo has nothing left to restore', async () => {
+    const user = userEvent.setup()
+    vi.mocked(toastRemoved).mockClear()
+    vi.mocked(toast.dismiss).mockClear()
+    const ron = { ...harry, cardId: 'ron', name: 'Ron Weasley' }
+    renderBuilder({ initial: { ...deck, entries: [harry, ron, draftEntry] } })
+    await user.click(screen.getByRole('button', { name: 'Remove Harry Potter as starting character' }))
+    expect(toast.dismiss).not.toHaveBeenCalled()
+    await user.click(screen.getByRole('button', { name: 'Remove Ron Weasley as starting character' }))
+    expect(toast.dismiss).toHaveBeenCalledTimes(1)
+    act(() => undoOf(1).onClick())
+    expect(toast.dismiss).toHaveBeenCalledTimes(2)
+  })
+
+  it('closes the toast when an import replaces the deck', async () => {
+    const user = userEvent.setup()
+    vi.mocked(toast.dismiss).mockClear()
+    renderBuilder({ initial: deck })
+    await user.click(screen.getByRole('button', { name: 'Remove Harry Potter as starting character' }))
+    await user.click(screen.getAllByRole('button', { name: en.decks.import.button })[0])
+    const dialog = within(screen.getByRole('dialog'))
+    fireEvent.change(dialog.getByLabelText(en.decks.import.pasteLabel), {
+      target: { value: '{"name":"Other","format":"revival","character":null,"main":[],"sideboard":[]}' },
+    })
+    await user.click(dialog.getByRole('button', { name: en.decks.import.submit }))
+    await waitFor(() => expect(toast.dismiss).toHaveBeenCalledWith('removed-toast'))
+  })
+
+  it('dismisses its toast when the builder goes away', async () => {
+    const user = userEvent.setup()
+    vi.mocked(toast.dismiss).mockClear()
+    const { unmount } = renderBuilder({ initial: deck })
+    await user.click(screen.getByRole('button', { name: 'Remove Harry Potter as starting character' }))
+    unmount()
+    expect(toast.dismiss).toHaveBeenCalledWith('removed-toast')
   })
 })

@@ -16,6 +16,8 @@ const HEADER_OFFSET = { top: '4rem' }
 const TOAST_ICONS = { success: <Sparkle className="toast-star size-4" fill="currentColor" /> }
 
 const REMOVED_ICON = <Trash2 className="size-4" />
+// Sonner's 4s default is barely time to read the line, find Undo and reach it.
+const UNDO_DURATION = 8000
 
 // The admin pages and the card editor, on the locale-stripped path.
 function isEditorPath(pathname: string): boolean {
@@ -73,8 +75,13 @@ export function Toaster({
 
 // Confirms that something is gone: a plain toast in the quiet removed style
 // (toast-removed in globals.css), never a success, whose gold star would
-// celebrate a loss. Every deletion goes through here so that an Undo, once the
-// server can restore what was deleted, is one `action` added in one place.
-export function toastRemoved(title: string, options: Pick<ExternalToast, 'description'> = {}) {
-  return toast(title, { ...options, icon: REMOVED_ICON, className: 'toast-removed' })
+// celebrate a loss. Every deletion goes through here; one that can be taken
+// back passes its Undo as `action`.
+export function toastRemoved(title: string, options: Pick<ExternalToast, 'description' | 'action'> = {}) {
+  return toast(title, {
+    ...options,
+    ...(options.action && { duration: UNDO_DURATION }),
+    icon: REMOVED_ICON,
+    className: 'toast-removed',
+  })
 }

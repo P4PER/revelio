@@ -1,7 +1,7 @@
 'use client'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { Info, Minus, Plus } from 'lucide-react'
+import { Info, Minus, Plus, X } from 'lucide-react'
 import {
   attrLabel,
   groupMainEntries,
@@ -26,6 +26,7 @@ type DeckPanelProps = {
   violations?: Violation[]
   highlight?: { zone: DeckZone; cardId: string; nonce: number } | null
   onQuantityChange?: (cardId: string, zone: DeckZone, qty: number) => void
+  onRemoveCharacter?: (cardId: string) => void
   readOnly?: boolean
 }
 
@@ -81,12 +82,14 @@ export function DeckPanel({
   violations,
   highlight,
   onQuantityChange,
+  onRemoveCharacter,
   readOnly = false,
 }: DeckPanelProps) {
   const t = useTranslations('decks')
   const locale = useLocale()
   const [detail, setDetail] = useState<{ id: string; orientation?: string | null } | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const characterHeading = useRef<HTMLDivElement>(null)
   const [flashKey, setFlashKey] = useState<string | null>(null)
 
   const flashTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -257,6 +260,20 @@ export function DeckPanel({
         <span className="rounded-full border border-primary/60 px-2 py-0.5 text-xs tracking-wide text-primary-ink uppercase">
           {t('panel.characterBadge')}
         </span>
+        {!readOnly && onRemoveCharacter && (
+          <button
+            type="button"
+            aria-label={t('panel.removeCharacter', { name: character.name })}
+            onClick={() => {
+              onRemoveCharacter(character.cardId)
+              // The button leaves with its row; keep keyboard focus in the slot.
+              requestAnimationFrame(() => characterHeading.current?.focus())
+            }}
+            className="-mr-1 grid size-7 shrink-0 cursor-pointer place-items-center rounded-md text-muted-foreground transition-colors outline-none hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <X className="size-4" />
+          </button>
+        )}
       </div>
     )
   }
@@ -274,7 +291,11 @@ export function DeckPanel({
           className="border-b border-border/60 px-4 py-3"
         />
       )}
-      <div className="px-4 pt-3 pb-1.5 text-xs font-semibold tracking-widest text-heading uppercase">
+      <div
+        ref={characterHeading}
+        tabIndex={-1}
+        className="px-4 pt-3 pb-1.5 text-xs font-semibold tracking-widest text-heading uppercase outline-none"
+      >
         {t('panel.character')}
       </div>
       {characters.length > 0 ? (

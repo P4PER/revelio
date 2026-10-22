@@ -338,6 +338,9 @@
     "saveError": "Could not save the deck.",
     "saveErrorDetail": "Your changes are still here. Sign in again in a new tab, then save.",
     "saveTwoCharacters": "A deck takes one starting character. Pick one in the card browser to replace both, then save.",
+    "characterRemoved": "Starting character removed.",
+    "characterRemovedDetail": "{name} is out of the deck.",
+    "undo": "Undo",
     "loginToSave": "Log in to save",
     "draftNotice": "Your draft is kept on this device. Log in and we'll offer to save it to your account.",
     "savePrompt": {
@@ -447,7 +450,8 @@
       "emptySideboard": "No sideboard cards.",
       "quantity": "Quantity of {name}",
       "increase": "Increase {name}",
-      "decrease": "Decrease {name}"
+      "decrease": "Decrease {name}",
+      "removeCharacter": "Remove {name} as starting character"
     },
     "group": {
       "creature": "Creatures",

@@ -12,6 +12,7 @@ import {
   clampQuantity,
   copyLimitReached,
   loadDraft,
+  removeCard,
   saveDraft,
   clearDraft,
   setFormat,
@@ -24,6 +25,7 @@ import { DeckCardBrowser } from '@/components/deck/deck-card-browser'
 import { DeckCommandBar } from '@/components/deck/deck-command-bar'
 import { DeckSheet, DECK_SHEET_PEEK_CLASS } from '@/components/deck/deck-sheet'
 import { DeckSaveButton } from '@/components/deck/deck-save-button'
+import { toastRemoved } from '@/components/ui/sonner'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -32,6 +34,10 @@ import { cn } from '@/lib/utils'
 // the server now refuses, so send it as the 1 it always meant.
 function saveCards(entries: BuilderState['entries']) {
   return entries.map((e) => ({ cardId: e.cardId, zone: e.zone, quantity: e.zone === 'character' ? 1 : e.quantity }))
+}
+
+function characterIds(entries: BuilderState['entries']): string {
+  return entries.filter((e) => e.zone === 'character').map((e) => e.cardId).join(' ')
 }
 
 // Owns BuilderState for the whole builder. Below md browsing is the whole
@@ -66,6 +72,13 @@ export function DeckBuilder({
   const [highlight, setHighlight] = useState<{ zone: DeckZone; cardId: string; nonce: number } | null>(null)
   const isFirstSave = useRef(true)
   const addNonce = useRef(0)
+  // The open character-removed toast and the slot its Undo can still restore
+  // into. The toaster outlives this builder, and an Undo clicked after leaving
+  // it would restore into a deck that is gone, so its toast leaves with it.
+  const removedToast = useRef<{ id: string | number; left: string } | null>(null)
+  useEffect(() => () => {
+    if (removedToast.current) toast.dismiss(removedToast.current.id)
+  }, [])
 
   // Anyone without a deckId (guest or a logged-in user landing on /decks/new)
   // may have a locally-saved draft. Load it after mount (not in the lazy
@@ -115,6 +128,56 @@ export function DeckBuilder({
       return next === null ? s : setQuantity(s, cardId, zone, next)
     })
   }
+
+  // Undo takes the removal back only while its toast is still the live one
+  // (see the effect below) and the slot still holds what the removal left: a
+  // character picked since then is the newer choice and stays, and an imported
+  // second character is kept rather than swept out by addCard. The card goes
+  // back where it was, so a restored pair keeps its order.
+  function handleRemoveCharacter(cardId: string) {
+    const at = state.entries.findIndex((e) => e.cardId === cardId && e.zone === 'character')
+    if (at < 0) return
+    const removed = state.entries[at]
+    dismissRemovedToast()
+    const left = characterIds(removeCard(state, cardId, 'character').entries)
+    setState((s) => removeCard(s, cardId, 'character'))
+    const id = toastRemoved(t('characterRemoved'), {
+      description: t('characterRemovedDetail', { name: removed.name }),
+      action: {
+        label: t('undo'),
+        onClick: () => {
+          if (removedToast.current?.id !== id) return
+          setState((s) => {
+            if (characterIds(s.entries) !== left) return s
+            const entries = [...s.entries]
+            entries.splice(Math.min(at, entries.length), 0, removed)
+            return { ...s, entries }
+          })
+          setHighlight({ zone: 'character', cardId, nonce: ++addNonce.current })
+        },
+      },
+    })
+    removedToast.current = { id, left }
+  }
+
+  function dismissRemovedToast() {
+    if (removedToast.current) toast.dismiss(removedToast.current.id)
+    removedToast.current = null
+  }
+
+  // An import replaces the whole deck, so an Undo would restore into a
+  // different one even where its character slot looks the same.
+  function handleImport(next: BuilderState) {
+    dismissRemovedToast()
+    setState(next)
+  }
+
+  // Once the slot changes from what the removal left (a new pick, or the Undo
+  // itself), the Undo has nothing it may restore, so its button goes too.
+  const characterKey = characterIds(state.entries)
+  useEffect(() => {
+    if (removedToast.current && characterKey !== removedToast.current.left) dismissRemovedToast()
+  }, [characterKey])
 
   function handleAdd(view: Omit<DeckCardView, 'zone' | 'quantity'>, zone: DeckZone) {
     setState((s) => addCard(s, view, zone))
@@ -280,7 +343,7 @@ export function DeckBuilder({
           state={state}
           onNameChange={(name) => setState((s) => ({ ...s, name }))}
           onFormatChange={(f) => setState((s) => setFormat(s, f))}
-          onImport={setState}
+          onImport={handleImport}
           loggedIn={loggedIn}
           saving={saving}
           onSave={handleSave}
@@ -299,6 +362,7 @@ export function DeckBuilder({
             violations={evaluation.violations}
             highlight={highlight}
             onQuantityChange={handleQuantityChange}
+            onRemoveCharacter={handleRemoveCharacter}
           />
         </div>
 

@@ -63,4 +63,12 @@ describe('toastRemoved', () => {
       expect.objectContaining({ description: 'Gone for good.', className: 'toast-removed', icon: expect.anything() }),
     )
   })
+
+  it('keeps a toast with an Undo up longer than the default', () => {
+    const action = { label: 'Undo', onClick: () => {} }
+    toastRemoved('Removed.', { action })
+    expect(toast).toHaveBeenLastCalledWith('Removed.', expect.objectContaining({ action, duration: 8000 }))
+    toastRemoved('Deck deleted.')
+    expect(vi.mocked(toast).mock.lastCall?.[1]).not.toHaveProperty('duration')
+  })
 })

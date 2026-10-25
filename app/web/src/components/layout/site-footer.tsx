@@ -86,8 +86,7 @@ export function SiteFooterView({
             <FooterLink href="/collection">{t('collection')}</FooterLink>
           </FooterColumn>
 
-          <FooterColumn label={t('about')}>
-            <FooterLink href="/about">{t('aboutLink')}</FooterLink>
+          <FooterColumn label={t('community')}>
             <FooterLink href="/contact">{t('contact')}</FooterLink>
             <FooterLink href="/discord">{t('discordBot')}</FooterLink>
           </FooterColumn>

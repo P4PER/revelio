@@ -26,10 +26,10 @@ afterEach(() => {
 describe('SiteFooter', () => {
   // The bot page has no header-nav link by design, so the footer is its only
   // route in.
-  it('links the Discord bot page from the About column', () => {
+  it('links the Discord bot page from the Community column', () => {
     renderFooter()
-    const about = screen.getByRole('navigation', { name: 'About' })
-    expect(within(about).getByRole('link', { name: 'Discord bot' })).toHaveAttribute(
+    const community = screen.getByRole('navigation', { name: 'Community' })
+    expect(within(community).getByRole('link', { name: 'Discord bot' })).toHaveAttribute(
       'href',
       '/discord',
     )
@@ -41,7 +41,7 @@ describe('SiteFooter', () => {
     expect(screen.getByText(/Warner Bros\./)).toBeInTheDocument()
   })
 
-  it('links the Browse, Build and About columns internally', () => {
+  it('links the Browse, Build and Community columns internally', () => {
     renderFooter()
     const browse = screen.getByRole('navigation', { name: 'Browse' })
     expect(within(browse).getByRole('link', { name: 'Sets' })).toHaveAttribute('href', '/sets')
@@ -55,9 +55,9 @@ describe('SiteFooter', () => {
     expect(within(build).getByRole('link', { name: 'My Decks' })).toHaveAttribute('href', '/decks/mine')
     expect(within(build).getByRole('link', { name: 'Collection' })).toHaveAttribute('href', '/collection')
 
-    const about = screen.getByRole('navigation', { name: 'About' })
-    expect(within(about).getByRole('link', { name: 'About' })).toHaveAttribute('href', '/about')
-    expect(within(about).getByRole('link', { name: 'Contact' })).toHaveAttribute('href', '/contact')
+    const community = screen.getByRole('navigation', { name: 'Community' })
+    expect(within(community).getByRole('link', { name: 'Contact' })).toHaveAttribute('href', '/contact')
+    expect(screen.queryByRole('link', { name: 'About' })).not.toBeInTheDocument()
   })
 
   it('renders the copyright and back-to-top control', () => {
@@ -98,14 +98,14 @@ describe('SiteFooter', () => {
     )
   })
 
-  // GitHub is reference material and moved out of About, which would otherwise
-  // leave Reference holding a single link.
-  it('carries GitHub in the Reference column, not About', () => {
+  // GitHub is reference material and lives in Reference, which would otherwise
+  // hold a single link.
+  it('carries GitHub in the Reference column, not Community', () => {
     renderFooter('https://github.com/P4PER/revelio')
     const reference = screen.getByRole('navigation', { name: 'Reference' })
     expect(within(reference).getByRole('link', { name: /GitHub/ })).toBeInTheDocument()
 
-    const about = screen.getByRole('navigation', { name: 'About' })
-    expect(within(about).queryByRole('link', { name: /GitHub/ })).toBeNull()
+    const community = screen.getByRole('navigation', { name: 'Community' })
+    expect(within(community).queryByRole('link', { name: /GitHub/ })).toBeNull()
   })
 })

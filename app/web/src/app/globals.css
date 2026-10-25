@@ -51,7 +51,7 @@
 
 /* The one top/bottom padding every page wrapper uses, tighter on phones.
    The bottom is larger than the top so a page's last row never crowds the
-   footer's border. Not used by the hero pages (home, about, discord), the
+   footer's border. Not used by the hero pages (home, discord), the
    full-height error state, or the deck builder, whose md height subtracts
    its own md:py-6 (deck-builder.tsx). */
 @utility page-y {

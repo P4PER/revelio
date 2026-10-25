@@ -14,7 +14,7 @@ function servedPath(absolute: string) {
 // A legal page needs no seeded data, so it renders (and exposes the inherited
 // default OG image) even against an empty stack.
 test('the default Open Graph image renders as a real PNG', async ({ page, request }) => {
-  await page.goto('/about')
+  await page.goto('/privacy')
   const ogUrl = await page.locator('meta[property="og:image"]').getAttribute('content')
   expect(ogUrl, 'og:image meta tag is present').toBeTruthy()
 
@@ -58,7 +58,7 @@ test('a public deck OG image renders as a real PNG when decks exist', async ({ p
 })
 
 test('the app emits an apple-touch-icon and a served web manifest', async ({ page, request }) => {
-  await page.goto('/about')
+  await page.goto('/privacy')
 
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveCount(1)
 

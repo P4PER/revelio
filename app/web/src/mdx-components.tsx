@@ -6,8 +6,8 @@ import { CODE_BLOCK, CommandExample } from '@/components/docs/command-example'
 import { CommandTable } from '@/components/docs/command-table'
 import { cn } from '@/lib/utils'
 
-// Docs prose deliberately reuses the type scale already set by the about and
-// discord pages rather than introducing a third one.
+// Docs prose deliberately reuses the type scale already set by the discord
+// page rather than introducing another one.
 // scroll-mt keeps a heading clear of the viewport edge when the contents list
 // jumps to it. Below 1180px that edge is the docs bar - sticky, 48px - so the
 // offset has to clear the bar, not just the edge; an h2's own pt-6 happens to

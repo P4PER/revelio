@@ -24,7 +24,7 @@ describe('localizedEntries', () => {
     expect(withDate.priority).toBeUndefined()
     expect(withDate.changeFrequency).toBeUndefined()
 
-    const [withoutDate] = localizedEntries('/about')
+    const [withoutDate] = localizedEntries('/contact')
     expect(withoutDate.lastModified).toBeUndefined()
   })
 })

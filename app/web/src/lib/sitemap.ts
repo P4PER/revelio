@@ -36,7 +36,6 @@ export const STATIC_ROUTES = [
   '/search',
   '/sets',
   '/decks',
-  '/about',
   '/discord',
   '/contact',
   '/imprint',

@@ -55,8 +55,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 /**
  * The reading column and its contents rail. Sync and prop-driven so it renders
- * in a test tree as well as on the server, which is how the about and discord
- * pages are already split.
+ * in a test tree as well as on the server, which is how the discord page is
+ * already split.
  */
 export function DocArticle({
   slug,

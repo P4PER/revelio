@@ -53,7 +53,8 @@ export function DiscordContent({ inviteUrl }: { inviteUrl: string | null }) {
           of the first screen. lvh, not svh, so that holds with a phone's toolbar
           collapsed too. content-start packs the rows at the top, so the extra
           height goes below the hero: its content starts as far under the header
-          as /about's, and the stacked layout's two rows are not pulled apart.
+          on a tall window as on a short one, and the stacked layout's two rows
+          are not pulled apart.
           e2e/discord.spec.ts measures the fold, the offset and the stacked gap;
           desktop Chromium has no collapsing toolbar, so lvh over svh is not
           under test. */}

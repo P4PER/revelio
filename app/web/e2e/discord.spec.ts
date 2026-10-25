@@ -44,17 +44,17 @@ for (const viewport of VIEWPORTS) {
   })
 }
 
-// The min-height's extra space goes below the hero, not above it, so the
-// hero's content starts as far under the header as /about's does.
+// The min-height's extra space goes below the hero, not above it, so doubling
+// the window's height leaves the hero's content where it was under the header.
 for (const viewport of VIEWPORTS) {
-  test(`/discord starts its hero as far under the header as /about at ${viewport.width}x${viewport.height}`, async ({
+  test(`/discord keeps its hero's offset under the header on a taller window at ${viewport.width}x${viewport.height}`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport)
-    await page.goto('/about')
-    const about = await heroContentOffset(page)
     await page.goto('/discord')
-    expect(await heroContentOffset(page)).toBeCloseTo(about, 0)
+    const offset = await heroContentOffset(page)
+    await page.setViewportSize({ ...viewport, height: viewport.height * 2 })
+    expect(await heroContentOffset(page)).toBeCloseTo(offset, 0)
   })
 }
 

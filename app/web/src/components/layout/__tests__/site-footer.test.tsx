@@ -41,6 +41,14 @@ describe('SiteFooter', () => {
     expect(screen.getByText(/Warner Bros\./)).toBeInTheDocument()
   })
 
+  it('credits the harrypottertcg.com community', () => {
+    renderFooter()
+    expect(screen.getByRole('link', { name: 'harrypottertcg.com' })).toHaveAttribute(
+      'href',
+      'https://harrypottertcg.com/',
+    )
+  })
+
   it('links the Browse, Build and Community columns internally', () => {
     renderFooter()
     const browse = screen.getByRole('navigation', { name: 'Browse' })

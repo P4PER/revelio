@@ -10,6 +10,8 @@ import { BackToTopButton } from '@/components/layout/back-to-top-button'
 import { getCachedSiteSettings } from '@/lib/server/site-settings'
 import { BRAND_NAME } from '@/lib/brand'
 
+const HPTCG_URL = 'https://harrypottertcg.com/'
+
 const linkClass =
   'h-auto justify-start p-0 has-[>svg]:px-0 text-muted-foreground hover:text-foreground'
 
@@ -118,6 +120,22 @@ export function SiteFooterView({
 
         <p className="text-xs leading-relaxed text-muted-foreground/70">
           {t('disclaimer', { brand: BRAND_NAME })}
+        </p>
+        {/* The scans and checklists come from this community, so the credit
+            sits on every page rather than on one a visitor may never open. */}
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground/70">
+          {t.rich('credits', {
+            link: (chunks) => (
+              <a
+                href={HPTCG_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-foreground"
+              >
+                {chunks}
+              </a>
+            ),
+          })}
         </p>
 
         <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

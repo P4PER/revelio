@@ -2,6 +2,7 @@ import type { NextConfig } from 'next'
 import createMDX from '@next/mdx'
 import createNextIntlPlugin from 'next-intl/plugin'
 import { resolve } from 'node:path'
+import { routing } from './i18n/routing'
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
 // No 'mdx' in pageExtensions on purpose: content lives in web/content/docs/,
@@ -51,6 +52,18 @@ const nextConfig: NextConfig = {
   typescript: { tsconfigPath: './tsconfig.typecheck.json' },
   // Our workspace packages ship raw TypeScript (main -> src/*.ts); Next must transpile them.
   transpilePackages: ['@revelio/core', '@revelio/search', '@revelio/db'],
+  // /about was indexed and linked before the page was removed. Redirects run
+  // ahead of proxy.ts, so every locale-prefixed path needs a rule of its own.
+  async redirects() {
+    return [
+      { source: '/about', destination: '/', permanent: true },
+      {
+        source: `/:locale(${routing.locales.join('|')})/about`,
+        destination: '/:locale',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 export default withNextIntl(withMDX(nextConfig))

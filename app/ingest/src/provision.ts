@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { access, readdir } from 'node:fs/promises'
+import { readdir, readFile, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { loadDist } from './load-dist.js'
@@ -20,10 +20,11 @@ type Dirs = { dataDir: string; assetsDir: string }
 
 const DEFAULT_CARD_DATA_DIR = '/app/card-data'
 
-async function exists(path: string): Promise<boolean> {
+// A file counts only when it has content: Pillow opens the target before encoding, so a
+// run killed mid-save leaves a 0-byte file that the scripts would then skip forever.
+async function nonEmpty(path: string): Promise<boolean> {
   try {
-    await access(path)
-    return true
+    return (await stat(path)).size > 0
   } catch {
     return false
   }
@@ -53,19 +54,38 @@ function spawnRunner(cardDataDir: string, dirs: Dirs): ScriptRunner {
     })
 }
 
+// Present means both files parse: the scripts write them non-atomically, so a killed run
+// can leave a truncated one, which must be rebuilt rather than fail every later run.
 async function dataPresent(dataDir: string): Promise<boolean> {
-  return (
-    (await exists(join(dataDir, 'cards.json'))) && (await exists(join(dataDir, 'sets.json')))
-  )
+  try {
+    await loadDist(dataDir)
+    return true
+  } catch {
+    return false
+  }
 }
 
-async function assetsComplete(dirs: Dirs): Promise<boolean> {
-  if (!(await hasFiles(join(dirs.assetsDir, 'symbols')))) return false
-  const { cards } = await loadDist(dirs.dataDir)
-  for (const c of cards) {
-    if (!(await exists(join(dirs.assetsDir, 'cards', `${c.id}.webp`)))) return false
+// image_overrides.json maps a card id to its accio filename; a null value declares the
+// image unavailable upstream, so the check below does not demand it.
+async function knownUnavailable(cardDataDir: string): Promise<Set<string>> {
+  try {
+    const raw = JSON.parse(await readFile(join(cardDataDir, 'image_overrides.json'), 'utf8'))
+    return new Set(Object.keys(raw).filter((k) => raw[k] === null))
+  } catch {
+    return new Set()
   }
-  return true
+}
+
+async function missingImages(dirs: Dirs, skip: Set<string>): Promise<string[]> {
+  const { cards } = await loadDist(dirs.dataDir)
+  const missing: string[] = []
+  for (const c of cards) {
+    if (skip.has(c.id)) continue
+    const full = join(dirs.assetsDir, 'cards', `${c.id}.webp`)
+    const thumb = join(dirs.assetsDir, 'cards', 'thumb', `${c.id}.webp`)
+    if (!(await nonEmpty(full)) || !(await nonEmpty(thumb))) missing.push(c.id)
+  }
+  return missing
 }
 
 export function readProvisionConfig(env: NodeJS.ProcessEnv): ProvisionConfig {
@@ -89,11 +109,26 @@ export async function provision(dirs: Dirs, config: ProvisionConfig): Promise<vo
 
   // A fresh data build leaves image.url unset until accio_images.py rewrites it, so the
   // assets script must follow a data build even when every image is already on disk.
-  const fetchAssets = buildData || config.force || !(await assetsComplete(dirs))
+  const skip = await knownUnavailable(config.cardDataDir)
+  const fetchAssets =
+    buildData ||
+    config.force ||
+    !(await hasFiles(join(dirs.assetsDir, 'symbols'))) ||
+    (await missingImages(dirs, skip)).length > 0
   if (fetchAssets) {
     console.log('provision: fetching images with accio_images.py')
     await run('accio_images.py', ['--download'])
-  } else if (!buildData) {
+    // The script exits 0 when single downloads fail, and ingest inserts image versions
+    // once (onConflictDoNothing), so a card loaded without its file never gets one.
+    const missing = await missingImages(dirs, skip)
+    if (missing.length > 0) {
+      const shown = missing.slice(0, 20).join(', ')
+      throw new Error(
+        `accio_images.py finished but ${missing.length} card image(s) are missing: ${shown}` +
+          ' (rerun to retry, or mark an unavailable one null in image_overrides.json)',
+      )
+    }
+  } else {
     console.log('provision: inputs present, nothing to do')
   }
 }

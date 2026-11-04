@@ -8,6 +8,7 @@ import {
   provision,
   readProvisionConfig,
   type ProvisionConfig,
+  type ScriptRunner,
 } from '../src/provision.js'
 
 const fixtureDir = resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures/dataset')
@@ -24,9 +25,7 @@ function config(over: Partial<ProvisionConfig> = {}): ProvisionConfig {
     enabled: true,
     force: false,
     cardDataDir: '/unused',
-    run: async (script, args) => {
-      calls.push([script, args])
-    },
+    run: workingRunner(),
     ...over,
   }
 }
@@ -43,10 +42,23 @@ async function allCardIds(): Promise<string[]> {
 }
 
 async function putImages(ids: string[]): Promise<void> {
-  await mkdir(join(assetsDir, 'cards'), { recursive: true })
+  await mkdir(join(assetsDir, 'cards', 'thumb'), { recursive: true })
   await mkdir(join(assetsDir, 'symbols'), { recursive: true })
-  for (const id of ids) await writeFile(join(assetsDir, 'cards', `${id}.webp`), 'x')
+  for (const id of ids) {
+    await writeFile(join(assetsDir, 'cards', `${id}.webp`), 'x')
+    await writeFile(join(assetsDir, 'cards', 'thumb', `${id}.webp`), 'x')
+  }
   await writeFile(join(assetsDir, 'symbols', 'BS.webp'), 'x')
+}
+
+// Behaves like the real scripts on success: build_dataset writes the data files and
+// accio_images writes every card image, so provision's post-check has something to read.
+function workingRunner(skipIds: string[] = []): ScriptRunner {
+  return async (script, args) => {
+    calls.push([script, args])
+    if (script === 'build_dataset.py') await putData()
+    else await putImages((await allCardIds()).filter((id) => !skipIds.includes(id)))
+  }
 }
 
 beforeEach(async () => {
@@ -98,6 +110,51 @@ describe('provision', () => {
     await putImages(await allCardIds())
     await provision({ dataDir, assetsDir }, config({ force: true }))
     expect(calls.map((c) => c[0])).toEqual(['build_dataset.py', 'accio_images.py'])
+  })
+
+  it('refetches when a thumbnail is missing or a file is empty', async () => {
+    await putData()
+    const ids = await allCardIds()
+    await putImages(ids)
+    await writeFile(join(assetsDir, 'cards', 'thumb', `${ids[0]}.webp`), '')
+    await provision({ dataDir, assetsDir }, config())
+    expect(calls.map((c) => c[0])).toEqual(['accio_images.py'])
+  })
+
+  it('rebuilds data that does not parse', async () => {
+    await mkdir(dataDir, { recursive: true })
+    await writeFile(join(dataDir, 'cards.json'), '[{"id":')
+    await writeFile(join(dataDir, 'sets.json'), '{}')
+    await putImages(await allCardIds())
+    await provision({ dataDir, assetsDir }, config())
+    expect(calls.map((c) => c[0])).toEqual(['build_dataset.py', 'accio_images.py'])
+  })
+
+  it('fails when the assets script leaves cards without images', async () => {
+    const ids = await allCardIds()
+    let caught: unknown
+    try {
+      await provision({ dataDir, assetsDir }, config({ run: workingRunner([ids[0]!]) }))
+    } catch (e) {
+      caught = e
+    }
+    expect(caught).toBeInstanceOf(Error)
+    expect((caught as Error).message).toContain('accio_images.py')
+    expect((caught as Error).message).toContain(ids[0])
+  })
+
+  it('accepts a card that image_overrides.json marks unavailable with null', async () => {
+    const ids = await allCardIds()
+    const cardDataDir = join(root, 'cd')
+    await mkdir(cardDataDir, { recursive: true })
+    await writeFile(join(cardDataDir, 'image_overrides.json'), JSON.stringify({ [ids[0]!]: null }))
+    await provision(
+      { dataDir, assetsDir },
+      config({ cardDataDir, run: workingRunner([ids[0]!]) }),
+    )
+    calls = []
+    await provision({ dataDir, assetsDir }, config({ cardDataDir }))
+    expect(calls).toEqual([])
   })
 
   it('rejects with the script name when a script fails', async () => {

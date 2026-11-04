@@ -23,7 +23,7 @@ from transform_hpjson import transform, SET_CODES, OFFICIAL, slug
 HERE = os.path.dirname(os.path.abspath(__file__))
 _OV_PATH = os.path.join(HERE, "card_overrides.json")
 CARD_OVERRIDES = json.load(open(_OV_PATH, encoding="utf-8")) if os.path.exists(_OV_PATH) else {}
-DIST = os.path.join(HERE, "dist")
+DIST = os.environ.get("DIST_DIR") or os.path.join(HERE, "dist")
 HPJSON_REPO = "https://github.com/P4PER/hpjson.git"
 TRANSLATIONS = os.path.join(HERE, "translations")
 

@@ -1,6 +1,7 @@
 import { createClient, runMigrations } from '@revelio/db'
 import { createMeiliClient } from '@revelio/search'
 import { loadDist } from './load-dist.js'
+import { provision, readProvisionConfig, type ProvisionConfig } from './provision.js'
 import { loadSets } from './load-sets.js'
 import { loadAttributes } from './load-attributes.js'
 import { loadCards } from './load-cards.js'
@@ -15,11 +16,15 @@ export async function runIngest(opts: {
   meiliHost?: string
   meiliKey?: string
   s3?: S3Config
+  // Omitted means no provisioning, so existing callers and tests are unchanged.
+  provision?: ProvisionConfig
 }): Promise<{ sets: number; cards: number }> {
   const { db, sql } = createClient(opts.databaseUrl)
   try {
     await runMigrations(db)
     const assetsDir = opts.assetsDir ?? '/assets'
+    // Before loadDist, so a failed script leaves Postgres untouched beyond migrations.
+    if (opts.provision) await provision({ dataDir: opts.dataDir, assetsDir }, opts.provision)
     const { sets, cards } = await loadDist(opts.dataDir)
     await loadSets(db, sets, assetsDir)
     await loadAttributes(db, cards)
@@ -61,7 +66,18 @@ if (isMain) {
     console.error('DATABASE_URL is required')
     process.exit(1)
   }
-  runIngest({ databaseUrl, dataDir, i18nDir, assetsDir, meiliHost, meiliKey, s3 })
+  const provisionConfig = readProvisionConfig(process.env)
+  if (provisionConfig.enabled) console.log('provisioning inputs (set PROVISION=false to skip)')
+  runIngest({
+    databaseUrl,
+    dataDir,
+    i18nDir,
+    assetsDir,
+    meiliHost,
+    meiliKey,
+    s3,
+    provision: provisionConfig,
+  })
     .then((r) => {
       const search = meiliHost ? ' + search indexed' : ''
       const images = s3 ? ' + images uploaded' : ''

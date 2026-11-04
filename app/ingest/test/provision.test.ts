@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { spawnSync } from 'node:child_process'
-import { copyFile, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -53,11 +53,14 @@ async function putImages(ids: string[]): Promise<void> {
 
 // Behaves like the real scripts on success: build_dataset writes the data files and
 // accio_images writes every card image, so provision's post-check has something to read.
-function workingRunner(skipIds: string[] = []): ScriptRunner {
+function workingRunner(skipIds: string[] = [], skipSymbols = false): ScriptRunner {
   return async (script, args) => {
     calls.push([script, args])
     if (script === 'build_dataset.py') await putData()
-    else await putImages((await allCardIds()).filter((id) => !skipIds.includes(id)))
+    else {
+      await putImages((await allCardIds()).filter((id) => !skipIds.includes(id)))
+      if (skipSymbols) await rm(join(assetsDir, 'symbols', 'BS.webp'))
+    }
   }
 }
 
@@ -143,18 +146,68 @@ describe('provision', () => {
     expect((caught as Error).message).toContain(ids[0])
   })
 
-  it('accepts a card that image_overrides.json marks unavailable with null', async () => {
-    const ids = await allCardIds()
+  it('does not demand an image for a card the script has no source for', async () => {
+    await putData()
+    const cards = JSON.parse(await readFile(join(dataDir, 'cards.json'), 'utf8'))
+    const ids = cards.map((c: { id: string }) => c.id)
+    cards[0].localizations.en.image = { file: null, url: null }
+    await writeFile(join(dataDir, 'cards.json'), JSON.stringify(cards))
+    await putImages(ids.slice(1))
+    await provision({ dataDir, assetsDir }, config())
+    expect(calls).toEqual([])
+  })
+
+  it('still demands an image for a card with an override', async () => {
+    await putData()
+    const cards = JSON.parse(await readFile(join(dataDir, 'cards.json'), 'utf8'))
+    cards[0].localizations.en.image = { file: null, url: null }
+    await writeFile(join(dataDir, 'cards.json'), JSON.stringify(cards))
     const cardDataDir = join(root, 'cd')
     await mkdir(cardDataDir, { recursive: true })
-    await writeFile(join(cardDataDir, 'image_overrides.json'), JSON.stringify({ [ids[0]!]: null }))
-    await provision(
-      { dataDir, assetsDir },
-      config({ cardDataDir, run: workingRunner([ids[0]!]) }),
+    await writeFile(
+      join(cardDataDir, 'image_overrides.json'),
+      JSON.stringify({ [cards[0].id]: 'Fixed.png' }),
     )
-    calls = []
+    await putImages(cards.slice(1).map((c: { id: string }) => c.id))
     await provision({ dataDir, assetsDir }, config({ cardDataDir }))
-    expect(calls).toEqual([])
+    expect(calls.map((c) => c[0])).toEqual(['accio_images.py'])
+  })
+
+  it('refetches when a set symbol is missing', async () => {
+    await putData()
+    await putImages(await allCardIds())
+    await rm(join(assetsDir, 'symbols', 'BS.webp'))
+    await writeFile(join(assetsDir, 'symbols', 'other.webp'), 'x')
+    await provision({ dataDir, assetsDir }, config())
+    expect(calls.map((c) => c[0])).toEqual(['accio_images.py'])
+  })
+
+  it('refetches when a set symbol is empty', async () => {
+    await putData()
+    await putImages(await allCardIds())
+    await writeFile(join(assetsDir, 'symbols', 'BS.webp'), '')
+    await provision({ dataDir, assetsDir }, config())
+    expect(calls.map((c) => c[0])).toEqual(['accio_images.py'])
+  })
+
+  it('fails when the assets script leaves a set symbol missing', async () => {
+    let caught: unknown
+    try {
+      await provision({ dataDir, assetsDir }, config({ run: workingRunner([], true) }))
+    } catch (e) {
+      caught = e
+    }
+    expect(caught).toBeInstanceOf(Error)
+    expect((caught as Error).message).toContain('symbol BS')
+  })
+
+  it('clones into a fresh scratch directory each run', async () => {
+    await provision({ dataDir, assetsDir }, config({ force: true }))
+    await provision({ dataDir, assetsDir }, config({ force: true }))
+    const paths = calls.filter((c) => c[0] === 'build_dataset.py').map((c) => c[1][0]!)
+    expect(paths).toHaveLength(2)
+    expect(paths[0]).not.toBe(paths[1])
+    expect(paths[0]).toContain('hpjson-')
   })
 
   it('rejects with the script name when a script fails', async () => {
@@ -202,5 +255,23 @@ describe('default runner', () => {
     expect(caught).toBeInstanceOf(Error)
     expect((caught as Error).message).toContain('build_dataset.py')
     expect((caught as Error).message).toContain('3')
+  })
+
+  it.skipIf(!hasPython)('kills a script that outlives the timeout', async () => {
+    const cardDataDir = join(root, 'cd')
+    await mkdir(cardDataDir, { recursive: true })
+    await writeFile(join(cardDataDir, 'build_dataset.py'), 'import time\ntime.sleep(30)\n')
+    const cfg: ProvisionConfig = { enabled: true, force: false, cardDataDir, timeoutMs: 300 }
+    let caught: unknown
+    const started = Date.now()
+    try {
+      await provision({ dataDir, assetsDir }, cfg)
+    } catch (e) {
+      caught = e
+    }
+    expect(Date.now() - started).toBeLessThan(10_000)
+    expect(caught).toBeInstanceOf(Error)
+    expect((caught as Error).message).toContain('build_dataset.py')
+    expect((caught as Error).message).toContain('timed out')
   })
 })

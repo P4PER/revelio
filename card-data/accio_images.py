@@ -61,6 +61,11 @@ def link_mode(cards):
             n += 1
     return n
 
+def _has(path):
+    """True if the file exists and has content. A run killed mid-save leaves a 0-byte file,
+    which must be fetched again rather than skipped for ever."""
+    return os.path.exists(path) and os.path.getsize(path) > 0
+
 def load_overrides():
     """Optional id -> correct accio filename, for typos/mismatches in the source data."""
     p = os.path.join(HERE, "image_overrides.json")
@@ -85,7 +90,7 @@ def _process_one(c, overrides, Image):
         thumb_path = None
         url = f"/assets/cards/{c['id']}{ext}"
     c["localizations"]["en"]["image"]["url"] = url
-    if os.path.exists(full_path) and (thumb_path is None or os.path.exists(thumb_path)):
+    if _has(full_path) and (thumb_path is None or _has(thumb_path)):
         return ("exists", c["id"], None)
     last_err = None
     for base in BASES:
@@ -172,12 +177,12 @@ def download_symbols():
         # Already downloaded: reuse it without a request, so a re-run leaves every file
         # (and its mtime, which stamps the S3 image key) untouched.
         existing = None
-        if os.path.exists(os.path.join(out_dir, f"{code}.webp")):
+        if _has(os.path.join(out_dir, f"{code}.webp")):
             existing = f"{code}.webp"
         else:
             ext = os.path.splitext(url)[1].lower() or ".png"
             ext = ".png" if ext == ".svg" else ext   # an SVG source is saved rasterized
-            if os.path.exists(os.path.join(out_dir, f"{code}{ext}")):
+            if _has(os.path.join(out_dir, f"{code}{ext}")):
                 existing = f"{code}{ext}"
         if existing:
             s["symbol"] = f"/assets/symbols/{existing}"
@@ -242,7 +247,7 @@ def generate_art_crops(cards):
         dst = os.path.join(out_dir, f"{c['id']}.webp")
         if not os.path.exists(src):
             continue
-        if os.path.exists(dst):
+        if _has(dst):
             skipped += 1
             continue
         crop_art(Image.open(src)).save(dst, "WEBP", quality=WEBP_THUMB_Q, method=WEBP_METHOD)
@@ -269,7 +274,7 @@ def generate_landscape_thumbs(cards):
         dst = os.path.join(out_dir, f"{c['id']}.webp")
         if not os.path.exists(src):
             continue
-        if os.path.exists(dst) and os.path.getmtime(dst) >= os.path.getmtime(src):
+        if _has(dst) and os.path.getmtime(dst) >= os.path.getmtime(src):
             skipped += 1
             continue
         Image.open(src).transpose(Image.ROTATE_270).save(dst, "WEBP", quality=WEBP_THUMB_Q, method=WEBP_METHOD)

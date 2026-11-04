@@ -30,10 +30,10 @@ RUN env -i node ingest/dist/ingest.mjs  2>&1 | grep -q 'DATABASE_URL is required
 FROM node:22-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
-# python3 + Pillow (WebP) + git run build_dataset.py / accio_images.py when /data or
-# /assets are empty (see src/provision.ts). git clones hpjson; ca-certificates is for
+# python3 + Pillow (WebP) + cairosvg (the QWF symbol is an SVG) + git run build_dataset.py
+# and accio_images.py when /data or /assets are empty (see src/provision.ts). git clones hpjson; ca-certificates is for
 # https to github.com and accio.cards.
-RUN apk add --no-cache python3 py3-pillow git ca-certificates
+RUN apk add --no-cache python3 py3-pillow py3-cairosvg git ca-certificates
 COPY --from=build /app/ingest/dist/ingest.mjs ./ingest.mjs
 COPY --from=build /app/ingest/dist/migrate.mjs ./migrate.mjs
 # drizzle's migrator reads these at runtime, so they are data, not code, and cannot be
@@ -53,6 +53,7 @@ ENV CARD_DATA_DIR=/app/card-data
 
 # Fail the build, not the first deploy, if WebP support or a script import is missing.
 RUN python3 -c "from PIL import features; assert features.check('webp')"
+RUN python3 -c "import cairosvg"
 RUN cd /app/card-data && python3 -c "import accio_images, build_dataset" && rm -rf __pycache__
 
 ENV DATA_DIR=/data

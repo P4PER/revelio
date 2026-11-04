@@ -176,6 +176,7 @@ def download_symbols():
             existing = f"{code}.webp"
         else:
             ext = os.path.splitext(url)[1].lower() or ".png"
+            ext = ".png" if ext == ".svg" else ext   # an SVG source is saved rasterized
             if os.path.exists(os.path.join(out_dir, f"{code}{ext}")):
                 existing = f"{code}{ext}"
         if existing:
@@ -185,6 +186,12 @@ def download_symbols():
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "revelio.cards/0.1"})
             raw = urllib.request.urlopen(req, timeout=30).read()
+            if url.lower().endswith(".svg"):
+                # Pillow cannot read SVG: rasterize to a transparent PNG first. 256px is
+                # well above the largest place a symbol is drawn.
+                import cairosvg
+                raw = cairosvg.svg2png(bytestring=raw, output_height=256)
+                url = url[:-4] + ".png"
             if Image is not None:
                 sym = Image.open(io.BytesIO(raw))
                 sym = sym.convert("RGBA" if ("A" in sym.getbands() or sym.mode in ("P", "LA")) else "RGB")

@@ -124,4 +124,8 @@ the source files are saved as-is.
 - `image_overrides.json` maps ids to the correct accio filename where the source data
   has typos/name mismatches.
 - `--link` mode instead sets `image.url` to the remote accio URL (no download).
+- `DIST_DIR` and `ASSETS_DIR` relocate the output (they default to `dist/` and `assets/`
+  next to the scripts). The ingest image runs `build_dataset.py` and
+  `accio_images.py --download` itself against empty `/data` and `/assets` volumes, so a
+  deployment needs no manual file upload; a re-run skips symbols and cards already on disk.
 - Coverage: 1,098/1,098 card images, 14/14 set symbols (WebP lossless; PROMO has none).

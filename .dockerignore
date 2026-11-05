@@ -1,0 +1,14 @@
+**/node_modules
+**/.next
+**/dist
+**/test-results
+**/*.tsbuildinfo
+**/coverage
+.git
+**/.env
+**/.env.*
+!**/.env.example
+**/.DS_Store
+card-data/assets
+card-data/hpjson
+**/__pycache__

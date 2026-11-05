@@ -24,8 +24,8 @@ import json, os, sys
 from build_dataset import SYMBOLS   # single accio-based set-symbol map (full URLs)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DIST = os.path.join(HERE, "dist")
-ASSETS = os.path.join(HERE, "assets")
+DIST = os.environ.get("DIST_DIR") or os.path.join(HERE, "dist")
+ASSETS = os.environ.get("ASSETS_DIR") or os.path.join(HERE, "assets")
 BASE = "https://accio.cards/cardimages/"    # primary; accio splits art across two folders
 BASES = ["https://accio.cards/cardimages/", "https://accio.cards/cardimages2/", "https://accio.cards/cardimages3/"]
 DOWNLOAD = "--download" in sys.argv
@@ -61,6 +61,11 @@ def link_mode(cards):
             n += 1
     return n
 
+def _has(path):
+    """True if the file exists and has content. A run killed mid-save leaves a 0-byte file,
+    which must be fetched again rather than skipped for ever."""
+    return os.path.exists(path) and os.path.getsize(path) > 0
+
 def load_overrides():
     """Optional id -> correct accio filename, for typos/mismatches in the source data."""
     p = os.path.join(HERE, "image_overrides.json")
@@ -85,7 +90,7 @@ def _process_one(c, overrides, Image):
         thumb_path = None
         url = f"/assets/cards/{c['id']}{ext}"
     c["localizations"]["en"]["image"]["url"] = url
-    if os.path.exists(full_path) and (thumb_path is None or os.path.exists(thumb_path)):
+    if _has(full_path) and (thumb_path is None or _has(thumb_path)):
         return ("exists", c["id"], None)
     last_err = None
     for base in BASES:
@@ -164,14 +169,34 @@ def download_symbols():
     sets = json.load(open(sets_path, encoding="utf-8"))
     out_dir = os.path.join(ASSETS, "symbols")
     os.makedirs(out_dir, exist_ok=True)
-    n = failed = 0
+    n = skipped = failed = 0
     for code, s in sets.items():
         url = SYMBOLS.get(code)
         if not url:
             continue
+        # Already downloaded: reuse it without a request, so a re-run leaves every file
+        # (and its mtime, which stamps the S3 image key) untouched.
+        existing = None
+        if _has(os.path.join(out_dir, f"{code}.webp")):
+            existing = f"{code}.webp"
+        else:
+            ext = os.path.splitext(url)[1].lower() or ".png"
+            ext = ".png" if ext == ".svg" else ext   # an SVG source is saved rasterized
+            if _has(os.path.join(out_dir, f"{code}{ext}")):
+                existing = f"{code}{ext}"
+        if existing:
+            s["symbol"] = f"/assets/symbols/{existing}"
+            skipped += 1
+            continue
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "revelio.cards/0.1"})
             raw = urllib.request.urlopen(req, timeout=30).read()
+            if url.lower().endswith(".svg"):
+                # Pillow cannot read SVG: rasterize to a transparent PNG first. 256px is
+                # well above the largest place a symbol is drawn.
+                import cairosvg
+                raw = cairosvg.svg2png(bytestring=raw, output_height=256)
+                url = url[:-4] + ".png"
             if Image is not None:
                 sym = Image.open(io.BytesIO(raw))
                 sym = sym.convert("RGBA" if ("A" in sym.getbands() or sym.mode in ("P", "LA")) else "RGB")
@@ -187,7 +212,7 @@ def download_symbols():
             print(f"  ! symbol {code}: {e}")
             failed += 1
     json.dump(sets, open(sets_path, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
-    print(f"  symbols: saved {n}, failed {failed}")
+    print(f"  symbols: saved {n}, skipped {skipped}, failed {failed}")
 
 def is_wizard_witch(c):
     """True for Character cards whose subtypes include Wizard or Witch."""
@@ -222,7 +247,7 @@ def generate_art_crops(cards):
         dst = os.path.join(out_dir, f"{c['id']}.webp")
         if not os.path.exists(src):
             continue
-        if os.path.exists(dst):
+        if _has(dst):
             skipped += 1
             continue
         crop_art(Image.open(src)).save(dst, "WEBP", quality=WEBP_THUMB_Q, method=WEBP_METHOD)
@@ -249,7 +274,7 @@ def generate_landscape_thumbs(cards):
         dst = os.path.join(out_dir, f"{c['id']}.webp")
         if not os.path.exists(src):
             continue
-        if os.path.exists(dst) and os.path.getmtime(dst) >= os.path.getmtime(src):
+        if _has(dst) and os.path.getmtime(dst) >= os.path.getmtime(src):
             skipped += 1
             continue
         Image.open(src).transpose(Image.ROTATE_270).save(dst, "WEBP", quality=WEBP_THUMB_Q, method=WEBP_METHOD)

@@ -23,13 +23,14 @@ from transform_hpjson import transform, SET_CODES, OFFICIAL, slug
 HERE = os.path.dirname(os.path.abspath(__file__))
 _OV_PATH = os.path.join(HERE, "card_overrides.json")
 CARD_OVERRIDES = json.load(open(_OV_PATH, encoding="utf-8")) if os.path.exists(_OV_PATH) else {}
-DIST = os.path.join(HERE, "dist")
+DIST = os.environ.get("DIST_DIR") or os.path.join(HERE, "dist")
 HPJSON_REPO = "https://github.com/P4PER/hpjson.git"
 TRANSLATIONS = os.path.join(HERE, "translations")
 
 # Set symbols, mostly from accio.cards (same source as the card art). accio's filenames
-# are `logo<CODE>.png` except EOTP (lowercase). accio only serves HAH and QWF as SVG, so
-# those two keep the Revival raster source — everything ends up as a WebP raster. Full
+# are `logo<CODE>.png` except EOTP (lowercase). accio only serves HAH and QWF as SVG: HAH
+# keeps the Revival raster source, QWF's raster there is gone so its SVG is rasterized by
+# accio_images.py (needs cairosvg) — everything ends up as a WebP raster. Full
 # URLs so link mode (dist/sets.json) and download mode (accio_images.py) share one map.
 # PROMO has no symbol. names/dates are derived from the source data.
 _ACCIO_SYM = "https://accio.cards/Images/Icons/Set%20Symbols/"
@@ -41,8 +42,9 @@ SYMBOLS = {
     "HOS": _ACCIO_SYM + "logoHOS.png", "SOH": _ACCIO_SYM + "logoSOH.png",
     "GOF": _ACCIO_SYM + "logoGOF.png", "LM1": _ACCIO_SYM + "logoLM1.png",
     "TT": _ACCIO_SYM + "logoTT.png", "EOTP": _ACCIO_SYM + "logoeotp.png",
-    # accio has these two as SVG only; use the Revival raster source instead.
-    "HAH": _REVIVAL_SYM + "hah.png", "QWF": _REVIVAL_SYM + "logoQWF.png",
+    # accio has these two as SVG only. HAH uses the Revival raster source; Revival's
+    # logoQWF.png now answers 404, so QWF uses accio's SVG (rasterized on download).
+    "HAH": _REVIVAL_SYM + "hah.png", "QWF": _ACCIO_SYM + "logoQWF.svg",
 }
 OFFICIAL_CODES = {SET_CODES[n] for n in OFFICIAL}
 

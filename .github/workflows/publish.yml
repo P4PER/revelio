@@ -46,6 +46,7 @@ jobs:
             ingest:
               - *shared
               - 'app/ingest/**'
+              - 'card-data/**'
             bot:
               - *shared
               - 'app/bot/**'
@@ -137,7 +138,7 @@ jobs:
 
       - uses: docker/build-push-action@v6
         with:
-          context: app
+          context: .
           file: app/ingest/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
